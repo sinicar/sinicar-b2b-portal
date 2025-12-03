@@ -189,7 +189,14 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                     badge={user.hasUnreadOrders ? true : undefined} 
                 />
                 
-                <SidebarItem icon={<Search size={20} />} label={tDynamic('sidebar.quotes', 'طلبات التسعير')} active={view === 'QUOTE_REQUEST'} onClick={() => onViewChange('QUOTE_REQUEST')} />
+                {/* Quotes Item: Checks for hasUnreadQuotes flag */}
+                <SidebarItem 
+                    icon={<Search size={20} />} 
+                    label={tDynamic('sidebar.quotes', 'طلبات التسعير')} 
+                    active={view === 'QUOTE_REQUEST'} 
+                    onClick={() => onViewChange('QUOTE_REQUEST')} 
+                    badge={user.hasUnreadQuotes ? true : undefined}
+                />
                 <SidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => onViewChange('IMPORT_CHINA')} />
                 <SidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => onViewChange('HISTORY')} />
                 
@@ -316,6 +323,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Handle View Change Logic - Wrapped in Callback
     const handleSetView = useCallback(async (newView: typeof view) => {
         setView(newView);
+        
+        // Mark orders as read when viewing ORDERS
         if (newView === 'ORDERS' && user.hasUnreadOrders) {
              try {
                  await MockApi.markOrdersAsReadForUser(user.id);
@@ -324,7 +333,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                  console.error("Failed to mark orders as read", e);
              }
         }
-    }, [user.hasUnreadOrders, user.id, onRefreshUser]);
+        
+        // Mark quotes as read when viewing QUOTE_REQUEST
+        if (newView === 'QUOTE_REQUEST' && user.hasUnreadQuotes) {
+            try {
+                await MockApi.markQuotesAsReadForUser(user.id);
+                onRefreshUser(); // Updates the user prop in App.tsx -> Dashboard
+            } catch (e) {
+                console.error("Failed to mark quotes as read", e);
+            }
+        }
+    }, [user.hasUnreadOrders, user.hasUnreadQuotes, user.id, onRefreshUser]);
 
     // Track if we've already recorded a missing part for the current search
     const [missingRecorded, setMissingRecorded] = useState<string | null>(null);

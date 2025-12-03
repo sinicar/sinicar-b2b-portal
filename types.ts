@@ -153,6 +153,8 @@ export interface User {
   // Notifications & Badges (New)
   hasUnreadOrders?: boolean; // يظهر شارة حمراء على سجل الطلبات
   lastOrdersViewedAt?: string;
+  hasUnreadQuotes?: boolean; // يظهر شارة حمراء على طلبات التسعير
+  lastQuotesViewedAt?: string;
 
   // API Integration Preparation Fields (New)
   priceLevel?: string; // مستوى التسعير (A, B, C) - Legacy string, consider migrating to PriceLevel type

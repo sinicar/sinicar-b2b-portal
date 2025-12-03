@@ -689,6 +689,18 @@ export const MockApi = {
       localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(updated));
   },
 
+  async clearNotificationsForUser(userId: string): Promise<void> {
+      const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
+      const filtered = all.filter((n: Notification) => n.userId !== userId);
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(filtered));
+  },
+
+  async deleteNotification(userId: string, notificationId: string): Promise<void> {
+      const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
+      const filtered = all.filter((n: Notification) => !(n.id === notificationId && n.userId === userId));
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(filtered));
+  },
+
   async createNotification(notifData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Promise<Notification> {
       return internalCreateNotification(notifData.userId, notifData.type, notifData.title, notifData.message);
   },
@@ -701,6 +713,19 @@ export const MockApi = {
           if (user.hasUnreadOrders) {
               user.hasUnreadOrders = false;
               user.lastOrdersViewedAt = new Date().toISOString();
+              updateLocalUser(user);
+          }
+      }
+  },
+
+  async markQuotesAsReadForUser(userId: string): Promise<void> {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const idx = users.findIndex((u: User) => u.id === userId);
+      if (idx !== -1) {
+          const user = users[idx];
+          if (user.hasUnreadQuotes) {
+              user.hasUnreadQuotes = false;
+              user.lastQuotesViewedAt = new Date().toISOString();
               updateLocalUser(user);
           }
       }
@@ -1775,6 +1800,15 @@ export const MockApi = {
           'تمت مراجعة طلب التسعير',
           `تم الانتهاء من مراجعة طلب التسعير رقم ${quote.id}. يمكنك الآن الاطلاع على النتائج.`
       );
+
+      // Mark quote as unread for the user (badge notification)
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const userIdx = users.findIndex((u:User) => u.id === quote.userId);
+      if (userIdx !== -1) {
+          const u = users[userIdx];
+          u.hasUnreadQuotes = true;
+          updateLocalUser(u);
+      }
 
       // Log Activity
       internalRecordActivity({

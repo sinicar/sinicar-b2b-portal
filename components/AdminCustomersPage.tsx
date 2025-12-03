@@ -298,13 +298,60 @@ export const AdminCustomersPage: React.FC = () => {
     );
 };
 
-import { Users, FileSpreadsheet, LockKeyhole, MessageSquare } from 'lucide-react';
+import { Users, FileSpreadsheet, LockKeyhole, MessageSquare, Package, ClipboardList, ExternalLink, DollarSign, Calendar } from 'lucide-react';
+import { Order, QuoteRequest, OrderStatus } from '../types';
 
 interface DetailPanelProps {
     customer: BusinessProfile;
     onClose: () => void;
     onUpdate: () => void;
 }
+
+// Order Status Badge Helper
+const OrderStatusBadge = ({ status }: { status: string }) => {
+    const styles: Record<string, string> = {
+        'PENDING': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        'APPROVED': 'bg-blue-100 text-blue-700 border-blue-200',
+        'SHIPPED': 'bg-purple-100 text-purple-700 border-purple-200',
+        'DELIVERED': 'bg-green-100 text-green-700 border-green-200',
+        'CANCELLED': 'bg-red-100 text-red-700 border-red-200'
+    };
+    const labels: Record<string, string> = {
+        'PENDING': 'قيد الانتظار',
+        'APPROVED': 'معتمد',
+        'SHIPPED': 'تم الشحن',
+        'DELIVERED': 'تم التسليم',
+        'CANCELLED': 'ملغي'
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${styles[status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+            {labels[status] || status}
+        </span>
+    );
+};
+
+// Quote Status Badge Helper  
+const QuoteStatusBadge = ({ status }: { status: string }) => {
+    const styles: Record<string, string> = {
+        'NEW': 'bg-blue-100 text-blue-700 border-blue-200',
+        'UNDER_REVIEW': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        'APPROVED': 'bg-green-100 text-green-700 border-green-200',
+        'PARTIALLY_APPROVED': 'bg-orange-100 text-orange-700 border-orange-200',
+        'REJECTED': 'bg-red-100 text-red-700 border-red-200'
+    };
+    const labels: Record<string, string> = {
+        'NEW': 'جديد',
+        'UNDER_REVIEW': 'قيد المراجعة',
+        'APPROVED': 'معتمد',
+        'PARTIALLY_APPROVED': 'معتمد جزئياً',
+        'REJECTED': 'مرفوض'
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${styles[status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+            {labels[status] || status}
+        </span>
+    );
+};
 
 const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, onUpdate }) => {
     const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ORDERS' | 'QUOTES' | 'STAFF' | 'SECURITY' | 'NOTES'>('OVERVIEW');
@@ -315,12 +362,16 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
     const [suspendedUntil, setSuspendedUntil] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Sub-data states (loaded on demand or passed via props if available, here we mock fetch)
+    // Sub-data states (loaded on demand)
     const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
     const [staff, setStaff] = useState<User[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
+    const [loadingOrders, setLoadingOrders] = useState(false);
+    const [loadingQuotes, setLoadingQuotes] = useState(false);
     
     useEffect(() => {
-        // Load Logs & Staff
+        // Load Logs & Staff immediately
         const loadSubData = async () => {
             const logs = await MockApi.getCustomerActivityLogs(customer.userId);
             setActivityLogs(logs);
@@ -329,6 +380,34 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
         };
         loadSubData();
     }, [customer.userId]);
+
+    // Load orders on-demand when tab is clicked
+    useEffect(() => {
+        if (activeTab === 'ORDERS' && orders.length === 0 && !loadingOrders) {
+            setLoadingOrders(true);
+            MockApi.getAllOrders().then(allOrders => {
+                // Filter orders by userId or businessId matching the customer
+                const customerOrders = allOrders.filter(o => 
+                    o.userId === customer.userId || o.businessId === customer.userId
+                );
+                setOrders(customerOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setLoadingOrders(false);
+            });
+        }
+    }, [activeTab, customer.userId, orders.length, loadingOrders]);
+
+    // Load quotes on-demand when tab is clicked
+    useEffect(() => {
+        if (activeTab === 'QUOTES' && quotes.length === 0 && !loadingQuotes) {
+            setLoadingQuotes(true);
+            MockApi.getAllQuoteRequests().then(allQuotes => {
+                // Filter quotes by userId matching the customer
+                const customerQuotes = allQuotes.filter(q => q.userId === customer.userId);
+                setQuotes(customerQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setLoadingQuotes(false);
+            });
+        }
+    }, [activeTab, customer.userId, quotes.length, loadingQuotes]);
 
     const handleSaveStatus = async () => {
         setIsSaving(true);
@@ -619,11 +698,154 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                         </div>
                     )}
 
-                    {/* Placeholder for other tabs */}
-                    {(activeTab === 'ORDERS' || activeTab === 'QUOTES') && (
-                        <div className="text-center py-20 text-slate-400">
-                            <Database size={40} className="mx-auto mb-4 opacity-20"/>
-                            <p>جاري بناء جدول البيانات...</p>
+                    {/* Orders Tab */}
+                    {activeTab === 'ORDERS' && (
+                        <div className="animate-fade-in space-y-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <Package size={18} className="text-blue-500"/> طلبات العميل ({orders.length})
+                                </h3>
+                                <div className="flex gap-2 text-xs">
+                                    <span className="bg-green-50 text-green-700 px-2 py-1 rounded-lg font-bold">
+                                        المكتملة: {orders.filter(o => o.status === 'DELIVERED').length}
+                                    </span>
+                                    <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded-lg font-bold">
+                                        الجارية: {orders.filter(o => ['PENDING', 'APPROVED', 'SHIPPED'].includes(o.status as string)).length}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {loadingOrders ? (
+                                <div className="text-center py-12 text-slate-400">
+                                    <RefreshCcw size={24} className="mx-auto mb-3 animate-spin opacity-50"/>
+                                    <p className="text-sm">جاري تحميل الطلبات...</p>
+                                </div>
+                            ) : orders.length === 0 ? (
+                                <div className="text-center py-12 text-slate-400">
+                                    <Package size={40} className="mx-auto mb-4 opacity-20"/>
+                                    <p className="text-sm">لا توجد طلبات لهذا العميل</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {orders.slice(0, 10).map(order => (
+                                        <div key={order.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                                                        <Package size={20}/>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-800 text-sm">#{order.id}</p>
+                                                        <p className="text-xs text-slate-500">{order.createdByName || 'غير محدد'}</p>
+                                                    </div>
+                                                </div>
+                                                <OrderStatusBadge status={order.status as string}/>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4 text-xs">
+                                                <div className="bg-slate-50 p-2 rounded-lg">
+                                                    <p className="text-slate-400 mb-0.5">المنتجات</p>
+                                                    <p className="font-bold text-slate-700">{order.items.length} صنف</p>
+                                                </div>
+                                                <div className="bg-slate-50 p-2 rounded-lg">
+                                                    <p className="text-slate-400 mb-0.5">الإجمالي</p>
+                                                    <p className="font-bold text-green-700">{order.totalAmount.toLocaleString()} ر.س</p>
+                                                </div>
+                                                <div className="bg-slate-50 p-2 rounded-lg">
+                                                    <p className="text-slate-400 mb-0.5">التاريخ</p>
+                                                    <p className="font-bold text-slate-700 font-mono" dir="ltr">{formatDate(order.date)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {orders.length > 10 && (
+                                        <p className="text-center text-slate-400 text-xs py-2">
+                                            عرض 10 من {orders.length} طلب
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Quotes Tab */}
+                    {activeTab === 'QUOTES' && (
+                        <div className="animate-fade-in space-y-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <ClipboardList size={18} className="text-purple-500"/> طلبات التسعير ({quotes.length})
+                                </h3>
+                                <div className="flex gap-2 text-xs">
+                                    <span className="bg-green-50 text-green-700 px-2 py-1 rounded-lg font-bold">
+                                        المعتمدة: {quotes.filter(q => q.status === 'APPROVED').length}
+                                    </span>
+                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-bold">
+                                        الجديدة: {quotes.filter(q => q.status === 'NEW').length}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {loadingQuotes ? (
+                                <div className="text-center py-12 text-slate-400">
+                                    <RefreshCcw size={24} className="mx-auto mb-3 animate-spin opacity-50"/>
+                                    <p className="text-sm">جاري تحميل طلبات التسعير...</p>
+                                </div>
+                            ) : quotes.length === 0 ? (
+                                <div className="text-center py-12 text-slate-400">
+                                    <ClipboardList size={40} className="mx-auto mb-4 opacity-20"/>
+                                    <p className="text-sm">لا توجد طلبات تسعير لهذا العميل</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {quotes.slice(0, 10).map(quote => (
+                                        <div key={quote.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600">
+                                                        <ClipboardList size={20}/>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-800 text-sm">#{quote.id}</p>
+                                                        <p className="text-xs text-slate-500">{quote.priceType || 'غير محدد'}</p>
+                                                    </div>
+                                                </div>
+                                                <QuoteStatusBadge status={quote.status}/>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4 text-xs">
+                                                <div className="bg-slate-50 p-2 rounded-lg">
+                                                    <p className="text-slate-400 mb-0.5">الأصناف</p>
+                                                    <p className="font-bold text-slate-700">{quote.items.length} صنف</p>
+                                                </div>
+                                                <div className="bg-slate-50 p-2 rounded-lg">
+                                                    <p className="text-slate-400 mb-0.5">الإجمالي</p>
+                                                    <p className="font-bold text-green-700">
+                                                        {quote.totalQuotedAmount ? `${quote.totalQuotedAmount.toLocaleString()} ر.س` : 'قيد التسعير'}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-slate-50 p-2 rounded-lg">
+                                                    <p className="text-slate-400 mb-0.5">التاريخ</p>
+                                                    <p className="font-bold text-slate-700 font-mono" dir="ltr">{formatDate(quote.date)}</p>
+                                                </div>
+                                            </div>
+                                            {quote.resultReady && (
+                                                <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+                                                    <div className="flex gap-2 text-[10px]">
+                                                        <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">معتمد: {quote.approvedItemsCount || 0}</span>
+                                                        <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded">ناقص: {quote.missingItemsCount || 0}</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-400">
+                                                        بواسطة: {quote.adminReviewedBy || 'غير محدد'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {quotes.length > 10 && (
+                                        <p className="text-center text-slate-400 text-xs py-2">
+                                            عرض 10 من {quotes.length} طلب تسعير
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 

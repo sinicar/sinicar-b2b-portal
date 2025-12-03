@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, CheckCircle2, Clock, Trash2, X } from 'lucide-react';
+import { Bell, Check, CheckCircle2, Clock, Trash2, X, Package, FileSpreadsheet, Search, AlertTriangle, Key, Info, Settings } from 'lucide-react';
 import { Notification, User } from '../types';
 import { MockApi } from '../services/mockApi';
 import { formatDateTime } from '../utils/dateUtils';
@@ -63,15 +63,81 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
         }
     };
 
+    const handleClearAll = async () => {
+        try {
+            await MockApi.clearNotificationsForUser(user.id);
+            setNotifications([]);
+            setUnreadCount(0);
+            addToast('تم حذف جميع التنبيهات', 'success');
+        } catch (e) {
+            console.error("Failed to clear notifications", e);
+            addToast('حدث خطأ في حذف التنبيهات', 'error');
+        }
+    };
+
+    const handleDeleteOne = async (notifId: string) => {
+        try {
+            await MockApi.deleteNotification(user.id, notifId);
+            setNotifications(prev => prev.filter(n => n.id !== notifId));
+            addToast('تم حذف التنبيه', 'success');
+        } catch (e) {
+            console.error("Failed to delete notification", e);
+        }
+    };
+
     const getIcon = (type: string) => {
         switch (type) {
             case 'ORDER_STATUS_CHANGED':
-                return <CheckCircle2 size={16} className="text-blue-500" />;
+                return <Package size={16} className="text-blue-500" />;
             case 'SEARCH_POINTS_ADDED':
-                return <CheckCircle2 size={16} className="text-green-500" />;
+                return <Search size={16} className="text-green-500" />;
+            case 'QUOTE_PROCESSED':
+                return <FileSpreadsheet size={16} className="text-purple-500" />;
+            case 'SYSTEM':
+                return <Key size={16} className="text-amber-500" />;
+            case 'ACCOUNT_UPDATE':
+                return <Settings size={16} className="text-slate-500" />;
+            case 'IMPORT_UPDATE':
+                return <Package size={16} className="text-orange-500" />;
+            case 'GENERAL':
+                return <Info size={16} className="text-blue-400" />;
             default:
-                return <CheckCircle2 size={16} className="text-slate-400" />;
+                return <Bell size={16} className="text-slate-400" />;
         }
+    };
+
+    const getIconBg = (type: string) => {
+        switch (type) {
+            case 'ORDER_STATUS_CHANGED':
+                return 'bg-blue-50 border-blue-100';
+            case 'SEARCH_POINTS_ADDED':
+                return 'bg-green-50 border-green-100';
+            case 'QUOTE_PROCESSED':
+                return 'bg-purple-50 border-purple-100';
+            case 'SYSTEM':
+                return 'bg-amber-50 border-amber-100';
+            case 'ACCOUNT_UPDATE':
+                return 'bg-slate-50 border-slate-200';
+            case 'IMPORT_UPDATE':
+                return 'bg-orange-50 border-orange-100';
+            default:
+                return 'bg-white border-slate-100';
+        }
+    };
+
+    const formatRelativeTime = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 1) return 'الآن';
+        if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+        if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+        if (diffDays < 7) return `منذ ${diffDays} يوم`;
+        return formatDateTime(dateStr).split('-')[1];
     };
 
     return (
@@ -80,49 +146,101 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
                 onClick={handleOpen}
                 className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"
                 title="التنبيهات"
+                data-testid="button-notifications"
             >
                 <Bell size={24} />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                    <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 mt-3 w-80 md:w-96 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-fade-in-up origin-top-left">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                        <h3 className="font-bold text-slate-800 text-sm">التنبيهات</h3>
-                        <span className="text-xs text-slate-500">{notifications.length} تنبيه</span>
+                <div className="absolute left-0 mt-3 w-80 md:w-[400px] bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-fade-in-up origin-top-left">
+                    {/* Header */}
+                    <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Bell size={18} className="text-brand-600" />
+                            <h3 className="font-bold text-slate-800 text-sm">مركز التنبيهات</h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {notifications.length > 0 && (
+                                <button 
+                                    onClick={handleClearAll}
+                                    className="text-[10px] text-red-500 hover:text-red-600 font-bold px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                                    data-testid="button-clear-all-notifications"
+                                >
+                                    مسح الكل
+                                </button>
+                            )}
+                            <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full">
+                                {notifications.length}
+                            </span>
+                        </div>
                     </div>
 
-                    <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                    {/* Notifications List */}
+                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                         {notifications.length > 0 ? (
                             <div className="divide-y divide-slate-50">
                                 {notifications.map((notif) => (
-                                    <div key={notif.id} className="p-4 hover:bg-slate-50 transition-colors flex gap-3">
-                                        <div className="mt-1 bg-white p-2 rounded-full border border-slate-100 shadow-sm shrink-0 h-fit">
+                                    <div 
+                                        key={notif.id} 
+                                        className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 group ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
+                                        data-testid={`notification-item-${notif.id}`}
+                                    >
+                                        <div className={`mt-0.5 p-2 rounded-full border shadow-sm shrink-0 h-fit ${getIconBg(notif.type)}`}>
                                             {getIcon(notif.type)}
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-sm font-bold text-slate-800">{notif.title}</h4>
-                                                <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap ml-2">
-                                                    {formatDateTime(notif.createdAt).split('-')[1]}
-                                                </span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start gap-2 mb-1">
+                                                <h4 className="text-sm font-bold text-slate-800 leading-tight">{notif.title}</h4>
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                                                        {formatRelativeTime(notif.createdAt)}
+                                                    </span>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteOne(notif.id); }}
+                                                        className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all rounded hover:bg-red-50"
+                                                        title="حذف"
+                                                        data-testid={`button-delete-notification-${notif.id}`}
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-slate-500 leading-relaxed">
+                                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
                                                 {notif.message}
                                             </p>
+                                            {!notif.isRead && (
+                                                <span className="inline-block mt-1.5 text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-bold">
+                                                    جديد
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="p-10 text-center text-slate-400">
-                                <Bell size={32} className="mx-auto mb-2 opacity-20" />
-                                <p className="text-sm font-bold">لا توجد تنبيهات جديدة</p>
+                            <div className="py-16 px-6 text-center">
+                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Bell size={28} className="text-slate-300" />
+                                </div>
+                                <p className="text-sm font-bold text-slate-600 mb-1">لا توجد تنبيهات</p>
+                                <p className="text-xs text-slate-400">ستظهر هنا جميع التحديثات الجديدة</p>
                             </div>
                         )}
                     </div>
+
+                    {/* Footer */}
+                    {notifications.length > 5 && (
+                        <div className="p-3 border-t border-slate-100 bg-slate-50 text-center">
+                            <span className="text-xs text-slate-500">
+                                عرض آخر {Math.min(notifications.length, 20)} تنبيه
+                            </span>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
