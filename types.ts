@@ -174,7 +174,8 @@ export type NotificationType =
   | 'QUOTE_PROCESSED'
   | 'GENERAL'
   | 'ACCOUNT_UPDATE'
-  | 'IMPORT_UPDATE'; // Added for import requests
+  | 'IMPORT_UPDATE'
+  | 'SYSTEM'; // System notifications (password reset, etc.)
 
 export interface Notification {
   id: string;
@@ -640,6 +641,8 @@ export type ActivityEventType =
   | 'CUSTOMER_SUSPENDED' // إيقاف عميل
   | 'CUSTOMER_REACTIVATED' // إعادة تفعيل عميل
   | 'IMPORT_STATUS_CHANGED' // Import request status change
+  | 'PASSWORD_CHANGED'   // تغيير كلمة المرور
+  | 'PASSWORD_RESET'     // إعادة تعيين كلمة المرور (بواسطة الإدارة)
   | 'OTHER';             // عمليات أخرى عامة
 
 export interface ActivityLogEntry {

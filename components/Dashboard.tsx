@@ -326,12 +326,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         }
     }, [user.hasUnreadOrders, user.id, onRefreshUser]);
 
+    // Track if we've already recorded a missing part for the current search
+    const [missingRecorded, setMissingRecorded] = useState<string | null>(null);
+
     // Enhanced Search Logic (Memoized)
     const searchResults = useMemo(() => {
         if (debouncedSearchQuery.trim().length < 2) return [];
         const results = searchProducts(debouncedSearchQuery, allProducts);
         return results.slice(0, 8); // Limit to 8 items
     }, [debouncedSearchQuery, allProducts]);
+
+    // Auto-record missing parts when no results found (with deduplication)
+    useEffect(() => {
+        const trimmedQuery = debouncedSearchQuery.trim();
+        
+        // Only proceed if:
+        // 1. Query is at least 3 characters
+        // 2. No results found
+        // 3. We haven't already recorded this exact query
+        if (
+            trimmedQuery.length >= 3 && 
+            searchResults.length === 0 && 
+            missingRecorded !== trimmedQuery
+        ) {
+            // Record missing part automatically
+            MockApi.logMissingProduct(user.id, trimmedQuery, user.name, 'SEARCH');
+            setMissingRecorded(trimmedQuery);
+        }
+    }, [debouncedSearchQuery, searchResults.length, missingRecorded, user.id, user.name]);
+
+    // Reset missing recorded flag when search query changes significantly
+    useEffect(() => {
+        if (searchQuery.trim().length < 3) {
+            setMissingRecorded(null);
+        }
+    }, [searchQuery]);
 
     useEffect(() => {
         if (debouncedSearchQuery.trim().length >= 2) {
@@ -343,11 +372,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // If we have results in dropdown, select the first one? 
-        // Or just let the dropdown stay. For now, we rely on selection.
-        if (searchResults.length === 0 && searchQuery.length > 2) {
-             MockApi.logMissingProduct(user.id, searchQuery, user.name);
-             addToast('لم يتم العثور على نتائج، تم تسجيل طلبك في النواقص', 'info');
+        // If no results and query is valid, show confirmation toast
+        if (searchResults.length === 0 && searchQuery.trim().length >= 3) {
+             addToast('القطعة غير متوفرة حالياً، تم تسجيل طلبك في قائمة النواقص', 'info');
              setShowSearchDropdown(false);
         }
     };
@@ -613,10 +640,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                 })}
                                                             </div>
                                                         ) : (
-                                                            <div className="p-6 text-center text-slate-500 text-sm">
-                                                                لا توجد نتائج مطابقة لـ "{searchQuery}"
-                                                                <br/>
-                                                                <span className="text-xs opacity-70 mt-1 block font-semibold">اضغط Enter لتسجيل الطلب في النواقص</span>
+                                                            <div className="p-6 text-center">
+                                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-50 text-amber-500 rounded-full mb-4">
+                                                                    <AlertTriangle size={32} />
+                                                                </div>
+                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">القطعة غير متوفرة حالياً</h4>
+                                                                <p className="text-sm text-slate-600 mb-3">
+                                                                    لم يتم العثور على نتائج لـ: <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
+                                                                </p>
+                                                                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm">
+                                                                    <CheckCircle size={16} className="inline-block ml-1" />
+                                                                    تم تسجيل طلبك تلقائياً في قائمة النواقص
+                                                                </div>
                                                             </div>
                                                         )}
                                                         <div className="bg-slate-50 p-2.5 text-center text-xs font-bold text-slate-500 border-t border-slate-100 sticky bottom-0">

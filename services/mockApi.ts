@@ -1877,6 +1877,96 @@ export const MockApi = {
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(filteredUsers));
   },
 
+  /**
+   * Change password for a user (customer can change their own password)
+   * Validates old password before allowing change
+   */
+  async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]') as User[];
+      const idx = users.findIndex((u: User) => u.id === userId);
+      
+      if (idx === -1) {
+          return { success: false, message: 'المستخدم غير موجود' };
+      }
+
+      const user = users[idx];
+      
+      // Verify old password
+      if (user.password !== oldPassword) {
+          return { success: false, message: 'كلمة المرور الحالية غير صحيحة' };
+      }
+
+      // Validate new password
+      if (!newPassword || newPassword.length < 4) {
+          return { success: false, message: 'كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل' };
+      }
+
+      // Update password
+      users[idx].password = newPassword;
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+
+      // Log activity
+      internalRecordActivity({
+          userId: userId,
+          userName: user.name,
+          role: user.role,
+          eventType: 'PASSWORD_CHANGED',
+          description: 'تم تغيير كلمة المرور بنجاح'
+      });
+
+      return { success: true, message: 'تم تغيير كلمة المرور بنجاح' };
+  },
+
+  /**
+   * Admin reset password for any user (customer, staff, or admin)
+   * Sets a new password without requiring old password verification
+   */
+  async adminResetPassword(adminUserId: string, targetUserId: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]') as User[];
+      const adminUser = users.find(u => u.id === adminUserId);
+      const targetIdx = users.findIndex((u: User) => u.id === targetUserId);
+      
+      // Verify admin has permission
+      if (!adminUser || (adminUser.role !== 'SUPER_ADMIN' && adminUser.role !== 'CUSTOMER_OWNER')) {
+          return { success: false, message: 'ليس لديك صلاحية لإعادة تعيين كلمة المرور' };
+      }
+
+      if (targetIdx === -1) {
+          return { success: false, message: 'المستخدم المستهدف غير موجود' };
+      }
+
+      // Validate new password
+      if (!newPassword || newPassword.length < 4) {
+          return { success: false, message: 'كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل' };
+      }
+
+      const targetUser = users[targetIdx];
+      
+      // Update password
+      users[targetIdx].password = newPassword;
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+
+      // Log activity
+      internalRecordActivity({
+          userId: adminUserId,
+          userName: adminUser.name,
+          role: adminUser.role,
+          eventType: 'PASSWORD_RESET',
+          description: `تم إعادة تعيين كلمة المرور للمستخدم: ${targetUser.name}`,
+          metadata: { targetUserId, targetUserName: targetUser.name }
+      });
+
+      // Notify user
+      internalCreateNotification(
+          targetUserId,
+          'SYSTEM',
+          'تم إعادة تعيين كلمة المرور',
+          'تم إعادة تعيين كلمة المرور الخاصة بك من قبل الإدارة. يرجى تسجيل الدخول بكلمة المرور الجديدة.'
+      );
+
+      return { success: true, message: 'تم إعادة تعيين كلمة المرور بنجاح' };
+  },
+
   async getEmployees(mainUserId: string): Promise<User[]> {
       const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
       return users.filter((u:User) => u.parentId === mainUserId && u.role === 'CUSTOMER_STAFF');

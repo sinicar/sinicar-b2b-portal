@@ -1,0 +1,285 @@
+Prompt to Replit Agent (FULL TASK):
+
+Act as a senior full-stack engineer working on the Sini Car B2B wholesale portal (customer dashboard + admin dashboard + staff access).
+Implement the following enhancements and fixes without breaking any existing flows. Keep the Arabic UI and styling as they are, but improve UX and internal logic.
+
+1. Search behavior & Missing parts recording
+
+Context: On the main customer search bar (for part number search on the landing section), when a part is not found, the customer should see a clear message and the system must record that missing part automatically.
+
+Tasks:
+
+When the user searches for a part number and no matching item is found in the catalog:
+
+Show a clear message in Arabic like:
+
+"القطعة غير متوفرة حالياً، سيتم تسجيل طلبك في قائمة النواقص."
+
+Automatically create or update a record in the Missing parts (النواقص / Missing) module in the admin dashboard, including:
+
+searched part number
+
+customer ID (or guest if not logged in)
+
+time of search
+
+optional car info if available
+
+Ensure the counters/badges on the Missing (النواقص) menu item are updated correctly.
+
+If the part later becomes available and exists in the catalog, this should not break the search; the system can still keep the previous missing record with a status like "تم التوفير" later (you can add a TODO for future linkage).
+
+2. Password management & staff code visibility
+
+Customer side:
+
+Add a secure "Change password" feature in the customer account area:
+
+Old password
+
+New password
+
+Confirm new password
+
+Validation and success/error messages in Arabic.
+
+In the customer profile or related section, show the assigned staff member’s code (staff code) so the customer can see which employee is responsible for their account.
+
+Example field: "كود الموظف المسؤول".
+
+Admin side:
+
+Allow the system admin / owner to reset or change passwords for:
+
+customers
+
+staff
+
+admin accounts (except maybe the super-owner if you want a safety check)
+Make this available from the relevant detail pages (customer details, staff details) with proper confirmation dialogs.
+
+3. Login UX improvements & redirect timing
+
+Reduce the delay after successful login before navigating to the dashboard to 4 seconds maximum (or faster if possible).
+
+If there is a welcome popup, it should appear quickly and not freeze the UI.
+
+Visually improve the login and registration screens:
+
+Better spacing, alignment, and readability.
+
+Clearer error messages in Arabic.
+
+Keep brand colors and overall design but make it smoother and more modern (rounded inputs, clear labels, proper focus states).
+
+Make sure loading states are shown (spinner or progress bar) while logging in.
+
+4. Customer detail page (admin dashboard)
+
+Improve the customer details page in the admin dashboard:
+
+Clean layout: sections for basic info, contact info, accounts/branches, stats (number of quotes, orders, imports, missing parts requests, etc.).
+
+Use cards or a clear grid layout to make it visually elegant and easy to scan.
+
+Add quick actions:
+
+reset password
+
+open customer dashboard as admin (impersonation or at least deep link)
+
+view all quotes/imports for this customer.
+
+5. Build all empty pages & test all buttons
+
+Identify any empty or placeholder pages that exist in the navigation (both customer and admin) and implement minimal but functional content so they are no longer blank.
+
+For every button and menu item in the sidebar and within pages:
+
+Verify it has a working action or route.
+
+Fix any broken links, console errors, or dead buttons.
+
+Any feature that is not ready should at least show a friendly "قيد التطوير" message rather than doing nothing.
+
+6. Red notification badges behavior
+
+For the red badges (notification counters) on sidebar items (e.g., طلبات العملاء، طلبات الحسابات، النواقص…):
+
+When the user opens that page, mark the related items as "seen" and automatically clear or reduce the badge count.
+
+Badge logic should be data-driven (e.g., count of new/unseen items) not hardcoded.
+
+7. Activity log — “Online customers now”
+
+In Activity Log (سجل النشاط), add a new filter/section called:
+
+"العملاء المتصلين الآن"
+
+Implement a simple "online" tracking mechanism:
+
+Each time a customer interacts with the app (navigation, search, API call), update a lastActivity timestamp for that customer in localStorage/mockApi.
+
+Consider a customer “online” if lastActivity is within the last X minutes (e.g., 5 minutes).
+
+In the new “online now” view, show:
+
+customer name
+
+client ID
+
+company name
+
+lastActivity time
+
+current page/section if available (optional).
+
+8. Notifications behavior (browser vs in-app)
+
+Any notifications that are currently designed as browser push notifications should also (or instead) appear as in-app notifications inside the system:
+
+e.g., a notifications bell icon in the header or a notifications panel.
+
+Make sure important alerts (new quote request, new account request, missing parts) show up reliably even if the browser push permission is not granted.
+
+Normalize notifications into a single data model and show them consistently across the app.
+
+9. Production readiness & linking all flows
+
+Run through all major flows end-to-end:
+
+Customer registration / account opening
+
+Customer login and dashboard usage (search, quote requests, import from China, missing parts)
+
+Staff login and handling tasks
+
+Admin login and dashboards (quotes, missing, import, CRM, logs).
+
+Fix any broken links, missing navigations, or inconsistent behavior between pages.
+
+Ensure all main modules are properly connected:
+
+quote → notifications → admin handling
+
+missing part search → Missing page
+
+account requests → accounts requests page → CRM/customer records
+
+import from China requests → import management, etc.
+
+Document any assumptions or TODOs, but aim to have the app ready to launch from a functional perspective.
+
+10. Stock thresholds & availability per item
+
+In the items/products screen (شاشة الأصناف) add a configurable stock threshold:
+
+global setting (e.g., in Settings) like: availableThreshold.
+
+Example: if quantity ≥ threshold → show as “متوفر”; if quantity < threshold → show as “غير متوفر” or “كمية منخفضة”.
+
+Expose this threshold in the settings UI so the owner can change it without touching the code.
+
+Make sure both customer and admin/staff views respect this availability status.
+
+11. Central “Status labels management” module
+
+Create a dedicated admin module called "إدارة مسميات الحالات" (Status Labels Management).
+
+All status texts across the app should be driven from this module, for example:
+
+"ملغي" (Cancelled)
+
+"قيد التجهيز" (In preparation)
+
+"جاري الشحن" (Shipping)
+
+"مكتمل" (Completed)
+
+"قيد المراجعة" … etc.
+
+Implement:
+
+A config data structure for statuses, grouped by context (orders, quotes, imports, missing, accounts…).
+
+A UI page where the admin can rename status labels and optionally set display color/icon.
+
+Update all pages to use these central status definitions instead of hard-coded strings.
+
+12. Text & labels customization from Settings
+
+In Settings (الإعدادات), add tools to allow the owner to change:
+
+Page titles (names in sidebar and headers).
+
+Main texts and descriptions across key pages (landing hero text, support page text, contact info, WhatsApp numbers, etc.).
+
+Design a simple CMS-like structure:
+
+central textsConfig / translationsConfig with keys and default Arabic values.
+
+a settings UI to edit these values and store them (localStorage/mockApi).
+
+The goal: the owner should be able to control most texts and page names without any code changes.
+
+13. Account opening: required document uploads
+
+For the "Open account / account request" flow:
+
+Require the user to upload documents, not just type text:
+
+Commercial registration (السجل التجاري)
+
+Tax number (الرقم الضريبي)
+
+National address (العنوان الوطني)
+
+Accept files as:
+
+images (JPG, PNG, etc.)
+
+or PDF
+
+multiple files if needed.
+
+Validate:
+
+Files are attached (required).
+
+Show previews or file names.
+
+Store metadata in mockApi (file name, type, size, dummy URL) with TODOs for future real storage integration.
+
+14. Client “Organizations / Entities management” page (لوحة العميل)
+
+Redesign and enhance the Organizations / Entities management page in the customer dashboard:
+
+More elegant layout (cards or table with clear actions).
+
+Ability to add, edit, and remove entities/branches.
+
+Show link to which entity is the default for new quotes/imports.
+
+Make the UI consistent with the rest of the dashboard and visually modern.
+
+15. Persistent login on same device
+
+Implement persistent login on the same device:
+
+When a customer logs in, store a secure token/flag in localStorage (or similar).
+
+On app load, automatically restore the session if the token is valid.
+
+The customer should not need to log in again from the same device, even if the device is restarted, until they explicitly log out.
+
+Make sure this also works for staff and admin, with appropriate security considerations.
+
+16. Final checks
+
+After implementing all the above, run the app in development, test all dashboards, and ensure there are no console errors.
+
+Make sure TypeScript builds without errors and that npm run build succeeds.
+
+Keep all comments and structure clean and professional.
+
+End of prompt.

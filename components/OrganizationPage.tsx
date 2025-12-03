@@ -16,7 +16,7 @@ interface OrganizationPageProps {
 }
 
 export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainProfileUserId }) => {
-    const [activeTab, setActiveTab] = useState<'BRANCHES' | 'EMPLOYEES'>('BRANCHES');
+    const [activeTab, setActiveTab] = useState<'BRANCHES' | 'EMPLOYEES' | 'SECURITY'>('BRANCHES');
     const [branches, setBranches] = useState<Branch[]>([]);
     const [employees, setEmployees] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -30,6 +30,15 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
     // Form States
     const [branchForm, setBranchForm] = useState<Partial<Branch>>({});
     const [employeeForm, setEmployeeForm] = useState<Partial<User>>({ employeeRole: EmployeeRole.BUYER });
+
+    // Password Change Form States
+    const [passwordForm, setPasswordForm] = useState({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { addToast } = useToast();
 
@@ -137,6 +146,47 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
         }
     };
 
+    // --- Password Change Handler ---
+    const handleChangePassword = async () => {
+        // Validate form
+        if (!passwordForm.oldPassword) {
+            addToast('يرجى إدخال كلمة المرور الحالية', 'error');
+            return;
+        }
+        if (!passwordForm.newPassword) {
+            addToast('يرجى إدخال كلمة المرور الجديدة', 'error');
+            return;
+        }
+        if (passwordForm.newPassword.length < 4) {
+            addToast('كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل', 'error');
+            return;
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            addToast('كلمة المرور الجديدة غير متطابقة مع التأكيد', 'error');
+            return;
+        }
+
+        setPasswordLoading(true);
+        try {
+            const result = await MockApi.changePassword(
+                user.id,
+                passwordForm.oldPassword,
+                passwordForm.newPassword
+            );
+            
+            if (result.success) {
+                addToast(result.message, 'success');
+                setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                addToast(result.message, 'error');
+            }
+        } catch (e) {
+            addToast('حدث خطأ أثناء تغيير كلمة المرور', 'error');
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
     return (
         <div className="w-full animate-fade-in pb-20">
             {/* Header */}
@@ -147,18 +197,24 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                     </h2>
                     <p className="text-slate-500 font-medium mt-2">إدارة فروع المنشأة، حسابات الموظفين، وتحديد الصلاحيات.</p>
                 </div>
-                <div className="flex bg-slate-100 p-1.5 rounded-xl">
+                <div className="flex bg-slate-100 p-1.5 rounded-xl flex-wrap gap-1">
                     <button 
                         onClick={() => setActiveTab('BRANCHES')}
-                        className={`px-8 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'BRANCHES' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'BRANCHES' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <Building2 size={18} /> الفروع ({branches.length})
                     </button>
                     <button 
                         onClick={() => setActiveTab('EMPLOYEES')}
-                        className={`px-8 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'EMPLOYEES' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'EMPLOYEES' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <Users size={18} /> الموظفين ({employees.length})
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('SECURITY')}
+                        className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'SECURITY' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        <Lock size={18} /> الأمان
                     </button>
                 </div>
             </div>
@@ -278,6 +334,115 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Security Tab Content */}
+            {activeTab === 'SECURITY' && (
+                <div className="animate-slide-up space-y-6">
+                    {/* Password Change Section */}
+                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="p-8 border-b border-slate-100">
+                            <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
+                                <Lock size={22} className="text-brand-600" />
+                                تغيير كلمة المرور
+                            </h3>
+                            <p className="text-slate-500 text-sm mt-2">يمكنك تغيير كلمة المرور الخاصة بحسابك من هنا</p>
+                        </div>
+                        <div className="p-8">
+                            <div className="max-w-md space-y-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">كلمة المرور الحالية</label>
+                                    <div className="relative">
+                                        <input 
+                                            type={showPassword ? 'text' : 'password'} 
+                                            className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all pr-12"
+                                            placeholder="أدخل كلمة المرور الحالية"
+                                            value={passwordForm.oldPassword}
+                                            onChange={e => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                                            data-testid="input-old-password"
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            <Eye size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">كلمة المرور الجديدة</label>
+                                    <input 
+                                        type={showPassword ? 'text' : 'password'} 
+                                        className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                                        placeholder="أدخل كلمة المرور الجديدة (4 أحرف على الأقل)"
+                                        value={passwordForm.newPassword}
+                                        onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                                        data-testid="input-new-password"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">تأكيد كلمة المرور الجديدة</label>
+                                    <input 
+                                        type={showPassword ? 'text' : 'password'} 
+                                        className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                                        placeholder="أعد إدخال كلمة المرور الجديدة"
+                                        value={passwordForm.confirmPassword}
+                                        onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                                        data-testid="input-confirm-password"
+                                    />
+                                </div>
+                                <button 
+                                    onClick={handleChangePassword}
+                                    disabled={passwordLoading}
+                                    className="bg-brand-600 text-white font-bold py-3.5 px-8 rounded-xl hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-md flex items-center gap-2"
+                                    data-testid="button-change-password"
+                                >
+                                    {passwordLoading ? (
+                                        <>جاري التحديث...</>
+                                    ) : (
+                                        <>
+                                            <Check size={18} />
+                                            تغيير كلمة المرور
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Account Info Section */}
+                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="p-8 border-b border-slate-100">
+                            <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
+                                <Shield size={22} className="text-brand-600" />
+                                معلومات الحساب
+                            </h3>
+                        </div>
+                        <div className="p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-xs font-bold text-slate-500 mb-1">رقم العميل</p>
+                                    <p className="text-lg font-bold text-slate-800 font-mono">{user.clientId}</p>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-xs font-bold text-slate-500 mb-1">البريد الإلكتروني</p>
+                                    <p className="text-lg font-bold text-slate-800">{user.email || '-'}</p>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-xs font-bold text-slate-500 mb-1">رقم الجوال</p>
+                                    <p className="text-lg font-bold text-slate-800 font-mono" dir="ltr">{user.phone || '-'}</p>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-xs font-bold text-slate-500 mb-1">نوع الحساب</p>
+                                    <p className="text-lg font-bold text-slate-800">
+                                        {user.role === 'CUSTOMER_OWNER' ? 'صاحب حساب' : user.role === 'CUSTOMER_STAFF' ? 'موظف' : user.role}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
