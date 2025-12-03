@@ -1061,16 +1061,26 @@ interface StatusLabelsManagerProps {
     saving: boolean;
 }
 
+interface StatusDefinition {
+    label: string;
+    color: string;
+    bgColor: string;
+    icon?: string;
+    isSystem?: boolean;
+    isDefault?: boolean;
+    sortOrder?: number;
+}
+
 const STATUS_CATEGORIES = [
-    { key: 'orderStatus', label: 'حالات الطلبات (الظاهرة للعميل)', icon: '📦' },
-    { key: 'orderInternalStatus', label: 'حالات الطلبات الداخلية', icon: '🔒' },
-    { key: 'accountRequestStatus', label: 'حالات طلبات الحسابات', icon: '👤' },
-    { key: 'quoteRequestStatus', label: 'حالات طلبات التسعير', icon: '💰' },
-    { key: 'quoteItemStatus', label: 'حالات أصناف التسعير', icon: '📋' },
-    { key: 'missingStatus', label: 'حالات النواقص', icon: '❌' },
-    { key: 'importRequestStatus', label: 'حالات طلبات الاستيراد', icon: '🚢' },
-    { key: 'customerStatus', label: 'حالات العملاء', icon: '🏢' },
-    { key: 'staffStatus', label: 'حالات الموظفين', icon: '👷' }
+    { key: 'orderStatus', label: 'حالات الطلبات (الظاهرة للعميل)', icon: <ShoppingCart size={16} /> },
+    { key: 'orderInternalStatus', label: 'حالات الطلبات الداخلية', icon: <Warehouse size={16} /> },
+    { key: 'accountRequestStatus', label: 'حالات طلبات الحسابات', icon: <Users size={16} /> },
+    { key: 'quoteRequestStatus', label: 'حالات طلبات التسعير', icon: <DollarSign size={16} /> },
+    { key: 'quoteItemStatus', label: 'حالات أصناف التسعير', icon: <FileText size={16} /> },
+    { key: 'missingStatus', label: 'حالات النواقص', icon: <Package size={16} /> },
+    { key: 'importRequestStatus', label: 'حالات طلبات الاستيراد', icon: <Truck size={16} /> },
+    { key: 'customerStatus', label: 'حالات العملاء', icon: <Globe size={16} /> },
+    { key: 'staffStatus', label: 'حالات الموظفين', icon: <Users size={16} /> }
 ] as const;
 
 const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onUpdate, onSave, saving }) => {
@@ -1079,13 +1089,26 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
     const [tempLabel, setTempLabel] = useState('');
     const [tempColor, setTempColor] = useState('#000000');
     const [tempBgColor, setTempBgColor] = useState('#ffffff');
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [newStatusKey, setNewStatusKey] = useState('');
+    const [newStatusLabel, setNewStatusLabel] = useState('');
+    const [newStatusColor, setNewStatusColor] = useState('#6b7280');
+    const [newStatusBgColor, setNewStatusBgColor] = useState('#f3f4f6');
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [checkingUsage, setCheckingUsage] = useState(false);
     const { addToast } = useToast();
 
     const statusLabels = settings.statusLabels;
     if (!statusLabels) return null;
 
-    const currentCategory = statusLabels[selectedCategory as keyof StatusLabelsConfig] as Record<string, { label: string; color: string; bgColor: string }>;
+    const currentCategory = statusLabels[selectedCategory as keyof StatusLabelsConfig] as Record<string, StatusDefinition>;
     const categoryInfo = STATUS_CATEGORIES.find(c => c.key === selectedCategory);
+
+    const sortedEntries = Object.entries(currentCategory).sort((a, b) => {
+        const orderA = a[1].sortOrder || 999;
+        const orderB = b[1].sortOrder || 999;
+        return orderA - orderB;
+    });
 
     const handleEditStart = (statusKey: string) => {
         const status = currentCategory[statusKey];
@@ -1097,14 +1120,16 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         }
     };
 
-    const handleEditSave = () => {
+    const handleEditSave = async () => {
         if (!editingStatus || !tempLabel.trim()) return;
         
+        const existing = currentCategory[editingStatus];
         const updatedLabels = {
             ...statusLabels,
             [selectedCategory]: {
                 ...currentCategory,
                 [editingStatus]: {
+                    ...existing,
                     label: tempLabel.trim(),
                     color: tempColor,
                     bgColor: tempBgColor
@@ -1117,6 +1142,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
             statusLabels: updatedLabels
         });
         
+        await MockApi.updateStatusLabels(updatedLabels);
         setEditingStatus(null);
         addToast('تم تحديث الحالة بنجاح', 'success');
     };
@@ -1125,19 +1151,117 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         setEditingStatus(null);
     };
 
+    const handleAddStatus = async () => {
+        if (!newStatusKey.trim() || !newStatusLabel.trim()) {
+            addToast('يرجى تعبئة المفتاح والاسم', 'error');
+            return;
+        }
+        
+        const keyFormatted = newStatusKey.trim().toUpperCase().replace(/\s+/g, '_');
+        if (currentCategory[keyFormatted]) {
+            addToast('هذا المفتاح موجود بالفعل', 'error');
+            return;
+        }
+
+        const existingLabels = Object.values(currentCategory);
+        const maxOrder = existingLabels.reduce((max, item) => Math.max(max, item.sortOrder || 0), 0);
+
+        const updatedLabels = {
+            ...statusLabels,
+            [selectedCategory]: {
+                ...currentCategory,
+                [keyFormatted]: {
+                    label: newStatusLabel.trim(),
+                    color: newStatusColor,
+                    bgColor: newStatusBgColor,
+                    isSystem: false,
+                    sortOrder: maxOrder + 1
+                }
+            }
+        };
+        
+        onUpdate({
+            ...settings,
+            statusLabels: updatedLabels
+        });
+        
+        await MockApi.updateStatusLabels(updatedLabels);
+        setShowAddForm(false);
+        setNewStatusKey('');
+        setNewStatusLabel('');
+        setNewStatusColor('#6b7280');
+        setNewStatusBgColor('#f3f4f6');
+        addToast('تم إضافة الحالة الجديدة بنجاح', 'success');
+    };
+
+    const handleDeleteStatus = async (statusKey: string) => {
+        const status = currentCategory[statusKey];
+        if (status.isSystem) {
+            addToast('لا يمكن حذف حالة نظامية', 'error');
+            return;
+        }
+
+        setCheckingUsage(true);
+        const usageCount = await MockApi.checkStatusUsage(selectedCategory as any, statusKey);
+        setCheckingUsage(false);
+
+        if (usageCount > 0) {
+            addToast(`لا يمكن الحذف، يوجد ${usageCount} سجل يستخدم هذه الحالة`, 'error');
+            setDeleteConfirm(null);
+            return;
+        }
+
+        const updatedCategory = { ...currentCategory };
+        delete updatedCategory[statusKey];
+
+        const updatedLabels = {
+            ...statusLabels,
+            [selectedCategory]: updatedCategory
+        };
+        
+        onUpdate({
+            ...settings,
+            statusLabels: updatedLabels
+        });
+        
+        await MockApi.updateStatusLabels(updatedLabels);
+        setDeleteConfirm(null);
+        addToast('تم حذف الحالة بنجاح', 'success');
+    };
+
+    const handleSetDefault = async (statusKey: string) => {
+        const updatedCategory = { ...currentCategory };
+        Object.keys(updatedCategory).forEach(key => {
+            updatedCategory[key] = { ...updatedCategory[key], isDefault: key === statusKey };
+        });
+
+        const updatedLabels = {
+            ...statusLabels,
+            [selectedCategory]: updatedCategory
+        };
+        
+        onUpdate({
+            ...settings,
+            statusLabels: updatedLabels
+        });
+        
+        await MockApi.updateStatusLabels(updatedLabels);
+        addToast('تم تعيين الحالة الافتراضية', 'success');
+    };
+
     return (
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                     <Tags className="text-orange-500" /> إدارة حالات النظام
                 </h2>
-                <button onClick={onSave} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
+                <button onClick={onSave} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2" data-testid="button-save-status-labels">
                     <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
                 </button>
             </div>
 
             <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-xl">
-                يمكنك من هنا تخصيص مسميات الحالات وألوانها التي تظهر في لوحة التحكم وللعملاء. اختر الفئة ثم عدّل المسمى واللون.
+                يمكنك من هنا تخصيص مسميات الحالات وألوانها التي تظهر في لوحة التحكم وللعملاء. الحالات النظامية محمية ولا يمكن حذفها، لكن يمكن تعديل اسمها ولونها.
             </p>
 
             {/* Category Selector */}
@@ -1145,27 +1269,107 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                 {STATUS_CATEGORIES.map(cat => (
                     <button
                         key={cat.key}
-                        onClick={() => setSelectedCategory(cat.key)}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        onClick={() => { setSelectedCategory(cat.key); setShowAddForm(false); setEditingStatus(null); }}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
                             selectedCategory === cat.key 
                                 ? 'bg-slate-900 text-white shadow-lg' 
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
+                        data-testid={`button-category-${cat.key}`}
                     >
-                        <span className="ml-2">{cat.icon}</span>
+                        {cat.icon}
                         {cat.label}
                     </button>
                 ))}
             </div>
 
             {/* Status Labels List */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
-                    <h3 className="font-bold text-slate-700">{categoryInfo?.icon} {categoryInfo?.label}</h3>
+            <div className="border border-slate-200 rounded-xl overflow-visible">
+                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-700 flex items-center gap-2">{categoryInfo?.icon} {categoryInfo?.label}</h3>
+                    <button 
+                        onClick={() => setShowAddForm(!showAddForm)}
+                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors"
+                        data-testid="button-add-new-status"
+                    >
+                        <Plus size={16} /> إضافة حالة جديدة
+                    </button>
                 </div>
+
+                {/* Add New Status Form */}
+                {showAddForm && (
+                    <div className="bg-brand-50 p-6 border-b border-brand-200 animate-slide-up">
+                        <h4 className="font-bold text-brand-800 mb-4 flex items-center gap-2"><Plus size={18} /> إضافة حالة جديدة</h4>
+                        <div className="flex flex-wrap items-end gap-4">
+                            <div className="flex-1 min-w-[150px]">
+                                <label className="block text-xs text-slate-500 mb-1">المفتاح (بالإنجليزية)</label>
+                                <input
+                                    type="text"
+                                    value={newStatusKey}
+                                    onChange={e => setNewStatusKey(e.target.value.toUpperCase().replace(/\s+/g, '_'))}
+                                    className="w-full p-2 border border-slate-300 rounded-lg text-sm font-mono"
+                                    placeholder="NEW_STATUS"
+                                    data-testid="input-new-status-key"
+                                />
+                            </div>
+                            <div className="flex-1 min-w-[150px]">
+                                <label className="block text-xs text-slate-500 mb-1">اسم الحالة (بالعربية)</label>
+                                <input
+                                    type="text"
+                                    value={newStatusLabel}
+                                    onChange={e => setNewStatusLabel(e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-lg text-sm font-bold"
+                                    placeholder="حالة جديدة"
+                                    data-testid="input-new-status-label"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-slate-500">النص:</label>
+                                <input
+                                    type="color"
+                                    value={newStatusColor}
+                                    onChange={e => setNewStatusColor(e.target.value)}
+                                    className="w-8 h-8 rounded cursor-pointer border border-slate-200"
+                                    data-testid="input-new-status-color"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-slate-500">الخلفية:</label>
+                                <input
+                                    type="color"
+                                    value={newStatusBgColor}
+                                    onChange={e => setNewStatusBgColor(e.target.value)}
+                                    className="w-8 h-8 rounded cursor-pointer border border-slate-200"
+                                    data-testid="input-new-status-bgcolor"
+                                />
+                            </div>
+                            <div 
+                                className="px-3 py-1 rounded-full text-xs font-bold"
+                                style={{ backgroundColor: newStatusBgColor, color: newStatusColor }}
+                            >
+                                {newStatusLabel || 'معاينة'}
+                            </div>
+                            <button 
+                                onClick={handleAddStatus}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
+                                data-testid="button-confirm-add-status"
+                            >
+                                إضافة
+                            </button>
+                            <button 
+                                onClick={() => setShowAddForm(false)}
+                                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition-colors"
+                                data-testid="button-cancel-add-status"
+                            >
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="divide-y divide-slate-100">
-                    {Object.entries(currentCategory).map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                    {sortedEntries.map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors" data-testid={`row-status-${key}`}>
                             {editingStatus === key ? (
                                 <div className="flex-1 flex items-center gap-4 flex-wrap">
                                     <input
@@ -1174,6 +1378,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         onChange={e => setTempLabel(e.target.value)}
                                         className="flex-1 min-w-[150px] p-2 border border-slate-300 rounded-lg text-sm font-bold"
                                         placeholder="اسم الحالة"
+                                        data-testid="input-edit-status-label"
                                     />
                                     <div className="flex items-center gap-2">
                                         <label className="text-xs text-slate-500">لون النص:</label>
@@ -1182,6 +1387,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                             value={tempColor}
                                             onChange={e => setTempColor(e.target.value)}
                                             className="w-8 h-8 rounded cursor-pointer border border-slate-200"
+                                            data-testid="input-edit-status-color"
                                         />
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -1191,6 +1397,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                             value={tempBgColor}
                                             onChange={e => setTempBgColor(e.target.value)}
                                             className="w-8 h-8 rounded cursor-pointer border border-slate-200"
+                                            data-testid="input-edit-status-bgcolor"
                                         />
                                     </div>
                                     <div 
@@ -1203,20 +1410,45 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         <button 
                                             onClick={handleEditSave}
                                             className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                            data-testid="button-confirm-edit-status"
                                         >
                                             <Check size={16} />
                                         </button>
                                         <button 
                                             onClick={handleEditCancel}
                                             className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                            data-testid="button-cancel-edit-status"
                                         >
                                             <X size={16} />
                                         </button>
                                     </div>
                                 </div>
+                            ) : deleteConfirm === key ? (
+                                <div className="flex-1 flex items-center justify-between">
+                                    <span className="text-red-600 font-bold text-sm">
+                                        {checkingUsage ? 'جاري التحقق من الاستخدام...' : 'هل أنت متأكد من الحذف؟'}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={() => handleDeleteStatus(key)}
+                                            disabled={checkingUsage}
+                                            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+                                            data-testid="button-confirm-delete-status"
+                                        >
+                                            نعم، احذف
+                                        </button>
+                                        <button 
+                                            onClick={() => setDeleteConfirm(null)}
+                                            className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors"
+                                            data-testid="button-cancel-delete-status"
+                                        >
+                                            إلغاء
+                                        </button>
+                                    </div>
+                                </div>
                             ) : (
                                 <>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3 flex-wrap">
                                         <code className="text-xs bg-slate-100 px-2 py-1 rounded font-mono text-slate-500">{key}</code>
                                         <span 
                                             className="px-3 py-1 rounded-full text-xs font-bold"
@@ -1224,13 +1456,50 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         >
                                             {value.label}
                                         </span>
+                                        {value.isSystem && (
+                                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold flex items-center gap-1">
+                                                <ShieldCheck size={10} /> نظامي
+                                            </span>
+                                        )}
+                                        {value.isDefault && (
+                                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-bold flex items-center gap-1">
+                                                <Star size={10} /> افتراضي
+                                            </span>
+                                        )}
+                                        {value.sortOrder && (
+                                            <span className="text-[10px] text-slate-400">#{value.sortOrder}</span>
+                                        )}
                                     </div>
-                                    <button 
-                                        onClick={() => handleEditStart(key)}
-                                        className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                                    >
-                                        <Pencil size={16} />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        {!value.isDefault && (
+                                            <button 
+                                                onClick={() => handleSetDefault(key)}
+                                                className="p-2 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                                                title="تعيين كافتراضي"
+                                                data-testid={`button-set-default-${key}`}
+                                            >
+                                                <Star size={16} />
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={() => handleEditStart(key)}
+                                            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                            title="تعديل"
+                                            data-testid={`button-edit-status-${key}`}
+                                        >
+                                            <Pencil size={16} />
+                                        </button>
+                                        {!value.isSystem && (
+                                            <button 
+                                                onClick={() => setDeleteConfirm(key)}
+                                                className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="حذف"
+                                                data-testid={`button-delete-status-${key}`}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -1238,8 +1507,15 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                 </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm">
-                <strong>ملاحظة:</strong> تغيير الحالات يؤثر على العرض فقط ولا يغير منطق النظام. تأكد من استخدام مسميات واضحة ومفهومة للعملاء والموظفين.
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-800 text-sm">
+                    <div className="flex items-center gap-2 font-bold mb-2"><ShieldCheck size={16} /> الحالات النظامية</div>
+                    محمية ولا يمكن حذفها، لكن يمكنك تعديل الاسم واللون فقط. هذه الحالات مرتبطة بمنطق النظام الأساسي.
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm">
+                    <div className="flex items-center gap-2 font-bold mb-2"><Star size={16} /> الحالة الافتراضية</div>
+                    تُستخدم عند إنشاء سجلات جديدة. يمكنك تعيين أي حالة كافتراضية عبر أيقونة النجمة.
+                </div>
             </div>
         </div>
     );
