@@ -699,6 +699,19 @@ export interface SiteSettings {
   // --- Product Visibility & Search Settings ---
   minVisibleQty?: number;           // أقل كمية لظهور المنتج للعملاء (default: 1)
   stockThreshold?: number;          // عتبة المخزون لتحديد "نفذت الكمية" (default: 0)
+  
+  // --- Why Sini Car Section ---
+  whySiniCarTitle?: string;         // عنوان القسم
+  whySiniCarFeatures?: FeatureCard[]; // بطاقات المميزات
+}
+
+// Feature Card for "Why Sini Car" section
+export interface FeatureCard {
+  id: string;
+  title: string;
+  description: string;
+  icon: 'box' | 'chart' | 'anchor' | 'headphones' | 'truck' | 'shield' | 'globe' | 'star' | 'clock' | 'award';
+  iconColor: string; // Tailwind color class like 'text-cyan-400'
 }
 
 // --- Excel Import Column Presets ---

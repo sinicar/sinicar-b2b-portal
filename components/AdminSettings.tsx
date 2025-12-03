@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Banner, SiteSettings, StatusLabelsConfig } from '../types';
 import { MockApi } from '../services/mockApi';
-import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2 } from 'lucide-react';
+import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 
 export const AdminSettings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS'>('GENERAL');
+    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS' | 'FEATURES'>('GENERAL');
     const [settings, setSettings] = useState<SiteSettings | null>(null);
     const [banners, setBanners] = useState<Banner[]>([]);
     const [loading, setLoading] = useState(true);
@@ -142,6 +142,7 @@ export const AdminSettings: React.FC = () => {
                     <nav>
                         <TabButton id="GENERAL" icon={<Settings size={20} />} label="الإعدادات العامة" />
                         <TabButton id="BANNERS" icon={<ImageIcon size={20} />} label="إدارة البنرات" />
+                        <TabButton id="FEATURES" icon={<Check size={20} />} label="لماذا صيني كار؟" />
                         <TabButton id="TEXTS" icon={<Type size={20} />} label="إدارة النصوص" />
                         <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label="حالات النظام" />
                         <TabButton id="API" icon={<Server size={20} />} label="الربط البرمجي (API)" />
@@ -776,6 +777,201 @@ export const AdminSettings: React.FC = () => {
                             </div>
                         </div>
                      </div>
+                )}
+
+                {activeTab === 'FEATURES' && (
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+                        <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Check className="text-brand-600" /> إدارة قسم "لماذا صيني كار؟"
+                                </h2>
+                                <p className="text-sm text-slate-500 mt-1">تعديل بطاقات المميزات التي تظهر في الصفحة الرئيسية</p>
+                            </div>
+                            <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
+                                <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                            </button>
+                        </div>
+
+                        {/* Section Title */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">عنوان القسم</label>
+                            <input 
+                                type="text" 
+                                value={settings.whySiniCarTitle || 'لماذا صيني كار؟'}
+                                onChange={e => setSettings({...settings, whySiniCarTitle: e.target.value})}
+                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                placeholder="لماذا صيني كار؟"
+                                data-testid="input-why-title"
+                            />
+                        </div>
+
+                        {/* Feature Cards */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-slate-800">بطاقات المميزات</h3>
+                                <button
+                                    onClick={() => {
+                                        const features = settings.whySiniCarFeatures || [];
+                                        setSettings({
+                                            ...settings,
+                                            whySiniCarFeatures: [
+                                                ...features,
+                                                {
+                                                    id: `F-${Date.now()}`,
+                                                    title: 'ميزة جديدة',
+                                                    description: 'وصف الميزة هنا',
+                                                    icon: 'star',
+                                                    iconColor: 'text-amber-400'
+                                                }
+                                            ]
+                                        });
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700"
+                                    data-testid="button-add-feature"
+                                >
+                                    <Plus size={18} /> إضافة بطاقة
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {(settings.whySiniCarFeatures || [
+                                    { id: '1', title: 'خبرة متخصصة', description: 'متخصصون في قطع الغيار الصينية فقط، مما يضمن دقة القطع.', icon: 'box', iconColor: 'text-cyan-400' },
+                                    { id: '2', title: 'تكامل تقني', description: 'ربط مباشر مع المخزون والنظام المحاسبي لتحديث فوري.', icon: 'chart', iconColor: 'text-green-400' },
+                                    { id: '3', title: 'تواجد دولي', description: 'مكاتب خاصة للاستيراد والتصدير في 3 مدن صينية رئيسية.', icon: 'anchor', iconColor: 'text-amber-400' },
+                                    { id: '4', title: 'دعم فني B2B', description: 'فريق مبيعات مخصص لخدمة الجملة متاح طوال أيام الأسبوع.', icon: 'headphones', iconColor: 'text-purple-400' }
+                                ]).map((feature, idx) => (
+                                    <div key={feature.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-xs font-bold text-slate-400">بطاقة {idx + 1}</span>
+                                            <button
+                                                onClick={() => {
+                                                    const features = settings.whySiniCarFeatures || [];
+                                                    setSettings({
+                                                        ...settings,
+                                                        whySiniCarFeatures: features.filter(f => f.id !== feature.id)
+                                                    });
+                                                }}
+                                                className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                                data-testid={`button-delete-feature-${idx}`}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-600 mb-1">العنوان</label>
+                                            <input 
+                                                type="text" 
+                                                value={feature.title}
+                                                onChange={e => {
+                                                    const features = [...(settings.whySiniCarFeatures || [])];
+                                                    const index = features.findIndex(f => f.id === feature.id);
+                                                    if (index !== -1) {
+                                                        features[index] = { ...features[index], title: e.target.value };
+                                                        setSettings({ ...settings, whySiniCarFeatures: features });
+                                                    }
+                                                }}
+                                                className="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm"
+                                                data-testid={`input-feature-title-${idx}`}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-600 mb-1">الوصف</label>
+                                            <textarea 
+                                                value={feature.description}
+                                                onChange={e => {
+                                                    const features = [...(settings.whySiniCarFeatures || [])];
+                                                    const index = features.findIndex(f => f.id === feature.id);
+                                                    if (index !== -1) {
+                                                        features[index] = { ...features[index], description: e.target.value };
+                                                        setSettings({ ...settings, whySiniCarFeatures: features });
+                                                    }
+                                                }}
+                                                className="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm resize-none"
+                                                rows={2}
+                                                data-testid={`input-feature-desc-${idx}`}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1">الأيقونة</label>
+                                                <select 
+                                                    value={feature.icon}
+                                                    onChange={e => {
+                                                        const features = [...(settings.whySiniCarFeatures || [])];
+                                                        const index = features.findIndex(f => f.id === feature.id);
+                                                        if (index !== -1) {
+                                                            features[index] = { ...features[index], icon: e.target.value as any };
+                                                            setSettings({ ...settings, whySiniCarFeatures: features });
+                                                        }
+                                                    }}
+                                                    className="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm"
+                                                    data-testid={`select-feature-icon-${idx}`}
+                                                >
+                                                    <option value="box">صندوق</option>
+                                                    <option value="chart">مخطط</option>
+                                                    <option value="anchor">مرساة</option>
+                                                    <option value="headphones">سماعات</option>
+                                                    <option value="truck">شاحنة</option>
+                                                    <option value="shield">درع</option>
+                                                    <option value="globe">كرة أرضية</option>
+                                                    <option value="star">نجمة</option>
+                                                    <option value="clock">ساعة</option>
+                                                    <option value="award">جائزة</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1">لون الأيقونة</label>
+                                                <select 
+                                                    value={feature.iconColor}
+                                                    onChange={e => {
+                                                        const features = [...(settings.whySiniCarFeatures || [])];
+                                                        const index = features.findIndex(f => f.id === feature.id);
+                                                        if (index !== -1) {
+                                                            features[index] = { ...features[index], iconColor: e.target.value };
+                                                            setSettings({ ...settings, whySiniCarFeatures: features });
+                                                        }
+                                                    }}
+                                                    className="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm"
+                                                    data-testid={`select-feature-color-${idx}`}
+                                                >
+                                                    <option value="text-cyan-400">سماوي</option>
+                                                    <option value="text-green-400">أخضر</option>
+                                                    <option value="text-amber-400">ذهبي</option>
+                                                    <option value="text-purple-400">بنفسجي</option>
+                                                    <option value="text-red-400">أحمر</option>
+                                                    <option value="text-blue-400">أزرق</option>
+                                                    <option value="text-pink-400">وردي</option>
+                                                    <option value="text-orange-400">برتقالي</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Preview */}
+                                        <div className="bg-slate-800 text-white p-4 rounded-xl mt-2">
+                                            <div className={`mb-2 ${feature.iconColor}`}>
+                                                {feature.icon === 'box' && <Package size={28} />}
+                                                {feature.icon === 'chart' && <Activity size={28} />}
+                                                {feature.icon === 'anchor' && <Anchor size={28} />}
+                                                {feature.icon === 'headphones' && <Headphones size={28} />}
+                                                {feature.icon === 'truck' && <Truck size={28} />}
+                                                {feature.icon === 'shield' && <ShieldCheck size={28} />}
+                                                {feature.icon === 'globe' && <Globe size={28} />}
+                                                {feature.icon === 'star' && <Star size={28} />}
+                                                {feature.icon === 'clock' && <Clock size={28} />}
+                                                {feature.icon === 'award' && <Award size={28} />}
+                                            </div>
+                                            <h4 className="font-bold text-sm">{feature.title}</h4>
+                                            <p className="text-xs text-slate-300 mt-1">{feature.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {activeTab === 'APPEARANCE' && (

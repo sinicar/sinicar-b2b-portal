@@ -255,6 +255,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
+    const [settings, setSettings] = useState<SiteSettings | null>(null);
     
     // Search States (Enhanced)
     const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -290,14 +291,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Data Loading
     useEffect(() => {
         const loadData = async () => {
-             const [ordersData, quotesData, productsData] = await Promise.all([
+             const [ordersData, quotesData, productsData, settingsData] = await Promise.all([
                  MockApi.getOrders(user.id),
                  MockApi.getAllQuoteRequests(),
-                 MockApi.searchProducts('') // Fetch all for client-side search
+                 MockApi.searchProducts(''), // Fetch all for client-side search
+                 MockApi.getSettings()
              ]);
              setOrders(ordersData);
              setQuoteRequests(quotesData.filter(q => q.userId === user.id));
              setAllProducts(productsData);
+             setSettings(settingsData);
              
              // Load History
              setSearchHistory(MockApi.getSearchHistoryForUser(user.id));
@@ -871,29 +874,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         <section>
                                              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <CheckCircle className="text-brand-600" size={24}/>
-                                                لماذا صيني كار؟
+                                                {settings?.whySiniCarTitle || 'لماذا صيني كار؟'}
                                             </h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
-                                                    <Box size={32} className="text-cyan-400 mb-4" />
-                                                    <h4 className="font-bold mb-2">خبرة متخصصة</h4>
-                                                    <p className="text-xs text-slate-300">متخصصون في قطع الغيار الصينية فقط، مما يضمن دقة القطع.</p>
-                                                </div>
-                                                <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
-                                                    <BarChart3 size={32} className="text-green-400 mb-4" />
-                                                    <h4 className="font-bold mb-2">تكامل تقني</h4>
-                                                    <p className="text-xs text-slate-300">ربط مباشر مع المخزون والنظام المحاسبي لتحديث فوري.</p>
-                                                </div>
-                                                <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
-                                                    <Anchor size={32} className="text-amber-400 mb-4" />
-                                                    <h4 className="font-bold mb-2">تواجد دولي</h4>
-                                                    <p className="text-xs text-slate-300">مكاتب خاصة للاستيراد والتصدير في 3 مدن صينية رئيسية.</p>
-                                                </div>
-                                                <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
-                                                    <Headphones size={32} className="text-purple-400 mb-4" />
-                                                    <h4 className="font-bold mb-2">دعم فني B2B</h4>
-                                                    <p className="text-xs text-slate-300">فريق مبيعات مخصص لخدمة الجملة متاح طوال أيام الأسبوع.</p>
-                                                </div>
+                                                {(settings?.whySiniCarFeatures || [
+                                                    { id: '1', title: 'خبرة متخصصة', description: 'متخصصون في قطع الغيار الصينية فقط، مما يضمن دقة القطع.', icon: 'box', iconColor: 'text-cyan-400' },
+                                                    { id: '2', title: 'تكامل تقني', description: 'ربط مباشر مع المخزون والنظام المحاسبي لتحديث فوري.', icon: 'chart', iconColor: 'text-green-400' },
+                                                    { id: '3', title: 'تواجد دولي', description: 'مكاتب خاصة للاستيراد والتصدير في 3 مدن صينية رئيسية.', icon: 'anchor', iconColor: 'text-amber-400' },
+                                                    { id: '4', title: 'دعم فني B2B', description: 'فريق مبيعات مخصص لخدمة الجملة متاح طوال أيام الأسبوع.', icon: 'headphones', iconColor: 'text-purple-400' }
+                                                ]).map((feature) => (
+                                                    <div key={feature.id} className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
+                                                        <div className={`mb-4 ${feature.iconColor}`}>
+                                                            {feature.icon === 'box' && <Box size={32} />}
+                                                            {feature.icon === 'chart' && <BarChart3 size={32} />}
+                                                            {feature.icon === 'anchor' && <Anchor size={32} />}
+                                                            {feature.icon === 'headphones' && <Headphones size={32} />}
+                                                            {feature.icon === 'truck' && <Truck size={32} />}
+                                                            {feature.icon === 'shield' && <ShieldCheck size={32} />}
+                                                            {feature.icon === 'globe' && <Globe size={32} />}
+                                                            {feature.icon === 'star' && <TrendingUp size={32} />}
+                                                            {feature.icon === 'clock' && <Clock size={32} />}
+                                                            {feature.icon === 'award' && <Check size={32} />}
+                                                        </div>
+                                                        <h4 className="font-bold mb-2">{feature.title}</h4>
+                                                        <p className="text-xs text-slate-300">{feature.description}</p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </section>
 
