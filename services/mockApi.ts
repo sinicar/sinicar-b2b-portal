@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -299,7 +299,8 @@ const STORAGE_KEYS = {
   ACTIVITY_LOGS: 'siniCar_activity_logs',
   EXCEL_COLUMN_PRESETS: 'siniCar_excel_column_presets',
   STATUS_LABELS: 'siniCar_status_labels_v1',
-  ADMIN_USERS: 'siniCar_admin_users_v1'
+  ADMIN_USERS: 'siniCar_admin_users_v2',
+  ADMIN_ROLES: 'siniCar_admin_roles_v1'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -2798,32 +2799,42 @@ export const MockApi = {
               phone: '0500000001',
               email: 'admin@sinicar.com',
               password: 'admin123',
-              role: 'مشرف عام',
+              roleId: 'role-super-admin',
               isActive: true,
               lastLoginAt: new Date().toISOString(),
               createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
           },
           {
               id: 'admin-2',
-              fullName: 'محمد موظف المبيعات',
-              username: 'sales_user',
+              fullName: 'محمد مدير المبيعات',
+              username: 'sales_manager',
               phone: '0500000002',
               email: 'sales@sinicar.com',
               password: 'sales123',
-              role: 'موظف مبيعات',
+              roleId: 'role-sales-manager',
               isActive: true,
               lastLoginAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
               createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
           },
           {
               id: 'admin-3',
-              fullName: 'خالد موظف خدمة العملاء',
-              username: 'support_user',
+              fullName: 'سارة موظفة المبيعات',
+              username: 'sales_agent',
               phone: '0500000003',
-              password: 'support123',
-              role: 'موظف خدمة عملاء',
-              isActive: false,
+              password: 'agent123',
+              roleId: 'role-sales-agent',
+              isActive: true,
               createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'admin-4',
+              fullName: 'خالد المشاهد',
+              username: 'viewer',
+              phone: '0500000004',
+              password: 'viewer123',
+              roleId: 'role-viewer',
+              isActive: false,
+              createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
           }
       ];
   },
@@ -2957,8 +2968,8 @@ export const MockApi = {
       if (!userToDelete) return false;
       
       // Prevent deleting the last super admin
-      if (userToDelete.role === 'SUPER_ADMIN') {
-          const superAdmins = users.filter(u => u.role === 'SUPER_ADMIN');
+      if (userToDelete.roleId === 'role-super-admin') {
+          const superAdmins = users.filter(u => u.roleId === 'role-super-admin');
           if (superAdmins.length <= 1) {
               throw new Error('لا يمكن حذف المشرف العام الوحيد');
           }
@@ -2981,5 +2992,199 @@ export const MockApi = {
   async getAdminUserById(id: string): Promise<AdminUser | null> {
       const users = await this.getAdminUsers();
       return users.find(u => u.id === id) || null;
+  },
+
+  // --- Roles & Permissions Management ---
+
+  getDefaultRoles(): Role[] {
+      const allResources: PermissionResource[] = [
+          'dashboard', 'products', 'customers', 'customer_requests', 'account_requests',
+          'quotes', 'orders', 'imports', 'missing', 'crm', 'activity_log', 'notifications',
+          'settings_general', 'settings_status_labels', 'settings_api', 'settings_backup',
+          'settings_security', 'users', 'roles', 'export_center', 'content_management', 'other'
+      ];
+      
+      const allActions: PermissionAction[] = [
+          'view', 'create', 'edit', 'delete', 'approve', 'reject', 'export', 'import',
+          'configure', 'manage_status', 'manage_users', 'manage_roles', 'run_backup', 'manage_api', 'other'
+      ];
+      
+      // صلاحيات كاملة
+      const fullPermissions: Permission[] = allResources.map(resource => ({
+          resource,
+          actions: [...allActions]
+      }));
+      
+      // صلاحيات المبيعات
+      const salesResources: PermissionResource[] = [
+          'dashboard', 'products', 'customers', 'customer_requests', 'quotes', 
+          'orders', 'imports', 'missing', 'crm', 'notifications'
+      ];
+      const salesManagerActions: PermissionAction[] = ['view', 'create', 'edit', 'approve', 'reject', 'export'];
+      const salesAgentActions: PermissionAction[] = ['view', 'create', 'edit'];
+      
+      return [
+          {
+              id: 'role-super-admin',
+              name: 'مشرف عام',
+              description: 'صلاحيات كاملة على النظام',
+              permissions: fullPermissions,
+              isSystem: true,
+              createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'role-admin',
+              name: 'مدير النظام',
+              description: 'إدارة عامة مع بعض القيود البسيطة',
+              permissions: allResources.filter(r => r !== 'roles').map(resource => ({
+                  resource,
+                  actions: allActions.filter(a => a !== 'manage_roles')
+              })),
+              isSystem: true,
+              createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'role-sales-manager',
+              name: 'مدير المبيعات',
+              description: 'إدارة المبيعات والعملاء والطلبات',
+              permissions: salesResources.map(resource => ({
+                  resource,
+                  actions: salesManagerActions
+              })),
+              isSystem: true,
+              createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'role-sales-agent',
+              name: 'موظف مبيعات',
+              description: 'إضافة عروض أسعار وطلبات بدون إدارة الإعدادات',
+              permissions: salesResources.map(resource => ({
+                  resource,
+                  actions: salesAgentActions
+              })),
+              isSystem: true,
+              createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'role-viewer',
+              name: 'مشاهد فقط',
+              description: 'عرض البيانات فقط بدون تعديل',
+              permissions: allResources.map(resource => ({
+                  resource,
+                  actions: ['view'] as PermissionAction[]
+              })),
+              isSystem: true,
+              createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+          }
+      ];
+  },
+
+  async getRoles(): Promise<Role[]> {
+      let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_ROLES) || 'null') as Role[] | null;
+      if (!roles) {
+          roles = this.getDefaultRoles();
+          localStorage.setItem(STORAGE_KEYS.ADMIN_ROLES, JSON.stringify(roles));
+      }
+      return roles;
+  },
+
+  async getRoleById(id: string): Promise<Role | null> {
+      const roles = await this.getRoles();
+      return roles.find(r => r.id === id) || null;
+  },
+
+  async createRole(roleData: Omit<Role, 'id' | 'createdAt'>): Promise<Role> {
+      const roles = await this.getRoles();
+      
+      // Check for duplicate name
+      if (roles.some(r => r.name === roleData.name)) {
+          throw new Error('اسم الدور موجود بالفعل');
+      }
+      
+      const newRole: Role = {
+          ...roleData,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString()
+      };
+      
+      roles.push(newRole);
+      localStorage.setItem(STORAGE_KEYS.ADMIN_ROLES, JSON.stringify(roles));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم إنشاء دور جديد: ${newRole.name}`,
+          metadata: { roleId: newRole.id, action: 'create_role' }
+      });
+      
+      return newRole;
+  },
+
+  async updateRole(id: string, updates: Partial<Role>): Promise<Role | null> {
+      const roles = await this.getRoles();
+      const index = roles.findIndex(r => r.id === id);
+      
+      if (index === -1) return null;
+      
+      // Check for duplicate name if changing name
+      if (updates.name && updates.name !== roles[index].name) {
+          if (roles.some(r => r.name === updates.name && r.id !== id)) {
+              throw new Error('اسم الدور موجود بالفعل');
+          }
+      }
+      
+      // Prevent changing isSystem flag
+      delete updates.isSystem;
+      
+      roles[index] = { ...roles[index], ...updates };
+      localStorage.setItem(STORAGE_KEYS.ADMIN_ROLES, JSON.stringify(roles));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم تحديث الدور: ${roles[index].name}`,
+          metadata: { roleId: id, action: 'update_role', updates }
+      });
+      
+      return roles[index];
+  },
+
+  async deleteRole(id: string): Promise<boolean> {
+      const roles = await this.getRoles();
+      const roleToDelete = roles.find(r => r.id === id);
+      
+      if (!roleToDelete) return false;
+      
+      // Prevent deleting system roles
+      if (roleToDelete.isSystem) {
+          throw new Error('لا يمكن حذف الأدوار النظامية');
+      }
+      
+      // Check if any users are assigned to this role
+      const users = await this.getAdminUsers();
+      const usersWithRole = users.filter(u => u.roleId === id);
+      if (usersWithRole.length > 0) {
+          throw new Error('لا يمكن حذف هذا الدور لوجود مستخدمين مرتبطين به');
+      }
+      
+      const filteredRoles = roles.filter(r => r.id !== id);
+      localStorage.setItem(STORAGE_KEYS.ADMIN_ROLES, JSON.stringify(filteredRoles));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم حذف الدور: ${roleToDelete.name}`,
+          metadata: { roleId: id, action: 'delete_role' }
+      });
+      
+      return true;
+  },
+
+  async getUserCountByRole(roleId: string): Promise<number> {
+      const users = await this.getAdminUsers();
+      return users.filter(u => u.roleId === roleId).length;
   }
 };
