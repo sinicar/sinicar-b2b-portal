@@ -69,7 +69,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     webhooks: [],
     fieldMapping: '{\n  "sku": "item_code",\n  "price": "unit_price",\n  "stock": "qty_on_hand"\n}',
     debugMode: false,
-    rateLimit: 120
+    rateLimit: '120'
   },
   // Default Status Labels Configuration
   statusLabels: {
