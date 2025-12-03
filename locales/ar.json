@@ -57,7 +57,10 @@
     "required": "مطلوب",
     "optional": "اختياري",
     "language": "اللغة",
-    "welcome": "مرحباً"
+    "welcome": "مرحباً",
+    "page": "صفحة",
+    "of": "من",
+    "currency": "ر.س"
   },
   "login": {
     "wholesaleLogin": "تسجيل الدخول لعملاء الجملة",
@@ -938,7 +941,28 @@
       "readyForShipment": "جاهز للشحن",
       "completedInternal": "مكتمل داخليًا",
       "cancelledInternal": "ملغي داخليًا"
-    }
+    },
+    "details": "التفاصيل",
+    "name": "الاسم",
+    "userId": "المعرف",
+    "product": "المنتج",
+    "quantity": "الكمية",
+    "price": "السعر",
+    "itemTotal": "الإجمالي",
+    "grandTotal": "الإجمالي الكلي",
+    "changedStatusTo": "غيّر الحالة إلى",
+    "noHistory": "لا يوجد سجل سابق",
+    "externalStatus": "الحالة للعميل (External)",
+    "externalStatusDesc": "سيتم إشعار العميل عند تغيير هذه الحالة.",
+    "noStatusPermission": "ليس لديك صلاحية تغيير الحالة",
+    "internalStatusTitle": "الحالة الداخلية (Internal)",
+    "internalStatusDesc": "للاستخدام الإداري فقط. لا يظهر للعميل.",
+    "notesPlaceholder": "اكتب ملاحظة حول سبب تغيير الحالة...",
+    "saveNotes": "حفظ الملاحظات",
+    "noInternalPermission": "ليس لديك صلاحية تعديل الحالة الداخلية",
+    "dangerZone": "منطقة الخطر",
+    "cancelOrder": "إلغاء الطلب نهائياً",
+    "noPermission": "ليس لديك صلاحية"
   },
   "adminAccounts": {
     "title": "إدارة طلبات فتح الحساب",

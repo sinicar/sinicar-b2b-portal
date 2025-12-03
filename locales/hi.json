@@ -57,7 +57,10 @@
     "required": "आवश्यक",
     "optional": "वैकल्पिक",
     "language": "भाषा",
-    "welcome": "स्वागत है"
+    "welcome": "स्वागत है",
+    "page": "पृष्ठ",
+    "of": "का",
+    "currency": "ر.स"
   },
   "login": {
     "wholesaleLogin": "थोक ग्राहक लॉगिन",
@@ -938,7 +941,28 @@
       "readyForShipment": "शिपमेंट के लिए तैयार",
       "completedInternal": "आंतरिक रूप से पूर्ण",
       "cancelledInternal": "आंतरिक रूप से रद्द"
-    }
+    },
+    "details": "विवरण",
+    "name": "नाम",
+    "userId": "आईडी",
+    "product": "उत्पाद",
+    "quantity": "मात्रा",
+    "price": "कीमत",
+    "itemTotal": "कुल",
+    "grandTotal": "कुल योग",
+    "changedStatusTo": "ने स्थिति बदलकर की",
+    "noHistory": "कोई पिछला इतिहास नहीं",
+    "externalStatus": "ग्राहक स्थिति (बाहरी)",
+    "externalStatusDesc": "इस स्थिति में बदलाव होने पर ग्राहक को सूचित किया जाएगा।",
+    "noStatusPermission": "आपको स्थिति बदलने की अनुमति नहीं है",
+    "internalStatusTitle": "आंतरिक स्थिति",
+    "internalStatusDesc": "केवल प्रशासनिक उपयोग के लिए। ग्राहक को दिखाई नहीं देगी।",
+    "notesPlaceholder": "स्थिति परिवर्तन के बारे में नोट लिखें...",
+    "saveNotes": "नोट्स सहेजें",
+    "noInternalPermission": "आपको आंतरिक स्थिति संपादित करने की अनुमति नहीं है",
+    "dangerZone": "खतरा क्षेत्र",
+    "cancelOrder": "ऑर्डर स्थायी रूप से रद्द करें",
+    "noPermission": "अनुमति नहीं है"
   },
   "adminAccounts": {
     "title": "खाता खोलने के अनुरोध",

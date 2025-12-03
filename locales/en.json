@@ -57,7 +57,10 @@
     "required": "Required",
     "optional": "Optional",
     "language": "Language",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+    "page": "Page",
+    "of": "of",
+    "currency": "SAR"
   },
   "login": {
     "wholesaleLogin": "Wholesale Customer Login",
@@ -938,7 +941,28 @@
       "readyForShipment": "Ready for Shipment",
       "completedInternal": "Completed Internally",
       "cancelledInternal": "Cancelled Internally"
-    }
+    },
+    "details": "Details",
+    "name": "Name",
+    "userId": "ID",
+    "product": "Product",
+    "quantity": "Quantity",
+    "price": "Price",
+    "itemTotal": "Total",
+    "grandTotal": "Grand Total",
+    "changedStatusTo": "changed status to",
+    "noHistory": "No previous history",
+    "externalStatus": "Customer Status (External)",
+    "externalStatusDesc": "Customer will be notified when this status changes.",
+    "noStatusPermission": "You don't have permission to change status",
+    "internalStatusTitle": "Internal Status",
+    "internalStatusDesc": "For admin use only. Not visible to customer.",
+    "notesPlaceholder": "Write a note about the status change...",
+    "saveNotes": "Save Notes",
+    "noInternalPermission": "You don't have permission to edit internal status",
+    "dangerZone": "Danger Zone",
+    "cancelOrder": "Cancel Order Permanently",
+    "noPermission": "No Permission"
   },
   "adminAccounts": {
     "title": "Account Opening Requests",
