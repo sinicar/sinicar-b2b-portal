@@ -17,6 +17,7 @@ import { AdminMissingParts } from './AdminMissingParts';
 import { AdminCustomersPage } from './AdminCustomersPage'; 
 import { AdminImportManager } from './AdminImportManager';
 import { AdminProductsPage } from './AdminProductsPage';
+import { AdminUsersPage } from './AdminUsersPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -46,7 +47,7 @@ const PIE_COLORS = [COLORS.gold, COLORS.navyLight, COLORS.success, COLORS.slate]
 
 // Inner component that uses the hooks
 const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
-    const [view, setView] = useState<'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER'>('DASHBOARD');
+    const [view, setView] = useState<'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS'>('DASHBOARD');
     
     // Admin badges from context
     const { badges, markOrdersAsSeen, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
@@ -295,6 +296,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الإعدادات</p>
                     <NavItem icon={<Database size={20} />} label="المنتجات" active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
+                    <NavItem icon={<Users size={20} />} label="المستخدمون" active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
                     <NavItem icon={<Settings size={20} />} label="إعدادات النظام" active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
@@ -318,6 +320,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'IMPORT_REQUESTS' && 'طلبات الاستيراد'}
                         {view === 'MISSING' && 'النواقص (Missing Parts)'}
                         {view === 'SETTINGS' && 'الإعدادات العامة'}
+                        {view === 'ADMIN_USERS' && 'إدارة المستخدمين'}
                         {/* Fallbacks */}
                         {['PRODUCTS'].includes(view) && 'إدارة البيانات'}
                     </h2>
@@ -502,6 +505,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
                     {/* --- OTHER VIEWS HANDLER --- */}
                     {view === 'SETTINGS' && <AdminSettings />}
+                    {view === 'ADMIN_USERS' && <AdminUsersPage onRefresh={fetchAllData} />}
                     
                     {view === 'ORDERS_MANAGER' && <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />}
                     {view === 'ACCOUNT_REQUESTS' && <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} />}
