@@ -1,15 +1,19 @@
 
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Register } from './components/Register';
 import { Dashboard } from './components/Dashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MockApi } from './services/mockApi';
 import { User, BusinessProfile } from './types';
 import { Lock, User as UserIcon, ArrowRight, ShieldCheck, Box, Server, Activity, Database, CheckCircle2, Globe, Zap, Package, Percent, Truck, Phone } from 'lucide-react';
-import { LanguageProvider, useLanguage, LanguageSwitcher } from './services/LanguageContext';
+import { LanguageProvider, useLanguage } from './services/LanguageContext';
 import { ToastProvider, useToast } from './services/ToastContext';
 import { ToastContainer } from './components/Toast';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { getDirection } from './services/i18n';
+import './services/i18n';
 
 // رسائل التحميل التسويقية والتقنية
 const LOGIN_LOADING_STEPS = [
@@ -46,7 +50,9 @@ function AppContent() {
   const [secret, setSecret] = useState(''); // Password or Activation Code
   const [rememberMe, setRememberMe] = useState(false); // Persistent login
 
-  const { t, dir } = useLanguage();
+  const { t } = useTranslation();
+  const { i18n } = useTranslation();
+  const dir = getDirection(i18n.language);
   const { addToast } = useToast();
 
   // Session Restore (Check both current session and persistent session)
@@ -352,6 +358,11 @@ function AppContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050A14] relative overflow-hidden font-sans" dir={dir}>
       
+      {/* Language Switcher - Top Right/Left Corner */}
+      <div className={`absolute top-4 z-50 ${dir === 'rtl' ? 'left-4' : 'right-4'}`}>
+          <LanguageSwitcher variant="floating" size="md" />
+      </div>
+      
       {/* 1. Cinematic Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none">
           {/* Cyber Grid */}
@@ -383,12 +394,12 @@ function AppContent() {
                           <Box size={40} className="text-cyan-400 relative z-10" strokeWidth={1.5} />
                       </div>
                       <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" data-testid="text-login-title">
-                          تسجيل الدخول لعملاء الجملة
+                          {t('login.wholesaleLogin')}
                       </h1>
-                      <h2 className="text-lg text-cyan-400 font-bold mb-3">صيني كار</h2>
+                      <h2 className="text-lg text-cyan-400 font-bold mb-3">{t('common.siniCar')}</h2>
                       <div className="flex items-center justify-center gap-2 text-cyan-500/80 text-sm font-mono tracking-wider">
                           <Activity size={14} />
-                          <span>SINI CAR B2B PORTAL</span>
+                          <span>{t('login.b2bPortal')}</span>
                       </div>
                   </div>
 
@@ -397,14 +408,16 @@ function AppContent() {
                       <button
                           onClick={() => { setLoginType('OWNER'); setIdentifier(''); setSecret(''); }}
                           className={`py-2 rounded-md text-sm font-bold transition-all ${loginType === 'OWNER' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                          data-testid="button-login-owner"
                       >
-                          مالك المنشأة (Owner)
+                          {t('login.ownerLogin')}
                       </button>
                       <button
                           onClick={() => { setLoginType('STAFF'); setIdentifier(''); setSecret(''); }}
                           className={`py-2 rounded-md text-sm font-bold transition-all ${loginType === 'STAFF' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                          data-testid="button-login-staff"
                       >
-                          دخول موظف (Staff)
+                          {t('login.staffLogin')}
                       </button>
                   </div>
 
@@ -412,7 +425,7 @@ function AppContent() {
                   <form onSubmit={handleLogin} className="space-y-6">
                       <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                              {loginType === 'OWNER' ? t('clientId') : 'رقم الجوال'}
+                              {loginType === 'OWNER' ? t('login.clientId') : t('login.phoneNumber')}
                               <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4]"></span>
                           </label>
                           <div className="relative group/input">
@@ -436,7 +449,7 @@ function AppContent() {
 
                       <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                              {loginType === 'OWNER' ? t('password') : 'كود الدخول (Activation Code)'}
+                              {loginType === 'OWNER' ? t('login.password') : t('login.activationCode')}
                           </label>
                           <div className="relative group/input">
                               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500 group-focus-within/input:text-cyan-400 transition-colors">
@@ -469,10 +482,10 @@ function AppContent() {
                                   />
                                   <CheckCircle2 size={12} className="text-cyan-400 opacity-0 peer-checked:opacity-100 absolute" />
                               </div>
-                              <span className="text-sm text-slate-400 group-hover:text-cyan-400 transition-colors">{t('rememberMe')}</span>
+                              <span className="text-sm text-slate-400 group-hover:text-cyan-400 transition-colors">{t('login.rememberMe')}</span>
                           </label>
                           {loginType === 'OWNER' && (
-                              <a href="#" className="text-sm font-bold text-slate-500 hover:text-white transition-colors" data-testid="link-forgot-password">{t('forgotPassword')}</a>
+                              <a href="#" className="text-sm font-bold text-slate-500 hover:text-white transition-colors" data-testid="link-forgot-password">{t('login.forgotPassword')}</a>
                           )}
                       </div>
 
@@ -483,10 +496,10 @@ function AppContent() {
                           data-testid="button-login"
                       >
                           {loading ? (
-                             <span className="animate-pulse">جاري التحقق...</span>
+                             <span className="animate-pulse">{t('login.verifying')}</span>
                           ) : (
                              <>
-                                <span className="relative z-10">{t('enter')}</span>
+                                <span className="relative z-10">{t('login.enter')}</span>
                                 <ArrowRight className="w-5 h-5 rtl:rotate-180 relative z-10 group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" />
                              </>
                           )}
@@ -499,10 +512,10 @@ function AppContent() {
                   <div className="mt-10 pt-6 border-t border-white/5 flex flex-col items-center gap-3 text-center">
                       <div className="flex items-center gap-2 text-emerald-500/80 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
                           <ShieldCheck size={14} />
-                          <span className="text-[10px] font-bold tracking-wider">SECURE CONNECTION ENCRYPTED</span>
+                          <span className="text-[10px] font-bold tracking-wider">{t('login.secureConnection')}</span>
                       </div>
                       <p className="text-xs text-slate-500">
-                          هذا النظام محمي ببروتوكولات أمان عالية المستوى. جميع العمليات مسجلة ومراقبة.
+                          {t('login.securityNote')}
                       </p>
                       
                       {loginType === 'OWNER' && (
@@ -511,7 +524,7 @@ function AppContent() {
                               className="mt-4 text-cyan-500 text-sm font-bold hover:text-cyan-400 hover:underline transition-all"
                               data-testid="button-open-account-request"
                           >
-                              طلب فتح حساب جديد
+                              {t('login.openNewAccount')}
                           </button>
                       )}
                   </div>

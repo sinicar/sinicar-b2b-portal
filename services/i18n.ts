@@ -19,6 +19,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
+    lng: localStorage.getItem('i18nextLng') || 'ar',
     fallbackLng: 'ar',
     supportedLngs: ['ar', 'en', 'hi', 'zh'],
     debug: false,
@@ -26,8 +27,9 @@ i18n
       escapeValue: false
     },
     detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
+      order: ['localStorage'],
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng'
     }
   });
 
