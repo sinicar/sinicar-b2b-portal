@@ -311,6 +311,9 @@ export interface Product {
   // Search Indexing Fields (Optional)
   normalizedPart?: string;
   numericPartCore?: string;
+  
+  // قواعد رؤية الكمية للعملاء
+  useVisibilityRuleForQty?: boolean;  // إذا true: تطبق قاعدة إخفاء الكمية على هذا المنتج
 }
 
 export interface CartItem extends Product {

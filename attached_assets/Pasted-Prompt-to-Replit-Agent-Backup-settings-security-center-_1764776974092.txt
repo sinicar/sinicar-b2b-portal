@@ -1,0 +1,309 @@
+Prompt to Replit Agent – Backup settings & security center
+
+Act as a senior full-stack engineer.
+I want you to add a Backup & Security section under the main Settings page, and wire it to our current mockApi/localStorage based data model. This should make it easy for the owner to:
+
+Create and restore backups of the app data
+
+See backup history and reminders
+
+Configure core security options for the portal
+
+Do not break any existing flows. Keep all labels and UI in Arabic.
+
+1. Backup settings (إعدادات النسخ الاحتياطي)
+
+Create a new section in Settings called "إعدادات النسخ الاحتياطي" with the following features:
+
+1.1 Manual backup (نسخة احتياطية يدوية)
+
+Add a primary button:
+
+Label: "إنشاء نسخة احتياطية الآن"
+
+When clicked:
+
+Collect all relevant data from mockApi/localStorage, including:
+
+المنتجات (products)
+
+طلبات العملاء
+
+طلبات الحسابات
+
+طلبات التسعير
+
+طلبات الاستيراد
+
+النواقص (Missing)
+
+قاعدة العملاء (CRM)
+
+إعدادات النظام (including API settings, visibility thresholds, column presets, status labels, etc.)
+
+Build a single JSON structure like:
+
+type BackupPayload = {
+  meta: {
+    createdAt: string;
+    version: string; // app version or schema version
+    createdBy: string; // current admin user
+  };
+  data: {
+    products: Product[];
+    customers: Customer[];
+    customerRequests: CustomerRequest[];
+    quotes: QuoteRequest[];
+    imports: ImportRequest[];
+    missingParts: MissingPart[];
+    apiConfig: ApiConfig;
+    settings: SettingsConfig;
+    // …any other important entities
+  };
+};
+
+
+Trigger a download of a file named similar to:
+sini-backup-YYYY-MM-DD-HH-mm.json
+
+Before starting the backup, show a confirmation dialog in Arabic, e.g.:
+
+"هل تريد إنشاء نسخة احتياطية من جميع بيانات النظام الآن؟"
+
+After completion, show a success toast with the timestamp.
+
+1.2 Partial backup (اختيار الأقسام)
+
+Add a small panel or checklist under the backup button:
+
+Checkboxes for each section:
+
+المنتجات
+
+العملاء
+
+طلبات الحسابات
+
+طلبات التسعير
+
+طلبات الاستيراد
+
+النواقص
+
+الإعدادات
+
+Label: "تحديد البيانات التي سيتم تضمينها في النسخة الاحتياطية"
+
+Use these checkboxes to control which arrays are included in BackupPayload.data.
+
+1.3 Backup history & reminders
+
+Store a small local history of backups in settings (metadata only, not the file itself):
+
+lastBackupAt (ISO string)
+
+lastBackupBy
+
+lastBackupSections
+
+Show this info in the Backup section:
+
+"آخر نسخة احتياطية:" date/time + user name
+
+Optional list of the last 3–5 backups (metadata only).
+
+Add a reminder mechanism:
+
+Allow the owner to choose a reminder interval:
+
+Every 1 day / 3 days / 7 days / 14 days / off
+
+Store this in settings.
+
+On app load for admin, if now - lastBackupAt > reminderInterval, show a subtle banner/toast:
+
+"لم يتم إنشاء نسخة احتياطية منذ فترة، يُنصح بإنشاء نسخة جديدة."
+
+1.4 Restore backup (استعادة النسخة)
+
+Add a button:
+
+"استعادة نسخة احتياطية"
+
+When clicked:
+
+Open a modal with:
+
+File input (JSON only).
+
+Warning text in Arabic, for example:
+
+"تنبيه: استعادة النسخة الاحتياطية قد تستبدل بعض البيانات الحالية. يُنصح بإنشاء نسخة احتياطية جديدة قبل المتابعة."
+
+Flow:
+
+When user selects a file:
+
+Parse JSON.
+
+Validate the structure (check meta.version, required sections, etc.).
+
+Show a summary:
+
+عدد المنتجات، عدد العملاء، عدد طلبات التسعير… إلخ.
+
+Offer two options:
+
+"استبدال البيانات الحالية": overwrite existing records for included sections.
+
+"دمج البيانات": merge, preferring newer records (based on timestamps or IDs when possible).
+
+Before applying, automatically create a small “pre-restore” backup (same mechanism as manual backup) so the user can roll back manually if needed.
+
+2. Security settings (مركز الأمان)
+
+Add another section in Settings called "إعدادات الأمان" with the following subsections:
+
+2.1 Password policy (سياسة كلمات المرور)
+
+Allow the owner to configure:
+
+Minimum password length (e.g. 8–12).
+
+Require mixture of:
+
+Letters
+
+Numbers
+
+Optional special characters
+
+Password expiry period (e.g. 90 days) — store as metadata for future use.
+
+Apply this policy to:
+
+New passwords when creating customer/staff/admin accounts.
+
+Change password flows.
+
+Show user-friendly errors in Arabic if a password doesn’t meet the criteria.
+
+2.2 Session & login security
+
+Add settings for:
+
+Session timeout (in minutes), e.g.:
+
+15 / 30 / 60 / 120
+
+Toggle:
+
+"تسجيل خروج تلقائي بعد عدم النشاط"
+
+Implement:
+
+Track last activity timestamp per logged-in user (already partially in activity log).
+
+If inactivity exceeds timeout:
+
+Automatically log the user out.
+
+Redirect to login.
+
+Show message:
+
+"انتهت الجلسة بسبب عدم النشاط، الرجاء تسجيل الدخول مرة أخرى."
+
+Add button:
+
+"تسجيل خروج من جميع الأجهزة" for admin:
+
+Clear stored session tokens for that user across devices (as far as localStorage-based logic allows).
+
+At least ensure local token invalidation logic supports this.
+
+2.3 Account lock & login attempts
+
+Add settings:
+
+Maximum failed login attempts before locking an account (e.g. 5).
+
+Lock duration (e.g. 15 minutes) or until admin unlocks.
+
+Implement:
+
+Track failed attempts per account (in mockApi/localStorage).
+
+When threshold is exceeded:
+
+Mark account as locked.
+
+Show error message:
+
+"تم قفل الحساب مؤقتًا بسبب محاولات دخول فاشلة متكررة."
+
+Provide admin UI to manually unlock an account from the user detail page.
+
+2.4 Security audit log
+
+Extend the existing Activity Log (سجل النشاط) to clearly mark security-related events:
+
+LOGIN_SUCCESS / LOGIN_FAILURE
+
+PASSWORD_CHANGE
+
+ACCOUNT_LOCKED / ACCOUNT_UNLOCKED
+
+PERMISSION_CHANGE / ROLE_CHANGE
+
+API settings changes
+
+Backup creation / restore
+
+Add filters in Activity Log for "أحداث الأمان فقط".
+
+2.5 Basic app-level protections (front-end)
+
+Where possible on the front-end:
+
+Ensure all admin-only pages check user role (Super Admin / Admin) before rendering.
+
+Add a simple “CSRF-like” token (e.g. per-session) to sensitive actions (status changes, deletions) to avoid accidental duplicate submissions.
+
+Confirm before dangerous actions:
+
+Deleting products/customers
+
+Restoring backups
+
+Changing API mode
+
+Add a small “Security tips” box in the settings page explaining that:
+
+The site should be hosted over HTTPS.
+
+Strong passwords are recommended.
+
+Regular backups are important.
+
+(You can place these as static text/TODO notes for the owner.)
+
+3. General UX & validation
+
+All new texts and labels must be in Arabic and consistent with existing UI.
+
+Use existing design system (buttons, inputs, cards) for the new settings.
+
+Validate all inputs:
+
+Numeric fields (timeouts, thresholds) must be positive numbers.
+
+Backup restore must handle invalid or corrupted files gracefully with clear error messages.
+
+Make sure:
+
+npm run build passes.
+
+No new console errors appear during backup, restore, or security flows.
+
+End of prompt.

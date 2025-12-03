@@ -2556,6 +2556,26 @@ export const MockApi = {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
   },
 
+  async bulkUpdateProductVisibility(productIds: string[], useVisibilityRule: boolean): Promise<number> {
+      const products = await this.getProducts();
+      let updatedCount = 0;
+      
+      const updatedProducts = products.map(p => {
+          if (productIds.includes(p.id)) {
+              updatedCount++;
+              return {
+                  ...p,
+                  useVisibilityRuleForQty: useVisibilityRule,
+                  updatedAt: new Date().toISOString()
+              };
+          }
+          return p;
+      });
+      
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updatedProducts));
+      return updatedCount;
+  },
+
   generateOnyxExcelTemplate(): void {
       const headers = [
           'رقم الصنف',
