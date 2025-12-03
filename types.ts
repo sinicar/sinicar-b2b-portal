@@ -664,16 +664,26 @@ export interface ApiConfig {
 }
 
 // Status Labels Configuration - Centralized status display names
+export interface StatusLabelItem {
+  label: string;
+  color: string;
+  bgColor: string;
+  icon?: string;
+  isDefault?: boolean;
+  isSystem?: boolean;
+  sortOrder?: number;
+}
+
 export interface StatusLabelsConfig {
-  orderStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  orderInternalStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  accountRequestStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  quoteRequestStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  quoteItemStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  missingStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  importRequestStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  customerStatus: Record<string, { label: string; color: string; bgColor: string }>;
-  staffStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  orderStatus: Record<string, StatusLabelItem>;
+  orderInternalStatus: Record<string, StatusLabelItem>;
+  accountRequestStatus: Record<string, StatusLabelItem>;
+  quoteRequestStatus: Record<string, StatusLabelItem>;
+  quoteItemStatus: Record<string, StatusLabelItem>;
+  missingStatus: Record<string, StatusLabelItem>;
+  importRequestStatus: Record<string, StatusLabelItem>;
+  customerStatus: Record<string, StatusLabelItem>;
+  staffStatus: Record<string, StatusLabelItem>;
 }
 
 export interface SiteSettings {
@@ -801,3 +811,19 @@ export interface ActivityLogEntry {
 
   createdAt: string;     // التاريخ والوقت الكامل للنشاط
 }
+
+// --- Global Status Labels Management Types ---
+
+export type StatusDomain = keyof StatusLabelsConfig;
+
+export const STATUS_DOMAIN_LABELS: Record<StatusDomain, string> = {
+  orderStatus: 'حالات الطلبات',
+  orderInternalStatus: 'الحالات الداخلية للطلبات',
+  accountRequestStatus: 'حالات طلبات فتح الحساب',
+  quoteRequestStatus: 'حالات طلبات عروض الأسعار',
+  quoteItemStatus: 'حالات عناصر عرض السعر',
+  missingStatus: 'حالات النواقص',
+  importRequestStatus: 'حالات طلبات الاستيراد',
+  customerStatus: 'حالات العملاء',
+  staffStatus: 'حالات الموظفين'
+};
