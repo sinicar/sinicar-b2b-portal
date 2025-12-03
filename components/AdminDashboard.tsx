@@ -80,13 +80,6 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         return () => clearInterval(interval);
     }, []);
 
-    // Mark items as seen when navigating to specific pages
-    useEffect(() => {
-        if (view === 'ACCOUNT_REQUESTS') markAccountsAsSeen();
-        if (view === 'QUOTES') markQuotesAsSeen();
-        if (view === 'IMPORT_REQUESTS') markImportsAsSeen();
-        if (view === 'MISSING') markMissingAsSeen();
-    }, [view, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen]);
 
     const fetchAllData = async () => {
         try {
@@ -294,11 +287,11 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الطلبات والعملاء</p>
                     <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => setView('ORDERS_MANAGER')} badge={kpiData.pendingOrders} />
-                    <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => setView('ACCOUNT_REQUESTS')} badge={badges.accounts} />
+                    <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
                     <NavItem icon={<Users size={20} />} label="قاعدة العملاء (CRM)" active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
-                    <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => setView('QUOTES')} badge={badges.quotes} />
-                    <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => setView('IMPORT_REQUESTS')} badge={badges.imports} />
-                    <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => setView('MISSING')} badge={badges.missing} />
+                    <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => { setView('QUOTES'); markQuotesAsSeen(); }} badge={badges.quotes} />
+                    <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => { setView('IMPORT_REQUESTS'); markImportsAsSeen(); }} badge={badges.imports} />
+                    <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => { setView('MISSING'); markMissingAsSeen(); }} badge={badges.missing} />
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الإعدادات</p>
                     <NavItem icon={<Database size={20} />} label="المنتجات" active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
