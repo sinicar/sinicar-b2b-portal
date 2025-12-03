@@ -5,6 +5,8 @@ import { MockApi } from '../services/mockApi';
 import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send, Upload, X, File, Image, AlertCircle, Wrench } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface RegisterProps {
   onSuccess: () => void;
@@ -30,6 +32,9 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const { addToast } = useToast();
+  const { t, i18n } = useTranslation();
+  const { dir } = useLanguage();
+  const isRTL = i18n.language === 'ar';
 
   const [formData, setFormData] = useState<Partial<AccountOpeningRequest>>({
       // Common Defaults
@@ -225,7 +230,12 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 relative" dir={dir}>
+      {/* Language Switcher */}
+      <div className={`absolute top-4 z-50 ${dir === 'rtl' ? 'left-4' : 'right-4'}`}>
+          <LanguageSwitcher variant="floating" size="md" />
+      </div>
+      
       <div className="max-w-4xl w-full bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
         
         {!success ? (
