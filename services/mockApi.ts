@@ -1290,7 +1290,8 @@ export const MockApi = {
               totalRequestsCount: 1,
               uniqueCustomersCount: 1,
               customerIds: [userId],
-              lastRequestedAt: today
+              lastRequestedAt: today,
+              isNew: true  // For admin badge tracking
           };
           requests.push(newRequest);
       }
@@ -1351,7 +1352,8 @@ export const MockApi = {
           id: `IMP-${Math.floor(10000 + Math.random() * 90000)}`,
           status: 'NEW',
           createdAt: new Date().toISOString(),
-          timeline: [initialTimeline]
+          timeline: [initialTimeline],
+          isNew: true  // For admin badge tracking
       };
       
       requests.push(newRequest);
@@ -1516,7 +1518,8 @@ export const MockApi = {
           ...input,
           id: `REQ-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 9)}`,
           status: 'NEW',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          isNew: true  // For admin badge tracking
       };
       
       requests.push(newRequest);
@@ -1821,7 +1824,8 @@ export const MockApi = {
       date: new Date().toISOString(),
       status: 'NEW', // Starts as NEW now, not PROCESSED
       totalQuotedAmount: 0, // Calculated later by Admin
-      resultReady: false
+      resultReady: false,
+      isNew: true  // For admin badge tracking
     };
 
     requests.push(newReq);
@@ -2351,5 +2355,46 @@ export const MockApi = {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers]), 'Products');
       XLSX.writeFile(wb, 'نموذج_أصناف_أونيكس.xlsx');
+  },
+
+  // --- Admin Badge Tracking - Mark All As Seen ---
+  
+  markAccountRequestsAsSeen(): void {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACCOUNT_REQUESTS) || '[]') as AccountOpeningRequest[];
+      const updated = requests.map(r => ({ ...r, isNew: false }));
+      localStorage.setItem(STORAGE_KEYS.ACCOUNT_REQUESTS, JSON.stringify(updated));
+  },
+
+  markQuoteRequestsAsSeen(): void {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.QUOTE_REQUESTS) || '[]') as QuoteRequest[];
+      const updated = requests.map(r => ({ ...r, isNew: false }));
+      localStorage.setItem(STORAGE_KEYS.QUOTE_REQUESTS, JSON.stringify(updated));
+  },
+
+  markImportRequestsAsSeen(): void {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.IMPORT_REQUESTS) || '[]') as ImportRequest[];
+      const updated = requests.map(r => ({ ...r, isNew: false }));
+      localStorage.setItem(STORAGE_KEYS.IMPORT_REQUESTS, JSON.stringify(updated));
+  },
+
+  markMissingRequestsAsSeen(): void {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.MISSING_REQUESTS) || '[]') as MissingProductRequest[];
+      const updated = requests.map(r => ({ ...r, isNew: false }));
+      localStorage.setItem(STORAGE_KEYS.MISSING_REQUESTS, JSON.stringify(updated));
+  },
+
+  // Get counts of new/unseen items for badges
+  getNewItemCounts(): { accounts: number; quotes: number; imports: number; missing: number } {
+      const accounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACCOUNT_REQUESTS) || '[]') as AccountOpeningRequest[];
+      const quotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.QUOTE_REQUESTS) || '[]') as QuoteRequest[];
+      const imports = JSON.parse(localStorage.getItem(STORAGE_KEYS.IMPORT_REQUESTS) || '[]') as ImportRequest[];
+      const missing = JSON.parse(localStorage.getItem(STORAGE_KEYS.MISSING_REQUESTS) || '[]') as MissingProductRequest[];
+
+      return {
+          accounts: accounts.filter(r => r.isNew === true).length,
+          quotes: quotes.filter(r => r.isNew === true).length,
+          imports: imports.filter(r => r.isNew === true).length,
+          missing: missing.filter(r => r.isNew === true).length
+      };
   }
 };
