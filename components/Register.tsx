@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
-import { CustomerCategory, AccountOpeningRequest } from '../types';
+import React, { useState, useRef } from 'react';
+import { CustomerCategory, AccountOpeningRequest, UploadedDocument } from '../types';
 import { MockApi } from '../services/mockApi';
-import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send } from 'lucide-react';
+import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send, Upload, X, File, Image, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
 
@@ -11,10 +11,23 @@ interface RegisterProps {
   onSwitchToLogin: () => void;
 }
 
+// Document type configurations
+const DOCUMENT_TYPES = {
+  CR_CERTIFICATE: { label: 'صورة السجل التجاري', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY'] },
+  VAT_CERTIFICATE: { label: 'شهادة الرقم الضريبي', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY'] },
+  NATIONAL_ID: { label: 'صورة الهوية الوطنية', required: true, forCategory: ['SALES_REP'] },
+  AUTHORIZATION_LETTER: { label: 'خطاب تفويض (اختياري)', required: false, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY'] },
+};
+
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [category, setCategory] = useState<CustomerCategory>('SPARE_PARTS_SHOP');
+  const [uploadedDocs, setUploadedDocs] = useState<UploadedDocument[]>([]);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const { addToast } = useToast();
 
@@ -43,6 +56,63 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
       setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Get required documents for current category
+  const getRequiredDocuments = () => {
+    return Object.entries(DOCUMENT_TYPES)
+      .filter(([_, config]) => config.forCategory.includes(category))
+      .map(([key, config]) => ({ key, ...config }));
+  };
+
+  // Handle file selection
+  const handleFileSelect = async (docType: string, file: File) => {
+    // Validate file type
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      addToast('نوع الملف غير مدعوم. يرجى استخدام PDF أو صور (JPEG, PNG, WebP)', 'error');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      addToast('حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت', 'error');
+      return;
+    }
+
+    // Convert to base64 for demo
+    const reader = new FileReader();
+    reader.onload = () => {
+      const newDoc: UploadedDocument = {
+        id: `doc_${Date.now()}`,
+        name: file.name,
+        type: docType as UploadedDocument['type'],
+        fileType: file.type,
+        fileSize: file.size,
+        base64Data: reader.result as string,
+        uploadedAt: new Date().toISOString()
+      };
+
+      // Replace existing doc of same type
+      setUploadedDocs(prev => {
+        const filtered = prev.filter(d => d.type !== docType);
+        return [...filtered, newDoc];
+      });
+
+      addToast(`تم رفع ${DOCUMENT_TYPES[docType as keyof typeof DOCUMENT_TYPES]?.label || 'المستند'} بنجاح`, 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Remove uploaded document
+  const handleRemoveDoc = (docType: string) => {
+    setUploadedDocs(prev => prev.filter(d => d.type !== docType));
+  };
+
+  // Format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   const validate = (): boolean => {
       if (!formData.phone) { addToast('رقم الجوال مطلوب', 'error'); return false; }
 
@@ -58,6 +128,16 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
           if (!formData.vatNumber) { addToast('الرقم الضريبي مطلوب', 'error'); return false; }
           if (!formData.nationalAddress) { addToast('العنوان الوطني مطلوب', 'error'); return false; }
       }
+
+      // Validate required documents
+      const requiredDocs = getRequiredDocuments().filter(d => d.required);
+      for (const doc of requiredDocs) {
+        if (!uploadedDocs.find(d => d.type === doc.key)) {
+          addToast(`${doc.label} مطلوب`, 'error');
+          return false;
+        }
+      }
+
       return true;
   };
 
@@ -70,6 +150,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
             category,
             ...formData,
             phone: formData.phone || '', // Ensure strings
+            documents: uploadedDocs, // Include uploaded documents
         } as any);
         
         setSuccess(true);
@@ -79,6 +160,61 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
     } finally {
         setLoading(false);
     }
+  };
+
+  // Document upload component
+  const DocumentUploadField = ({ docKey, label, required }: { docKey: string; label: string; required: boolean }) => {
+    const uploadedDoc = uploadedDocs.find(d => d.type === docKey);
+    const isImage = uploadedDoc?.fileType.startsWith('image/');
+
+    return (
+      <div className="mb-4">
+        <label className="block text-sm font-bold text-slate-700 mb-1.5">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        
+        {!uploadedDoc ? (
+          <div 
+            className="w-full p-6 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 hover:border-brand-400 transition-all cursor-pointer text-center"
+            onClick={() => fileInputRefs.current[docKey]?.click()}
+            data-testid={`upload-${docKey}`}
+          >
+            <Upload className="mx-auto mb-2 text-slate-400" size={28} />
+            <p className="text-sm text-slate-500 font-medium">اضغط لرفع الملف</p>
+            <p className="text-xs text-slate-400 mt-1">PDF, JPEG, PNG, WebP (حد أقصى 5MB)</p>
+            <input 
+              type="file"
+              ref={el => fileInputRefs.current[docKey] = el}
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileSelect(docKey, file);
+                e.target.value = ''; // Reset input
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+              {isImage ? <Image size={20} /> : <File size={20} />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-800 truncate">{uploadedDoc.name}</p>
+              <p className="text-xs text-slate-500">{formatFileSize(uploadedDoc.fileSize)}</p>
+            </div>
+            <button 
+              type="button"
+              onClick={() => handleRemoveDoc(docKey)}
+              className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-200 transition-colors"
+              data-testid={`remove-doc-${docKey}`}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const InputField = (props: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
@@ -198,6 +334,31 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                 <InputField label="البريد الإلكتروني (اختياري)" name="email" type="email" value={formData.email} onChange={handleChange} />
                              </>
                         )}
+
+                        {/* Document Uploads Section */}
+                        <div className="border-t border-slate-200 pt-6 mt-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <FileText className="text-brand-600" size={20} />
+                                <h3 className="text-lg font-bold text-slate-800">المستندات المطلوبة</h3>
+                            </div>
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+                                <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={18} />
+                                <p className="text-sm text-amber-800">
+                                    يرجى رفع المستندات التالية بصيغة PDF أو صورة واضحة. سيتم مراجعتها من قبل فريق الاعتماد.
+                                </p>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {getRequiredDocuments().map((doc) => (
+                                    <div key={doc.key}>
+                                        <DocumentUploadField 
+                                            docKey={doc.key} 
+                                            label={doc.label} 
+                                            required={doc.required} 
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                         
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1.5">ملاحظات إضافية</label>

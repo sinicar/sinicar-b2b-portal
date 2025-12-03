@@ -5,7 +5,8 @@ import { User, Branch, EmployeeRole, UserRole } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
     Building2, Users, Plus, Edit, Trash2, MapPin, 
-    Phone, Shield, ShoppingCart, Lock, Search, X, Check, Eye 
+    Phone, Shield, ShoppingCart, Lock, Search, X, Check, Eye,
+    FileText, Save, Briefcase, Globe, Hash, Receipt
 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
@@ -16,10 +17,23 @@ interface OrganizationPageProps {
 }
 
 export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainProfileUserId }) => {
-    const [activeTab, setActiveTab] = useState<'BRANCHES' | 'EMPLOYEES' | 'SECURITY'>('BRANCHES');
+    const [activeTab, setActiveTab] = useState<'PROFILE' | 'BRANCHES' | 'EMPLOYEES' | 'SECURITY'>('PROFILE');
     const [branches, setBranches] = useState<Branch[]>([]);
     const [employees, setEmployees] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Company profile state
+    const [companyProfile, setCompanyProfile] = useState({
+        businessName: '',
+        commercialRegNumber: '',
+        vatNumber: '',
+        nationalAddress: '',
+        city: '',
+        country: 'السعودية',
+        email: '',
+        phone: ''
+    });
+    const [profileLoading, setProfileLoading] = useState(false);
 
     // Modals
     const [showBranchModal, setShowBranchModal] = useState(false);
@@ -55,6 +69,17 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
             
             if (myProfile) {
                 setBranches(myProfile.branches || []);
+                // Load company profile data
+                setCompanyProfile({
+                    businessName: myProfile.businessName || '',
+                    commercialRegNumber: myProfile.commercialRegNumber || '',
+                    vatNumber: myProfile.vatNumber || '',
+                    nationalAddress: myProfile.nationalAddress || '',
+                    city: myProfile.city || '',
+                    country: myProfile.country || 'السعودية',
+                    email: myProfile.email || '',
+                    phone: myProfile.phone || ''
+                });
             }
 
             const emps = await MockApi.getEmployees(mainProfileUserId);
@@ -65,6 +90,19 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
             addToast('حدث خطأ في تحميل البيانات', 'error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Handle profile save
+    const handleSaveProfile = async () => {
+        setProfileLoading(true);
+        try {
+            await MockApi.updateCustomerProfile(mainProfileUserId, companyProfile);
+            addToast('تم حفظ معلومات المنشأة بنجاح', 'success');
+        } catch (e: any) {
+            addToast(e.message || 'فشل حفظ البيانات', 'error');
+        } finally {
+            setProfileLoading(false);
         }
     };
 
@@ -199,20 +237,30 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                 </div>
                 <div className="flex bg-slate-100 p-1.5 rounded-xl flex-wrap gap-1">
                     <button 
+                        onClick={() => setActiveTab('PROFILE')}
+                        className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'PROFILE' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                        data-testid="tab-profile"
+                    >
+                        <Briefcase size={18} /> ملف المنشأة
+                    </button>
+                    <button 
                         onClick={() => setActiveTab('BRANCHES')}
                         className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'BRANCHES' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                        data-testid="tab-branches"
                     >
                         <Building2 size={18} /> الفروع ({branches.length})
                     </button>
                     <button 
                         onClick={() => setActiveTab('EMPLOYEES')}
                         className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'EMPLOYEES' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                        data-testid="tab-employees"
                     >
                         <Users size={18} /> الموظفين ({employees.length})
                     </button>
                     <button 
                         onClick={() => setActiveTab('SECURITY')}
                         className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'SECURITY' ? 'bg-white text-brand-700 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                        data-testid="tab-security"
                     >
                         <Lock size={18} /> الأمان
                     </button>
@@ -220,6 +268,174 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
             </div>
 
             {/* Content */}
+            
+            {/* Company Profile Tab */}
+            {activeTab === 'PROFILE' && (
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-slide-up">
+                    <div className="p-8 border-b border-slate-100 flex justify-between items-center">
+                        <div>
+                            <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
+                                <Briefcase size={22} className="text-brand-600" />
+                                معلومات المنشأة
+                            </h3>
+                            <p className="text-sm text-slate-500 mt-1">بيانات الشركة الرسمية والمعلومات التجارية</p>
+                        </div>
+                        <button 
+                            onClick={handleSaveProfile}
+                            disabled={profileLoading}
+                            className="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-brand-700 transition-colors disabled:opacity-50 shadow-md"
+                            data-testid="button-save-profile"
+                        >
+                            <Save size={18} /> {profileLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                        </button>
+                    </div>
+                    <div className="p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Business Name */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Building2 size={16} className="text-slate-400" />
+                                    اسم المنشأة
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-lg font-bold"
+                                    value={companyProfile.businessName}
+                                    onChange={e => setCompanyProfile({...companyProfile, businessName: e.target.value})}
+                                    placeholder="اسم الشركة أو المحل"
+                                    data-testid="input-business-name"
+                                />
+                            </div>
+
+                            {/* Commercial Registration */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Hash size={16} className="text-slate-400" />
+                                    رقم السجل التجاري
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-mono"
+                                    value={companyProfile.commercialRegNumber}
+                                    onChange={e => setCompanyProfile({...companyProfile, commercialRegNumber: e.target.value})}
+                                    placeholder="10 أرقام"
+                                    data-testid="input-cr-number"
+                                />
+                            </div>
+
+                            {/* VAT Number */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Receipt size={16} className="text-slate-400" />
+                                    الرقم الضريبي
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-mono"
+                                    value={companyProfile.vatNumber}
+                                    onChange={e => setCompanyProfile({...companyProfile, vatNumber: e.target.value})}
+                                    placeholder="15 رقم"
+                                    data-testid="input-vat-number"
+                                />
+                            </div>
+
+                            {/* National Address */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <MapPin size={16} className="text-slate-400" />
+                                    العنوان الوطني
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                                    value={companyProfile.nationalAddress}
+                                    onChange={e => setCompanyProfile({...companyProfile, nationalAddress: e.target.value})}
+                                    placeholder="العنوان الوطني المختصر مثل ABCD1234"
+                                    data-testid="input-national-address"
+                                />
+                            </div>
+
+                            {/* City */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Globe size={16} className="text-slate-400" />
+                                    المدينة
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                                    value={companyProfile.city}
+                                    onChange={e => setCompanyProfile({...companyProfile, city: e.target.value})}
+                                    placeholder="مثال: الرياض"
+                                    data-testid="input-city"
+                                />
+                            </div>
+
+                            {/* Country */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Globe size={16} className="text-slate-400" />
+                                    الدولة
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                                    value={companyProfile.country}
+                                    onChange={e => setCompanyProfile({...companyProfile, country: e.target.value})}
+                                    disabled
+                                    data-testid="input-country"
+                                />
+                            </div>
+
+                            {/* Phone */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <Phone size={16} className="text-slate-400" />
+                                    رقم الهاتف
+                                </label>
+                                <input 
+                                    type="text"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-mono"
+                                    value={companyProfile.phone}
+                                    onChange={e => setCompanyProfile({...companyProfile, phone: e.target.value})}
+                                    placeholder="رقم الجوال أو الهاتف الثابت"
+                                    dir="ltr"
+                                    data-testid="input-phone"
+                                />
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                    <FileText size={16} className="text-slate-400" />
+                                    البريد الإلكتروني
+                                </label>
+                                <input 
+                                    type="email"
+                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                                    value={companyProfile.email}
+                                    onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})}
+                                    placeholder="example@company.com"
+                                    dir="ltr"
+                                    data-testid="input-email"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Info Box */}
+                        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-5 flex gap-3">
+                            <Shield size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-bold text-blue-800">معلومات مهمة</p>
+                                <p className="text-sm text-blue-700 mt-1">
+                                    هذه البيانات تُستخدم في إصدار الفواتير وطلبات التسعير. تأكد من صحة الرقم الضريبي والسجل التجاري.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {activeTab === 'BRANCHES' && (
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-slide-up">
                     <div className="p-8 border-b border-slate-100 flex justify-between items-center">

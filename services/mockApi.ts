@@ -1964,6 +1964,36 @@ export const MockApi = {
       localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
       return profiles[idx].branches;
   },
+
+  // Update customer business profile
+  async updateCustomerProfile(mainUserId: string, profileData: {
+      businessName?: string;
+      commercialRegNumber?: string;
+      vatNumber?: string;
+      nationalAddress?: string;
+      city?: string;
+      country?: string;
+      email?: string;
+      phone?: string;
+  }) {
+      await delay(200);
+      const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+      const idx = profiles.findIndex((p:BusinessProfile) => p.userId === mainUserId);
+      if (idx === -1) throw new Error('User not found');
+
+      // Update only provided fields
+      if (profileData.businessName !== undefined) profiles[idx].businessName = profileData.businessName;
+      if (profileData.commercialRegNumber !== undefined) profiles[idx].commercialRegNumber = profileData.commercialRegNumber;
+      if (profileData.vatNumber !== undefined) profiles[idx].vatNumber = profileData.vatNumber;
+      if (profileData.nationalAddress !== undefined) profiles[idx].nationalAddress = profileData.nationalAddress;
+      if (profileData.city !== undefined) profiles[idx].city = profileData.city;
+      if (profileData.country !== undefined) profiles[idx].country = profileData.country;
+      if (profileData.email !== undefined) profiles[idx].email = profileData.email;
+      if (profileData.phone !== undefined) profiles[idx].phone = profileData.phone;
+
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+      return profiles[idx];
+  },
   
   async addEmployee(mainUserId: string, empData: Partial<User>) {
       // Reduced delay

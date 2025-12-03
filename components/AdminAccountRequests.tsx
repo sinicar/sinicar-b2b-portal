@@ -1,14 +1,23 @@
 
 import React, { useState, useMemo } from 'react';
-import { AccountOpeningRequest, AccountRequestStatus, PriceLevel, BusinessCustomerType } from '../types';
+import { AccountOpeningRequest, AccountRequestStatus, PriceLevel, BusinessCustomerType, UploadedDocument } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
     Search, Filter, CheckCircle, XCircle, Clock, Eye, 
     MoreHorizontal, UserPlus, Briefcase, MapPin, Phone, 
-    FileText, Shield, Save, X, Calendar, Users
+    FileText, Shield, Save, X, Calendar, Users, File, Image, Download, ExternalLink
 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
+
+// Document type labels for display
+const DOC_TYPE_LABELS: Record<string, string> = {
+    CR_CERTIFICATE: 'السجل التجاري',
+    VAT_CERTIFICATE: 'شهادة الرقم الضريبي',
+    NATIONAL_ID: 'الهوية الوطنية',
+    AUTHORIZATION_LETTER: 'خطاب التفويض',
+    OTHER: 'مستند آخر'
+};
 
 interface AdminAccountRequestsProps {
     requests: AccountOpeningRequest[];
@@ -304,6 +313,47 @@ export const AdminAccountRequests: React.FC<AdminAccountRequestsProps> = ({ requ
                                     </div>
                                 )}
                             </div>
+
+                            {/* Section 1.5: Uploaded Documents */}
+                            {selectedRequest.documents && selectedRequest.documents.length > 0 && (
+                                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                    <h4 className="font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
+                                        <File size={18} className="text-purple-600" /> المستندات المرفقة ({selectedRequest.documents.length})
+                                    </h4>
+                                    <div className="grid gap-3">
+                                        {selectedRequest.documents.map((doc: UploadedDocument) => {
+                                            const isImage = doc.fileType.startsWith('image/');
+                                            const fileSize = doc.fileSize < 1024 * 1024 
+                                                ? (doc.fileSize / 1024).toFixed(1) + ' KB'
+                                                : (doc.fileSize / (1024 * 1024)).toFixed(1) + ' MB';
+                                            
+                                            return (
+                                                <div key={doc.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-purple-300 transition-colors">
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isImage ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
+                                                        {isImage ? <Image size={20} /> : <File size={20} />}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-bold text-slate-800 truncate">{DOC_TYPE_LABELS[doc.type] || doc.type}</p>
+                                                        <p className="text-xs text-slate-500">{doc.name} • {fileSize}</p>
+                                                    </div>
+                                                    {doc.base64Data && (
+                                                        <a 
+                                                            href={doc.base64Data} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            download={doc.name}
+                                                            className="p-2 bg-purple-100 rounded-lg text-purple-600 hover:bg-purple-200 transition-colors"
+                                                            data-testid={`view-doc-${doc.id}`}
+                                                        >
+                                                            <ExternalLink size={16} />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Section 2: Admin Decision Form */}
                             <div className="bg-[#0B1B3A] p-6 rounded-2xl border border-slate-700 shadow-lg text-white space-y-6">

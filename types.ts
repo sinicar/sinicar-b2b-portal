@@ -44,6 +44,17 @@ export type BusinessCustomerType =
   | 'FLEET_CUSTOMER'    // عميل أسطول سيارات
   | 'OTHER';
 
+// Document Upload Types
+export interface UploadedDocument {
+  id: string;
+  name: string;           // اسم الملف
+  type: 'CR_CERTIFICATE' | 'VAT_CERTIFICATE' | 'NATIONAL_ID' | 'AUTHORIZATION_LETTER' | 'OTHER';
+  fileType: string;       // MIME type (pdf, image/*)
+  fileSize: number;       // Size in bytes
+  base64Data?: string;    // For demo/mock - in production would be a URL
+  uploadedAt: string;
+}
+
 export interface AccountOpeningRequest {
   id: string;
   category: CustomerCategory;     // نوع النشاط
@@ -55,6 +66,9 @@ export interface AccountOpeningRequest {
   contactPerson?: string;         // شخص التواصل (للعرض فقط)
   phone: string;                  // رقم جوال للتواصل
   email?: string;
+
+  // المستندات المرفقة
+  documents?: UploadedDocument[];
 
   // للشركات والمحلات فقط:
   commercialRegNumber?: string;   // السجل التجاري

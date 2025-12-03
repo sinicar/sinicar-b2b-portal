@@ -188,3 +188,40 @@ Preferred communication style: Simple, everyday language.
 - `services/realApi.ts`: Placeholder for actual backend API integration
 - API configuration in settings panel for future ERP/accounting system integration
 - Structured to allow swap from mockApi to realApi with minimal changes
+
+# Recent Enhancements (Dec 2025)
+
+**Security & Authentication**:
+- Password change flow for customers (OrganizationPage → Security tab)
+- Admin password reset for customers/staff/admin accounts (AdminCustomersPage)
+- Persistent login with secure session tokens (sini_car_session_tokens localStorage key, 7-day expiry)
+- Password changes invalidate all existing session tokens
+
+**Notification System**:
+- NotificationBell component with real-time notification center
+- Type-specific icons (quote, order, import, system notifications)
+- Individual notification deletion and "clear all" functionality
+- Red badge counters for unread notifications, orders, quotes
+
+**Online User Tracking**:
+- Heartbeat system (60-second pings) for customer portal users
+- OnlineUsersCard in admin dashboard showing active users (within 5 minutes)
+- Auto-refresh every 30 seconds
+
+**Settings Management**:
+- STATUS_LABELS tab for color-coded status label management (orders, quotes, imports, accounts, missing parts)
+- TEXTS tab for CMS-like UI text customization
+- Configurable status label colors and text via AdminSettings
+
+**Account Opening**:
+- Document upload support with file validation (PDF, JPEG, PNG, WebP, max 5MB)
+- Required documents differ by business category
+- Document viewing in AdminAccountRequests detail panel
+
+**Organization Page**:
+- New "Company Profile" tab for editing business information
+- Editable fields: business name, CR number, VAT number, national address, city, phone, email
+- Four tabs: Profile, Branches, Employees, Security
+
+**Known Enhancement Opportunities**:
+- Status labels configuration in AdminSettings stores data but components still use hardcoded STATUS_COLORS maps - future enhancement to propagate configurable labels to all badge renderers
