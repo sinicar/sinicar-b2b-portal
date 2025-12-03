@@ -20,10 +20,11 @@ export enum CustomerType {
 // --- Account Opening Request Types (New) ---
 
 export type CustomerCategory =
-  | 'SPARE_PARTS_SHOP'   // محل قطع غيار
-  | 'INSURANCE_COMPANY'  // شركة تأمين
-  | 'RENTAL_COMPANY'     // شركة تأجير سيارات
-  | 'SALES_REP';         // مندوب مبيعات
+  | 'SPARE_PARTS_SHOP'     // محل قطع غيار
+  | 'INSURANCE_COMPANY'    // شركة تأمين
+  | 'RENTAL_COMPANY'       // شركة تأجير سيارات
+  | 'MAINTENANCE_CENTER'   // مركز صيانة
+  | 'SALES_REP';           // مندوب مبيعات
 
 // Updated Statuses
 export type AccountRequestStatus = 
@@ -48,7 +49,7 @@ export type BusinessCustomerType =
 export interface UploadedDocument {
   id: string;
   name: string;           // اسم الملف
-  type: 'CR_CERTIFICATE' | 'VAT_CERTIFICATE' | 'NATIONAL_ID' | 'AUTHORIZATION_LETTER' | 'OTHER';
+  type: 'CR_CERTIFICATE' | 'VAT_CERTIFICATE' | 'NATIONAL_ID' | 'NATIONAL_ADDRESS' | 'OTHER';
   fileType: string;       // MIME type (pdf, image/*)
   fileSize: number;       // Size in bytes
   base64Data?: string;    // For demo/mock - in production would be a URL
@@ -254,6 +255,9 @@ export interface BusinessProfile {
   
   // Internal Notes
   internalNotes?: string;
+
+  // Customer Documents (from account opening request)
+  documents?: UploadedDocument[];
 
   // Aggregated Stats (Computed on fly or cached)
   totalOrdersCount?: number;

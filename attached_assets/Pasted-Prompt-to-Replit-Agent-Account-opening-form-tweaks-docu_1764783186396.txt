@@ -1,0 +1,237 @@
+Prompt to Replit Agent – Account opening form tweaks, documents visibility & login UI improvement
+
+Act as a senior front-end engineer working on the Sini Car B2B portal.
+
+I want you to implement the following UI/UX and business rules changes.
+All labels visible to the user must remain in Arabic and consistent with the existing design.
+
+1. Rename "طلب تسجيل منشئة" → "طلب فتح حساب"
+
+Everywhere in the customer portal and admin portal where the text currently says:
+
+"طلب تسجيل منشئة"
+or
+
+"تسجيل منشأة"
+
+Change it to:
+
+"طلب فتح حساب"
+
+This includes (but is not limited to):
+
+The main button on the landing or login page that opens the account opening form.
+
+Page title of the account opening form.
+
+Any references in the admin section (if visible to admin) as a label for account-opening requests.
+
+Make sure routing/logic stays the same; only text/labels should change.
+
+2. Account opening form changes (طلب فتح حساب)
+
+On the account opening form (previously "طلب تسجيل منشئة"):
+
+2.1 Add "Maintenance Center" option (مركز الصيانة)
+
+In the section where the customer selects the type of entity (if such a field exists, e.g. شركة، مؤسسة، معرض…):
+
+Add a new option labeled in Arabic:
+
+"مركز صيانة"
+
+If there is no entity-type field yet:
+
+Add a field:
+
+Label: "نوع المنشأة"
+
+Options:
+
+"شركة"
+
+"مؤسسة"
+
+"معرض"
+
+"مركز صيانة"
+
+Store this value in the customer/account data model so it can be shown later in the CRM / customer base.
+
+2.2 Remove sales representative ID attachment
+
+If the form currently has a field like:
+
+"إرفاق هوية مندوب المبيعات"
+
+or any file input specific to sales rep ID:
+
+Completely remove:
+
+The label
+
+The file input
+
+Any validation rules that require this attachment.
+
+Make sure removal does not break form submission.
+
+2.3 Replace authorization letter with national address attachment
+
+If the form currently has:
+
+A field: "إرفاق خطاب التفويض" (attach authorization letter)
+
+Replace it with:
+
+Label: "إرفاق العنوان الوطني"
+
+Type: file upload
+
+Accepted formats: images (JPG, PNG, etc.) and PDF.
+
+Update the validation so that:
+
+The national address attachment is required (if that’s already a business rule) instead of authorization letter.
+
+Make sure this new attachment is stored in the customer/account request documents structure so it can be shown later in the CRM.
+
+3. Show customer documents permanently in the CRM (قاعدة العملاء)
+
+On the Customer Base / CRM page in the admin panel:
+
+For each customer record, add a field/column/section called:
+
+"وثائق العميل"
+
+Inside "وثائق العميل", show permanent links or icons for the following attached documents (if available):
+
+السجل التجاري
+
+الرقم الضريبي (or tax certificate/document if uploaded)
+
+العنوان الوطني
+
+For each available document:
+
+Show an icon (e.g. document or PDF icon) and a short label:
+
+"السجل التجاري"
+
+"الرقم الضريبي"
+
+"العنوان الوطني"
+
+Clicking the icon or label should:
+
+Open the document in a new tab if URL is accessible, or
+
+Trigger a download if that’s how documents are stored in this mock environment.
+
+If a particular document is missing, you can:
+
+either hide that entry, or
+
+show a subtle "غير متوفر" text for that document only.
+
+Make sure that these documents are pulled from the same data that is uploaded in the account opening form, so that once the admin approves the account, the documents are still linked to the customer.
+
+4. Improve login screen design (شاشة تسجيل الدخول)
+
+Enhance the login screen visually and UX-wise, while keeping existing brand colors and Arabic labels.
+
+Required improvements:
+
+Layout & spacing:
+
+Center the login card vertically and horizontally on desktop.
+
+Use a single, clean card with:
+
+Logo / brand at the top (if available).
+
+Page title: "تسجيل الدخول لعملاء الجملة – صيني كار"
+
+Inputs below with proper spacing.
+
+Inputs:
+
+Use rounded corners and clear borders.
+
+Add clear labels in Arabic:
+
+"رقم الجوال" أو "البريد الإلكتروني" حسب ما يستخدم النظام.
+
+"كلمة المرور"
+
+Add placeholder text in Arabic where appropriate.
+
+Ensure proper focus states and error messages.
+
+Buttons:
+
+Primary login button with full width on mobile, medium width on desktop.
+
+Label: "تسجيل الدخول"
+
+Show loading state while authenticating.
+
+Helper links:
+
+Add link(s) below the button for:
+
+"نسيت كلمة المرور؟"
+
+"طلب فتح حساب جديد" (opens the account opening form).
+
+Keep them subtle but visible.
+
+Responsiveness:
+
+Make sure the login page looks good on:
+
+Mobile
+
+Tablet
+
+Desktop
+
+No horizontal scrolling, and text must remain readable.
+
+Optional visual touch:
+
+You may add a light background illustration or gradient behind the login card as long as:
+
+It doesn’t break readability.
+
+It stays within Sini Car’s branding style.
+
+5. Testing
+
+After implementing the above changes:
+
+Test the full account opening flow:
+
+The button/text says "طلب فتح حساب".
+
+The form includes "مركز صيانة" as a type.
+
+Sales rep ID and authorization letter are no longer required fields.
+
+National address attachment is present and saved correctly.
+
+Approve an account in the admin area and confirm:
+
+The customer’s documents (السجل التجاري، الرقم الضريبي، العنوان الوطني) appear under "وثائق العميل" in the CRM/customer base page.
+
+Test the login screen:
+
+On different screen sizes.
+
+With wrong login → appropriate error message.
+
+With correct login → successful redirect.
+
+Ensure TypeScript build passes and there are no console errors.
+
+End of prompt.

@@ -565,6 +565,116 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                     <p className="font-mono font-bold text-slate-700" dir="ltr">{formatDateTime(customer.lastLoginAt)}</p>
                                 </div>
                             </div>
+
+                            {/* Customer Documents Section */}
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
+                                    <FileText size={18} className="text-amber-500"/> وثائق العميل
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Commercial Registration */}
+                                    {customer.crNumber ? (
+                                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                                                <FileText size={20} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-800">السجل التجاري</p>
+                                                <p className="text-xs text-slate-500 truncate">{customer.crNumber}</p>
+                                            </div>
+                                            {customer.documents?.find(d => d.type === 'CR_CERTIFICATE') ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        const doc = customer.documents?.find(d => d.type === 'CR_CERTIFICATE');
+                                                        if (doc?.base64Data) {
+                                                            window.open(doc.base64Data, '_blank');
+                                                        }
+                                                    }}
+                                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                                                    data-testid="view-cr-doc"
+                                                >
+                                                    <ExternalLink size={16} />
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">غير مرفق</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                                            <p className="text-sm text-slate-400">السجل التجاري</p>
+                                            <p className="text-xs text-slate-300">غير متوفر</p>
+                                        </div>
+                                    )}
+
+                                    {/* Tax Number */}
+                                    {customer.taxNumber ? (
+                                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                                            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                                                <FileText size={20} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-800">الرقم الضريبي</p>
+                                                <p className="text-xs text-slate-500 truncate">{customer.taxNumber}</p>
+                                            </div>
+                                            {customer.documents?.find(d => d.type === 'VAT_CERTIFICATE') ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        const doc = customer.documents?.find(d => d.type === 'VAT_CERTIFICATE');
+                                                        if (doc?.base64Data) {
+                                                            window.open(doc.base64Data, '_blank');
+                                                        }
+                                                    }}
+                                                    className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100"
+                                                    data-testid="view-vat-doc"
+                                                >
+                                                    <ExternalLink size={16} />
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">غير مرفق</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                                            <p className="text-sm text-slate-400">الرقم الضريبي</p>
+                                            <p className="text-xs text-slate-300">غير متوفر</p>
+                                        </div>
+                                    )}
+
+                                    {/* National Address */}
+                                    {customer.nationalAddress ? (
+                                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                                            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
+                                                <MapPin size={20} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-800">العنوان الوطني</p>
+                                                <p className="text-xs text-slate-500 truncate">{customer.nationalAddress}</p>
+                                            </div>
+                                            {customer.documents?.find(d => d.type === 'NATIONAL_ADDRESS') ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        const doc = customer.documents?.find(d => d.type === 'NATIONAL_ADDRESS');
+                                                        if (doc?.base64Data) {
+                                                            window.open(doc.base64Data, '_blank');
+                                                        }
+                                                    }}
+                                                    className="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100"
+                                                    data-testid="view-address-doc"
+                                                >
+                                                    <ExternalLink size={16} />
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">غير مرفق</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                                            <p className="text-sm text-slate-400">العنوان الوطني</p>
+                                            <p className="text-xs text-slate-300">غير متوفر</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
 

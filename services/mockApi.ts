@@ -550,12 +550,20 @@ export const MockApi = {
       const importRequests = await this.getImportRequests();
       const activityLogs = await this.getActivityLogs();
       const missingRequests = await this.getMissingProductRequests();
+      const accountRequests = await this.getAccountOpeningRequests();
 
       // Enrich profiles with aggregated data
       const enrichedProfiles = profiles.map(profile => {
           // Find related users (Owner + Staff)
           const profileUsers = users.filter(u => u.businessId === profile.userId || u.id === profile.userId);
           const ownerUser = users.find(u => u.id === profile.userId);
+
+          // Find approved account request for documents
+          const approvedRequest = accountRequests.find(r => 
+              r.status === 'APPROVED' && 
+              (r.phone === ownerUser?.phone || r.businessName === profile.companyName)
+          );
+          const customerDocuments = approvedRequest?.documents || profile.documents || [];
 
           // Aggregate Orders
           const profileOrders = orders.filter(o => o.businessId === profile.userId || o.userId === profile.userId);
@@ -605,7 +613,8 @@ export const MockApi = {
               totalImportRequestsCount: totalImports,
               totalInvoicesCount: totalInvoices,
               totalSearchesCount: totalSearches,
-              missingRequestsCount: totalMissing
+              missingRequestsCount: totalMissing,
+              documents: customerDocuments
           };
       });
 

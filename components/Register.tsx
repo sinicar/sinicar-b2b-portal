@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { CustomerCategory, AccountOpeningRequest, UploadedDocument } from '../types';
 import { MockApi } from '../services/mockApi';
-import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send, Upload, X, File, Image, AlertCircle } from 'lucide-react';
+import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send, Upload, X, File, Image, AlertCircle, Wrench } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
 
@@ -13,10 +13,10 @@ interface RegisterProps {
 
 // Document type configurations
 const DOCUMENT_TYPES = {
-  CR_CERTIFICATE: { label: 'صورة السجل التجاري', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY'] },
-  VAT_CERTIFICATE: { label: 'شهادة الرقم الضريبي', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY'] },
+  CR_CERTIFICATE: { label: 'صورة السجل التجاري', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
+  VAT_CERTIFICATE: { label: 'شهادة الرقم الضريبي', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
   NATIONAL_ID: { label: 'صورة الهوية الوطنية', required: true, forCategory: ['SALES_REP'] },
-  AUTHORIZATION_LETTER: { label: 'خطاب تفويض (اختياري)', required: false, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY'] },
+  NATIONAL_ADDRESS: { label: 'إرفاق العنوان الوطني', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
 };
 
 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
@@ -120,7 +120,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
           if (!formData.fullName) { addToast('الاسم الكامل مطلوب', 'error'); return false; }
           if (!formData.representativeRegion) { addToast('المنطقة التي تغطيها مطلوبة', 'error'); return false; }
       } else {
-          // Shop / Insurance / Rental
+          // Shop / Insurance / Rental / Maintenance Center
           if (!formData.businessName) { addToast('اسم المنشأة مطلوب', 'error'); return false; }
           if (!formData.city) { addToast('المدينة مطلوبة', 'error'); return false; }
           if (!formData.contactPerson) { addToast('اسم المسؤول مطلوب', 'error'); return false; }
@@ -264,17 +264,27 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                 <div className="p-8 md:p-10 md:w-2/3">
                     <div className="mb-8">
                         <label className="block text-sm font-bold text-slate-700 mb-3">اختر نوع النشاط <span className="text-red-500">*</span></label>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                             <button 
                                 onClick={() => setCategory('SPARE_PARTS_SHOP')}
                                 className={`p-3 rounded-xl border text-center transition-all ${category === 'SPARE_PARTS_SHOP' ? 'border-brand-600 bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                data-testid="category-spare-parts"
                             >
                                 <Building2 size={24} className="mx-auto mb-1.5" />
                                 <span className="text-xs font-bold block">محل قطع غيار</span>
                             </button>
                             <button 
+                                onClick={() => setCategory('MAINTENANCE_CENTER')}
+                                className={`p-3 rounded-xl border text-center transition-all ${category === 'MAINTENANCE_CENTER' ? 'border-brand-600 bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                data-testid="category-maintenance-center"
+                            >
+                                <Wrench size={24} className="mx-auto mb-1.5" />
+                                <span className="text-xs font-bold block">مركز صيانة</span>
+                            </button>
+                            <button 
                                 onClick={() => setCategory('INSURANCE_COMPANY')}
                                 className={`p-3 rounded-xl border text-center transition-all ${category === 'INSURANCE_COMPANY' ? 'border-brand-600 bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                data-testid="category-insurance"
                             >
                                 <Shield size={24} className="mx-auto mb-1.5" />
                                 <span className="text-xs font-bold block">شركة تأمين</span>
@@ -282,6 +292,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                             <button 
                                 onClick={() => setCategory('RENTAL_COMPANY')}
                                 className={`p-3 rounded-xl border text-center transition-all ${category === 'RENTAL_COMPANY' ? 'border-brand-600 bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                data-testid="category-rental"
                             >
                                 <Car size={24} className="mx-auto mb-1.5" />
                                 <span className="text-xs font-bold block">تأجير سيارات</span>
@@ -289,6 +300,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                             <button 
                                 onClick={() => setCategory('SALES_REP')}
                                 className={`p-3 rounded-xl border text-center transition-all ${category === 'SALES_REP' ? 'border-brand-600 bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                data-testid="category-sales-rep"
                             >
                                 <Briefcase size={24} className="mx-auto mb-1.5" />
                                 <span className="text-xs font-bold block">مندوب مبيعات</span>

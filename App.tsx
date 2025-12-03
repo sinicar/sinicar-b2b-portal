@@ -382,12 +382,13 @@ function AppContent() {
                           <div className="absolute inset-0 bg-cyan-500/10 rounded-2xl animate-pulse"></div>
                           <Box size={40} className="text-cyan-400 relative z-10" strokeWidth={1.5} />
                       </div>
-                      <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-                          نظام عملاء الجملة
+                      <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" data-testid="text-login-title">
+                          تسجيل الدخول لعملاء الجملة
                       </h1>
+                      <h2 className="text-lg text-cyan-400 font-bold mb-3">صيني كار</h2>
                       <div className="flex items-center justify-center gap-2 text-cyan-500/80 text-sm font-mono tracking-wider">
                           <Activity size={14} />
-                          <span>SINI CAR PORTAL</span>
+                          <span>SINI CAR B2B PORTAL</span>
                       </div>
                   </div>
 
@@ -425,6 +426,7 @@ function AppContent() {
                                   placeholder={loginType === 'OWNER' ? "C-100200" : "05xxxxxxxx"}
                                   value={identifier}
                                   onChange={(e) => setIdentifier(e.target.value)}
+                                  data-testid="input-identifier"
                               />
                               {/* Tech Corners */}
                               <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-slate-600 group-focus-within/input:border-cyan-500 transition-colors"></div>
@@ -447,6 +449,7 @@ function AppContent() {
                                   placeholder={loginType === 'OWNER' ? "••••••••" : "123456"}
                                   value={secret}
                                   onChange={(e) => setSecret(e.target.value)}
+                                  data-testid="input-password"
                               />
                                {/* Tech Corners */}
                                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-slate-600 group-focus-within/input:border-cyan-500 transition-colors"></div>
@@ -469,7 +472,7 @@ function AppContent() {
                               <span className="text-sm text-slate-400 group-hover:text-cyan-400 transition-colors">{t('rememberMe')}</span>
                           </label>
                           {loginType === 'OWNER' && (
-                              <a href="#" className="text-sm font-bold text-slate-500 hover:text-white transition-colors">{t('forgotPassword')}</a>
+                              <a href="#" className="text-sm font-bold text-slate-500 hover:text-white transition-colors" data-testid="link-forgot-password">{t('forgotPassword')}</a>
                           )}
                       </div>
 
@@ -477,6 +480,7 @@ function AppContent() {
                           type="submit"
                           disabled={loading}
                           className="w-full py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold tracking-wide rounded-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all flex items-center justify-center gap-3 group/btn relative overflow-hidden"
+                          data-testid="button-login"
                       >
                           {loading ? (
                              <span className="animate-pulse">جاري التحقق...</span>
@@ -505,8 +509,9 @@ function AppContent() {
                           <button 
                               onClick={() => setAuthView('REGISTER')}
                               className="mt-4 text-cyan-500 text-sm font-bold hover:text-cyan-400 hover:underline transition-all"
+                              data-testid="button-open-account-request"
                           >
-                              طلب تسجيل منشأة جديدة
+                              طلب فتح حساب جديد
                           </button>
                       )}
                   </div>
