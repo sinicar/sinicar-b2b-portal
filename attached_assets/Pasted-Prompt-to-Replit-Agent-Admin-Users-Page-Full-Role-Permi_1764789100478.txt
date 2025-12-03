@@ -1,0 +1,403 @@
+Prompt to Replit Agent – Admin Users Page + Full Role & Permissions System
+
+Act as a senior full-stack architect.
+I want a complete user management and permissions system for the admin panel of the Sini Car B2B portal.
+
+Goal:
+
+Add a dedicated "Users" page in the admin panel for managing staff/admin accounts.
+
+Implement a strong Role & Permission system that controls access to:
+
+All pages
+
+All actions (view, create, edit, delete, approve, reject, export, import, settings, API, backup, etc.)
+
+Allow the owner (Super Admin) to configure roles and permissions from the UI, not hard-coded.
+
+All visible labels/menus to end users must be in Arabic.
+
+1. Core data model: Users, Roles, Permissions
+
+Define strongly-typed models in TypeScript, for example:
+
+type PermissionAction =
+  | 'view'
+  | 'create'
+  | 'edit'
+  | 'delete'
+  | 'approve'
+  | 'reject'
+  | 'export'
+  | 'import'
+  | 'configure'
+  | 'manage_status'
+  | 'manage_users'
+  | 'manage_roles'
+  | 'run_backup'
+  | 'manage_api'
+  | 'other';
+
+type PermissionResource =
+  | 'dashboard'
+  | 'products'
+  | 'customers'
+  | 'customer_requests'
+  | 'account_requests'
+  | 'quotes'
+  | 'orders'
+  | 'imports'
+  | 'missing'
+  | 'crm'
+  | 'activity_log'
+  | 'notifications'
+  | 'settings_general'
+  | 'settings_status_labels'
+  | 'settings_api'
+  | 'settings_backup'
+  | 'settings_security'
+  | 'users'
+  | 'roles'
+  | 'export_center'
+  | 'content_management'
+  | 'other';
+
+type Permission = {
+  resource: PermissionResource;
+  actions: PermissionAction[];
+};
+
+type Role = {
+  id: string;
+  name: string;        // Arabic role name, e.g. "مشرف عام", "مدير المبيعات"
+  description?: string;
+  permissions: Permission[];
+  isSystem?: boolean;  // built-in roles that cannot be deleted
+};
+
+type AdminUser = {
+  id: string;
+  name: string;
+  email?: string;
+  phone: string;
+  username: string;
+  passwordHash: string;
+  roleId: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+};
+
+
+Store users and roles in mockApi/localStorage.
+
+Create some default system roles (seed data):
+
+SuperAdmin – full access to everything.
+
+Admin – wide access but cannot delete SuperAdmin or change core security.
+
+SalesManager – manage quotes, orders, customers, missing parts, but limited settings.
+
+SalesAgent – view/add quotes, orders; cannot change global settings.
+
+Viewer – read-only access to most lists, no editing.
+
+2. Admin Users page (صفحة المستخدمين)
+
+Add a new menu item under الإعدادات or a dedicated section:
+
+Label: "المستخدمون والصلاحيات"
+
+Sub-tabs:
+
+"المستخدمون" (Users)
+
+"الأدوار والصلاحيات" (Roles & Permissions)
+
+2.1 Users tab
+
+Create a table listing all admin/staff users:
+
+Columns (Arabic):
+
+الاسم الكامل
+
+اسم المستخدم
+
+رقم الجوال
+
+الدور (Role)
+
+الحالة (نشط / موقوف)
+
+آخر تسجيل دخول
+
+إجراءات
+
+Actions:
+
+إضافة مستخدم جديد
+
+Form fields:
+
+الاسم الكامل
+
+رقم الجوال
+
+البريد (اختياري)
+
+اسم المستخدم
+
+كلمة المرور
+
+اختيار الدور من قائمة الأدوار
+
+حالة الحساب (نشط / موقوف)
+
+Validate password using existing security policy.
+
+تعديل مستخدم
+
+Edit role, phone, email, active/inactive.
+
+Optional: reset password.
+
+إيقاف / تفعيل مستخدم
+
+Toggle isActive with confirmation.
+
+حذف مستخدم (except the last SuperAdmin)
+
+Show strong confirmation and prevent deleting self if it’s the only SuperAdmin.
+
+تصدير المستخدمين
+
+Button to export users list (CSV / Excel) with main fields.
+
+Only roles with manage_users or manage_roles on users resource can access this page.
+
+3. Roles & Permissions tab (الأدوار والصلاحيات)
+
+UI:
+
+Left side: list of roles.
+
+Right side: permissions matrix for the selected role.
+
+Features:
+
+Create new role
+
+Name in Arabic.
+
+Optional description.
+
+Initial permissions (checkboxes).
+
+Edit role
+
+Change name, description.
+
+Change permissions by checking/unchecking actions per resource.
+
+Delete role
+
+Allowed only if:
+
+isSystem is false
+
+AND no users currently assigned to this role.
+
+Provide message if deletion not allowed.
+
+Permission matrix
+
+For each PermissionResource, show row; for each PermissionAction relevant to that resource, show checkbox.
+
+Example for quotes resource:
+
+عرض (view)
+
+إضافة (create)
+
+تعديل (edit)
+
+حذف (delete)
+
+اعتماد/رفض (approve/reject)
+
+تصدير (export)
+
+For settings_api:
+
+عرض
+
+تعديل الإعدادات (configure)
+
+اختبار الاتصال
+
+For settings_backup:
+
+إنشاء نسخة احتياطية (run_backup)
+
+استعادة نسخة
+
+عرض السجل
+
+For settings_status_labels:
+
+عرض
+
+إدارة المسميات (manage_status)
+
+For users and roles:
+
+manage_users / manage_roles.
+
+4. Permission enforcement across the app
+
+Implement a central permission check helper:
+
+function hasPermission(
+  user: AdminUser,
+  resource: PermissionResource,
+  action: PermissionAction
+): boolean;
+
+
+Usage rules:
+
+For each admin page / action:
+
+Before rendering page: check hasPermission(user, resource, 'view').
+
+If false → show an “access denied” page in Arabic:
+
+"ليس لديك صلاحية لعرض هذه الصفحة."
+
+For buttons/actions:
+
+e.g. Approve order → require approve on orders.
+
+Export products → require export on products.
+
+Change API settings → require configure on settings_api.
+
+Run backup → require run_backup on settings_backup.
+
+Change status labels → require manage_status on settings_status_labels.
+
+Hide UI elements that the user cannot use, instead of letting them click and failing later.
+
+SuperAdmin bypass:
+
+For role SuperAdmin, hasPermission always returns true for all resources/actions.
+
+5. Linking permissions to specific critical actions
+
+Make sure the following are controlled by the new permissions system:
+
+Approvals / Rejections
+
+Account opening requests (account_requests, actions: approve, reject).
+
+Quotes (quotes, actions: approve, reject if there is a workflow).
+
+Import requests (imports, actions: approve, reject or status transitions).
+
+Status changes
+
+Changing status of orders / imports / missing / account requests → require manage_status or edit on that resource.
+
+Exports
+
+Any Export to Excel/CSV (products, customers, quotes, orders, missing, users…) → require export on that resource.
+
+API Settings
+
+Viewing/Editing API config → settings_api + configure.
+
+Backup & Restore
+
+Creating backup → settings_backup + run_backup.
+
+Restoring → same plus a stronger confirmation.
+
+Security / Status labels / Global settings
+
+Managed via settings_security, settings_status_labels, settings_general.
+
+6. Audit trail (اختياري لكنه مهم)
+
+In the Activity Log, log important user management & permission events:
+
+User created / updated / deleted.
+
+Role created / updated / deleted.
+
+Role assigned to user.
+
+Permissions changed for a role.
+
+Store:
+
+Who performed the action (admin user).
+
+What changed.
+
+When it happened.
+
+Add filters in Activity Log to filter security / permissions events.
+
+7. UX & Arabic labels
+
+Use existing design system components (cards, tables, buttons).
+
+All visible text:
+
+"المستخدمون"
+
+"إضافة مستخدم"
+
+"الدور"
+
+"الصلاحيات"
+
+"حفظ التعديلات"
+
+"ليس لديك صلاحية للوصول"
+should be in Arabic and consistent with rest of the admin UI.
+
+8. Testing
+
+After implementation, test at least these scenarios:
+
+SuperAdmin:
+
+Can see everything, manage users, roles, settings, API, backup, etc.
+
+SalesManager role:
+
+Can manage products, quotes, orders, missing, customers.
+
+Cannot access API settings or backup settings if not given permission.
+
+SalesAgent role:
+
+Can create quotes and orders and view their own customers.
+
+Cannot access settings, users page, or delete data.
+
+Viewer role:
+
+Can only view tables, no create/edit/delete/approve/export.
+
+Make sure:
+
+Unauthorized pages show a clear “no permission” message.
+
+Buttons disappear when the current role doesn’t have permission.
+
+npm run build passes and there are no new console errors.
+
+End of prompt.
