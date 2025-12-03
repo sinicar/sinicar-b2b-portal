@@ -549,12 +549,56 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                 </button>
                             </div>
 
+                            {/* Password Reset Section */}
+                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><LockKeyhole size={18}/> إعادة تعيين كلمة المرور</h3>
+                                <p className="text-sm text-slate-500 mb-4">يمكنك إعادة تعيين كلمة مرور صاحب الحساب من هنا. سيتم إنشاء كلمة مرور جديدة وإرسال إشعار للعميل.</p>
+                                <button 
+                                    onClick={async () => {
+                                        const newPassword = prompt('أدخل كلمة المرور الجديدة (4 أحرف على الأقل):', '');
+                                        if (newPassword && newPassword.length >= 4) {
+                                            try {
+                                                // Get current admin user from localStorage
+                                                const adminUser = JSON.parse(localStorage.getItem('sini_car_current_user') || '{}');
+                                                if (!adminUser.id) {
+                                                    addToast('خطأ: لم يتم العثور على بيانات المسؤول', 'error');
+                                                    return;
+                                                }
+                                                const result = await MockApi.adminResetPassword(adminUser.id, customer.userId, newPassword);
+                                                if (result.success) {
+                                                    addToast(result.message, 'success');
+                                                } else {
+                                                    addToast(result.message, 'error');
+                                                }
+                                            } catch (e) {
+                                                addToast('حدث خطأ أثناء إعادة تعيين كلمة المرور', 'error');
+                                            }
+                                        } else if (newPassword) {
+                                            addToast('كلمة المرور يجب أن تكون 4 أحرف على الأقل', 'error');
+                                        }
+                                    }}
+                                    className="w-full bg-amber-500 text-white font-bold py-2 rounded-lg text-sm hover:bg-amber-600 flex items-center justify-center gap-2"
+                                    data-testid="button-admin-reset-password"
+                                >
+                                    <LockKeyhole size={16} />
+                                    إعادة تعيين كلمة المرور
+                                </button>
+                            </div>
+
                             <h3 className="font-bold text-slate-800 mb-2 text-sm">سجل الدخول الأخير</h3>
                             <div className="space-y-2">
-                                {activityLogs.filter(l => l.eventType === 'LOGIN' || l.eventType === 'FAILED_LOGIN').slice(0, 5).map(log => (
+                                {activityLogs.filter(l => l.eventType === 'LOGIN' || l.eventType === 'FAILED_LOGIN' || l.eventType === 'PASSWORD_CHANGED' || l.eventType === 'PASSWORD_RESET').slice(0, 5).map(log => (
                                     <div key={log.id} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-lg text-xs">
-                                        <span className={`font-bold ${log.eventType === 'LOGIN' ? 'text-green-600' : 'text-red-600'}`}>
-                                            {log.eventType === 'LOGIN' ? 'دخول ناجح' : 'فشل دخول'}
+                                        <span className={`font-bold ${
+                                            log.eventType === 'LOGIN' ? 'text-green-600' : 
+                                            log.eventType === 'FAILED_LOGIN' ? 'text-red-600' : 
+                                            log.eventType === 'PASSWORD_CHANGED' ? 'text-blue-600' :
+                                            log.eventType === 'PASSWORD_RESET' ? 'text-amber-600' : 'text-slate-600'
+                                        }`}>
+                                            {log.eventType === 'LOGIN' ? 'دخول ناجح' : 
+                                             log.eventType === 'FAILED_LOGIN' ? 'فشل دخول' : 
+                                             log.eventType === 'PASSWORD_CHANGED' ? 'تغيير كلمة المرور' :
+                                             log.eventType === 'PASSWORD_RESET' ? 'إعادة تعيين (Admin)' : log.eventType}
                                         </span>
                                         <span className="text-slate-500 font-mono" dir="ltr">{formatDateTime(log.createdAt)}</span>
                                     </div>

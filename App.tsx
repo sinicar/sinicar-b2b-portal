@@ -44,13 +44,16 @@ function AppContent() {
   // Login Form State
   const [identifier, setIdentifier] = useState(''); // ClientId or Phone
   const [secret, setSecret] = useState(''); // Password or Activation Code
+  const [rememberMe, setRememberMe] = useState(false); // Persistent login
 
   const { t, dir } = useLanguage();
   const { addToast } = useToast();
 
-  // Session Restore
+  // Session Restore (Check both current session and persistent session)
   useEffect(() => {
-    MockApi.getCurrentSession().then(async (user) => {
+    const restoreSession = async () => {
+      // First try to restore from current session
+      const user = await MockApi.getCurrentSession();
       if (user) {
         try {
             // Determine type for re-login (simplified)
@@ -62,13 +65,59 @@ function AppContent() {
             setCurrentUser(res.user);
             setCurrentProfile(res.profile);
             setShowIntro(false); // Skip intro if already logged in
+            setLoading(false);
+            return;
         } catch (e) {
             console.error("Session restore failed", e);
             MockApi.logout();
         }
       }
+      
+      // If no current session, check for persistent session token (Remember Me)
+      const persistentData = localStorage.getItem('sini_car_persistent_session');
+      if (persistentData) {
+        try {
+          const session = JSON.parse(persistentData);
+          // Check if session is not expired and token is valid
+          if (session.expiresAt && session.expiresAt > Date.now() && session.sessionToken && session.userId) {
+            // Validate the token is still valid (invalidated on password change)
+            if (MockApi.validateSessionToken(session.userId, session.sessionToken)) {
+              // Get user by ID (not replaying credentials)
+              const user = await MockApi.getUserById(session.userId);
+              if (user && user.isActive) {
+                // Get profile for customer users
+                let profile: BusinessProfile | null = null;
+                if (user.role !== 'SUPER_ADMIN') {
+                  const allUsers = await MockApi.getAllUsers();
+                  const mainProfileUserId = user.parentId || user.id;
+                  const found = allUsers.find(u => u.user.id === mainProfileUserId);
+                  profile = found?.profile || null;
+                }
+                // Store as current session
+                localStorage.setItem('sini_car_current_user', JSON.stringify(user));
+                setCurrentUser(user);
+                setCurrentProfile(profile);
+                setShowIntro(false);
+                setLoading(false);
+                return;
+              }
+            }
+            // Token invalid, user inactive, or password changed - remove persistent session
+            localStorage.removeItem('sini_car_persistent_session');
+          } else {
+            // Session expired, remove it
+            localStorage.removeItem('sini_car_persistent_session');
+          }
+        } catch (e) {
+          console.error("Persistent session restore failed", e);
+          localStorage.removeItem('sini_car_persistent_session');
+        }
+      }
+      
       setLoading(false);
-    });
+    };
+    
+    restoreSession();
   }, []);
 
   // Function to refresh user state (e.g. when credits are used)
@@ -79,13 +128,13 @@ function AppContent() {
       }
   };
 
-  // Cinematic Intro Sequence Logic (First Load only)
+  // Cinematic Intro Sequence Logic (First Load only - faster)
   useEffect(() => {
     if (!currentUser && !loading && !isLoginProcessing) {
-      setTimeout(() => setIntroStep(1), 500);
-      setTimeout(() => setIntroStep(2), 2000);
-      setTimeout(() => setIntroStep(3), 3500);
-      setTimeout(() => setShowIntro(false), 4500);
+      setTimeout(() => setIntroStep(1), 300);
+      setTimeout(() => setIntroStep(2), 1000);
+      setTimeout(() => setIntroStep(3), 1700);
+      setTimeout(() => setShowIntro(false), 2500);
     }
   }, [loading, currentUser, isLoginProcessing]);
 
@@ -96,12 +145,12 @@ function AppContent() {
     try {
         const res = await MockApi.login(identifier, secret, loginType);
         
-        // 2. Start the 10-second cinematic loading
+        // 2. Start the 4-second cinematic loading
         setIsLoginProcessing(true);
         setLoginStepIndex(0);
         setLoginProgress(0);
 
-        const totalDuration = 10000; // 10 seconds
+        const totalDuration = 4000; // 4 seconds (faster login experience)
         const stepDuration = totalDuration / LOGIN_LOADING_STEPS.length;
         
         let currentStep = 0;
@@ -119,10 +168,26 @@ function AppContent() {
             setLoginProgress(old => Math.min(old + 1, 100));
         }, totalDuration / 100);
 
-        // 3. Finalize after 10 seconds
+        // 3. Finalize after 4 seconds
         setTimeout(() => {
             clearInterval(stepInterval);
             clearInterval(progressInterval);
+            
+            // Store persistent session token if rememberMe is checked (secure approach)
+            if (rememberMe) {
+                // Generate a secure random token (not storing actual credentials)
+                const sessionToken = `${res.user.id}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+                const persistentSession = {
+                    sessionToken: sessionToken,
+                    userId: res.user.id,
+                    loginType: loginType,
+                    createdAt: Date.now(), // Non-secret timestamp for session creation
+                    expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days
+                };
+                localStorage.setItem('sini_car_persistent_session', JSON.stringify(persistentSession));
+                // Store token in user's active sessions (token invalidation handles password changes)
+                MockApi.storeSessionToken(res.user.id, sessionToken);
+            }
             
             setIsLoginProcessing(false);
             setCurrentUser(res.user);
@@ -137,11 +202,14 @@ function AppContent() {
 
   const handleLogout = async () => {
     await MockApi.logout();
+    // Clear persistent session on logout
+    localStorage.removeItem('sini_car_persistent_session');
     setCurrentUser(null);
     setCurrentProfile(null);
     setAuthView('LOGIN');
     setIdentifier('');
     setSecret('');
+    setRememberMe(false);
     setShowIntro(false);
     setIsLoginProcessing(false);
     addToast(t('logout'), 'info');
@@ -389,7 +457,13 @@ function AppContent() {
                       <div className="flex items-center justify-between pt-2">
                           <label className="flex items-center gap-2 cursor-pointer group">
                               <div className="relative flex items-center justify-center w-5 h-5 border border-slate-600 rounded bg-slate-900/50 group-hover:border-cyan-500 transition-colors">
-                                  <input type="checkbox" className="peer appearance-none w-full h-full cursor-pointer" />
+                                  <input 
+                                      type="checkbox" 
+                                      className="peer appearance-none w-full h-full cursor-pointer" 
+                                      checked={rememberMe}
+                                      onChange={(e) => setRememberMe(e.target.checked)}
+                                      data-testid="checkbox-remember-me"
+                                  />
                                   <CheckCircle2 size={12} className="text-cyan-400 opacity-0 peer-checked:opacity-100 absolute" />
                               </div>
                               <span className="text-sm text-slate-400 group-hover:text-cyan-400 transition-colors">{t('rememberMe')}</span>

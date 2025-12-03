@@ -1914,6 +1914,9 @@ export const MockApi = {
           description: 'تم تغيير كلمة المرور بنجاح'
       });
 
+      // Invalidate persistent session tokens (forces re-login with new password)
+      this.invalidateSessionTokens(userId);
+
       return { success: true, message: 'تم تغيير كلمة المرور بنجاح' };
   },
 
@@ -1964,7 +1967,48 @@ export const MockApi = {
           'تم إعادة تعيين كلمة المرور الخاصة بك من قبل الإدارة. يرجى تسجيل الدخول بكلمة المرور الجديدة.'
       );
 
+      // Invalidate persistent session tokens (forces re-login with new password)
+      this.invalidateSessionTokens(targetUserId);
+
       return { success: true, message: 'تم إعادة تعيين كلمة المرور بنجاح' };
+  },
+
+  /**
+   * Store a session token for persistent login (for later validation)
+   */
+  storeSessionToken(userId: string, token: string): void {
+      const tokens = JSON.parse(localStorage.getItem('sini_car_session_tokens') || '{}');
+      if (!tokens[userId]) {
+          tokens[userId] = [];
+      }
+      // Keep only last 5 tokens per user (multiple devices)
+      tokens[userId] = [...tokens[userId].slice(-4), token];
+      localStorage.setItem('sini_car_session_tokens', JSON.stringify(tokens));
+  },
+
+  /**
+   * Validate a session token for persistent login
+   */
+  validateSessionToken(userId: string, token: string): boolean {
+      const tokens = JSON.parse(localStorage.getItem('sini_car_session_tokens') || '{}');
+      return tokens[userId]?.includes(token) || false;
+  },
+
+  /**
+   * Invalidate all session tokens for a user (on password change)
+   */
+  invalidateSessionTokens(userId: string): void {
+      const tokens = JSON.parse(localStorage.getItem('sini_car_session_tokens') || '{}');
+      delete tokens[userId];
+      localStorage.setItem('sini_car_session_tokens', JSON.stringify(tokens));
+  },
+
+  /**
+   * Get user by ID for session token restoration
+   */
+  async getUserById(userId: string): Promise<User | null> {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]') as User[];
+      return users.find(u => u.id === userId) || null;
   },
 
   async getEmployees(mainUserId: string): Promise<User[]> {
