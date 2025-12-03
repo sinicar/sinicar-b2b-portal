@@ -156,9 +156,9 @@ export const AdminSettings: React.FC = () => {
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                <Settings className="text-primary-600" /> إعدادات الموقع الأساسية
+                                <Settings className="text-brand-600" /> إعدادات الموقع الأساسية
                             </h2>
-                            <button onClick={handleSaveGeneral} disabled={saving} className="bg-primary-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-700 shadow-lg shadow-primary-200 flex items-center gap-2">
+                            <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
                                 <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
                             </button>
                         </div>
@@ -407,7 +407,7 @@ export const AdminSettings: React.FC = () => {
                                 </h2>
                                 <p className="text-sm text-slate-500 mt-1">يمكنك تعديل المسميات والعناوين الظاهرة للعملاء مباشرة من هنا.</p>
                             </div>
-                            <button onClick={handleSaveGeneral} disabled={saving} className="bg-primary-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-700 shadow-lg shadow-primary-200 flex items-center gap-2">
+                            <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
                                 <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ النصوص'}
                             </button>
                         </div>
@@ -436,9 +436,9 @@ export const AdminSettings: React.FC = () => {
                      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                <Server className="text-secondary-500" /> إعدادات الربط (ERP Integration)
+                                <Server className="text-brand-600" /> إعدادات الربط (ERP Integration)
                             </h2>
-                            <button onClick={handleSaveGeneral} className="bg-primary-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-700 shadow-lg shadow-primary-200">
+                            <button onClick={handleSaveGeneral} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50">
                                 حفظ الإعدادات
                             </button>
                         </div>
@@ -523,7 +523,7 @@ export const AdminSettings: React.FC = () => {
                             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                                 <Palette className="text-purple-500" /> المظهر والتخصيص
                             </h2>
-                            <button onClick={handleSaveGeneral} className="bg-primary-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-700 shadow-lg shadow-primary-200">
+                            <button onClick={handleSaveGeneral} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50">
                                 حفظ التغييرات
                             </button>
                         </div>
@@ -664,7 +664,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                     <Tags className="text-orange-500" /> إدارة حالات النظام
                 </h2>
-                <button onClick={onSave} disabled={saving} className="bg-primary-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-700 shadow-lg shadow-primary-200 flex items-center gap-2">
+                <button onClick={onSave} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
                     <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
                 </button>
             </div>
