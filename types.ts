@@ -814,28 +814,23 @@ export interface ActivityLogEntry {
 
 // --- Admin Users Management Types ---
 
-export type AdminRole = 
-  | 'SUPER_ADMIN'     // مشرف عام - صلاحيات كاملة
-  | 'ADMIN'           // مدير - صلاحيات واسعة
-  | 'SALES_MANAGER'   // مدير مبيعات
-  | 'SALES_AGENT'     // مندوب مبيعات
-  | 'VIEWER';         // مشاهد فقط
-
-export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
-  SUPER_ADMIN: 'مشرف عام',
-  ADMIN: 'مدير',
-  SALES_MANAGER: 'مدير مبيعات',
-  SALES_AGENT: 'مندوب مبيعات',
-  VIEWER: 'مشاهد فقط'
-};
+// أدوار المستخدمين الافتراضية (نص عربي بسيط)
+export const DEFAULT_ADMIN_ROLES = [
+  'مشرف عام',
+  'مدير',
+  'موظف مبيعات',
+  'موظف خدمة عملاء',
+  'مشاهد فقط'
+];
 
 export interface AdminUser {
   id: string;
-  name: string;           // الاسم الكامل
+  fullName: string;       // الاسم الكامل
   username: string;       // اسم المستخدم
   phone: string;          // رقم الجوال
   email?: string;         // البريد الإلكتروني (اختياري)
-  role: AdminRole;        // الدور
+  password?: string;      // كلمة المرور (مشفرة في الإنتاج)
+  role: string;           // الدور - نص عربي بسيط
   isActive: boolean;      // نشط / موقوف
   lastLoginAt?: string;   // آخر تسجيل دخول
   createdAt: string;      // تاريخ الإنشاء

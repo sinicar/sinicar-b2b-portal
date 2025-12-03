@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, AdminRole } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -2793,53 +2793,37 @@ export const MockApi = {
       return [
           {
               id: 'admin-1',
-              name: 'أحمد المشرف',
+              fullName: 'أحمد المشرف العام',
               username: 'admin',
               phone: '0500000001',
               email: 'admin@sinicar.com',
-              role: 'SUPER_ADMIN',
+              password: 'admin123',
+              role: 'مشرف عام',
               isActive: true,
               lastLoginAt: new Date().toISOString(),
               createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
           },
           {
               id: 'admin-2',
-              name: 'محمد المدير',
-              username: 'manager',
+              fullName: 'محمد موظف المبيعات',
+              username: 'sales_user',
               phone: '0500000002',
-              email: 'manager@sinicar.com',
-              role: 'ADMIN',
+              email: 'sales@sinicar.com',
+              password: 'sales123',
+              role: 'موظف مبيعات',
               isActive: true,
               lastLoginAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
               createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
           },
           {
               id: 'admin-3',
-              name: 'خالد مدير المبيعات',
-              username: 'sales_mgr',
+              fullName: 'خالد موظف خدمة العملاء',
+              username: 'support_user',
               phone: '0500000003',
-              role: 'SALES_MANAGER',
-              isActive: true,
-              lastLoginAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-              createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-              id: 'admin-4',
-              name: 'سعد مندوب المبيعات',
-              username: 'sales_agent',
-              phone: '0500000004',
-              role: 'SALES_AGENT',
-              isActive: true,
-              createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-              id: 'admin-5',
-              name: 'فهد المشاهد',
-              username: 'viewer',
-              phone: '0500000005',
-              role: 'VIEWER',
+              password: 'support123',
+              role: 'موظف خدمة عملاء',
               isActive: false,
-              createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+              createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
           }
       ];
   },
@@ -2861,6 +2845,11 @@ export const MockApi = {
           throw new Error('اسم المستخدم موجود بالفعل');
       }
       
+      // Validate password
+      if (!userData.password || userData.password.trim() === '') {
+          throw new Error('كلمة المرور مطلوبة');
+      }
+      
       const newUser: AdminUser = {
           ...userData,
           id: crypto.randomUUID(),
@@ -2874,7 +2863,7 @@ export const MockApi = {
           userId: 'system',
           userName: 'النظام',
           eventType: 'OTHER',
-          description: `تم إنشاء مستخدم جديد: ${newUser.name} (${newUser.username})`,
+          description: `تم إنشاء مستخدم جديد: ${newUser.fullName} (${newUser.username})`,
           metadata: { adminUserId: newUser.id, action: 'create_admin_user' }
       });
       
@@ -2901,11 +2890,35 @@ export const MockApi = {
           userId: 'system',
           userName: 'النظام',
           eventType: 'OTHER',
-          description: `تم تحديث بيانات المستخدم: ${users[index].name}`,
+          description: `تم تحديث بيانات المستخدم: ${users[index].fullName}`,
           metadata: { adminUserId: id, action: 'update_admin_user', updates }
       });
       
       return users[index];
+  },
+
+  async resetAdminUserPassword(id: string, newPassword: string): Promise<boolean> {
+      if (!newPassword || newPassword.trim() === '') {
+          throw new Error('كلمة المرور الجديدة مطلوبة');
+      }
+      
+      const users = await this.getAdminUsers();
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index === -1) return false;
+      
+      users[index].password = newPassword;
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم إعادة تعيين كلمة مرور المستخدم: ${users[index].fullName}`,
+          metadata: { adminUserId: id, action: 'reset_admin_password' }
+      });
+      
+      return true;
   },
 
   async toggleAdminUserStatus(id: string): Promise<AdminUser | null> {
@@ -2930,7 +2943,7 @@ export const MockApi = {
           userId: 'system',
           userName: 'النظام',
           eventType: users[index].isActive ? 'USER_REACTIVATED' : 'USER_SUSPENDED',
-          description: `تم ${action} المستخدم: ${users[index].name}`,
+          description: `تم ${action} المستخدم: ${users[index].fullName}`,
           metadata: { adminUserId: id, action: 'toggle_admin_user_status' }
       });
       
@@ -2958,7 +2971,7 @@ export const MockApi = {
           userId: 'system',
           userName: 'النظام',
           eventType: 'OTHER',
-          description: `تم حذف المستخدم: ${userToDelete.name} (${userToDelete.username})`,
+          description: `تم حذف المستخدم: ${userToDelete.fullName} (${userToDelete.username})`,
           metadata: { adminUserId: id, action: 'delete_admin_user' }
       });
       
