@@ -599,6 +599,19 @@ export interface ApiConfig {
   rateLimit: number; // Requests per minute
 }
 
+// Status Labels Configuration - Centralized status display names
+export interface StatusLabelsConfig {
+  orderStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  orderInternalStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  accountRequestStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  quoteRequestStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  quoteItemStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  missingStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  importRequestStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  customerStatus: Record<string, { label: string; color: string; bgColor: string }>;
+  staffStatus: Record<string, { label: string; color: string; bgColor: string }>;
+}
+
 export interface SiteSettings {
   siteName: string;
   description?: string;
@@ -620,6 +633,8 @@ export interface SiteSettings {
   tickerSpeed?: number;
   tickerBgColor?: string;
   tickerTextColor?: string;
+  // Status Labels Configuration
+  statusLabels?: StatusLabelsConfig;
 }
 
 // --- Activity Log Types (New) ---

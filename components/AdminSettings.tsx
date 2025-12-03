@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Banner, SiteSettings } from '../types';
+import { Banner, SiteSettings, StatusLabelsConfig } from '../types';
 import { MockApi } from '../services/mockApi';
-import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone } from 'lucide-react';
+import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 
 export const AdminSettings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS'>('GENERAL');
+    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS'>('GENERAL');
     const [settings, setSettings] = useState<SiteSettings | null>(null);
     const [banners, setBanners] = useState<Banner[]>([]);
     const [loading, setLoading] = useState(true);
@@ -143,6 +143,7 @@ export const AdminSettings: React.FC = () => {
                         <TabButton id="GENERAL" icon={<Settings size={20} />} label="الإعدادات العامة" />
                         <TabButton id="BANNERS" icon={<ImageIcon size={20} />} label="إدارة البنرات" />
                         <TabButton id="TEXTS" icon={<Type size={20} />} label="إدارة النصوص" />
+                        <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label="حالات النظام" />
                         <TabButton id="API" icon={<Server size={20} />} label="الربط البرمجي (API)" />
                         <TabButton id="APPEARANCE" icon={<Palette size={20} />} label="المظهر والهوية" />
                     </nav>
@@ -533,6 +534,207 @@ export const AdminSettings: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                {activeTab === 'STATUS_LABELS' && (
+                    <StatusLabelsManager 
+                        settings={settings}
+                        onUpdate={(newSettings) => setSettings(newSettings)}
+                        onSave={handleSaveGeneral}
+                        saving={saving}
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Status Labels Manager Component
+interface StatusLabelsManagerProps {
+    settings: SiteSettings;
+    onUpdate: (settings: SiteSettings) => void;
+    onSave: () => void;
+    saving: boolean;
+}
+
+const STATUS_CATEGORIES = [
+    { key: 'orderStatus', label: 'حالات الطلبات (الظاهرة للعميل)', icon: '📦' },
+    { key: 'orderInternalStatus', label: 'حالات الطلبات الداخلية', icon: '🔒' },
+    { key: 'accountRequestStatus', label: 'حالات طلبات الحسابات', icon: '👤' },
+    { key: 'quoteRequestStatus', label: 'حالات طلبات التسعير', icon: '💰' },
+    { key: 'quoteItemStatus', label: 'حالات أصناف التسعير', icon: '📋' },
+    { key: 'missingStatus', label: 'حالات النواقص', icon: '❌' },
+    { key: 'importRequestStatus', label: 'حالات طلبات الاستيراد', icon: '🚢' },
+    { key: 'customerStatus', label: 'حالات العملاء', icon: '🏢' },
+    { key: 'staffStatus', label: 'حالات الموظفين', icon: '👷' }
+] as const;
+
+const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onUpdate, onSave, saving }) => {
+    const [selectedCategory, setSelectedCategory] = useState<string>('orderStatus');
+    const [editingStatus, setEditingStatus] = useState<string | null>(null);
+    const [tempLabel, setTempLabel] = useState('');
+    const [tempColor, setTempColor] = useState('#000000');
+    const [tempBgColor, setTempBgColor] = useState('#ffffff');
+    const { addToast } = useToast();
+
+    const statusLabels = settings.statusLabels;
+    if (!statusLabels) return null;
+
+    const currentCategory = statusLabels[selectedCategory as keyof StatusLabelsConfig] as Record<string, { label: string; color: string; bgColor: string }>;
+    const categoryInfo = STATUS_CATEGORIES.find(c => c.key === selectedCategory);
+
+    const handleEditStart = (statusKey: string) => {
+        const status = currentCategory[statusKey];
+        if (status) {
+            setEditingStatus(statusKey);
+            setTempLabel(status.label);
+            setTempColor(status.color);
+            setTempBgColor(status.bgColor);
+        }
+    };
+
+    const handleEditSave = () => {
+        if (!editingStatus || !tempLabel.trim()) return;
+        
+        const updatedLabels = {
+            ...statusLabels,
+            [selectedCategory]: {
+                ...currentCategory,
+                [editingStatus]: {
+                    label: tempLabel.trim(),
+                    color: tempColor,
+                    bgColor: tempBgColor
+                }
+            }
+        };
+        
+        onUpdate({
+            ...settings,
+            statusLabels: updatedLabels
+        });
+        
+        setEditingStatus(null);
+        addToast('تم تحديث الحالة بنجاح', 'success');
+    };
+
+    const handleEditCancel = () => {
+        setEditingStatus(null);
+    };
+
+    return (
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <Tags className="text-orange-500" /> إدارة حالات النظام
+                </h2>
+                <button onClick={onSave} disabled={saving} className="bg-primary-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-700 shadow-lg shadow-primary-200 flex items-center gap-2">
+                    <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                </button>
+            </div>
+
+            <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-xl">
+                يمكنك من هنا تخصيص مسميات الحالات وألوانها التي تظهر في لوحة التحكم وللعملاء. اختر الفئة ثم عدّل المسمى واللون.
+            </p>
+
+            {/* Category Selector */}
+            <div className="flex flex-wrap gap-2">
+                {STATUS_CATEGORIES.map(cat => (
+                    <button
+                        key={cat.key}
+                        onClick={() => setSelectedCategory(cat.key)}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                            selectedCategory === cat.key 
+                                ? 'bg-slate-900 text-white shadow-lg' 
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                    >
+                        <span className="ml-2">{cat.icon}</span>
+                        {cat.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Status Labels List */}
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                    <h3 className="font-bold text-slate-700">{categoryInfo?.icon} {categoryInfo?.label}</h3>
+                </div>
+                <div className="divide-y divide-slate-100">
+                    {Object.entries(currentCategory).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                            {editingStatus === key ? (
+                                <div className="flex-1 flex items-center gap-4 flex-wrap">
+                                    <input
+                                        type="text"
+                                        value={tempLabel}
+                                        onChange={e => setTempLabel(e.target.value)}
+                                        className="flex-1 min-w-[150px] p-2 border border-slate-300 rounded-lg text-sm font-bold"
+                                        placeholder="اسم الحالة"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-xs text-slate-500">لون النص:</label>
+                                        <input
+                                            type="color"
+                                            value={tempColor}
+                                            onChange={e => setTempColor(e.target.value)}
+                                            className="w-8 h-8 rounded cursor-pointer border border-slate-200"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-xs text-slate-500">لون الخلفية:</label>
+                                        <input
+                                            type="color"
+                                            value={tempBgColor}
+                                            onChange={e => setTempBgColor(e.target.value)}
+                                            className="w-8 h-8 rounded cursor-pointer border border-slate-200"
+                                        />
+                                    </div>
+                                    <div 
+                                        className="px-3 py-1 rounded-full text-xs font-bold"
+                                        style={{ backgroundColor: tempBgColor, color: tempColor }}
+                                    >
+                                        {tempLabel || 'معاينة'}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={handleEditSave}
+                                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                        >
+                                            <Check size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={handleEditCancel}
+                                            className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-4">
+                                        <code className="text-xs bg-slate-100 px-2 py-1 rounded font-mono text-slate-500">{key}</code>
+                                        <span 
+                                            className="px-3 py-1 rounded-full text-xs font-bold"
+                                            style={{ backgroundColor: value.bgColor, color: value.color }}
+                                        >
+                                            {value.label}
+                                        </span>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleEditStart(key)}
+                                        className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                    >
+                                        <Pencil size={16} />
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm">
+                <strong>ملاحظة:</strong> تغيير الحالات يؤثر على العرض فقط ولا يغير منطق النظام. تأكد من استخدام مسميات واضحة ومفهومة للعملاء والموظفين.
             </div>
         </div>
     );

@@ -70,6 +70,84 @@ const DEFAULT_SETTINGS: SiteSettings = {
     fieldMapping: '{\n  "sku": "item_code",\n  "price": "unit_price",\n  "stock": "qty_on_hand"\n}',
     debugMode: false,
     rateLimit: 120
+  },
+  // Default Status Labels Configuration
+  statusLabels: {
+    orderStatus: {
+      'PENDING': { label: 'بانتظار الموافقة', color: '#f59e0b', bgColor: '#fef3c7' },
+      'APPROVED': { label: 'تم الاعتماد', color: '#10b981', bgColor: '#d1fae5' },
+      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2' },
+      'SHIPPED': { label: 'تم الشحن', color: '#3b82f6', bgColor: '#dbeafe' },
+      'DELIVERED': { label: 'تم التسليم', color: '#059669', bgColor: '#a7f3d0' },
+      'CANCELLED': { label: 'تم الإلغاء', color: '#6b7280', bgColor: '#f3f4f6' }
+    },
+    orderInternalStatus: {
+      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
+      'SENT_TO_WAREHOUSE': { label: 'تم الإرسال للمستودع', color: '#3b82f6', bgColor: '#dbeafe' },
+      'WAITING_PAYMENT': { label: 'بانتظار التحويل', color: '#f59e0b', bgColor: '#fef3c7' },
+      'PAYMENT_CONFIRMED': { label: 'تم تأكيد الدفع', color: '#10b981', bgColor: '#d1fae5' },
+      'SALES_INVOICE_CREATED': { label: 'تم إصدار الفاتورة', color: '#06b6d4', bgColor: '#cffafe' },
+      'READY_FOR_SHIPMENT': { label: 'جاهز للشحن', color: '#0ea5e9', bgColor: '#e0f2fe' },
+      'COMPLETED_INTERNAL': { label: 'مكتمل داخلياً', color: '#059669', bgColor: '#a7f3d0' },
+      'CANCELLED_INTERNAL': { label: 'ملغى داخلياً', color: '#6b7280', bgColor: '#f3f4f6' }
+    },
+    accountRequestStatus: {
+      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
+      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7' },
+      'APPROVED': { label: 'تم الموافقة', color: '#10b981', bgColor: '#d1fae5' },
+      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2' },
+      'ON_HOLD': { label: 'مؤجل', color: '#6b7280', bgColor: '#f3f4f6' }
+    },
+    quoteRequestStatus: {
+      'NEW': { label: 'جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
+      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7' },
+      'PARTIALLY_APPROVED': { label: 'معتمد جزئياً', color: '#06b6d4', bgColor: '#cffafe' },
+      'APPROVED': { label: 'تم التسعير', color: '#10b981', bgColor: '#d1fae5' },
+      'QUOTED': { label: 'تم التسعير', color: '#10b981', bgColor: '#d1fae5' },
+      'PROCESSED': { label: 'تمت المعالجة', color: '#059669', bgColor: '#a7f3d0' },
+      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2' }
+    },
+    quoteItemStatus: {
+      'PENDING': { label: 'قيد الانتظار', color: '#f59e0b', bgColor: '#fef3c7' },
+      'MATCHED': { label: 'تم المطابقة', color: '#10b981', bgColor: '#d1fae5' },
+      'NOT_FOUND': { label: 'غير متوفر', color: '#ef4444', bgColor: '#fee2e2' },
+      'APPROVED': { label: 'معتمد', color: '#059669', bgColor: '#a7f3d0' },
+      'REJECTED': { label: 'مرفوض', color: '#dc2626', bgColor: '#fecaca' },
+      'MISSING': { label: 'ناقص', color: '#ea580c', bgColor: '#ffedd5' }
+    },
+    missingStatus: {
+      'NEW': { label: 'نقص جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
+      'UNDER_REVIEW': { label: 'تحت الدراسة', color: '#f59e0b', bgColor: '#fef3c7' },
+      'ORDER_PLANNED': { label: 'تم جدولة الطلب', color: '#3b82f6', bgColor: '#dbeafe' },
+      'ORDERED': { label: 'تم الطلب', color: '#06b6d4', bgColor: '#cffafe' },
+      'ADDED_TO_STOCK': { label: 'تمت الإضافة للمخزون', color: '#10b981', bgColor: '#d1fae5' },
+      'IGNORED': { label: 'تم تجاهله', color: '#6b7280', bgColor: '#f3f4f6' }
+    },
+    importRequestStatus: {
+      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
+      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7' },
+      'WAITING_CUSTOMER_EXCEL': { label: 'بانتظار ملف Excel', color: '#3b82f6', bgColor: '#dbeafe' },
+      'PRICING_IN_PROGRESS': { label: 'جاري التسعير', color: '#06b6d4', bgColor: '#cffafe' },
+      'PRICING_SENT': { label: 'تم إرسال العرض', color: '#0ea5e9', bgColor: '#e0f2fe' },
+      'WAITING_CUSTOMER_APPROVAL': { label: 'بانتظار موافقة العميل', color: '#a855f7', bgColor: '#f3e8ff' },
+      'APPROVED_BY_CUSTOMER': { label: 'تمت موافقة العميل', color: '#10b981', bgColor: '#d1fae5' },
+      'IN_FACTORY': { label: 'في المصنع', color: '#f97316', bgColor: '#ffedd5' },
+      'SHIPPING': { label: 'جاري الشحن', color: '#3b82f6', bgColor: '#dbeafe' },
+      'DELIVERED': { label: 'تم التسليم', color: '#059669', bgColor: '#a7f3d0' },
+      'CANCELLED': { label: 'ملغى', color: '#6b7280', bgColor: '#f3f4f6' }
+    },
+    customerStatus: {
+      'ACTIVE': { label: 'فعال', color: '#10b981', bgColor: '#d1fae5' },
+      'SUSPENDED': { label: 'موقوف مؤقتاً', color: '#f59e0b', bgColor: '#fef3c7' },
+      'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2' },
+      'PENDING': { label: 'قيد التفعيل', color: '#8b5cf6', bgColor: '#ede9fe' },
+      'INACTIVE': { label: 'غير نشط', color: '#6b7280', bgColor: '#f3f4f6' }
+    },
+    staffStatus: {
+      'ACTIVE': { label: 'فعال', color: '#10b981', bgColor: '#d1fae5' },
+      'SUSPENDED': { label: 'موقوف', color: '#f59e0b', bgColor: '#fef3c7' },
+      'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2' }
+    }
   }
 };
 
@@ -400,11 +478,24 @@ export const MockApi = {
       }
       const parsed = JSON.parse(stored);
       // Merge with default to handle new fields if missing in storage
+      const mergedStatusLabels = DEFAULT_SETTINGS.statusLabels ? {
+          orderStatus: { ...DEFAULT_SETTINGS.statusLabels.orderStatus, ...(parsed.statusLabels?.orderStatus || {}) },
+          orderInternalStatus: { ...DEFAULT_SETTINGS.statusLabels.orderInternalStatus, ...(parsed.statusLabels?.orderInternalStatus || {}) },
+          accountRequestStatus: { ...DEFAULT_SETTINGS.statusLabels.accountRequestStatus, ...(parsed.statusLabels?.accountRequestStatus || {}) },
+          quoteRequestStatus: { ...DEFAULT_SETTINGS.statusLabels.quoteRequestStatus, ...(parsed.statusLabels?.quoteRequestStatus || {}) },
+          quoteItemStatus: { ...DEFAULT_SETTINGS.statusLabels.quoteItemStatus, ...(parsed.statusLabels?.quoteItemStatus || {}) },
+          missingStatus: { ...DEFAULT_SETTINGS.statusLabels.missingStatus, ...(parsed.statusLabels?.missingStatus || {}) },
+          importRequestStatus: { ...DEFAULT_SETTINGS.statusLabels.importRequestStatus, ...(parsed.statusLabels?.importRequestStatus || {}) },
+          customerStatus: { ...DEFAULT_SETTINGS.statusLabels.customerStatus, ...(parsed.statusLabels?.customerStatus || {}) },
+          staffStatus: { ...DEFAULT_SETTINGS.statusLabels.staffStatus, ...(parsed.statusLabels?.staffStatus || {}) }
+      } : parsed.statusLabels;
+      
       return { 
           ...DEFAULT_SETTINGS, 
           ...parsed, 
           apiConfig: { ...DEFAULT_SETTINGS.apiConfig, ...parsed.apiConfig },
-          uiTexts: { ...DEFAULT_SETTINGS.uiTexts, ...(parsed.uiTexts || {}) } // Merge UI texts
+          uiTexts: { ...DEFAULT_SETTINGS.uiTexts, ...(parsed.uiTexts || {}) },
+          statusLabels: mergedStatusLabels
       };
   },
 
