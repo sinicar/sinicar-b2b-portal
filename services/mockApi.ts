@@ -74,79 +74,83 @@ const DEFAULT_SETTINGS: SiteSettings = {
   // Default Status Labels Configuration
   statusLabels: {
     orderStatus: {
-      'PENDING': { label: 'بانتظار الموافقة', color: '#f59e0b', bgColor: '#fef3c7' },
-      'APPROVED': { label: 'تم الاعتماد', color: '#10b981', bgColor: '#d1fae5' },
-      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2' },
-      'SHIPPED': { label: 'تم الشحن', color: '#3b82f6', bgColor: '#dbeafe' },
-      'DELIVERED': { label: 'تم التسليم', color: '#059669', bgColor: '#a7f3d0' },
-      'CANCELLED': { label: 'تم الإلغاء', color: '#6b7280', bgColor: '#f3f4f6' }
+      'PENDING': { label: 'بانتظار الموافقة', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, isDefault: true, sortOrder: 1 },
+      'APPROVED': { label: 'تم الاعتماد', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 2 },
+      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 3 },
+      'SHIPPED': { label: 'تم الشحن', color: '#3b82f6', bgColor: '#dbeafe', isSystem: true, sortOrder: 4 },
+      'DELIVERED': { label: 'تم التسليم', color: '#059669', bgColor: '#a7f3d0', isSystem: true, sortOrder: 5 },
+      'CANCELLED': { label: 'تم الإلغاء', color: '#6b7280', bgColor: '#f3f4f6', isSystem: true, sortOrder: 6 }
     },
     orderInternalStatus: {
-      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
-      'SENT_TO_WAREHOUSE': { label: 'تم الإرسال للمستودع', color: '#3b82f6', bgColor: '#dbeafe' },
-      'WAITING_PAYMENT': { label: 'بانتظار التحويل', color: '#f59e0b', bgColor: '#fef3c7' },
-      'PAYMENT_CONFIRMED': { label: 'تم تأكيد الدفع', color: '#10b981', bgColor: '#d1fae5' },
-      'SALES_INVOICE_CREATED': { label: 'تم إصدار الفاتورة', color: '#06b6d4', bgColor: '#cffafe' },
-      'READY_FOR_SHIPMENT': { label: 'جاهز للشحن', color: '#0ea5e9', bgColor: '#e0f2fe' },
-      'COMPLETED_INTERNAL': { label: 'مكتمل داخلياً', color: '#059669', bgColor: '#a7f3d0' },
-      'CANCELLED_INTERNAL': { label: 'ملغى داخلياً', color: '#6b7280', bgColor: '#f3f4f6' }
+      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe', isSystem: true, isDefault: true, sortOrder: 1 },
+      'SENT_TO_WAREHOUSE': { label: 'تم الإرسال للمستودع', color: '#3b82f6', bgColor: '#dbeafe', isSystem: true, sortOrder: 2 },
+      'WAITING_PAYMENT': { label: 'بانتظار التحويل', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 3 },
+      'PAYMENT_CONFIRMED': { label: 'تم تأكيد الدفع', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 4 },
+      'SALES_INVOICE_CREATED': { label: 'تم إصدار الفاتورة', color: '#06b6d4', bgColor: '#cffafe', isSystem: true, sortOrder: 5 },
+      'READY_FOR_SHIPMENT': { label: 'جاهز للشحن', color: '#0ea5e9', bgColor: '#e0f2fe', isSystem: true, sortOrder: 6 },
+      'COMPLETED_INTERNAL': { label: 'مكتمل داخلياً', color: '#059669', bgColor: '#a7f3d0', isSystem: true, sortOrder: 7 },
+      'CANCELLED_INTERNAL': { label: 'ملغى داخلياً', color: '#6b7280', bgColor: '#f3f4f6', isSystem: true, sortOrder: 8 }
     },
     accountRequestStatus: {
-      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
-      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7' },
-      'APPROVED': { label: 'تم الموافقة', color: '#10b981', bgColor: '#d1fae5' },
-      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2' },
-      'ON_HOLD': { label: 'مؤجل', color: '#6b7280', bgColor: '#f3f4f6' }
+      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe', isSystem: true, isDefault: true, sortOrder: 1 },
+      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
+      'APPROVED': { label: 'تم الموافقة', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 3 },
+      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 4 },
+      'ON_HOLD': { label: 'مؤجل', color: '#6b7280', bgColor: '#f3f4f6', isSystem: true, sortOrder: 5 }
     },
     quoteRequestStatus: {
-      'NEW': { label: 'جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
-      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7' },
-      'PARTIALLY_APPROVED': { label: 'معتمد جزئياً', color: '#06b6d4', bgColor: '#cffafe' },
-      'APPROVED': { label: 'تم التسعير', color: '#10b981', bgColor: '#d1fae5' },
-      'QUOTED': { label: 'تم التسعير', color: '#10b981', bgColor: '#d1fae5' },
-      'PROCESSED': { label: 'تمت المعالجة', color: '#059669', bgColor: '#a7f3d0' },
-      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2' }
+      'NEW': { label: 'جديد', color: '#8b5cf6', bgColor: '#ede9fe', isSystem: true, isDefault: true, sortOrder: 1 },
+      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
+      'PARTIALLY_APPROVED': { label: 'معتمد جزئياً', color: '#06b6d4', bgColor: '#cffafe', isSystem: true, sortOrder: 3 },
+      'APPROVED': { label: 'تم التسعير', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 4 },
+      'QUOTED': { label: 'تم التسعير', color: '#10b981', bgColor: '#d1fae5', sortOrder: 5 },
+      'PROCESSED': { label: 'تمت المعالجة', color: '#059669', bgColor: '#a7f3d0', sortOrder: 6 },
+      'REJECTED': { label: 'مرفوض', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 7 }
     },
     quoteItemStatus: {
-      'PENDING': { label: 'قيد الانتظار', color: '#f59e0b', bgColor: '#fef3c7' },
-      'MATCHED': { label: 'تم المطابقة', color: '#10b981', bgColor: '#d1fae5' },
-      'NOT_FOUND': { label: 'غير متوفر', color: '#ef4444', bgColor: '#fee2e2' },
-      'APPROVED': { label: 'معتمد', color: '#059669', bgColor: '#a7f3d0' },
-      'REJECTED': { label: 'مرفوض', color: '#dc2626', bgColor: '#fecaca' },
-      'MISSING': { label: 'ناقص', color: '#ea580c', bgColor: '#ffedd5' }
+      'PENDING': { label: 'قيد الانتظار', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, isDefault: true, sortOrder: 1 },
+      'MATCHED': { label: 'تم المطابقة', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 2 },
+      'NOT_FOUND': { label: 'غير متوفر', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 3 },
+      'APPROVED': { label: 'معتمد', color: '#059669', bgColor: '#a7f3d0', isSystem: true, sortOrder: 4 },
+      'REJECTED': { label: 'مرفوض', color: '#dc2626', bgColor: '#fecaca', isSystem: true, sortOrder: 5 },
+      'MISSING': { label: 'ناقص', color: '#ea580c', bgColor: '#ffedd5', isSystem: true, sortOrder: 6 }
     },
     missingStatus: {
-      'NEW': { label: 'نقص جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
-      'UNDER_REVIEW': { label: 'تحت الدراسة', color: '#f59e0b', bgColor: '#fef3c7' },
-      'ORDER_PLANNED': { label: 'تم جدولة الطلب', color: '#3b82f6', bgColor: '#dbeafe' },
-      'ORDERED': { label: 'تم الطلب', color: '#06b6d4', bgColor: '#cffafe' },
-      'ADDED_TO_STOCK': { label: 'تمت الإضافة للمخزون', color: '#10b981', bgColor: '#d1fae5' },
-      'IGNORED': { label: 'تم تجاهله', color: '#6b7280', bgColor: '#f3f4f6' }
+      'NEW': { label: 'نقص جديد', color: '#8b5cf6', bgColor: '#ede9fe', isSystem: true, isDefault: true, sortOrder: 1 },
+      'UNDER_REVIEW': { label: 'تحت الدراسة', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
+      'ORDER_PLANNED': { label: 'تم جدولة الطلب', color: '#3b82f6', bgColor: '#dbeafe', isSystem: true, sortOrder: 3 },
+      'ORDERED': { label: 'تم الطلب', color: '#06b6d4', bgColor: '#cffafe', isSystem: true, sortOrder: 4 },
+      'ADDED_TO_STOCK': { label: 'تمت الإضافة للمخزون', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 5 },
+      'IGNORED': { label: 'تم تجاهله', color: '#6b7280', bgColor: '#f3f4f6', isSystem: true, sortOrder: 6 }
     },
     importRequestStatus: {
-      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe' },
-      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7' },
-      'WAITING_CUSTOMER_EXCEL': { label: 'بانتظار ملف Excel', color: '#3b82f6', bgColor: '#dbeafe' },
-      'PRICING_IN_PROGRESS': { label: 'جاري التسعير', color: '#06b6d4', bgColor: '#cffafe' },
-      'PRICING_SENT': { label: 'تم إرسال العرض', color: '#0ea5e9', bgColor: '#e0f2fe' },
-      'WAITING_CUSTOMER_APPROVAL': { label: 'بانتظار موافقة العميل', color: '#a855f7', bgColor: '#f3e8ff' },
-      'APPROVED_BY_CUSTOMER': { label: 'تمت موافقة العميل', color: '#10b981', bgColor: '#d1fae5' },
-      'IN_FACTORY': { label: 'في المصنع', color: '#f97316', bgColor: '#ffedd5' },
-      'SHIPPING': { label: 'جاري الشحن', color: '#3b82f6', bgColor: '#dbeafe' },
-      'DELIVERED': { label: 'تم التسليم', color: '#059669', bgColor: '#a7f3d0' },
-      'CANCELLED': { label: 'ملغى', color: '#6b7280', bgColor: '#f3f4f6' }
+      'NEW': { label: 'طلب جديد', color: '#8b5cf6', bgColor: '#ede9fe', isSystem: true, isDefault: true, sortOrder: 1 },
+      'UNDER_REVIEW': { label: 'قيد المراجعة', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
+      'WAITING_CUSTOMER_EXCEL': { label: 'بانتظار ملف Excel', color: '#3b82f6', bgColor: '#dbeafe', isSystem: true, sortOrder: 3 },
+      'PRICING_IN_PROGRESS': { label: 'جاري التسعير', color: '#06b6d4', bgColor: '#cffafe', isSystem: true, sortOrder: 4 },
+      'PRICING_SENT': { label: 'تم إرسال العرض', color: '#0ea5e9', bgColor: '#e0f2fe', isSystem: true, sortOrder: 5 },
+      'WAITING_CUSTOMER_APPROVAL': { label: 'بانتظار موافقة العميل', color: '#a855f7', bgColor: '#f3e8ff', isSystem: true, sortOrder: 6 },
+      'APPROVED_BY_CUSTOMER': { label: 'تمت موافقة العميل', color: '#10b981', bgColor: '#d1fae5', isSystem: true, sortOrder: 7 },
+      'IN_FACTORY': { label: 'في المصنع', color: '#f97316', bgColor: '#ffedd5', isSystem: true, sortOrder: 8 },
+      'SHIPMENT_BOOKED': { label: 'تم حجز الشحن', color: '#0284c7', bgColor: '#e0f2fe', isSystem: true, sortOrder: 9 },
+      'ON_THE_SEA': { label: 'الشحنة في البحر', color: '#0369a1', bgColor: '#bae6fd', isSystem: true, sortOrder: 10 },
+      'IN_PORT': { label: 'في الميناء', color: '#0891b2', bgColor: '#cffafe', isSystem: true, sortOrder: 11 },
+      'CUSTOMS_CLEARED': { label: 'تم التخليص الجمركي', color: '#059669', bgColor: '#d1fae5', isSystem: true, sortOrder: 12 },
+      'ON_THE_WAY': { label: 'في الطريق للعميل', color: '#16a34a', bgColor: '#bbf7d0', isSystem: true, sortOrder: 13 },
+      'DELIVERED': { label: 'تم التسليم', color: '#059669', bgColor: '#a7f3d0', isSystem: true, sortOrder: 14 },
+      'CANCELLED': { label: 'ملغى', color: '#6b7280', bgColor: '#f3f4f6', isSystem: true, sortOrder: 15 }
     },
     customerStatus: {
-      'ACTIVE': { label: 'فعال', color: '#10b981', bgColor: '#d1fae5' },
-      'SUSPENDED': { label: 'موقوف مؤقتاً', color: '#f59e0b', bgColor: '#fef3c7' },
-      'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2' },
-      'PENDING': { label: 'قيد التفعيل', color: '#8b5cf6', bgColor: '#ede9fe' },
-      'INACTIVE': { label: 'غير نشط', color: '#6b7280', bgColor: '#f3f4f6' }
+      'ACTIVE': { label: 'فعال', color: '#10b981', bgColor: '#d1fae5', isSystem: true, isDefault: true, sortOrder: 1 },
+      'SUSPENDED': { label: 'موقوف مؤقتاً', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
+      'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 3 },
+      'PENDING': { label: 'قيد التفعيل', color: '#8b5cf6', bgColor: '#ede9fe', isSystem: true, sortOrder: 4 },
+      'INACTIVE': { label: 'غير نشط', color: '#6b7280', bgColor: '#f3f4f6', isSystem: true, sortOrder: 5 }
     },
     staffStatus: {
-      'ACTIVE': { label: 'فعال', color: '#10b981', bgColor: '#d1fae5' },
-      'SUSPENDED': { label: 'موقوف', color: '#f59e0b', bgColor: '#fef3c7' },
-      'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2' }
+      'ACTIVE': { label: 'فعال', color: '#10b981', bgColor: '#d1fae5', isSystem: true, isDefault: true, sortOrder: 1 },
+      'SUSPENDED': { label: 'موقوف', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
+      'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 3 }
     }
   }
 };
@@ -293,7 +297,8 @@ const STORAGE_KEYS = {
   ACCOUNT_REQUESTS: 'siniCar_account_opening_requests',
   NOTIFICATIONS: 'siniCar_notifications_v2',
   ACTIVITY_LOGS: 'siniCar_activity_logs',
-  EXCEL_COLUMN_PRESETS: 'siniCar_excel_column_presets'
+  EXCEL_COLUMN_PRESETS: 'siniCar_excel_column_presets',
+  STATUS_LABELS: 'siniCar_status_labels_v1'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -510,6 +515,135 @@ export const MockApi = {
 
   async updateNews(news: string[]) {
       localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
+  },
+
+  // --- Status Labels Management ---
+  async getStatusLabels(): Promise<typeof DEFAULT_SETTINGS.statusLabels> {
+      const stored = localStorage.getItem(STORAGE_KEYS.STATUS_LABELS);
+      if (!stored) {
+          localStorage.setItem(STORAGE_KEYS.STATUS_LABELS, JSON.stringify(DEFAULT_SETTINGS.statusLabels));
+          return DEFAULT_SETTINGS.statusLabels;
+      }
+      const parsed = JSON.parse(stored);
+      return {
+          orderStatus: { ...DEFAULT_SETTINGS.statusLabels.orderStatus, ...parsed.orderStatus },
+          orderInternalStatus: { ...DEFAULT_SETTINGS.statusLabels.orderInternalStatus, ...parsed.orderInternalStatus },
+          accountRequestStatus: { ...DEFAULT_SETTINGS.statusLabels.accountRequestStatus, ...parsed.accountRequestStatus },
+          quoteRequestStatus: { ...DEFAULT_SETTINGS.statusLabels.quoteRequestStatus, ...parsed.quoteRequestStatus },
+          quoteItemStatus: { ...DEFAULT_SETTINGS.statusLabels.quoteItemStatus, ...parsed.quoteItemStatus },
+          missingStatus: { ...DEFAULT_SETTINGS.statusLabels.missingStatus, ...parsed.missingStatus },
+          importRequestStatus: { ...DEFAULT_SETTINGS.statusLabels.importRequestStatus, ...parsed.importRequestStatus },
+          customerStatus: { ...DEFAULT_SETTINGS.statusLabels.customerStatus, ...parsed.customerStatus },
+          staffStatus: { ...DEFAULT_SETTINGS.statusLabels.staffStatus, ...parsed.staffStatus }
+      };
+  },
+
+  async updateStatusLabels(statusLabels: typeof DEFAULT_SETTINGS.statusLabels): Promise<void> {
+      localStorage.setItem(STORAGE_KEYS.STATUS_LABELS, JSON.stringify(statusLabels));
+      const settings = await this.getSettings();
+      settings.statusLabels = statusLabels;
+      await this.updateSettings(settings);
+  },
+
+  async addStatusLabel(domain: keyof typeof DEFAULT_SETTINGS.statusLabels, key: string, definition: { label: string; color: string; bgColor: string; icon?: string; isDefault?: boolean; isSystem?: boolean; sortOrder?: number }): Promise<{ success: boolean; error?: string }> {
+      const statusLabels = await this.getStatusLabels();
+      if (statusLabels[domain][key]) {
+          return { success: false, error: 'المفتاح موجود بالفعل في هذا المجال' };
+      }
+      const existingLabels = Object.values(statusLabels[domain]) as { sortOrder?: number }[];
+      const maxOrder = existingLabels.reduce((max: number, item) => Math.max(max, item.sortOrder || 0), 0);
+      statusLabels[domain][key] = {
+          ...definition,
+          sortOrder: definition.sortOrder || maxOrder + 1,
+          isSystem: false
+      };
+      if (definition.isDefault) {
+          Object.keys(statusLabels[domain]).forEach(k => {
+              if (k !== key) statusLabels[domain][k].isDefault = false;
+          });
+      }
+      await this.updateStatusLabels(statusLabels);
+      return { success: true };
+  },
+
+  async updateStatusLabel(domain: keyof typeof DEFAULT_SETTINGS.statusLabels, key: string, definition: { label: string; color: string; bgColor: string; icon?: string; isDefault?: boolean; sortOrder?: number }): Promise<{ success: boolean; error?: string }> {
+      const statusLabels = await this.getStatusLabels();
+      if (!statusLabels[domain][key]) {
+          return { success: false, error: 'الحالة غير موجودة' };
+      }
+      const existing = statusLabels[domain][key];
+      statusLabels[domain][key] = {
+          ...existing,
+          label: definition.label,
+          color: definition.color,
+          bgColor: definition.bgColor,
+          icon: definition.icon,
+          sortOrder: definition.sortOrder ?? existing.sortOrder
+      };
+      if (definition.isDefault) {
+          Object.keys(statusLabels[domain]).forEach(k => {
+              if (k !== key) statusLabels[domain][k].isDefault = false;
+          });
+          statusLabels[domain][key].isDefault = true;
+      }
+      await this.updateStatusLabels(statusLabels);
+      return { success: true };
+  },
+
+  async deleteStatusLabel(domain: keyof typeof DEFAULT_SETTINGS.statusLabels, key: string): Promise<{ success: boolean; error?: string }> {
+      const statusLabels = await this.getStatusLabels();
+      if (!statusLabels[domain][key]) {
+          return { success: false, error: 'الحالة غير موجودة' };
+      }
+      if (statusLabels[domain][key].isSystem) {
+          return { success: false, error: 'لا يمكن حذف حالة نظامية' };
+      }
+      const usageCount = await this.checkStatusUsage(domain, key);
+      if (usageCount > 0) {
+          return { success: false, error: `لا يمكن الحذف، يوجد ${usageCount} سجل يستخدم هذه الحالة` };
+      }
+      delete statusLabels[domain][key];
+      await this.updateStatusLabels(statusLabels);
+      return { success: true };
+  },
+
+  async checkStatusUsage(domain: keyof typeof DEFAULT_SETTINGS.statusLabels, statusKey: string): Promise<number> {
+      let count = 0;
+      switch (domain) {
+          case 'orderStatus':
+              const orders = await this.getAllOrders();
+              count = orders.filter(o => o.status === statusKey || o.status === OrderStatus[statusKey as keyof typeof OrderStatus]).length;
+              break;
+          case 'orderInternalStatus':
+              const allOrders = await this.getAllOrders();
+              count = allOrders.filter(o => o.internalStatus === statusKey).length;
+              break;
+          case 'accountRequestStatus':
+              const accounts = await this.getAccountOpeningRequests();
+              count = accounts.filter(a => a.status === statusKey).length;
+              break;
+          case 'quoteRequestStatus':
+              const quotes = await this.getAllQuoteRequests();
+              count = quotes.filter(q => q.status === statusKey).length;
+              break;
+          case 'importRequestStatus':
+              const imports = await this.getImportRequests();
+              count = imports.filter(i => i.status === statusKey).length;
+              break;
+          case 'missingStatus':
+              const missing = await this.getMissingProductRequests();
+              count = missing.filter(m => m.status === statusKey).length;
+              break;
+          case 'customerStatus':
+              const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]') as BusinessProfile[];
+              count = profiles.filter(p => p.status === statusKey).length;
+              break;
+          case 'staffStatus':
+              const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]') as User[];
+              count = users.filter(u => u.role === 'CUSTOMER_STAFF' && u.status === statusKey).length;
+              break;
+      }
+      return count;
   },
 
   async getAdminStats() {
