@@ -1666,7 +1666,8 @@ export const MockApi = {
                 changedAt: new Date().toISOString(),
                 changedBy: 'system'
             }
-        ]
+        ],
+        isNew: true // Mark as new for admin badge
     };
     orders.push(newOrder);
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
@@ -2359,6 +2360,12 @@ export const MockApi = {
 
   // --- Admin Badge Tracking - Mark All As Seen ---
   
+  markOrdersAsSeen(): void {
+      const orders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]') as Order[];
+      const updated = orders.map(o => ({ ...o, isNew: false }));
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+  },
+
   markAccountRequestsAsSeen(): void {
       const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACCOUNT_REQUESTS) || '[]') as AccountOpeningRequest[];
       const updated = requests.map(r => ({ ...r, isNew: false }));
@@ -2384,13 +2391,15 @@ export const MockApi = {
   },
 
   // Get counts of new/unseen items for badges
-  getNewItemCounts(): { accounts: number; quotes: number; imports: number; missing: number } {
+  getNewItemCounts(): { orders: number; accounts: number; quotes: number; imports: number; missing: number } {
+      const orders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]') as Order[];
       const accounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACCOUNT_REQUESTS) || '[]') as AccountOpeningRequest[];
       const quotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.QUOTE_REQUESTS) || '[]') as QuoteRequest[];
       const imports = JSON.parse(localStorage.getItem(STORAGE_KEYS.IMPORT_REQUESTS) || '[]') as ImportRequest[];
       const missing = JSON.parse(localStorage.getItem(STORAGE_KEYS.MISSING_REQUESTS) || '[]') as MissingProductRequest[];
 
       return {
+          orders: orders.filter(o => o.isNew === true).length,
           accounts: accounts.filter(r => r.isNew === true).length,
           quotes: quotes.filter(r => r.isNew === true).length,
           imports: imports.filter(r => r.isNew === true).length,

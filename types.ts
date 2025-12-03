@@ -364,6 +364,9 @@ export interface Order {
   internalStatus?: OrderInternalStatus;
   internalNotes?: string;
   internalStatusHistory?: InternalStatusHistoryItem[];
+  
+  // Badge tracking - for admin unread notification
+  isNew?: boolean;
 }
 
 // --- Bulk Quote Logic (Enhanced for Admin Review) ---

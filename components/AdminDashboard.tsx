@@ -49,7 +49,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const [view, setView] = useState<'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER'>('DASHBOARD');
     
     // Admin badges from context
-    const { badges, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
+    const { badges, markOrdersAsSeen, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
     
     // Data States
     const [orders, setOrders] = useState<Order[]>([]);
@@ -286,7 +286,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <NavItem icon={<Activity size={20} />} label="سجل النشاط" active={view === 'ACTIVITY_LOGS'} onClick={() => setView('ACTIVITY_LOGS')} />
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الطلبات والعملاء</p>
-                    <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => setView('ORDERS_MANAGER')} badge={kpiData.pendingOrders} />
+                    <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
                     <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
                     <NavItem icon={<Users size={20} />} label="قاعدة العملاء (CRM)" active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
                     <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => { setView('QUOTES'); markQuotesAsSeen(); }} badge={badges.quotes} />

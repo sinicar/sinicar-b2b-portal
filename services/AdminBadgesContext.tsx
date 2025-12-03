@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { MockApi } from './mockApi';
 
 interface AdminBadgeCounts {
+  orders: number;
   accounts: number;
   quotes: number;
   imports: number;
@@ -11,6 +12,7 @@ interface AdminBadgeCounts {
 interface AdminBadgesContextType {
   badges: AdminBadgeCounts;
   refreshBadges: () => void;
+  markOrdersAsSeen: () => void;
   markAccountsAsSeen: () => void;
   markQuotesAsSeen: () => void;
   markImportsAsSeen: () => void;
@@ -21,6 +23,7 @@ const AdminBadgesContext = createContext<AdminBadgesContextType | null>(null);
 
 export function AdminBadgesProvider({ children }: { children: ReactNode }) {
   const [badges, setBadges] = useState<AdminBadgeCounts>({
+    orders: 0,
     accounts: 0,
     quotes: 0,
     imports: 0,
@@ -30,6 +33,11 @@ export function AdminBadgesProvider({ children }: { children: ReactNode }) {
   const refreshBadges = useCallback(() => {
     const counts = MockApi.getNewItemCounts();
     setBadges(counts);
+  }, []);
+
+  const markOrdersAsSeen = useCallback(() => {
+    MockApi.markOrdersAsSeen();
+    setBadges(prev => ({ ...prev, orders: 0 }));
   }, []);
 
   const markAccountsAsSeen = useCallback(() => {
@@ -63,6 +71,7 @@ export function AdminBadgesProvider({ children }: { children: ReactNode }) {
     <AdminBadgesContext.Provider value={{
       badges,
       refreshBadges,
+      markOrdersAsSeen,
       markAccountsAsSeen,
       markQuotesAsSeen,
       markImportsAsSeen,
