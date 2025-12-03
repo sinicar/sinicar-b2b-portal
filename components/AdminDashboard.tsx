@@ -15,7 +15,8 @@ import { AdminAccountRequests } from './AdminAccountRequests';
 import { AdminQuoteManager } from './AdminQuoteManager'; 
 import { AdminMissingParts } from './AdminMissingParts'; 
 import { AdminCustomersPage } from './AdminCustomersPage'; 
-import { AdminImportManager } from './AdminImportManager'; // NEW IMPORT
+import { AdminImportManager } from './AdminImportManager';
+import { AdminProductsPage } from './AdminProductsPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -506,7 +507,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'IMPORT_REQUESTS' && <AdminImportManager requests={importRequests} onUpdate={fetchAllData} />}
                     {view === 'ACTIVITY_LOGS' && <ActivityLogsView logs={activityLogs} page={logPage} setPage={setLogPage} perPage={LOGS_PER_PAGE} />}
                     
-                    {view === 'PRODUCTS' && <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 font-bold text-slate-400">قسم إدارة المنتجات والمخزون (قيد التطوير)</div>}
+                    {view === 'PRODUCTS' && <AdminProductsPage onRefresh={fetchAllData} />}
 
                 </div>
             </main>
