@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MockApi } from '../services/mockApi';
-import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification } from '../types';
+import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification, AdminUser, Role, PermissionResource } from '../types';
 import { 
     LayoutDashboard, Users, ShoppingBag, Settings, FileText, LogOut, 
     CheckCircle, SearchX, Download, Globe, XCircle, Info, Truck, Check, 
@@ -18,10 +18,12 @@ import { AdminCustomersPage } from './AdminCustomersPage';
 import { AdminImportManager } from './AdminImportManager';
 import { AdminProductsPage } from './AdminProductsPage';
 import { AdminUsersPage } from './AdminUsersPage';
+import { AccessDenied } from './AccessDenied';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
 import { AdminBadgesProvider, useAdminBadges } from '../services/AdminBadgesContext';
+import { PermissionProvider, usePermission } from '../services/PermissionContext';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     LineChart, Line, AreaChart, Area, PieChart, Pie, Cell 
@@ -30,6 +32,36 @@ import {
 interface AdminDashboardProps {
     onLogout: () => void;
 }
+
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS';
+
+const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
+    'DASHBOARD': 'dashboard',
+    'CUSTOMERS': 'customers',
+    'PRODUCTS': 'products',
+    'SETTINGS': 'settings_general',
+    'QUOTES': 'quotes',
+    'MISSING': 'missing',
+    'IMPORT_REQUESTS': 'imports',
+    'ACCOUNT_REQUESTS': 'account_requests',
+    'ACTIVITY_LOGS': 'activity_log',
+    'ORDERS_MANAGER': 'orders',
+    'ADMIN_USERS': 'users'
+};
+
+const VIEW_LABELS: Record<ViewType, string> = {
+    'DASHBOARD': 'لوحة القيادة',
+    'CUSTOMERS': 'قاعدة العملاء',
+    'PRODUCTS': 'المنتجات',
+    'SETTINGS': 'الإعدادات',
+    'QUOTES': 'طلبات التسعير',
+    'MISSING': 'النواقص',
+    'IMPORT_REQUESTS': 'طلبات الاستيراد',
+    'ACCOUNT_REQUESTS': 'طلبات الحسابات',
+    'ACTIVITY_LOGS': 'سجل النشاط',
+    'ORDERS_MANAGER': 'طلبات العملاء',
+    'ADMIN_USERS': 'المستخدمون'
+};
 
 // Color Constants for Navy & Gold Theme
 const COLORS = {
@@ -47,10 +79,13 @@ const PIE_COLORS = [COLORS.gold, COLORS.navyLight, COLORS.success, COLORS.slate]
 
 // Inner component that uses the hooks
 const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
-    const [view, setView] = useState<'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS'>('DASHBOARD');
+    const [view, setView] = useState<ViewType>('DASHBOARD');
     
     // Admin badges from context
     const { badges, markOrdersAsSeen, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
+    
+    // Permissions from context
+    const { hasPermission, canAccess, isSuperAdmin, adminUser, role, loading: permissionLoading } = usePermission();
     
     // Data States
     const [orders, setOrders] = useState<Order[]>([]);
@@ -283,21 +318,43 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 </div>
                 <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">الرئيسية</p>
-                    <NavItem icon={<LayoutDashboard size={20} />} label="لوحة القيادة" active={view === 'DASHBOARD'} onClick={() => setView('DASHBOARD')} />
-                    <NavItem icon={<Activity size={20} />} label="سجل النشاط" active={view === 'ACTIVITY_LOGS'} onClick={() => setView('ACTIVITY_LOGS')} />
+                    {canAccess('dashboard') && (
+                        <NavItem icon={<LayoutDashboard size={20} />} label="لوحة القيادة" active={view === 'DASHBOARD'} onClick={() => setView('DASHBOARD')} />
+                    )}
+                    {canAccess('activity_log') && (
+                        <NavItem icon={<Activity size={20} />} label="سجل النشاط" active={view === 'ACTIVITY_LOGS'} onClick={() => setView('ACTIVITY_LOGS')} />
+                    )}
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الطلبات والعملاء</p>
-                    <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
-                    <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
-                    <NavItem icon={<Users size={20} />} label="قاعدة العملاء (CRM)" active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
-                    <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => { setView('QUOTES'); markQuotesAsSeen(); }} badge={badges.quotes} />
-                    <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => { setView('IMPORT_REQUESTS'); markImportsAsSeen(); }} badge={badges.imports} />
-                    <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => { setView('MISSING'); markMissingAsSeen(); }} badge={badges.missing} />
+                    {canAccess('orders') && (
+                        <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
+                    )}
+                    {canAccess('account_requests') && (
+                        <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
+                    )}
+                    {canAccess('customers') && (
+                        <NavItem icon={<Users size={20} />} label="قاعدة العملاء (CRM)" active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
+                    )}
+                    {canAccess('quotes') && (
+                        <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => { setView('QUOTES'); markQuotesAsSeen(); }} badge={badges.quotes} />
+                    )}
+                    {canAccess('imports') && (
+                        <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => { setView('IMPORT_REQUESTS'); markImportsAsSeen(); }} badge={badges.imports} />
+                    )}
+                    {canAccess('missing') && (
+                        <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => { setView('MISSING'); markMissingAsSeen(); }} badge={badges.missing} />
+                    )}
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الإعدادات</p>
-                    <NavItem icon={<Database size={20} />} label="المنتجات" active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
-                    <NavItem icon={<Users size={20} />} label="المستخدمون" active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
-                    <NavItem icon={<Settings size={20} />} label="إعدادات النظام" active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
+                    {canAccess('products') && (
+                        <NavItem icon={<Database size={20} />} label="المنتجات" active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
+                    )}
+                    {canAccess('users') && (
+                        <NavItem icon={<Users size={20} />} label="المستخدمون" active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
+                    )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Settings size={20} />} label="إعدادات النظام" active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
+                    )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
@@ -329,8 +386,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <div className="flex items-center gap-3">
                             <div className="text-left hidden md:block">
-                                <p className="text-sm font-bold text-slate-800">المدير العام</p>
-                                <p className="text-left text-[10px] text-slate-500 font-mono">Super Admin</p>
+                                <p className="text-sm font-bold text-slate-800">{adminUser?.fullName || 'المدير العام'}</p>
+                                <p className="text-left text-[10px] text-slate-500 font-mono">{role?.name || 'Super Admin'}</p>
                             </div>
                             <div className="w-10 h-10 bg-[#0B1B3A] rounded-full flex items-center justify-center text-[#C8A04F] shadow-md border-2 border-[#C8A04F]">
                                 <ShieldCheck size={20} />
@@ -503,21 +560,61 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </>
                     )}
 
-                    {/* --- OTHER VIEWS HANDLER --- */}
-                    {view === 'SETTINGS' && <AdminSettings />}
-                    {view === 'ADMIN_USERS' && <AdminUsersPage onRefresh={fetchAllData} />}
+                    {/* --- OTHER VIEWS HANDLER WITH PERMISSION CHECKS --- */}
+                    {view === 'SETTINGS' && (
+                        canAccess('settings_general') 
+                            ? <AdminSettings /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'ADMIN_USERS' && (
+                        canAccess('users') 
+                            ? <AdminUsersPage onRefresh={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
                     
-                    {view === 'ORDERS_MANAGER' && <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />}
-                    {view === 'ACCOUNT_REQUESTS' && <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} />}
-                    {view === 'CUSTOMERS' && <AdminCustomersPage />}
+                    {view === 'ORDERS_MANAGER' && (
+                        canAccess('orders') 
+                            ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'ACCOUNT_REQUESTS' && (
+                        canAccess('account_requests') 
+                            ? <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'CUSTOMERS' && (
+                        canAccess('customers') 
+                            ? <AdminCustomersPage /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
                     
-                    {view === 'QUOTES' && <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} />}
+                    {view === 'QUOTES' && (
+                        canAccess('quotes') 
+                            ? <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
                     
-                    {view === 'MISSING' && <AdminMissingParts missingRequests={missingRequests} />}
-                    {view === 'IMPORT_REQUESTS' && <AdminImportManager requests={importRequests} onUpdate={fetchAllData} />}
-                    {view === 'ACTIVITY_LOGS' && <ActivityLogsView logs={activityLogs} page={logPage} setPage={setLogPage} perPage={LOGS_PER_PAGE} />}
+                    {view === 'MISSING' && (
+                        canAccess('missing') 
+                            ? <AdminMissingParts missingRequests={missingRequests} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'IMPORT_REQUESTS' && (
+                        canAccess('imports') 
+                            ? <AdminImportManager requests={importRequests} onUpdate={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'ACTIVITY_LOGS' && (
+                        canAccess('activity_log') 
+                            ? <ActivityLogsView logs={activityLogs} page={logPage} setPage={setLogPage} perPage={LOGS_PER_PAGE} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
                     
-                    {view === 'PRODUCTS' && <AdminProductsPage onRefresh={fetchAllData} />}
+                    {view === 'PRODUCTS' && (
+                        canAccess('products') 
+                            ? <AdminProductsPage onRefresh={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
 
                 </div>
             </main>
@@ -697,11 +794,30 @@ const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
     );
 }
 
-// Wrapper component with provider
+// Wrapper component with providers
 export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
+    const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+    
+    useEffect(() => {
+        const loadAdminUser = async () => {
+            try {
+                const users = await MockApi.getAdminUsers();
+                if (users.length > 0) {
+                    const superAdmin = users.find(u => u.isActive);
+                    setAdminUser(superAdmin || users[0]);
+                }
+            } catch (e) {
+                console.error('Failed to load admin user:', e);
+            }
+        };
+        loadAdminUser();
+    }, []);
+    
     return (
-        <AdminBadgesProvider>
-            <AdminDashboardInner {...props} />
-        </AdminBadgesProvider>
+        <PermissionProvider initialAdminUser={adminUser}>
+            <AdminBadgesProvider>
+                <AdminDashboardInner {...props} />
+            </AdminBadgesProvider>
+        </PermissionProvider>
     );
 }

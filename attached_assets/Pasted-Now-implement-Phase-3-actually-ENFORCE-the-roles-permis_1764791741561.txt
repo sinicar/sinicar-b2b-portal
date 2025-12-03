@@ -1,0 +1,344 @@
+Now implement Phase 3: actually ENFORCE the roles & permissions system across the admin app.
+
+Important:
+- Phase 1: Users page is done.
+- Phase 2: Roles & permissions data model and UI are done.
+- Phase 3 (this task): use that data to control what each user can see and do.
+
+All visible messages to the user must be in Arabic.
+
+-----------------------------------------
+1) Central Permission Helper
+-----------------------------------------
+
+Create a central helper (and/or hook) to check permissions.
+
+Example:
+
+function hasPermission(
+  user: AdminUser,
+  resource: PermissionResource,
+  action: PermissionAction
+): boolean
+
+Rules:
+
+1) Get the user's roleId from the logged-in user.
+2) Load the corresponding Role from adminRoles (mockApi/localStorage).
+3) If the role is SuperAdmin (e.g. name "مشرف عام" or a flag like isSystem && name === "مشرف عام"):
+   - Always return true for all resources and actions.
+
+4) Otherwise:
+   - Find the Permission object for the given resource (if any).
+   - Check if "action" is included in permission.actions.
+   - If yes → return true, else false.
+
+Provide a React hook like:
+
+usePermission(resource: PermissionResource, action: PermissionAction)
+
+that internally calls hasPermission for the currently logged-in user.
+
+-----------------------------------------
+2) Access Denied Component
+-----------------------------------------
+
+Create a simple Arabic component/page for access denial:
+
+- Title: "لا تملك صلاحية للوصول"
+- Message:
+  "ليس لديك صلاحية لعرض هذه الصفحة أو تنفيذ هذا الإجراء. الرجاء التواصل مع مسؤول النظام."
+
+Use this component whenever a user tries to open a page without "view" permission.
+
+-----------------------------------------
+3) Protect Admin Pages (View-Level)
+-----------------------------------------
+
+For the main admin pages, enforce "view" permission as follows:
+
+Example mapping (you can adjust resource names to match your enums):
+
+- Dashboard:
+  resource: 'dashboard', action: 'view'
+
+- Products page:
+  resource: 'products', action: 'view'
+
+- Customers / CRM:
+  resource: 'customers', action: 'view'
+
+- Customer requests:
+  resource: 'customer_requests', action: 'view'
+
+- Account opening requests:
+  resource: 'account_requests', action: 'view'
+
+- Quotes (عروض الأسعار):
+  resource: 'quotes', action: 'view'
+
+- Orders:
+  resource: 'orders', action: 'view'
+
+- Import from China requests:
+  resource: 'imports', action: 'view'
+
+- Missing (النواقص):
+  resource: 'missing', action: 'view'
+
+- Activity log:
+  resource: 'activity_log', action: 'view'
+
+- Settings (general):
+  resource: 'settings_general', action: 'view'
+
+- API settings:
+  resource: 'settings_api', action: 'view'
+
+- Backup settings:
+  resource: 'settings_backup', action: 'view'
+
+- Security settings:
+  resource: 'settings_security', action: 'view'
+
+- Status labels management:
+  resource: 'settings_status_labels', action: 'view'
+
+- Users management:
+  resource: 'users', action: 'view'
+
+- Roles & permissions:
+  resource: 'roles', action: 'view'
+
+Implementation:
+
+- In each page’s main component, before rendering the content:
+  - Use hasPermission / usePermission.
+  - If false → render the Access Denied component instead of the page.
+
+-----------------------------------------
+4) Hide Sidebar Menu Items Based on Permissions
+-----------------------------------------
+
+In the admin sidebar:
+
+- For each menu item that opens an admin page:
+  - Only show the item if the current user has `view` permission on the corresponding resource.
+
+Example:
+
+- If !hasPermission(user, 'users', 'view') → hide "المستخدمون" from the menu.
+- If !hasPermission(user, 'settings_api', 'view') → hide "إعدادات API".
+- If !hasPermission(user, 'orders', 'view') → hide "الطلبات".
+
+This keeps the UI clean and prevents users from seeing options they cannot access.
+
+-----------------------------------------
+5) Enforce Permissions on Actions (Buttons & Operations)
+-----------------------------------------
+
+Now enforce more fine-grained permissions at the action level.
+
+Use this mapping as a guideline (you can adjust as needed):
+
+----------------------
+5.1 Users & Roles
+----------------------
+
+- Users page:
+  - View table → 'users' + 'view'
+  - إضافة مستخدم → 'users' + 'create' OR 'users' + 'manage_users'
+  - تعديل مستخدم → 'users' + 'edit' OR 'manage_users'
+  - إيقاف / تفعيل مستخدم → 'users' + 'edit' OR 'manage_users'
+  - حذف مستخدم → 'users' + 'delete' OR 'manage_users'
+
+- Roles & Permissions tab:
+  - View roles list → 'roles' + 'view'
+  - إضافة دور → 'roles' + 'create' OR 'manage_roles'
+  - تعديل صلاحيات دور → 'roles' + 'edit' OR 'manage_roles'
+  - حذف دور → 'roles' + 'delete' OR 'manage_roles'
+
+Buttons and actions:
+
+- If user does NOT have the required permission:
+  - Hide the button entirely.
+  - Or disable it with a tooltip (but hiding is preferred).
+
+----------------------
+5.2 Products
+----------------------
+
+Resource: 'products'
+
+- عرض قائمة المنتجات → 'view'
+- استيراد / إضافة منتجات → 'create'
+- تعديل بيانات منتج → 'edit'
+- حذف منتج → 'delete'
+- تصدير المنتجات إلى Excel → 'export'
+
+----------------------
+5.3 Customers & CRM
+----------------------
+
+Resource: 'customers'
+
+- عرض قائمة العملاء → 'view'
+- إضافة / تعديل بيانات عميل → 'create'/'edit'
+- إيقاف / تفعيل عميل أو منشأة → 'edit'
+- حذف عميل → 'delete'
+- تصدير بيانات العملاء → 'export'
+
+----------------------
+5.4 Quotes (عروض الأسعار)
+----------------------
+
+Resource: 'quotes'
+
+- عرض عروض الأسعار → 'view'
+- إنشاء عرض سعر جديد → 'create'
+- تعديل عرض سعر → 'edit'
+- حذف عرض سعر → 'delete'
+- اعتماد/رفض عرض سعر (إن وجد) → 'approve' / 'reject'
+- تصدير عروض الأسعار → 'export'
+
+----------------------
+5.5 Orders & Imports
+----------------------
+
+- Orders resource: 'orders'
+- Imports resource: 'imports'
+
+Orders:
+- عرض الطلبات → 'view'
+- إضافة طلب يدوي (إن وجد) → 'create'
+- تعديل حالة الطلب (قيد التجهيز، تم الشحن، تم التسليم, ملغي...) → 'manage_status' OR 'edit'
+- إلغاء طلب → 'delete' OR 'reject'
+- تصدير الطلبات → 'export'
+
+Imports:
+- عرض طلبات الاستيراد → 'view'
+- تحديث حالة الاستيراد (في المصنع، في البحر، في الميناء، مخلص جمركيا...) → 'manage_status' OR 'edit'
+- إلغاء طلب استيراد → 'reject' OR 'delete'
+- تصدير طلبات الاستيراد → 'export'
+
+----------------------
+5.6 Missing Parts (النواقص)
+----------------------
+
+Resource: 'missing'
+
+- عرض النواقص → 'view'
+- وضع علامة "تم التعامل" أو "مغلق" على نقص → 'edit' OR 'manage_status'
+- حذف سجل نقص → 'delete'
+- تصدير قائمة النواقص → 'export'
+
+----------------------
+5.7 Account Requests (طلب فتح حساب)
+----------------------
+
+Resource: 'account_requests'
+
+- عرض طلبات فتح الحساب → 'view'
+- اعتماد طلب فتح حساب → 'approve'
+- رفض طلب فتح حساب → 'reject'
+- تعديل بيانات الطلب (إن وجد) → 'edit'
+
+----------------------
+5.8 Settings & Security
+----------------------
+
+- Settings (general): resource 'settings_general'
+  - عرض الإعدادات → 'view'
+  - تعديل الإعدادات العامة → 'configure'
+
+- Status labels management: resource 'settings_status_labels'
+  - عرض مسميات الحالات → 'view'
+  - إضافة/تعديل/حذف حالة → 'manage_status'
+
+- API settings: resource 'settings_api'
+  - عرض إعدادات API → 'view'
+  - تعديل إعدادات API → 'configure'
+  - تشغيل "اختبار الاتصال" → 'configure' OR 'manage_api'
+
+- Backup settings: resource 'settings_backup'
+  - عرض إعدادات النسخ الاحتياطي → 'view'
+  - إنشاء نسخة احتياطية → 'run_backup'
+  - استعادة نسخة احتياطية → 'run_backup' + maybe 'configure'
+
+- Security settings: resource 'settings_security'
+  - عرض إعدادات الأمان → 'view'
+  - تعديل سياسة كلمات المرور والجلسات → 'configure'
+
+-----------------------------------------
+6) Activity Log – Security Events
+-----------------------------------------
+
+Whenever important permission-related actions happen, log them to the Activity Log with a clear type, for example:
+
+- ROLE_CREATED, ROLE_UPDATED, ROLE_DELETED
+- USER_CREATED, USER_UPDATED, USER_DELETED
+- PERMISSIONS_CHANGED
+- SETTINGS_CHANGED (for API, Security, Status labels, Backup)
+
+Include:
+- Who did the action (admin user).
+- What changed.
+- When it happened.
+
+Also, ensure the Activity Log itself is protected:
+- Viewing it requires 'activity_log' + 'view'.
+
+-----------------------------------------
+7) Testing Scenarios
+-----------------------------------------
+
+After implementing, test thoroughly with different roles. Create test users:
+
+1) SuperAdmin (مشرف عام)
+   - Should see and access everything.
+   - All menu items visible.
+   - All buttons active.
+
+2) SalesManager (مدير المبيعات)
+   - Can fully manage:
+     - products, customers, quotes, orders, imports, missing.
+   - Cannot access:
+     - Users
+     - Roles
+     - Backup
+     - API settings
+     - Security settings (unless allowed explicitly in its permissions)
+
+3) SalesAgent (موظف مبيعات)
+   - Can:
+     - View and create quotes and orders.
+     - View customers (maybe create/edit basic info).
+   - Cannot:
+     - Access settings
+     - Access users/roles
+     - Run exports (unless export permission is explicitly given).
+
+4) Viewer (مشاهد فقط)
+   - Can:
+     - View main lists (products, customers, etc.)
+   - Cannot:
+     - Edit, delete, approve/reject, export.
+   - Buttons for edit/delete/export should be hidden or disabled.
+
+Make sure:
+
+- Menu items disappear for pages without view permission.
+- Direct URL access shows "لا تملك صلاحية للوصول".
+- Buttons do not appear without permission.
+- `npm run build` passes with no errors.
+
+-----------------------------------------
+8) Final Summary Required
+-----------------------------------------
+
+After you finish Phase 3, please reply (in Arabic) with:
+
+1) A list of the main pages that now enforce `view` permissions.
+2) Examples of action-level enforcement (which buttons/actions are now protected).
+3) How to programmatically check permissions (which helper/hook to use).
+4) Any known limitations or TODOs left for future refinement.
