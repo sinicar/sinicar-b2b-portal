@@ -2013,7 +2013,6 @@ export const MockApi = {
           'الإجمالي'
       ];
       
-      const ws = XLSX.utils.aoa_to_array([headers]);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers]), 'Products');
       XLSX.writeFile(wb, 'نموذج_أصناف_أونيكس.xlsx');
