@@ -81,7 +81,9 @@ const PIE_COLORS = [COLORS.gold, COLORS.navyLight, COLORS.success, COLORS.slate]
 
 // Inner component that uses the hooks
 const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
+    const { t, i18n } = useTranslation();
     const [view, setView] = useState<ViewType>('DASHBOARD');
+    const isRtl = i18n.dir() === 'rtl';
     
     // Admin badges from context
     const { badges, markOrdersAsSeen, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
@@ -280,7 +282,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 connectionStatus === 'SLOW' ? 'bg-amber-500' : 'bg-red-500'
             }`}></div>
             <span className="hidden md:inline">
-                {connectionStatus === 'CONNECTED' ? 'النظام متصل' : connectionStatus === 'SLOW' ? 'اتصال بطيء' : 'غير متصل'}
+                {connectionStatus === 'CONNECTED' ? t('adminDashboard.connected') : connectionStatus === 'SLOW' ? t('adminDashboard.slowConnection') : t('adminDashboard.disconnected')}
             </span>
             <span className="font-mono text-xs opacity-70">({latency}ms)</span>
             <button onClick={checkConnection} disabled={isRetrying} className="p-1 hover:bg-black/5 rounded-full transition-colors">
@@ -309,7 +311,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     );
 
     return (
-        <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden" dir="rtl">
+        <div className={`flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden`} dir={isRtl ? 'rtl' : 'ltr'}>
             {/* Sidebar */}
             <aside className="w-72 bg-[#0B1B3A] text-white flex flex-col shadow-2xl z-20 flex-shrink-0">
                 <div className="p-6 border-b border-slate-700/50 bg-[#08142b]">
@@ -319,48 +321,48 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                      <p className="text-[10px] text-slate-400 mt-1 font-bold tracking-widest uppercase">Wholesale Control Center</p>
                 </div>
                 <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-                    <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">الرئيسية</p>
+                    <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('adminDashboard.mainSection')}</p>
                     {canAccess('dashboard') && (
-                        <NavItem icon={<LayoutDashboard size={20} />} label="لوحة القيادة" active={view === 'DASHBOARD'} onClick={() => setView('DASHBOARD')} />
+                        <NavItem icon={<LayoutDashboard size={20} />} label={t('adminDashboard.dashboard')} active={view === 'DASHBOARD'} onClick={() => setView('DASHBOARD')} />
                     )}
                     {canAccess('activity_log') && (
-                        <NavItem icon={<Activity size={20} />} label="سجل النشاط" active={view === 'ACTIVITY_LOGS'} onClick={() => setView('ACTIVITY_LOGS')} />
+                        <NavItem icon={<Activity size={20} />} label={t('adminDashboard.activityLog')} active={view === 'ACTIVITY_LOGS'} onClick={() => setView('ACTIVITY_LOGS')} />
                     )}
                     
-                    <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الطلبات والعملاء</p>
+                    <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.ordersCustomersSection')}</p>
                     {canAccess('orders') && (
-                        <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
+                        <NavItem icon={<ShoppingBag size={20} />} label={t('adminDashboard.customerOrders')} active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
                     )}
                     {canAccess('account_requests') && (
-                        <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
+                        <NavItem icon={<UserPlus size={20} />} label={t('adminDashboard.accountRequests')} active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
                     )}
                     {canAccess('customers') && (
-                        <NavItem icon={<Users size={20} />} label="قاعدة العملاء (CRM)" active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
+                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.customersCRM')} active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
                     )}
                     {canAccess('quotes') && (
-                        <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => { setView('QUOTES'); markQuotesAsSeen(); }} badge={badges.quotes} />
+                        <NavItem icon={<FileText size={20} />} label={t('adminDashboard.quoteRequests')} active={view === 'QUOTES'} onClick={() => { setView('QUOTES'); markQuotesAsSeen(); }} badge={badges.quotes} />
                     )}
                     {canAccess('imports') && (
-                        <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => { setView('IMPORT_REQUESTS'); markImportsAsSeen(); }} badge={badges.imports} />
+                        <NavItem icon={<Globe size={20} />} label={t('adminDashboard.importRequests')} active={view === 'IMPORT_REQUESTS'} onClick={() => { setView('IMPORT_REQUESTS'); markImportsAsSeen(); }} badge={badges.imports} />
                     )}
                     {canAccess('missing') && (
-                        <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => { setView('MISSING'); markMissingAsSeen(); }} badge={badges.missing} />
+                        <NavItem icon={<SearchX size={20} />} label={t('adminDashboard.missingParts')} active={view === 'MISSING'} onClick={() => { setView('MISSING'); markMissingAsSeen(); }} badge={badges.missing} />
                     )}
                     
-                    <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الإعدادات</p>
+                    <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.settingsSection')}</p>
                     {canAccess('products') && (
-                        <NavItem icon={<Database size={20} />} label="المنتجات" active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
+                        <NavItem icon={<Database size={20} />} label={t('adminDashboard.products')} active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
                     )}
                     {canAccess('users') && (
-                        <NavItem icon={<Users size={20} />} label="المستخدمون" active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
+                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.users')} active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
                     )}
                     {canAccess('settings_general') && (
-                        <NavItem icon={<Settings size={20} />} label="إعدادات النظام" active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
+                        <NavItem icon={<Settings size={20} />} label={t('adminDashboard.systemSettings')} active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
                     )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
-                        <LogOut size={18} /> تسجيل الخروج
+                        <LogOut size={18} /> {t('nav.logout')}
                     </button>
                 </div>
             </aside>
@@ -370,18 +372,17 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 {/* Top Bar */}
                 <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm">
                     <h2 className="text-xl font-black text-slate-800 tracking-tight">
-                        {view === 'DASHBOARD' && 'لوحة القيادة المركزية'}
-                        {view === 'ORDERS_MANAGER' && 'إدارة طلبات العملاء'}
-                        {view === 'ACTIVITY_LOGS' && 'سجل النشاطات'}
-                        {view === 'ACCOUNT_REQUESTS' && 'إدارة طلبات فتح الحساب'}
-                        {view === 'CUSTOMERS' && 'قاعدة بيانات العملاء (CRM)'}
-                        {view === 'QUOTES' && 'إدارة طلبات التسعير (Bulk)'}
-                        {view === 'IMPORT_REQUESTS' && 'طلبات الاستيراد'}
-                        {view === 'MISSING' && 'النواقص (Missing Parts)'}
-                        {view === 'SETTINGS' && 'الإعدادات العامة'}
-                        {view === 'ADMIN_USERS' && 'إدارة المستخدمين'}
-                        {/* Fallbacks */}
-                        {['PRODUCTS'].includes(view) && 'إدارة البيانات'}
+                        {view === 'DASHBOARD' && t('adminDashboard.pageTitles.dashboard')}
+                        {view === 'ORDERS_MANAGER' && t('adminDashboard.pageTitles.ordersManager')}
+                        {view === 'ACTIVITY_LOGS' && t('adminDashboard.pageTitles.activityLogs')}
+                        {view === 'ACCOUNT_REQUESTS' && t('adminDashboard.pageTitles.accountRequests')}
+                        {view === 'CUSTOMERS' && t('adminDashboard.pageTitles.customers')}
+                        {view === 'QUOTES' && t('adminDashboard.pageTitles.quotes')}
+                        {view === 'IMPORT_REQUESTS' && t('adminDashboard.pageTitles.imports')}
+                        {view === 'MISSING' && t('adminDashboard.pageTitles.missing')}
+                        {view === 'SETTINGS' && t('adminDashboard.pageTitles.settings')}
+                        {view === 'ADMIN_USERS' && t('adminDashboard.pageTitles.users')}
+                        {['PRODUCTS'].includes(view) && t('adminDashboard.pageTitles.products')}
                     </h2>
                     <div className="flex items-center gap-4">
                         <LanguageSwitcherLight />
@@ -406,33 +407,33 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             {/* KPI Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <StatCard 
-                                    title="إيرادات اليوم" 
-                                    value={`${kpiData.todayRevenue.toLocaleString()} ر.س`} 
-                                    subValue={`الإجمالي: ${kpiData.totalRevenue.toLocaleString()} ر.س`}
+                                    title={t('adminDashboard.stats.todayRevenue')} 
+                                    value={`${kpiData.todayRevenue.toLocaleString()} ${t('customerDashboard.sar')}`} 
+                                    subValue={`${t('adminDashboard.stats.totalRevenue')}: ${kpiData.totalRevenue.toLocaleString()} ${t('customerDashboard.sar')}`}
                                     icon={<BarChart3 />} 
                                     colorClass="text-emerald-600 bg-emerald-100"
                                     delay="0ms"
                                 />
                                 <StatCard 
-                                    title="الطلبات الجديدة" 
+                                    title={t('adminDashboard.stats.pendingOrders')} 
                                     value={kpiData.pendingOrders} 
-                                    subValue={`${kpiData.approvedOrders} معتمدة | ${kpiData.shippedOrders} مشحونة`}
+                                    subValue={`${kpiData.approvedOrders} ${t('adminDashboard.stats.approvedOrders')} | ${kpiData.shippedOrders} ${t('adminDashboard.stats.shippedOrders')}`}
                                     icon={<ShoppingBag />} 
                                     colorClass="text-blue-600 bg-blue-100"
                                     delay="50ms"
                                 />
                                 <StatCard 
-                                    title="العملاء والمنشآت" 
+                                    title={t('adminDashboard.stats.activeBusinesses')} 
                                     value={kpiData.activeBusinesses} 
-                                    subValue={`${kpiData.pendingAccounts} طلب انضمام جديد`}
+                                    subValue={`${kpiData.pendingAccounts} ${t('adminDashboard.stats.pendingAccounts')}`}
                                     icon={<Users />} 
                                     colorClass="text-[#C8A04F] bg-amber-100"
                                     delay="100ms"
                                 />
                                 <StatCard 
-                                    title="طلبات التسعير" 
+                                    title={t('adminDashboard.stats.pendingQuotes')} 
                                     value={kpiData.pendingQuotes} 
-                                    subValue={`تحتاج مراجعة`}
+                                    subValue={t('common.noData')}
                                     icon={<FileText />} 
                                     colorClass="text-slate-600 bg-slate-200"
                                     delay="150ms"
@@ -445,7 +446,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[400px] flex flex-col">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                            <TrendingUp size={20} className="text-[#C8A04F]" /> الأداء المالي (30 يوم)
+                                            <TrendingUp size={20} className="text-[#C8A04F]" /> {t('adminDashboard.charts.dailyRevenue')} (30)
                                         </h3>
                                     </div>
                                     <div className="flex-1 w-full min-h-0">
@@ -476,19 +477,19 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                     <div className="bg-[#0B1B3A] text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#C8A04F] rounded-full blur-[60px] opacity-20"></div>
                                         <h3 className="font-bold text-lg mb-4 flex items-center gap-2 relative z-10">
-                                            <Zap size={20} className="text-[#C8A04F]" /> إجراءات سريعة
+                                            <Zap size={20} className="text-[#C8A04F]" /> {t('dashboard.quickActions')}
                                         </h3>
                                         <div className="grid grid-cols-2 gap-3 relative z-10">
-                                            <QuickActionBtn label="إضافة منتج" icon={<Plus size={16}/>} onClick={() => setView('PRODUCTS')} />
-                                            <QuickActionBtn label="تحديث أسعار" icon={<RefreshCw size={16}/>} onClick={() => setView('PRODUCTS')} />
-                                            <QuickActionBtn label="طلبات معلقة" icon={<Clock size={16}/>} onClick={() => setView('QUOTES')} />
-                                            <QuickActionBtn label="تصدير Excel" icon={<Download size={16}/>} onClick={() => addToast('جاري تحضير التقرير...', 'success')} />
+                                            <QuickActionBtn label={t('products.addProduct')} icon={<Plus size={16}/>} onClick={() => setView('PRODUCTS')} />
+                                            <QuickActionBtn label={t('common.refresh')} icon={<RefreshCw size={16}/>} onClick={() => setView('PRODUCTS')} />
+                                            <QuickActionBtn label={t('adminDashboard.stats.pendingOrders')} icon={<Clock size={16}/>} onClick={() => setView('QUOTES')} />
+                                            <QuickActionBtn label={t('common.export')} icon={<Download size={16}/>} onClick={() => addToast(t('common.loading'), 'success')} />
                                         </div>
                                     </div>
 
                                     {/* Orders Mini Chart */}
                                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[200px] flex flex-col">
-                                        <h3 className="font-bold text-slate-800 text-sm mb-4">حجم الطلبات اليومي</h3>
+                                        <h3 className="font-bold text-slate-800 text-sm mb-4">{t('adminDashboard.charts.dailyOrders')}</h3>
                                         <div className="flex-1 w-full min-h-0">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <BarChart data={graphData.dailyStats}>
@@ -506,7 +507,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 {/* AI Insights */}
                                 <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <SearchX size={20} className="text-red-500" /> أكثر الأصناف المفقودة (بحث)
+                                        <SearchX size={20} className="text-red-500" /> {t('adminDashboard.charts.topMissingParts')}
                                     </h3>
                                     <div className="space-y-4">
                                         {insights.topMissing.length > 0 ? insights.topMissing.map(([term, count], i) => (
@@ -515,35 +516,35 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                                     <span className="w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">{i + 1}</span>
                                                     <span className="font-bold text-slate-700">{term}</span>
                                                 </div>
-                                                <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md">{count} بحث</span>
+                                                <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md">{count} {t('common.search')}</span>
                                             </div>
                                         )) : (
-                                            <p className="text-center text-slate-400 py-8">لا توجد بيانات كافية</p>
+                                            <p className="text-center text-slate-400 py-8">{t('common.noData')}</p>
                                         )}
                                     </div>
-                                    <button onClick={() => setView('MISSING')} className="w-full mt-4 text-center text-sm font-bold text-brand-600 hover:text-brand-700 py-2">عرض كل النواقص</button>
+                                    <button onClick={() => setView('MISSING')} className="w-full mt-4 text-center text-sm font-bold text-brand-600 hover:text-brand-700 py-2">{t('common.view')} {t('adminDashboard.missingParts')}</button>
                                 </div>
 
                                 {/* Activity Summary */}
                                 <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <Activity size={20} className="text-blue-500" /> ملخص النشاط اليومي
+                                        <Activity size={20} className="text-blue-500" /> {t('adminDashboard.activityLog')}
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <ActivityCard label="عمليات الدخول" value={activitySummary.logins} color="blue" />
-                                        <ActivityCard label="طلبات شراء" value={activitySummary.orders} color="emerald" />
-                                        <ActivityCard label="طلبات تسعير" value={activitySummary.quotes} color="amber" />
-                                        <ActivityCard label="عمليات بحث" value={activitySummary.searches} color="slate" />
+                                        <ActivityCard label={t('adminDashboard.activity.logins')} value={activitySummary.logins} color="blue" />
+                                        <ActivityCard label={t('adminDashboard.activity.ordersCreated')} value={activitySummary.orders} color="emerald" />
+                                        <ActivityCard label={t('adminDashboard.activity.quotesRequested')} value={activitySummary.quotes} color="amber" />
+                                        <ActivityCard label={t('adminDashboard.activity.searchesPerformed')} value={activitySummary.searches} color="slate" />
                                     </div>
                                     <button onClick={() => setView('ACTIVITY_LOGS')} className="w-full mt-6 bg-slate-50 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
-                                        <ExternalLink size={16} /> عرض السجل الكامل
+                                        <ExternalLink size={16} /> {t('common.view')} {t('adminDashboard.activityLog')}
                                     </button>
                                 </div>
 
                                 {/* Latest Alerts */}
                                 <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                     <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                        <Bell size={20} className="text-slate-400" /> آخر التنبيهات
+                                        <Bell size={20} className="text-slate-400" /> {t('nav.notifications')}
                                     </h3>
                                     <div className="space-y-4">
                                         {notifications.slice(0, 5).map(n => (
@@ -556,7 +557,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                                 </div>
                                             </div>
                                         ))}
-                                        {notifications.length === 0 && <p className="text-center text-slate-400 py-8">لا توجد تنبيهات</p>}
+                                        {notifications.length === 0 && <p className="text-center text-slate-400 py-8">{t('notifications.noNotifications')}</p>}
                                     </div>
                                 </div>
                             </div>

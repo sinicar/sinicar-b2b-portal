@@ -181,9 +181,9 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                         </div>
                     )}
                     <div className="bg-brand-900/50 border border-brand-500/30 rounded-lg p-3 text-center">
-                        <p className="text-[10px] text-brand-200 uppercase font-bold mb-1">نقاط البحث المتبقية</p>
+                        <p className="text-[10px] text-brand-200 uppercase font-bold mb-1">{t('sidebar.searchCredits')}</p>
                         <p className="text-xl font-mono font-bold text-white">
-                            {user.searchLimit === 0 ? "بحث مفتوح" : remainingCredits}
+                            {user.searchLimit === 0 ? t('sidebar.unlimitedSearch') : remainingCredits}
                         </p>
                     </div>
                 </div>
@@ -191,7 +191,7 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto px-4 space-y-1 custom-scrollbar">
-                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">القائمة الرئيسية</p>
+                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">{t('sidebar.mainMenu')}</p>
                 <SidebarItem icon={<LayoutDashboard size={20} />} label={tDynamic('sidebar.home', 'الرئيسية')} active={view === 'HOME'} onClick={() => onViewChange('HOME')} />
                 
                 {/* Orders Item: Checks for hasUnreadOrders flag */}
@@ -214,10 +214,10 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                 <SidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => onViewChange('IMPORT_CHINA')} />
                 <SidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => onViewChange('HISTORY')} />
                 
-                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">الإدارة</p>
+                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.management')}</p>
                 <SidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => onViewChange('ORGANIZATION')} />
                 
-                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">الدعم</p>
+                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.supportSection')}</p>
                 <SidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => onViewChange('ABOUT')} />
             </nav>
 
@@ -334,7 +334,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             role: user.role,
             eventType: 'PAGE_VIEW',
             page: view,
-            description: `فتح صفحة: ${view}`
+            description: `${t('customerDashboard.pageView')} ${view}`
         });
     }, [view, user.id, user.name, user.role]);
 
@@ -416,7 +416,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         const trimmedQuery = searchQuery.trim();
         
         if (trimmedQuery.length < 2) {
-            addToast('الرجاء إدخال رقم القطعة بشكل صحيح.', 'warning');
+            addToast(t('customerDashboard.enterValidPartNumber'), 'warning');
             return;
         }
         
@@ -437,7 +437,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             setShowSearchDropdown(true);
         } catch (error) {
             console.error('Search error:', error);
-            addToast('حدث خطأ غير متوقع، الرجاء المحاولة مرة أخرى.', 'error');
+            addToast(t('customerDashboard.unexpectedError'), 'error');
         } finally {
             setSearchLoading(false);
         }
@@ -466,17 +466,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             // Update UI State
             setRevealedSearchIds(prev => new Set(prev).add(product.id));
             setPriceModalProduct(product); // Open Modal after success
-            addToast('تم خصم نقطة واحدة لعرض السعر', 'info');
+            addToast(t('toast.creditDeducted', 'تم خصم نقطة واحدة لعرض السعر'), 'info');
             
             // Refresh User Context to update sidebar count
             onRefreshUser();
 
         } catch (error: any) {
             if (error.message === 'NO_POINTS_LEFT') {
-                addToast('عذراً، لقد استهلكت جميع نقاط البحث المتاحة لليوم. يرجى التواصل مع الإدارة.', 'error');
+                addToast(t('toast.noCreditsLeft', 'عذراً، لقد استهلكت جميع نقاط البحث المتاحة لليوم. يرجى التواصل مع الإدارة.'), 'error');
             } else {
                 console.error(error);
-                addToast('حدث خطأ أثناء عرض السعر', 'error');
+                addToast(t('toast.priceRevealError', 'حدث خطأ أثناء عرض السعر'), 'error');
             }
         } finally {
             setPriceLoading(false);
@@ -490,7 +490,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             setDuplicateConfirmation({ product, quantity });
         } else {
             setCart([...cart, { ...product, quantity }]);
-            addToast('تمت الإضافة للسلة', 'success');
+            addToast(t('toast.addedToCart', 'تمت الإضافة للسلة'), 'success');
         }
     };
 
@@ -514,7 +514,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             ? { ...item, quantity: item.quantity + quantity }
             : item
         ));
-        addToast('تم تحديث الكمية في السلة', 'success');
+        addToast(t('toast.quantityUpdated', 'تم تحديث الكمية في السلة'), 'success');
         setDuplicateConfirmation(null);
         // If this came from the price modal, make sure it's closed
         setPriceModalProduct(null);
@@ -546,7 +546,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             MockApi.getOrders(user.id).then(setOrders);
 
         } catch (e) {
-            addToast('حدث خطأ أثناء إرسال الطلب', 'error');
+            addToast(t('customerDashboard.orderSubmitError'), 'error');
         }
     };
 
@@ -616,10 +616,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                     
                                     <div className="relative z-10 w-full max-w-4xl mx-auto space-y-6">
                                         <h1 className="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight text-white font-display">
-                                            منظومة صيني كار لعملاء الجملة
+                                            {t('customerDashboard.heroTitle')}
                                         </h1>
                                         <p className="text-slate-200 text-sm md:text-lg font-medium max-w-2xl mx-auto">
-                                            نظام موحّد لطلب وتسعير قطع غيار السيارات الصينية لعملاء الجملة، شركات التأمين، شركات التأجير، ومحلات قطع الغيار.
+                                            {t('customerDashboard.heroSubtitle')}
                                         </p>
                                         
                                         {/* Prominent Search Bar */}
@@ -627,7 +627,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             <div className="flex justify-center md:justify-end mb-3">
                                                 <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-4 py-1 text-xs font-bold text-emerald-300 border border-emerald-500/40 backdrop-blur-sm shadow-sm">
                                                     <CheckCircle size={12} />
-                                                    أفضل نتيجة تحصل عليها عند البحث برقم القطعة
+                                                    {t('customerDashboard.searchTip')}
                                                 </div>
                                             </div>
                                             
@@ -635,7 +635,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 <input 
                                                     type="text" 
                                                     className="w-full h-14 md:h-16 pr-16 pl-6 bg-white text-slate-900 rounded-full shadow-2xl shadow-slate-900/30 focus:ring-4 focus:ring-brand-500/30 border-0 text-base md:text-lg font-bold placeholder:text-slate-400 transition-all outline-none"
-                                                    placeholder="بحث سريع: رقم القطعة (218102K700) أو اسم الصنف..."
+                                                    placeholder={t('customerDashboard.searchPlaceholder')}
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                 />
@@ -655,14 +655,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                         {searchLoading ? (
                                                             <div className="p-8 text-center">
                                                                 <Loader2 size={32} className="animate-spin text-brand-600 mx-auto mb-3" />
-                                                                <p className="text-sm font-bold text-slate-600">جاري البحث...</p>
+                                                                <p className="text-sm font-bold text-slate-600">{t('customerDashboard.searching')}</p>
                                                             </div>
                                                         ) : pipelineResult?.type === 'FOUND_OUT_OF_STOCK' && pipelineResult.product ? (
                                                             <div className="p-5">
                                                                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
                                                                     <div className="flex items-center gap-2 text-amber-700 mb-2">
                                                                         <PackageX size={20} />
-                                                                        <span className="font-bold">الكمية نفذت حاليًا من هذه القطعة</span>
+                                                                        <span className="font-bold">{t('customerDashboard.outOfStockMessage')}</span>
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -677,7 +677,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                         </p>
                                                                     </div>
                                                                     <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200">
-                                                                        نفذت الكمية
+                                                                        {t('customerDashboard.outOfStock')}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -686,9 +686,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                 <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-50 text-amber-500 rounded-full mb-4">
                                                                     <AlertTriangle size={32} />
                                                                 </div>
-                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">القطعة غير متوفرة حالياً</h4>
+                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">{t('customerDashboard.partNotAvailable')}</h4>
                                                                 <p className="text-sm text-slate-600">
-                                                                    لم يتم العثور على نتائج لـ: <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
+                                                                    {t('customerDashboard.noResultsFor')} <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
                                                                 </p>
                                                             </div>
                                                         ) : searchResults.length > 0 ? (
@@ -720,20 +720,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
                                                                             <div className="flex items-center gap-3">
                                                                                 <span className={`text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-full border ${!isOutOfStock ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                                                                                    {!isOutOfStock ? 'متوفر' : 'نفذت الكمية'}
+                                                                                    {!isOutOfStock ? t('customerDashboard.available') : t('customerDashboard.outOfStock')}
                                                                                 </span>
 
                                                                                 {isOutOfStock ? (
-                                                                                    <span className="text-xs text-slate-400 font-bold">السعر غير متاح</span>
+                                                                                    <span className="text-xs text-slate-400 font-bold">{t('customerDashboard.priceNotAvailable')}</span>
                                                                                 ) : isRevealed ? (
                                                                                     <div className="flex items-center gap-3">
                                                                                         <div className="flex flex-col items-end px-2">
-                                                                                            <span className="text-sm font-black text-slate-900">{product.priceWholesale || product.price} ر.س</span>
+                                                                                            <span className="text-sm font-black text-slate-900">{product.priceWholesale || product.price} {t('customerDashboard.sar')}</span>
                                                                                         </div>
                                                                                         <button 
                                                                                             onClick={(e) => handleRevealPrice(e, product)}
                                                                                             className="bg-brand-600 text-white p-2 rounded-lg hover:bg-brand-700 shadow-sm"
-                                                                                            title="إضافة للسلة"
+                                                                                            title={t('customerDashboard.addToCart')}
                                                                                         >
                                                                                             <ShoppingBag size={16} />
                                                                                         </button>
@@ -742,9 +742,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                                     <button 
                                                                                         onClick={(e) => handleRevealPrice(e, product)}
                                                                                         className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors flex items-center gap-1"
-                                                                                        title="عرض السعر (يخصم نقطة بحث)"
+                                                                                        title={t('customerDashboard.showPrice')}
                                                                                     >
-                                                                                        <Eye size={14} /> <span className="hidden sm:inline">السعر</span>
+                                                                                        <Eye size={14} /> <span className="hidden sm:inline">{t('customerDashboard.showPrice')}</span>
                                                                                     </button>
                                                                                 )}
                                                                             </div>
@@ -757,15 +757,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                 <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 text-slate-400 rounded-full mb-4">
                                                                     <Search size={32} />
                                                                 </div>
-                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">لا توجد نتائج</h4>
+                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">{t('customerDashboard.noResults')}</h4>
                                                                 <p className="text-sm text-slate-600">
-                                                                    اضغط على زر البحث للبحث الدقيق عن: <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
+                                                                    {t('customerDashboard.pressSearch')} <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
                                                                 </p>
                                                             </div>
                                                         ) : null}
                                                         {(searchResults.length > 0 || pipelineResult?.type === 'FOUND_AVAILABLE') && (
                                                             <div className="bg-slate-50 p-2.5 text-center text-xs font-bold text-slate-500 border-t border-slate-100 sticky bottom-0">
-                                                                اضغط على (السعر) لعرض التفاصيل وإضافة المنتج
+                                                                {t('customerDashboard.addToCartTip')}
                                                             </div>
                                                         )}
                                                     </div>
@@ -783,31 +783,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         <section>
                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <Users className="text-brand-600" size={24}/>
-                                                من نخدم؟
+                                                {t('customerDashboard.whoWeServe')}
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                                 <InfoCard 
                                                     icon={<Building2 size={24}/>}
-                                                    title="محلات قطع الغيار"
-                                                    desc="تنظيم طلبات الجملة، إدارة عروض الأسعار، ومتابعة حالة كل طلب بدقة."
+                                                    title={t('customerDashboard.partsStores')}
+                                                    desc={t('customerDashboard.partsStoresDesc')}
                                                     colorClass="bg-blue-50 text-blue-600"
                                                 />
                                                 <InfoCard 
                                                     icon={<ShieldCheck size={24}/>}
-                                                    title="شركات التأمين"
-                                                    desc="منصة موحدة لطلبات قطع الغيار لحالات الحوادث وإدارة الموافقات الرسمية."
+                                                    title={t('customerDashboard.insuranceCompanies')}
+                                                    desc={t('customerDashboard.insuranceDesc')}
                                                     colorClass="bg-green-50 text-green-600"
                                                 />
                                                 <InfoCard 
                                                     icon={<Car size={24}/>}
-                                                    title="شركات التأجير"
-                                                    desc="تجهيز قطع الغيار لأساطيل السيارات مع سجل كامل للطلبات السابقة."
+                                                    title={t('customerDashboard.rentalCompanies')}
+                                                    desc={t('customerDashboard.rentalDesc')}
                                                     colorClass="bg-amber-50 text-amber-600"
                                                 />
                                                 <InfoCard 
                                                     icon={<Briefcase size={24}/>}
-                                                    title="مندوبي المبيعات"
-                                                    desc="أداة لتنظيم طلبات العملاء الذين تديرهم في مختلف المناطق والمدن."
+                                                    title={t('customerDashboard.salesReps')}
+                                                    desc={t('customerDashboard.salesRepsDesc')}
                                                     colorClass="bg-purple-50 text-purple-600"
                                                 />
                                             </div>
@@ -817,35 +817,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         <section>
                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <Briefcase className="text-brand-600" size={24}/>
-                                                خدمات صيني كار الرئيسية
+                                                {t('customerDashboard.mainServices')}
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <InfoCard 
                                                     onClick={() => handleSetView('QUOTE_REQUEST')}
                                                     icon={<FileSpreadsheet size={28}/>}
-                                                    title="طلبات التسعير (Excel)"
-                                                    desc="ارفع ملف الأصناف واحصل على تسعيرة كاملة للأصناف المتاحة وغير المتاحة في ثوانٍ."
+                                                    title={t('customerDashboard.quoteRequests')}
+                                                    desc={t('customerDashboard.quoteRequestsDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                                 <InfoCard 
                                                     onClick={() => handleSetView('IMPORT_CHINA')}
                                                     icon={<Globe size={28}/>}
-                                                    title="الاستيراد من الصين"
-                                                    desc="نموذج مخصص لطلبات الاستيراد، مع شركة استيراد وتصدير تابعة لنا في ثلاث مدن صينية."
+                                                    title={t('customerDashboard.importFromChina')}
+                                                    desc={t('customerDashboard.importFromChinaDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                                 <InfoCard 
                                                     onClick={() => handleSetView('ORDERS')}
                                                     icon={<Package size={28}/>}
-                                                    title="إدارة طلبات الجملة"
-                                                    desc="سجل كامل لكل طلب، مع حالات الطلب وطباعة الفواتير وتحميل ملفات PDF."
+                                                    title={t('customerDashboard.wholesaleOrders')}
+                                                    desc={t('customerDashboard.wholesaleOrdersDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                                 <InfoCard 
                                                     onClick={() => handleSetView('ORGANIZATION')}
                                                     icon={<Users size={28}/>}
-                                                    title="ربط الموظفين والفروع"
-                                                    desc="إضافة موظفين لحسابك وتحديد صلاحياتهم وربط الطلبات بكل فرع أو مندوب."
+                                                    title={t('customerDashboard.staffBranches')}
+                                                    desc={t('customerDashboard.staffBranchesDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                             </div>
@@ -855,7 +855,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         <section className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-8">
                                                 <TrendingUp className="text-brand-600" size={24}/>
-                                                كيف تعمل المنظومة؟
+                                                {t('customerDashboard.howItWorks')}
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
                                                 {/* Connecting Line (Desktop) */}
@@ -865,32 +865,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
                                                         <Users size={32} />
                                                     </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">1. طلب فتح حساب</h4>
-                                                    <p className="text-sm text-slate-500">قدّم طلب فتح حساب عبر نموذج مخصص لنوع نشاطك.</p>
+                                                    <h4 className="font-bold text-slate-800 mb-2">1. {t('customerDashboard.step1Title')}</h4>
+                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step1Desc')}</p>
                                                 </div>
 
                                                 <div className="relative z-10 flex flex-col items-center text-center">
                                                     <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
                                                         <ShieldCheck size={32} />
                                                     </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">2. الموافقة والاعتماد</h4>
-                                                    <p className="text-sm text-slate-500">نراجع البيانات ونمنحك صلاحيات البحث وطلب الجملة.</p>
+                                                    <h4 className="font-bold text-slate-800 mb-2">2. {t('customerDashboard.step2Title')}</h4>
+                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step2Desc')}</p>
                                                 </div>
 
                                                 <div className="relative z-10 flex flex-col items-center text-center">
                                                     <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
                                                         <Search size={32} />
                                                     </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">3. البحث والتسعير</h4>
-                                                    <p className="text-sm text-slate-500">استخدم البحث الذكي برقم القطعة أو ارفع ملفات الإكسل.</p>
+                                                    <h4 className="font-bold text-slate-800 mb-2">3. {t('customerDashboard.step3Title')}</h4>
+                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step3Desc')}</p>
                                                 </div>
 
                                                 <div className="relative z-10 flex flex-col items-center text-center">
                                                     <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
                                                         <Truck size={32} />
                                                     </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">4. التنفيذ والشحن</h4>
-                                                    <p className="text-sm text-slate-500">نتواصل معك لإتمام الطلبات والشحن أو الاستيراد الخاص.</p>
+                                                    <h4 className="font-bold text-slate-800 mb-2">4. {t('customerDashboard.step4Title')}</h4>
+                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step4Desc')}</p>
                                                 </div>
                                             </div>
                                         </section>
@@ -899,14 +899,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         <section>
                                              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <CheckCircle className="text-brand-600" size={24}/>
-                                                {settings?.whySiniCarTitle || 'لماذا صيني كار؟'}
+                                                {settings?.whySiniCarTitle || t('customerDashboard.whySiniCar')}
                                             </h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                 {(settings?.whySiniCarFeatures || [
-                                                    { id: '1', title: 'خبرة متخصصة', description: 'متخصصون في قطع الغيار الصينية فقط، مما يضمن دقة القطع.', icon: 'box', iconColor: 'text-cyan-400' },
-                                                    { id: '2', title: 'تكامل تقني', description: 'ربط مباشر مع المخزون والنظام المحاسبي لتحديث فوري.', icon: 'chart', iconColor: 'text-green-400' },
-                                                    { id: '3', title: 'تواجد دولي', description: 'مكاتب خاصة للاستيراد والتصدير في 3 مدن صينية رئيسية.', icon: 'anchor', iconColor: 'text-amber-400' },
-                                                    { id: '4', title: 'دعم فني B2B', description: 'فريق مبيعات مخصص لخدمة الجملة متاح طوال أيام الأسبوع.', icon: 'headphones', iconColor: 'text-purple-400' }
+                                                    { id: '1', title: t('customerDashboard.expertiseTitle'), description: t('customerDashboard.expertiseDesc'), icon: 'box', iconColor: 'text-cyan-400' },
+                                                    { id: '2', title: t('customerDashboard.techTitle'), description: t('customerDashboard.techDesc'), icon: 'chart', iconColor: 'text-green-400' },
+                                                    { id: '3', title: t('customerDashboard.globalTitle'), description: t('customerDashboard.globalDesc'), icon: 'anchor', iconColor: 'text-amber-400' },
+                                                    { id: '4', title: t('customerDashboard.supportTitle'), description: t('customerDashboard.supportDesc'), icon: 'headphones', iconColor: 'text-purple-400' }
                                                 ]).map((feature) => (
                                                     <div key={feature.id} className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
                                                         <div className={`mb-4 ${feature.iconColor}`}>
@@ -936,7 +936,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                                                 <h3 className="font-bold text-slate-800 text-sm md:text-base flex items-center gap-2">
                                                     <ShoppingCart className="text-brand-600" size={20} />
-                                                    سلة طلبات الجملة
+                                                    {t('customerDashboard.wholesaleCart')}
                                                 </h3>
                                                 <span className="bg-brand-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">{cart.length}</span>
                                             </div>
@@ -960,8 +960,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
                                                             <ShoppingCart size={32} className="opacity-30" />
                                                         </div>
-                                                        <p className="text-sm font-bold text-slate-500">السلة فارغة</p>
-                                                        <p className="text-xs opacity-70 mt-1">استخدم البحث لإضافة أصناف</p>
+                                                        <p className="text-sm font-bold text-slate-500">{t('customerDashboard.emptyCart')}</p>
+                                                        <p className="text-xs opacity-70 mt-1">{t('customerDashboard.useSearchToAdd')}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -969,15 +969,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             {cart.length > 0 && (
                                                 <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-3">
                                                     <div className="flex justify-between text-sm font-bold text-slate-700">
-                                                        <span>الإجمالي (تقديري)</span>
-                                                        <span className="font-black text-slate-900">{cartTotal.toLocaleString()} ر.س</span>
+                                                        <span>{t('customerDashboard.estimatedTotal')}</span>
+                                                        <span className="font-black text-slate-900">{cartTotal.toLocaleString()} {t('customerDashboard.sar')}</span>
                                                     </div>
                                                     <button 
                                                         onClick={handleSubmitOrder}
                                                         className="w-full py-3 bg-brand-600 text-white rounded-xl font-bold text-sm hover:bg-brand-700 shadow-md shadow-brand-200 transition-all flex justify-center items-center gap-2"
                                                     >
                                                         <CheckCircle size={18} />
-                                                        إرسال الطلب
+                                                        {t('customerDashboard.submitOrder')}
                                                     </button>
                                                 </div>
                                             )}
@@ -987,13 +987,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         <div className="space-y-4">
                                             <MarketingCard 
                                                 icon={<Truck className="text-blue-600" size={24}/>}
-                                                title="شحن سريع"
-                                                desc="توصيل خلال 24 ساعة للمدن الرئيسية وشحن مبرد للمناطق البعيدة."
+                                                title={t('customerDashboard.fastShipping')}
+                                                desc={t('customerDashboard.fastShippingDesc')}
                                             />
                                             <MarketingCard 
                                                 icon={<Headphones className="text-purple-600" size={24}/>}
-                                                title="دعم فني متخصص"
-                                                desc="فريق مبيعات مخصص لخدمة الجملة متاح طوال أيام الأسبوع."
+                                                title={t('customerDashboard.techSupport')}
+                                                desc={t('customerDashboard.techSupportDesc')}
                                             />
                                         </div>
                                     </div>
@@ -1009,17 +1009,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         {view === 'HISTORY' && (
                             <div className="animate-fade-in">
                                 <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                    <History className="text-brand-600" /> سجل البحث والمشاهدات
+                                    <History className="text-brand-600" /> {t('customerDashboard.searchHistory')}
                                 </h2>
                                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                                     {searchHistory.length > 0 ? (
                                         <table className="w-full text-right text-sm">
                                             <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                                                 <tr>
-                                                    <th className="p-5">رقم القطعة</th>
-                                                    <th className="p-5">اسم المنتج</th>
-                                                    <th className="p-5">تاريخ المشاهدة</th>
-                                                    <th className="p-5">السعر المسجل</th>
+                                                    <th className="p-5">{t('customerDashboard.partNumber')}</th>
+                                                    <th className="p-5">{t('customerDashboard.productName')}</th>
+                                                    <th className="p-5">{t('customerDashboard.viewDate')}</th>
+                                                    <th className="p-5">{t('customerDashboard.recordedPrice')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100">
@@ -1030,7 +1030,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                         <td className="p-5 text-slate-600 font-medium">
                                                             {formatDateTime(item.viewedAt)}
                                                         </td>
-                                                        <td className="p-5 font-black text-slate-900">{item.priceSnapshot} ر.س</td>
+                                                        <td className="p-5 font-black text-slate-900">{item.priceSnapshot} {t('customerDashboard.sar')}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -1038,7 +1038,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                     ) : (
                                         <div className="p-16 text-center text-slate-400">
                                             <History size={64} className="mx-auto mb-4 opacity-20" />
-                                            <p className="font-bold text-lg text-slate-500">لا يوجد سجل بحث محفوظ</p>
+                                            <p className="font-bold text-lg text-slate-500">{t('customerDashboard.noSearchHistory')}</p>
                                         </div>
                                     )}
                                 </div>
@@ -1052,7 +1052,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             <Modal
                 isOpen={showOrderSuccess}
                 onClose={() => setShowOrderSuccess(false)}
-                title="تم إرسال طلبك بنجاح"
+                title={t('customerDashboard.orderSuccess.title')}
                 maxWidth="max-w-md"
             >
                 <div className="text-center p-6">
@@ -1060,13 +1060,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         <CheckCircle size={40} strokeWidth={3} />
                     </div>
                     <p className="text-slate-600 font-medium text-lg leading-relaxed mb-6">
-                        يمكنك متابعة حالة طلبك في سجل الطلبات أو من خلال التنبيهات في أعلى الصفحة.
+                        {t('customerDashboard.orderSuccess.message')}
                     </p>
                      <button 
                         onClick={() => setShowOrderSuccess(false)}
                         className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
                     >
-                        حسناً
+                        {t('common.confirm')}
                     </button>
                 </div>
             </Modal>
@@ -1076,7 +1076,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 <Modal
                     isOpen={!!priceModalProduct}
                     onClose={() => setPriceModalProduct(null)}
-                    title="تفاصيل السعر والشراء"
+                    title={t('customerDashboard.priceModal.productDetails')}
                     maxWidth="max-w-md"
                 >
                     <div className="text-center p-4">
@@ -1092,17 +1092,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         </div>
 
                         <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-6">
-                             <div className="mb-2 text-slate-500 font-bold text-xs uppercase tracking-wider">السعر الحالي</div>
-                             <div className="text-4xl font-black text-slate-900">{priceModalProduct.price} <span className="text-lg text-slate-500 font-bold">ر.س</span></div>
+                             <div className="mb-2 text-slate-500 font-bold text-xs uppercase tracking-wider">{t('customerDashboard.priceModal.wholesalePrice')}</div>
+                             <div className="text-4xl font-black text-slate-900">{priceModalProduct.price} <span className="text-lg text-slate-500 font-bold">{t('customerDashboard.sar')}</span></div>
                              {priceModalProduct.stock > 0 ? (
                                  <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
                                      <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></div>
-                                     متوفر في المستودع
+                                     {t('customerDashboard.available')}
                                  </div>
                              ) : (
                                  <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">
                                      <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                                     غير متوفر حالياً
+                                     {t('customerDashboard.outOfStock')}
                                  </div>
                              )}
                         </div>
@@ -1132,7 +1132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                 onClick={() => setPriceModalProduct(null)}
                                 className="flex-1 py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
                             >
-                                إغلاق
+                                {t('customerDashboard.priceModal.close')}
                             </button>
                             <button
                                 onClick={handleAddToCartFromModal}
@@ -1144,7 +1144,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                 }`}
                             >
                                 <ShoppingCart size={20} />
-                                إضافة لسلة الطلب
+                                {t('customerDashboard.priceModal.addToCart')}
                             </button>
                         </div>
                     </div>
@@ -1156,7 +1156,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 <Modal
                     isOpen={!!duplicateConfirmation}
                     onClose={() => setDuplicateConfirmation(null)}
-                    title="تنبيه: الصنف موجود في السلة"
+                    title={t('customerDashboard.duplicateConfirm.title')}
                     maxWidth="max-w-md"
                 >
                     <div className="flex flex-col items-center text-center p-6">
@@ -1164,29 +1164,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                             <AlertTriangle size={40} />
                         </div>
                         <h3 className="text-2xl font-black text-slate-800 mb-3">
-                            هذا الصنف مضاف مسبقاً!
+                            {t('customerDashboard.duplicateConfirm.title')}
                         </h3>
                         <p className="text-slate-600 mb-8 leading-relaxed font-medium">
-                            لقد قمت بإضافة 
+                            {t('customerDashboard.duplicateConfirm.message')}
                             <span className="font-black text-slate-900 mx-1 block my-2 bg-slate-100 p-2 rounded-lg border border-slate-200">
                                 {duplicateConfirmation.product.name}
                             </span>
-                            إلى السلة من قبل. هل ترغب في إضافة الكمية الجديدة 
                             (<span className="font-bold text-brand-600 mx-1">{duplicateConfirmation.quantity}</span>)
-                            إلى الكمية الموجودة حالياً؟
                         </p>
                         <div className="flex gap-4 w-full">
                             <button
                                 onClick={() => setDuplicateConfirmation(null)}
                                 className="flex-1 py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
                             >
-                                إلغاء
+                                {t('customerDashboard.duplicateConfirm.cancel')}
                             </button>
                             <button
                                 onClick={confirmDuplicateAdd}
                                 className="flex-1 py-3.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-200 transition-colors"
                             >
-                                تأكيد الإضافة
+                                {t('customerDashboard.duplicateConfirm.confirm')}
                             </button>
                         </div>
                     </div>
