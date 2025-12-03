@@ -167,6 +167,9 @@ export interface User {
   lastLoginAt?: string | null;
   failedLoginAttempts?: number;
   riskyLoginFlag?: boolean;
+  
+  // --- Activity Tracking ---
+  lastActiveAt?: string; // ISO timestamp of last heartbeat (for online status)
 }
 
 // --- Notifications System (New) ---

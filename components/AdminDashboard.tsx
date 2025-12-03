@@ -545,35 +545,144 @@ const ActivityCard = ({ label, value, color }: any) => {
 
 // --- Simplified Views for Sub-Pages (Ported from original to keep file size managed) ---
 
+const OnlineUsersCard = () => {
+    const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadOnline = async () => {
+            try {
+                const online = await MockApi.getOnlineUsers(5); // Active in last 5 mins
+                setOnlineUsers(online);
+            } catch (e) {
+                console.error("Failed to load online users", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        loadOnline();
+        const interval = setInterval(loadOnline, 30000); // Refresh every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    const formatLastActive = (dateStr: string) => {
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'الآن';
+        return `منذ ${mins} دقيقة`;
+    };
+
+    return (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                        <Zap size={20} className="text-green-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-slate-800">العملاء المتصلين الآن</h3>
+                        <p className="text-xs text-slate-500">نشاط خلال آخر 5 دقائق</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                    <span className="text-xl font-bold text-green-600">{onlineUsers.length}</span>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="animate-spin text-slate-400" size={24} />
+                </div>
+            ) : onlineUsers.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {onlineUsers.slice(0, 12).map((user) => (
+                        <div key={user.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                            <div className="relative">
+                                <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center text-brand-700 font-bold text-sm">
+                                    {user.name?.charAt(0) || '؟'}
+                                </div>
+                                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-slate-800 truncate">{user.name}</p>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-slate-400 font-mono">{user.clientId}</span>
+                                    <span className="text-[10px] text-green-600 font-bold">• {user.lastActiveAt ? formatLastActive(user.lastActiveAt) : 'متصل'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-8 text-slate-400">
+                    <Users size={32} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-sm font-bold">لا يوجد عملاء متصلين حالياً</p>
+                </div>
+            )}
+            
+            {onlineUsers.length > 12 && (
+                <p className="text-center mt-4 text-xs text-slate-500">
+                    و {onlineUsers.length - 12} عميل آخر متصل...
+                </p>
+            )}
+        </div>
+    );
+};
+
 const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
     const start = (page - 1) * perPage;
     const current = logs.slice(start, start + perPage);
     const totalPages = Math.ceil(logs.length / perPage);
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm animate-fade-in">
-            <table className="w-full text-sm text-right">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                    <tr><th className="p-4">الوقت</th><th className="p-4">المستخدم</th><th className="p-4">الحدث</th><th className="p-4">التفاصيل</th></tr>
-                </thead>
-                <tbody>
-                    {current.map((log: ActivityLogEntry) => (
-                        <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                            <td className="p-4 font-mono text-slate-500 text-xs" dir="ltr">{formatDateTime(log.createdAt)}</td>
-                            <td className="p-4 font-bold">{log.userName || log.userId}</td>
-                            <td className="p-4"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">{log.eventType}</span></td>
-                            <td className="p-4 text-slate-600">{log.description}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {totalPages > 1 && (
-                <div className="p-4 flex justify-center gap-4 border-t border-slate-100">
-                    <button disabled={page===1} onClick={() => setPage(page-1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronRight size={16}/></button>
-                    <span className="text-sm font-bold text-slate-600 pt-1">{page} / {totalPages}</span>
-                    <button disabled={page===totalPages} onClick={() => setPage(page+1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronLeft size={16}/></button>
+        <div className="space-y-6">
+            {/* Online Users Section */}
+            <OnlineUsersCard />
+
+            {/* Activity Logs Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm animate-fade-in">
+                <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                        <Activity size={18} className="text-slate-600" />
+                        سجل النشاطات
+                    </h3>
+                    <span className="text-xs text-slate-500">{logs.length} نشاط</span>
                 </div>
-            )}
+                <table className="w-full text-sm text-right">
+                    <thead className="bg-slate-50/50 text-slate-600 font-bold border-b border-slate-200">
+                        <tr><th className="p-4">الوقت</th><th className="p-4">المستخدم</th><th className="p-4">الحدث</th><th className="p-4">التفاصيل</th></tr>
+                    </thead>
+                    <tbody>
+                        {current.length > 0 ? current.map((log: ActivityLogEntry) => (
+                            <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                                <td className="p-4 font-mono text-slate-500 text-xs" dir="ltr">{formatDateTime(log.createdAt)}</td>
+                                <td className="p-4 font-bold">{log.userName || log.userId}</td>
+                                <td className="p-4"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">{log.eventType}</span></td>
+                                <td className="p-4 text-slate-600">{log.description}</td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan={4} className="p-8 text-center text-slate-400">
+                                    <Clock size={32} className="mx-auto mb-2 opacity-40" />
+                                    <p className="font-bold">لا توجد أنشطة مسجلة</p>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+                {totalPages > 1 && (
+                    <div className="p-4 flex justify-center gap-4 border-t border-slate-100">
+                        <button disabled={page===1} onClick={() => setPage(page-1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronRight size={16}/></button>
+                        <span className="text-sm font-bold text-slate-600 pt-1">{page} / {totalPages}</span>
+                        <button disabled={page===totalPages} onClick={() => setPage(page+1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronLeft size={16}/></button>
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }

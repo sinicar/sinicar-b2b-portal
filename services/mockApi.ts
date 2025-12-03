@@ -368,6 +368,29 @@ export const MockApi = {
       return logs.filter(l => l.userId === customerId || l.metadata?.targetUserId === customerId);
   },
 
+  // --- Heartbeat & Online Status ---
+  async recordHeartbeat(userId: string): Promise<void> {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const idx = users.findIndex((u: User) => u.id === userId);
+      if (idx !== -1) {
+          users[idx].lastActiveAt = new Date().toISOString();
+          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      }
+  },
+
+  async getOnlineUsers(minutesThreshold: number = 5): Promise<User[]> {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const now = new Date().getTime();
+      const thresholdMs = minutesThreshold * 60 * 1000;
+      
+      return users.filter((u: User) => {
+          // Exclude admin roles - only show customers online
+          if (!u.lastActiveAt || u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') return false;
+          const lastActive = new Date(u.lastActiveAt).getTime();
+          return (now - lastActive) <= thresholdMs;
+      });
+  },
+
   // --- Admin & Settings ---
   async getSettings(): Promise<SiteSettings> {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);

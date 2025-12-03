@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLevel, StaffStatus } from '../types';
+import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLevel, StaffStatus, QuoteRequest, OrderStatus } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
     Search, Filter, ChevronRight, ChevronLeft, Eye, ShieldAlert, 
@@ -299,7 +299,6 @@ export const AdminCustomersPage: React.FC = () => {
 };
 
 import { Users, FileSpreadsheet, LockKeyhole, MessageSquare, Package, ClipboardList, ExternalLink, DollarSign, Calendar } from 'lucide-react';
-import { Order, QuoteRequest, OrderStatus } from '../types';
 
 interface DetailPanelProps {
     customer: BusinessProfile;

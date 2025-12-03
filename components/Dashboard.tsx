@@ -312,6 +312,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         });
     }, [view, user.id, user.name, user.role]);
 
+    // Heartbeat for Online Status Tracking
+    useEffect(() => {
+        // Record initial heartbeat on mount
+        MockApi.recordHeartbeat(user.id);
+        
+        // Update heartbeat every 60 seconds
+        const heartbeatInterval = setInterval(() => {
+            MockApi.recordHeartbeat(user.id);
+        }, 60000);
+        
+        return () => clearInterval(heartbeatInterval);
+    }, [user.id]);
+
     // Debounce Search Logic
     useEffect(() => {
         const timer = setTimeout(() => {
