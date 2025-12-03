@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification, AdminUser, Role, PermissionResource } from '../types';
 import { 
@@ -9,6 +10,7 @@ import {
     TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, 
     Database, Server, ExternalLink, Plus, Layers
 } from 'lucide-react';
+import { LanguageSwitcherLight } from './LanguageSwitcher';
 import { AdminSettings } from './AdminSettings';
 import { AdminOrdersManager } from './AdminOrdersManager';
 import { AdminAccountRequests } from './AdminAccountRequests';
@@ -382,6 +384,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {['PRODUCTS'].includes(view) && 'إدارة البيانات'}
                     </h2>
                     <div className="flex items-center gap-4">
+                        <LanguageSwitcherLight />
                         <ConnectionWidget />
                         <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <div className="flex items-center gap-3">
