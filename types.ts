@@ -812,6 +812,36 @@ export interface ActivityLogEntry {
   createdAt: string;     // التاريخ والوقت الكامل للنشاط
 }
 
+// --- Admin Users Management Types ---
+
+export type AdminRole = 
+  | 'SUPER_ADMIN'     // مشرف عام - صلاحيات كاملة
+  | 'ADMIN'           // مدير - صلاحيات واسعة
+  | 'SALES_MANAGER'   // مدير مبيعات
+  | 'SALES_AGENT'     // مندوب مبيعات
+  | 'VIEWER';         // مشاهد فقط
+
+export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
+  SUPER_ADMIN: 'مشرف عام',
+  ADMIN: 'مدير',
+  SALES_MANAGER: 'مدير مبيعات',
+  SALES_AGENT: 'مندوب مبيعات',
+  VIEWER: 'مشاهد فقط'
+};
+
+export interface AdminUser {
+  id: string;
+  name: string;           // الاسم الكامل
+  username: string;       // اسم المستخدم
+  phone: string;          // رقم الجوال
+  email?: string;         // البريد الإلكتروني (اختياري)
+  role: AdminRole;        // الدور
+  isActive: boolean;      // نشط / موقوف
+  lastLoginAt?: string;   // آخر تسجيل دخول
+  createdAt: string;      // تاريخ الإنشاء
+  createdBy?: string;     // أنشئ بواسطة
+}
+
 // --- Global Status Labels Management Types ---
 
 export type StatusDomain = keyof StatusLabelsConfig;
