@@ -5,19 +5,24 @@
  * current API mode (mock or REST). It allows seamless switching between
  * localStorage-based mock implementation and real backend REST API.
  * 
+ * Currently uses MockApi as the default implementation. When a real backend
+ * is ready, implement REST versions of each service interface.
+ * 
  * @example
  * ```typescript
- * import { getAuthService, getOrderService } from './serviceFactory';
+ * import { services, isMockMode } from './serviceFactory';
  * 
- * // These automatically use the correct implementation based on apiConfig.apiMode
- * const authService = getAuthService();
- * const orderService = getOrderService();
+ * // Access services through the unified container
+ * const result = await services.auth.login('1', '1', 'OWNER');
  * 
- * const result = await authService.login('1', '1', 'OWNER');
+ * // Check current mode
+ * if (isMockMode()) {
+ *   console.log('Using mock API');
+ * }
  * ```
  */
 
-import { apiConfig, isMockMode, debugLog } from './apiConfig';
+import { apiConfig, isMockMode, isRestMode, debugLog } from './apiConfig';
 import { httpClient, ApiResponse } from './httpClient';
 import type {
   User,
@@ -30,21 +35,18 @@ import type {
   MissingProductRequest,
   ActivityLogEntry,
   Product,
-  SiteSettings
+  SiteSettings,
+  Branch,
+  OrderStatus,
+  OrderInternalStatus,
+  ImportRequestStatus,
+  MissingStatus,
+  CustomerStatus,
+  AccountRequestStatus
 } from '../types';
-import type {
-  LoginRequest,
-  LoginResponse,
-  SessionResponse,
-  CreateOrderRequest,
-  CreateQuoteRequest,
-  CreateImportRequest,
-  UpdateImportStatusRequest,
-  CreateMissingPartRequest,
-  CreateStaffRequest,
-  RecordActivityRequest,
-  ProductSearchParams
-} from './types';
+
+// Re-export utility functions
+export { isMockMode, isRestMode };
 
 // ============================================================================
 // Service Interfaces
@@ -54,121 +56,119 @@ import type {
  * Authentication Service Interface
  */
 export interface IAuthService {
-  login(identifier: string, secret: string, type: 'OWNER' | 'STAFF'): Promise<LoginResponse>;
+  login(identifier: string, secret: string, type: 'OWNER' | 'STAFF'): Promise<{ user: User; profile: BusinessProfile | null }>;
   logout(): Promise<void>;
-  getSession(): Promise<SessionResponse>;
+  getSession(): Promise<User | null>;
   isAuthenticated(): boolean;
 }
 
 /**
- * User Service Interface
+ * User/Staff Service Interface
  */
 export interface IUserService {
-  getUsers(): Promise<User[]>;
-  getUserById(id: string): Promise<User | null>;
-  updateUser(id: string, data: Partial<User>): Promise<User>;
-  getStaffByParentId(parentId: string): Promise<User[]>;
-  createStaff(parentId: string, data: CreateStaffRequest): Promise<User>;
-  deleteStaff(id: string): Promise<void>;
+  getAllUsers(): Promise<Array<{ user: User; profile: BusinessProfile }>>;
+  getEmployees(mainUserId: string): Promise<User[]>;
+  addEmployee(mainUserId: string, empData: Partial<User>): Promise<{ user: User; activationCode: string }>;
+  deleteEmployee(employeeId: string): Promise<void>;
+  toggleEmployeeStatus(employeeId: string): Promise<User>;
 }
 
 /**
  * Customer Service Interface
  */
 export interface ICustomerService {
-  getCustomers(): Promise<Array<{ user: User; profile: BusinessProfile }>>;
-  getCustomerById(id: string): Promise<{ user: User; profile: BusinessProfile } | null>;
-  getProfile(userId: string): Promise<BusinessProfile | null>;
-  updateProfile(userId: string, data: Partial<BusinessProfile>): Promise<BusinessProfile>;
-  addSearchPoints(userId: string, points: number): Promise<void>;
-  suspendCustomer(userId: string, reason?: string): Promise<void>;
-  reactivateCustomer(userId: string): Promise<void>;
+  getCustomersDatabase(): Promise<BusinessProfile[]>;
+  updateCustomerStatus(customerId: string, status: CustomerStatus, suspendedUntil?: string): Promise<void>;
+  addCustomerSearchPoints(customerId: string, points: number): Promise<void>;
+  updateStaffStatus(staffId: string, status: 'ACTIVE' | 'SUSPENDED' | 'BLOCKED'): Promise<void>;
+  resetFailedLogin(userId: string): Promise<void>;
 }
 
 /**
  * Product Service Interface
  */
 export interface IProductService {
-  searchProducts(params: ProductSearchParams): Promise<Product[]>;
+  searchProducts(query: string): Promise<Product[]>;
   getProducts(): Promise<Product[]>;
-  getProductById(id: string): Promise<Product | null>;
-  uploadProducts(products: Product[]): Promise<{ success: number; failed: number }>;
+  getFeaturedProducts(): Promise<{ newArrivals: Product[]; onSale: Product[] }>;
+  addProduct(product: Omit<Product, 'id' | 'createdAt'>): Promise<Product>;
+  updateProduct(id: string, updates: Partial<Product>): Promise<Product>;
+  deleteProduct(id: string): Promise<void>;
+  importProductsFromOnyxExcel(file: File): Promise<{ imported: number; updated: number; skipped: number; errors: string[] }>;
 }
 
 /**
  * Order Service Interface
  */
 export interface IOrderService {
-  getOrders(userId?: string): Promise<Order[]>;
+  getOrders(userId: string): Promise<Order[]>;
   getAllOrders(): Promise<Order[]>;
-  getOrderById(id: string): Promise<Order | null>;
-  createOrder(userId: string, data: CreateOrderRequest): Promise<Order>;
-  updateOrderStatus(id: string, status: Order['status']): Promise<Order>;
-  cancelOrder(id: string, cancelledBy: 'CUSTOMER' | 'ADMIN'): Promise<Order>;
+  createOrder(order: Omit<Order, 'id' | 'status' | 'date'>): Promise<Order>;
+  cancelOrder(orderId: string, cancelledBy: 'CUSTOMER' | 'ADMIN'): Promise<Order>;
+  deleteOrder(orderId: string): Promise<void>;
+  adminUpdateOrderStatus(orderId: string, newStatus: OrderStatus, changedBy: string): Promise<Order>;
+  updateOrderInternalStatus(orderId: string, newStatus: OrderInternalStatus, changedBy: string, note?: string): Promise<Order>;
 }
 
 /**
  * Quote Service Interface
  */
 export interface IQuoteService {
-  getQuotes(userId?: string): Promise<QuoteRequest[]>;
-  getAllQuotes(): Promise<QuoteRequest[]>;
-  getQuoteById(id: string): Promise<QuoteRequest | null>;
-  createQuote(userId: string, data: CreateQuoteRequest): Promise<QuoteRequest>;
-  updateQuote(id: string, data: Partial<QuoteRequest>): Promise<QuoteRequest>;
-  processQuote(id: string, adminId: string): Promise<QuoteRequest>;
+  getAllQuoteRequests(): Promise<QuoteRequest[]>;
+  createQuoteRequest(request: Omit<QuoteRequest, 'id' | 'status' | 'date' | 'totalQuotedAmount' | 'processedDate'>): Promise<QuoteRequest>;
+  updateQuoteRequest(updatedReq: QuoteRequest): Promise<void>;
+  finalizeQuoteRequest(quoteId: string, reviewedBy: string, generalNote?: string): Promise<QuoteRequest>;
 }
 
 /**
  * Import Request Service Interface
  */
 export interface IImportService {
-  getImportRequests(customerId?: string): Promise<ImportRequest[]>;
-  getAllImportRequests(): Promise<ImportRequest[]>;
-  getImportRequestById(id: string): Promise<ImportRequest | null>;
-  createImportRequest(customerId: string, data: CreateImportRequest): Promise<ImportRequest>;
-  updateImportStatus(id: string, data: UpdateImportStatusRequest): Promise<ImportRequest>;
+  getImportRequests(): Promise<ImportRequest[]>;
+  createImportRequest(input: Omit<ImportRequest, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'timeline'>): Promise<ImportRequest>;
+  updateImportRequestStatus(requestId: string, newStatus: ImportRequestStatus, note?: string | null, adminNotes?: string | null): Promise<ImportRequest>;
+  uploadImportRequestExcel(requestId: string, fileName: string, userName: string): Promise<ImportRequest>;
+  completeImportRequestPricing(requestId: string, data: { pricingFileName: string; totalAmount: number; preparedBy: string }): Promise<ImportRequest>;
+  confirmImportRequestByCustomer(requestId: string, data: { approvalNote?: string; customerName: string }): Promise<ImportRequest>;
 }
 
 /**
  * Missing Parts Service Interface
  */
 export interface IMissingPartsService {
-  getMissingParts(): Promise<MissingProductRequest[]>;
-  getMissingPartById(id: string): Promise<MissingProductRequest | null>;
-  createMissingPart(userId: string, data: CreateMissingPartRequest): Promise<MissingProductRequest>;
-  updateMissingPart(id: string, data: Partial<MissingProductRequest>): Promise<MissingProductRequest>;
+  getMissingProductRequests(): Promise<MissingProductRequest[]>;
+  logMissingProduct(userId: string, query: string, userName?: string, source?: 'SEARCH' | 'QUOTE', quoteRequestId?: string): Promise<void>;
+  updateMissingProductStatus(id: string, status: MissingStatus, adminNotes?: string): Promise<MissingProductRequest>;
 }
 
 /**
  * Notification Service Interface
  */
 export interface INotificationService {
-  getNotifications(userId: string): Promise<Notification[]>;
-  createNotification(notification: Omit<Notification, 'id' | 'createdAt'>): Promise<Notification>;
-  markAsRead(id: string): Promise<void>;
-  markAllAsRead(userId: string): Promise<void>;
-  getUnreadCount(userId: string): Promise<number>;
+  getNotificationsForUser(userId: string): Promise<Notification[]>;
+  getAllNotifications(): Promise<Notification[]>;
+  createNotification(notifData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Promise<Notification>;
+  markNotificationsAsRead(userId: string): Promise<void>;
+  markOrdersAsReadForUser(userId: string): Promise<void>;
 }
 
 /**
  * Activity Log Service Interface
  */
 export interface IActivityLogService {
-  getLogs(filters?: { userId?: string; eventType?: string }): Promise<ActivityLogEntry[]>;
-  recordActivity(data: RecordActivityRequest): Promise<ActivityLogEntry>;
+  getActivityLogs(): Promise<ActivityLogEntry[]>;
+  getCustomerActivityLogs(customerId: string): Promise<ActivityLogEntry[]>;
+  recordActivity(entry: Omit<ActivityLogEntry, 'id' | 'createdAt'>): Promise<void>;
 }
 
 /**
  * Account Request Service Interface
  */
 export interface IAccountRequestService {
-  getRequests(): Promise<AccountOpeningRequest[]>;
-  getRequestById(id: string): Promise<AccountOpeningRequest | null>;
-  createRequest(data: Omit<AccountOpeningRequest, 'id' | 'createdAt' | 'status'>): Promise<AccountOpeningRequest>;
-  updateRequest(id: string, data: Partial<AccountOpeningRequest>): Promise<AccountOpeningRequest>;
-  approveRequest(id: string, adminId: string, approvalData: Partial<AccountOpeningRequest>): Promise<AccountOpeningRequest>;
-  rejectRequest(id: string, adminId: string, reason: string): Promise<AccountOpeningRequest>;
+  getAccountOpeningRequests(): Promise<AccountOpeningRequest[]>;
+  createAccountOpeningRequest(input: Omit<AccountOpeningRequest, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'allowedSearchPoints'>): Promise<AccountOpeningRequest>;
+  updateAccountOpeningRequestStatus(id: string, status: AccountRequestStatus, options?: { allowedSearchPoints?: number; adminNotes?: string }): Promise<AccountOpeningRequest>;
+  reviewAccountRequest(id: string, decision: 'APPROVE' | 'REJECT' | 'ON_HOLD', adminId: string, data?: { adminNotes?: string; assignedPriceLevel?: string; searchPointsInitial?: number; canCreateStaff?: boolean; maxStaffUsers?: number }): Promise<AccountOpeningRequest>;
 }
 
 /**
@@ -176,45 +176,93 @@ export interface IAccountRequestService {
  */
 export interface ISettingsService {
   getSettings(): Promise<SiteSettings>;
-  updateSettings(data: Partial<SiteSettings>): Promise<SiteSettings>;
+  updateSettings(settings: SiteSettings): Promise<void>;
+  getBanners(): Promise<import('../types').Banner[]>;
+  updateBanners(banners: import('../types').Banner[]): Promise<void>;
+  getNews(): Promise<string[]>;
+  updateNews(news: string[]): Promise<void>;
+}
+
+/**
+ * Branch Service Interface
+ */
+export interface IBranchService {
+  addBranch(mainUserId: string, branch: Omit<Branch, 'id'>): Promise<Branch>;
+  deleteBranch(mainUserId: string, branchId: string): Promise<void>;
+}
+
+/**
+ * Admin Stats Service Interface
+ */
+export interface IAdminStatsService {
+  getAdminStats(): Promise<{
+    totalCustomers: number;
+    activeCustomers: number;
+    suspendedCustomers: number;
+    totalStaff: number;
+    totalOrders: number;
+    pendingOrders: number;
+    totalQuotes: number;
+    pendingQuotes: number;
+    totalImportRequests: number;
+    pendingImportRequests: number;
+    totalMissingParts: number;
+    pendingAccountRequests: number;
+  }>;
+  adminGrantPoints(userId: string, points: number): Promise<void>;
 }
 
 // ============================================================================
-// Mock Implementation Wrappers
+// Mock API Singleton
 // ============================================================================
 
 /**
- * Lazy import of MockApi to avoid circular dependencies
- * and allow tree-shaking in production builds
+ * Cached MockApi instance for lazy loading
  */
-let mockApiModule: typeof import('./mockApi') | null = null;
+let _mockApi: typeof import('./mockApi').MockApi | null = null;
 
+/**
+ * Gets the MockApi instance (lazy loaded)
+ */
 async function getMockApi() {
-  if (!mockApiModule) {
-    mockApiModule = await import('./mockApi');
+  if (!_mockApi) {
+    const module = await import('./mockApi');
+    _mockApi = module.MockApi;
   }
-  return mockApiModule.MockApi;
+  return _mockApi;
 }
 
 /**
- * Creates a mock auth service that delegates to mockApi
+ * Synchronous check for MockApi availability
+ * Use this only when you know MockApi is already loaded
  */
-function createMockAuthService(): IAuthService {
+function getMockApiSync() {
+  if (!_mockApi) {
+    throw new Error('MockApi not loaded. Use async getMockApi() first.');
+  }
+  return _mockApi;
+}
+
+// ============================================================================
+// Service Implementations
+// ============================================================================
+
+/**
+ * Creates the auth service
+ */
+function createAuthService(): IAuthService {
   return {
     async login(identifier, secret, type) {
-      const mockApi = await getMockApi();
-      return mockApi.login(identifier, secret, type);
+      const api = await getMockApi();
+      return api.login(identifier, secret, type);
     },
     async logout() {
-      const mockApi = await getMockApi();
-      return mockApi.logout();
+      const api = await getMockApi();
+      return api.logout();
     },
     async getSession() {
-      const mockApi = await getMockApi();
-      const user = await mockApi.getCurrentSession();
-      if (!user) return { user: null, profile: null };
-      const profile = await mockApi.getBusinessProfile(user.id);
-      return { user, profile };
+      const api = await getMockApi();
+      return api.getCurrentSession();
     },
     isAuthenticated() {
       return !!localStorage.getItem('b2b_session_sini_v2');
@@ -223,453 +271,403 @@ function createMockAuthService(): IAuthService {
 }
 
 /**
- * Creates a mock user service that delegates to mockApi
+ * Creates the user service
  */
-function createMockUserService(): IUserService {
+function createUserService(): IUserService {
   return {
-    async getUsers() {
-      const mockApi = await getMockApi();
-      return mockApi.getAllUsers?.() ?? [];
+    async getAllUsers() {
+      const api = await getMockApi();
+      return api.getAllUsers();
     },
-    async getUserById(id) {
-      const mockApi = await getMockApi();
-      const users = await mockApi.getAllUsers?.() ?? [];
-      return users.find((u: User) => u.id === id) ?? null;
+    async getEmployees(mainUserId) {
+      const api = await getMockApi();
+      return api.getEmployees(mainUserId);
     },
-    async updateUser(id, data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateUser?.(id, data) ?? data as User;
+    async addEmployee(mainUserId, empData) {
+      const api = await getMockApi();
+      return api.addEmployee(mainUserId, empData);
     },
-    async getStaffByParentId(parentId) {
-      const mockApi = await getMockApi();
-      return mockApi.getStaffForOwner(parentId);
+    async deleteEmployee(employeeId) {
+      const api = await getMockApi();
+      return api.deleteEmployee(employeeId);
     },
-    async createStaff(parentId, data) {
-      const mockApi = await getMockApi();
-      return mockApi.addEmployee(parentId, data);
-    },
-    async deleteStaff(id) {
-      const mockApi = await getMockApi();
-      await mockApi.deleteEmployee(id);
+    async toggleEmployeeStatus(employeeId) {
+      const api = await getMockApi();
+      return api.toggleEmployeeStatus(employeeId);
     }
   };
 }
 
 /**
- * Creates a mock customer service that delegates to mockApi
+ * Creates the customer service
  */
-function createMockCustomerService(): ICustomerService {
+function createCustomerService(): ICustomerService {
   return {
-    async getCustomers() {
-      const mockApi = await getMockApi();
-      return mockApi.getAllCustomersWithProfiles();
+    async getCustomersDatabase() {
+      const api = await getMockApi();
+      return api.getCustomersDatabase();
     },
-    async getCustomerById(id) {
-      const mockApi = await getMockApi();
-      const customers = await mockApi.getAllCustomersWithProfiles();
-      return customers.find((c: { user: User }) => c.user.id === id) ?? null;
+    async updateCustomerStatus(customerId, status, suspendedUntil) {
+      const api = await getMockApi();
+      return api.updateCustomerStatus(customerId, status, suspendedUntil);
     },
-    async getProfile(userId) {
-      const mockApi = await getMockApi();
-      return mockApi.getBusinessProfile(userId);
+    async addCustomerSearchPoints(customerId, points) {
+      const api = await getMockApi();
+      return api.addCustomerSearchPoints(customerId, points);
     },
-    async updateProfile(userId, data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateBusinessProfile(userId, data);
+    async updateStaffStatus(staffId, status) {
+      const api = await getMockApi();
+      return api.updateStaffStatus(staffId, status);
     },
-    async addSearchPoints(userId, points) {
-      const mockApi = await getMockApi();
-      await mockApi.addSearchPoints(userId, points);
-    },
-    async suspendCustomer(userId, reason) {
-      const mockApi = await getMockApi();
-      await mockApi.suspendCustomer?.(userId, reason);
-    },
-    async reactivateCustomer(userId) {
-      const mockApi = await getMockApi();
-      await mockApi.reactivateCustomer?.(userId);
+    async resetFailedLogin(userId) {
+      const api = await getMockApi();
+      return api.resetFailedLogin(userId);
     }
   };
 }
 
 /**
- * Creates a mock product service that delegates to mockApi
+ * Creates the product service
  */
-function createMockProductService(): IProductService {
+function createProductService(): IProductService {
   return {
-    async searchProducts(params) {
-      const mockApi = await getMockApi();
-      return mockApi.searchProducts(params.query, params.userId);
+    async searchProducts(query) {
+      const api = await getMockApi();
+      return api.searchProducts(query);
     },
     async getProducts() {
-      const mockApi = await getMockApi();
-      return mockApi.getProducts();
+      const api = await getMockApi();
+      return api.getProducts();
     },
-    async getProductById(id) {
-      const mockApi = await getMockApi();
-      const products = await mockApi.getProducts();
-      return products.find((p: Product) => p.id === id) ?? null;
+    async getFeaturedProducts() {
+      const api = await getMockApi();
+      return api.getFeaturedProducts();
     },
-    async uploadProducts(products) {
-      const mockApi = await getMockApi();
-      return mockApi.uploadProducts(products);
+    async addProduct(product) {
+      const api = await getMockApi();
+      return api.addProduct(product);
+    },
+    async updateProduct(id, updates) {
+      const api = await getMockApi();
+      return api.updateProduct(id, updates);
+    },
+    async deleteProduct(id) {
+      const api = await getMockApi();
+      return api.deleteProduct(id);
+    },
+    async importProductsFromOnyxExcel(file) {
+      const api = await getMockApi();
+      return api.importProductsFromOnyxExcel(file);
     }
   };
 }
 
 /**
- * Creates a mock order service that delegates to mockApi
+ * Creates the order service
  */
-function createMockOrderService(): IOrderService {
+function createOrderService(): IOrderService {
   return {
     async getOrders(userId) {
-      const mockApi = await getMockApi();
-      return mockApi.getOrders(userId ?? '');
+      const api = await getMockApi();
+      return api.getOrders(userId);
     },
     async getAllOrders() {
-      const mockApi = await getMockApi();
-      return mockApi.getAllOrders();
+      const api = await getMockApi();
+      return api.getAllOrders();
     },
-    async getOrderById(id) {
-      const mockApi = await getMockApi();
-      const orders = await mockApi.getAllOrders();
-      return orders.find((o: Order) => o.id === id) ?? null;
+    async createOrder(order) {
+      const api = await getMockApi();
+      return api.createOrder(order);
     },
-    async createOrder(userId, data) {
-      const mockApi = await getMockApi();
-      return mockApi.createOrder(userId, data as any);
+    async cancelOrder(orderId, cancelledBy) {
+      const api = await getMockApi();
+      return api.cancelOrder(orderId, cancelledBy);
     },
-    async updateOrderStatus(id, status) {
-      const mockApi = await getMockApi();
-      return mockApi.updateOrderStatus(id, status);
+    async deleteOrder(orderId) {
+      const api = await getMockApi();
+      return api.deleteOrder(orderId);
     },
-    async cancelOrder(id, cancelledBy) {
-      const mockApi = await getMockApi();
-      return mockApi.cancelOrder(id, cancelledBy);
+    async adminUpdateOrderStatus(orderId, newStatus, changedBy) {
+      const api = await getMockApi();
+      return api.adminUpdateOrderStatus(orderId, newStatus, changedBy);
+    },
+    async updateOrderInternalStatus(orderId, newStatus, changedBy, note) {
+      const api = await getMockApi();
+      return api.updateOrderInternalStatus(orderId, newStatus, changedBy, note);
     }
   };
 }
 
 /**
- * Creates a mock quote service that delegates to mockApi
+ * Creates the quote service
  */
-function createMockQuoteService(): IQuoteService {
+function createQuoteService(): IQuoteService {
   return {
-    async getQuotes(userId) {
-      const mockApi = await getMockApi();
-      return mockApi.getQuoteRequests(userId);
+    async getAllQuoteRequests() {
+      const api = await getMockApi();
+      return api.getAllQuoteRequests();
     },
-    async getAllQuotes() {
-      const mockApi = await getMockApi();
-      return mockApi.getAllQuoteRequests();
+    async createQuoteRequest(request) {
+      const api = await getMockApi();
+      return api.createQuoteRequest(request);
     },
-    async getQuoteById(id) {
-      const mockApi = await getMockApi();
-      const quotes = await mockApi.getAllQuoteRequests();
-      return quotes.find((q: QuoteRequest) => q.id === id) ?? null;
+    async updateQuoteRequest(updatedReq) {
+      const api = await getMockApi();
+      return api.updateQuoteRequest(updatedReq);
     },
-    async createQuote(userId, data) {
-      const mockApi = await getMockApi();
-      return mockApi.submitQuoteRequest(userId, data as any);
-    },
-    async updateQuote(id, data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateQuoteRequest(id, data);
-    },
-    async processQuote(id, adminId) {
-      const mockApi = await getMockApi();
-      return mockApi.processQuoteRequest(id, adminId);
+    async finalizeQuoteRequest(quoteId, reviewedBy, generalNote) {
+      const api = await getMockApi();
+      return api.finalizeQuoteRequest(quoteId, reviewedBy, generalNote);
     }
   };
 }
 
 /**
- * Creates a mock import service that delegates to mockApi
+ * Creates the import service
  */
-function createMockImportService(): IImportService {
+function createImportService(): IImportService {
   return {
-    async getImportRequests(customerId) {
-      const mockApi = await getMockApi();
-      return mockApi.getImportRequests(customerId);
+    async getImportRequests() {
+      const api = await getMockApi();
+      return api.getImportRequests();
     },
-    async getAllImportRequests() {
-      const mockApi = await getMockApi();
-      return mockApi.getAllImportRequests();
+    async createImportRequest(input) {
+      const api = await getMockApi();
+      return api.createImportRequest(input);
     },
-    async getImportRequestById(id) {
-      const mockApi = await getMockApi();
-      const requests = await mockApi.getAllImportRequests();
-      return requests.find((r: ImportRequest) => r.id === id) ?? null;
+    async updateImportRequestStatus(requestId, newStatus, note, adminNotes) {
+      const api = await getMockApi();
+      return api.updateImportRequestStatus(requestId, newStatus, note, adminNotes);
     },
-    async createImportRequest(customerId, data) {
-      const mockApi = await getMockApi();
-      return mockApi.submitImportRequest(customerId, data as any);
+    async uploadImportRequestExcel(requestId, fileName, userName) {
+      const api = await getMockApi();
+      return api.uploadImportRequestExcel(requestId, fileName, userName);
     },
-    async updateImportStatus(id, data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateImportRequestStatus(id, data.status, data.note, data.adminNotes);
+    async completeImportRequestPricing(requestId, data) {
+      const api = await getMockApi();
+      return api.completeImportRequestPricing(requestId, data);
+    },
+    async confirmImportRequestByCustomer(requestId, data) {
+      const api = await getMockApi();
+      return api.confirmImportRequestByCustomer(requestId, data);
     }
   };
 }
 
 /**
- * Creates a mock missing parts service that delegates to mockApi
+ * Creates the missing parts service
  */
-function createMockMissingPartsService(): IMissingPartsService {
+function createMissingPartsService(): IMissingPartsService {
   return {
-    async getMissingParts() {
-      const mockApi = await getMockApi();
-      return mockApi.getMissingRequests();
+    async getMissingProductRequests() {
+      const api = await getMockApi();
+      return api.getMissingProductRequests();
     },
-    async getMissingPartById(id) {
-      const mockApi = await getMockApi();
-      const parts = await mockApi.getMissingRequests();
-      return parts.find((p: MissingProductRequest) => p.id === id) ?? null;
+    async logMissingProduct(userId, query, userName, source, quoteRequestId) {
+      const api = await getMockApi();
+      return api.logMissingProduct(userId, query, userName, source, quoteRequestId);
     },
-    async createMissingPart(userId, data) {
-      const mockApi = await getMockApi();
-      return mockApi.submitMissingRequest({
-        userId,
-        ...data
-      });
-    },
-    async updateMissingPart(id, data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateMissingRequest(id, data);
+    async updateMissingProductStatus(id, status, adminNotes) {
+      const api = await getMockApi();
+      return api.updateMissingProductStatus(id, status, adminNotes);
     }
   };
 }
 
 /**
- * Creates a mock notification service that delegates to mockApi
+ * Creates the notification service
  */
-function createMockNotificationService(): INotificationService {
+function createNotificationService(): INotificationService {
   return {
-    async getNotifications(userId) {
-      const mockApi = await getMockApi();
-      return mockApi.getNotifications(userId);
+    async getNotificationsForUser(userId) {
+      const api = await getMockApi();
+      return api.getNotificationsForUser(userId);
     },
-    async createNotification(notification) {
-      const mockApi = await getMockApi();
-      return mockApi.createNotification(notification);
+    async getAllNotifications() {
+      const api = await getMockApi();
+      return api.getAllNotifications();
     },
-    async markAsRead(id) {
-      const mockApi = await getMockApi();
-      await mockApi.markNotificationRead(id);
+    async createNotification(notifData) {
+      const api = await getMockApi();
+      return api.createNotification(notifData);
     },
-    async markAllAsRead(userId) {
-      const mockApi = await getMockApi();
-      await mockApi.markAllNotificationsRead(userId);
+    async markNotificationsAsRead(userId) {
+      const api = await getMockApi();
+      return api.markNotificationsAsRead(userId);
     },
-    async getUnreadCount(userId) {
-      const mockApi = await getMockApi();
-      const notifications = await mockApi.getNotifications(userId);
-      return notifications.filter((n: Notification) => !n.isRead).length;
+    async markOrdersAsReadForUser(userId) {
+      const api = await getMockApi();
+      return api.markOrdersAsReadForUser(userId);
     }
   };
 }
 
 /**
- * Creates a mock activity log service that delegates to mockApi
+ * Creates the activity log service
  */
-function createMockActivityLogService(): IActivityLogService {
+function createActivityLogService(): IActivityLogService {
   return {
-    async getLogs(filters) {
-      const mockApi = await getMockApi();
-      return mockApi.getActivityLogs(filters);
+    async getActivityLogs() {
+      const api = await getMockApi();
+      return api.getActivityLogs();
     },
-    async recordActivity(data) {
-      const mockApi = await getMockApi();
-      return mockApi.recordActivity(data as any);
+    async getCustomerActivityLogs(customerId) {
+      const api = await getMockApi();
+      return api.getCustomerActivityLogs(customerId);
+    },
+    async recordActivity(entry) {
+      const api = await getMockApi();
+      return api.recordActivity(entry);
     }
   };
 }
 
 /**
- * Creates a mock account request service that delegates to mockApi
+ * Creates the account request service
  */
-function createMockAccountRequestService(): IAccountRequestService {
+function createAccountRequestService(): IAccountRequestService {
   return {
-    async getRequests() {
-      const mockApi = await getMockApi();
-      return mockApi.getAccountRequests();
+    async getAccountOpeningRequests() {
+      const api = await getMockApi();
+      return api.getAccountOpeningRequests();
     },
-    async getRequestById(id) {
-      const mockApi = await getMockApi();
-      const requests = await mockApi.getAccountRequests();
-      return requests.find((r: AccountOpeningRequest) => r.id === id) ?? null;
+    async createAccountOpeningRequest(input) {
+      const api = await getMockApi();
+      return api.createAccountOpeningRequest(input);
     },
-    async createRequest(data) {
-      const mockApi = await getMockApi();
-      return mockApi.submitAccountOpeningRequest(data as any);
+    async updateAccountOpeningRequestStatus(id, status, options) {
+      const api = await getMockApi();
+      return api.updateAccountOpeningRequestStatus(id, status, options);
     },
-    async updateRequest(id, data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateAccountRequest(id, data);
-    },
-    async approveRequest(id, adminId, approvalData) {
-      const mockApi = await getMockApi();
-      return mockApi.approveAccountRequest(id, adminId, approvalData);
-    },
-    async rejectRequest(id, adminId, reason) {
-      const mockApi = await getMockApi();
-      return mockApi.rejectAccountRequest(id, adminId, reason);
+    async reviewAccountRequest(id, decision, adminId, data) {
+      const api = await getMockApi();
+      return api.reviewAccountRequest(id, decision, adminId, data);
     }
   };
 }
 
 /**
- * Creates a mock settings service that delegates to mockApi
+ * Creates the settings service
  */
-function createMockSettingsService(): ISettingsService {
+function createSettingsService(): ISettingsService {
   return {
     async getSettings() {
-      const mockApi = await getMockApi();
-      return mockApi.getSettings();
+      const api = await getMockApi();
+      return api.getSettings();
     },
-    async updateSettings(data) {
-      const mockApi = await getMockApi();
-      return mockApi.updateSettings(data);
+    async updateSettings(settings) {
+      const api = await getMockApi();
+      return api.updateSettings(settings);
+    },
+    async getBanners() {
+      const api = await getMockApi();
+      return api.getBanners();
+    },
+    async updateBanners(banners) {
+      const api = await getMockApi();
+      return api.updateBanners(banners);
+    },
+    async getNews() {
+      const api = await getMockApi();
+      return api.getNews();
+    },
+    async updateNews(news) {
+      const api = await getMockApi();
+      return api.updateNews(news);
     }
   };
 }
 
-// ============================================================================
-// REST Implementation Stubs
-// ============================================================================
-
 /**
- * Creates a REST auth service (TODO: implement when backend is ready)
+ * Creates the branch service
  */
-function createRestAuthService(): IAuthService {
-  debugLog('service', 'Using REST auth service');
+function createBranchService(): IBranchService {
   return {
-    async login(identifier, secret, type) {
-      const response = await httpClient.post<LoginResponse>(
-        apiConfig.endpoints.auth.login,
-        { identifier, secret, type }
-      );
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Login failed');
-      }
-      return response.data;
+    async addBranch(mainUserId, branch) {
+      const api = await getMockApi();
+      return api.addBranch(mainUserId, branch);
     },
-    async logout() {
-      await httpClient.post(apiConfig.endpoints.auth.logout);
-    },
-    async getSession() {
-      const response = await httpClient.get<SessionResponse>(apiConfig.endpoints.auth.session);
-      return response.data ?? { user: null, profile: null };
-    },
-    isAuthenticated() {
-      return !!localStorage.getItem('auth_token');
+    async deleteBranch(mainUserId, branchId) {
+      const api = await getMockApi();
+      return api.deleteBranch(mainUserId, branchId);
     }
   };
 }
 
-// TODO: Implement REST versions of other services when backend is ready
-// For now, they fall back to mock implementations
-
-// ============================================================================
-// Service Factory Functions
-// ============================================================================
-
 /**
- * Gets the auth service based on current API mode
+ * Creates the admin stats service
  */
+function createAdminStatsService(): IAdminStatsService {
+  return {
+    async getAdminStats() {
+      const api = await getMockApi();
+      return api.getAdminStats();
+    },
+    async adminGrantPoints(userId, points) {
+      const api = await getMockApi();
+      return api.adminGrantPoints(userId, points);
+    }
+  };
+}
+
+// ============================================================================
+// Service Getters
+// ============================================================================
+
 export function getAuthService(): IAuthService {
-  if (isMockMode()) {
-    return createMockAuthService();
-  }
-  return createRestAuthService();
+  return createAuthService();
 }
 
-/**
- * Gets the user service based on current API mode
- */
 export function getUserService(): IUserService {
-  // TODO: Implement REST version
-  return createMockUserService();
+  return createUserService();
 }
 
-/**
- * Gets the customer service based on current API mode
- */
 export function getCustomerService(): ICustomerService {
-  // TODO: Implement REST version
-  return createMockCustomerService();
+  return createCustomerService();
 }
 
-/**
- * Gets the product service based on current API mode
- */
 export function getProductService(): IProductService {
-  // TODO: Implement REST version
-  return createMockProductService();
+  return createProductService();
 }
 
-/**
- * Gets the order service based on current API mode
- */
 export function getOrderService(): IOrderService {
-  // TODO: Implement REST version
-  return createMockOrderService();
+  return createOrderService();
 }
 
-/**
- * Gets the quote service based on current API mode
- */
 export function getQuoteService(): IQuoteService {
-  // TODO: Implement REST version
-  return createMockQuoteService();
+  return createQuoteService();
 }
 
-/**
- * Gets the import service based on current API mode
- */
 export function getImportService(): IImportService {
-  // TODO: Implement REST version
-  return createMockImportService();
+  return createImportService();
 }
 
-/**
- * Gets the missing parts service based on current API mode
- */
 export function getMissingPartsService(): IMissingPartsService {
-  // TODO: Implement REST version
-  return createMockMissingPartsService();
+  return createMissingPartsService();
 }
 
-/**
- * Gets the notification service based on current API mode
- */
 export function getNotificationService(): INotificationService {
-  // TODO: Implement REST version
-  return createMockNotificationService();
+  return createNotificationService();
 }
 
-/**
- * Gets the activity log service based on current API mode
- */
 export function getActivityLogService(): IActivityLogService {
-  // TODO: Implement REST version
-  return createMockActivityLogService();
+  return createActivityLogService();
 }
 
-/**
- * Gets the account request service based on current API mode
- */
 export function getAccountRequestService(): IAccountRequestService {
-  // TODO: Implement REST version
-  return createMockAccountRequestService();
+  return createAccountRequestService();
 }
 
-/**
- * Gets the settings service based on current API mode
- */
 export function getSettingsService(): ISettingsService {
-  // TODO: Implement REST version
-  return createMockSettingsService();
+  return createSettingsService();
+}
+
+export function getBranchService(): IBranchService {
+  return createBranchService();
+}
+
+export function getAdminStatsService(): IAdminStatsService {
+  return createAdminStatsService();
 }
 
 // ============================================================================
@@ -678,7 +676,15 @@ export function getSettingsService(): ISettingsService {
 
 /**
  * All services in a single container
- * Useful for dependency injection or when you need access to all services
+ * Provides convenient access to all services through a single import
+ * 
+ * @example
+ * ```typescript
+ * import { services } from './serviceFactory';
+ * 
+ * const result = await services.auth.login('1', '1', 'OWNER');
+ * const orders = await services.orders.getAllOrders();
+ * ```
  */
 export const services = {
   get auth() { return getAuthService(); },
@@ -692,7 +698,9 @@ export const services = {
   get notifications() { return getNotificationService(); },
   get activityLogs() { return getActivityLogService(); },
   get accountRequests() { return getAccountRequestService(); },
-  get settings() { return getSettingsService(); }
+  get settings() { return getSettingsService(); },
+  get branches() { return getBranchService(); },
+  get adminStats() { return getAdminStatsService(); }
 };
 
 export default services;
