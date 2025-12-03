@@ -132,9 +132,15 @@ const InfoCard = memo(({ icon, title, desc, colorClass = "bg-slate-50 text-brand
 ));
 
 // --- Extract Sidebar and Header for better memoization ---
-const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits }: any) => {
+const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL }: any) => {
+    // RTL: sidebar on right, slides from right. LTR: sidebar on left, slides from left
+    const sidebarPosition = isRTL ? 'right-0' : 'left-0';
+    const sidebarTransform = isRTL 
+        ? (sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0')
+        : (sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0');
+    
     return (
-        <aside className={`fixed lg:static inset-y-0 right-0 w-72 bg-slate-900 text-white transform transition-transform duration-300 z-50 flex flex-col shadow-2xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+        <aside className={`fixed lg:static inset-y-0 ${sidebarPosition} w-72 bg-slate-900 text-white transform transition-transform duration-300 z-50 flex flex-col shadow-2xl lg:shadow-none ${sidebarTransform}`}>
             {/* Logo Area */}
             <div className="p-6 border-b border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -146,7 +152,14 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                         <p className="text-[11px] text-slate-400 font-bold tracking-wider uppercase">Wholesale V2.5</p>
                     </div>
                 </div>
-                <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white"><X size={24} /></button>
+                <button 
+                    onClick={() => setSidebarOpen(false)} 
+                    className="lg:hidden text-slate-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-slate-800 transition-colors"
+                    data-testid="button-close-sidebar"
+                    aria-label="Close sidebar"
+                >
+                    <X size={24} />
+                </button>
             </div>
 
             {/* User Info Card */}
@@ -218,14 +231,19 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
     );
 });
 
-const DashboardHeader = memo(({ view, setSidebarOpen, user, tDynamic }: any) => {
+const DashboardHeader = memo(({ view, setSidebarOpen, user, tDynamic, isRTL }: any) => {
     return (
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-8 flex-shrink-0 z-30 shadow-sm">
-            <div className="flex items-center gap-4">
-                <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-lg">
-                    <Menu size={24} />
+        <header className="h-16 md:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 lg:px-8 flex-shrink-0 z-30 shadow-sm gap-2">
+            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                <button 
+                    onClick={() => setSidebarOpen(true)} 
+                    className="lg:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-lg shrink-0"
+                    data-testid="button-open-sidebar"
+                    aria-label="Open sidebar"
+                >
+                    <Menu size={22} />
                 </button>
-                <h2 className="text-xl md:text-2xl font-black text-slate-800 hidden md:block tracking-tight">
+                <h2 className="text-base md:text-xl lg:text-2xl font-bold md:font-black text-slate-800 tracking-tight truncate">
                     {view === 'HOME' && tDynamic('sidebar.home', 'الرئيسية')}
                     {view === 'ORDERS' && tDynamic('sidebar.orders', 'سجل الطلبات')}
                     {view === 'QUOTE_REQUEST' && tDynamic('sidebar.quotes', 'طلبات التسعير')}
@@ -236,8 +254,8 @@ const DashboardHeader = memo(({ view, setSidebarOpen, user, tDynamic }: any) => 
                 </h2>
             </div>
 
-            <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl text-xs md:text-sm font-bold text-slate-700">
+            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                    <div className="hidden lg:flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-xl text-xs md:text-sm font-bold text-slate-700">
                         <Clock size={16} />
                         <span>{formatDateTime(new Date().toISOString())}</span>
                     </div>
@@ -541,9 +559,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             {/* New First Time User Modal */}
             <UsageIntroModal />
 
-            {sidebarOpen && (
-                <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)}></div>
-            )}
+            {/* Mobile Sidebar Overlay - Must be BEFORE sidebar in DOM but with lower z-index */}
+            <div 
+                className={`fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300 ${
+                    sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`} 
+                onClick={() => setSidebarOpen(false)}
+                aria-hidden={!sidebarOpen}
+            ></div>
 
             {/* Sidebar (Memoized) */}
             <DashboardSidebar 
@@ -557,6 +580,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 t={t}
                 tDynamic={tDynamic}
                 remainingCredits={remainingCredits}
+                isRTL={dir === 'rtl'}
             />
 
             {/* Main Content Area */}
@@ -570,6 +594,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     setSidebarOpen={setSidebarOpen}
                     user={user}
                     tDynamic={tDynamic}
+                    isRTL={dir === 'rtl'}
                 />
 
                 {/* Scrollable Page Content */}
