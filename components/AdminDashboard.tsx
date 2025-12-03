@@ -20,6 +20,7 @@ import { AdminProductsPage } from './AdminProductsPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
+import { AdminBadgesProvider, useAdminBadges } from '../services/AdminBadgesContext';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     LineChart, Line, AreaChart, Area, PieChart, Pie, Cell 
@@ -43,8 +44,12 @@ const COLORS = {
 
 const PIE_COLORS = [COLORS.gold, COLORS.navyLight, COLORS.success, COLORS.slate];
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
+// Inner component that uses the hooks
+const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const [view, setView] = useState<'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER'>('DASHBOARD');
+    
+    // Admin badges from context
+    const { badges, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
     
     // Data States
     const [orders, setOrders] = useState<Order[]>([]);
@@ -74,6 +79,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         const interval = setInterval(checkConnection, 30000); // Check every 30s
         return () => clearInterval(interval);
     }, []);
+
+    // Mark items as seen when navigating to specific pages
+    useEffect(() => {
+        if (view === 'ACCOUNT_REQUESTS') markAccountsAsSeen();
+        if (view === 'QUOTES') markQuotesAsSeen();
+        if (view === 'IMPORT_REQUESTS') markImportsAsSeen();
+        if (view === 'MISSING') markMissingAsSeen();
+    }, [view, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen]);
 
     const fetchAllData = async () => {
         try {
@@ -281,11 +294,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الطلبات والعملاء</p>
                     <NavItem icon={<ShoppingBag size={20} />} label="طلبات العملاء" active={view === 'ORDERS_MANAGER'} onClick={() => setView('ORDERS_MANAGER')} badge={kpiData.pendingOrders} />
-                    <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => setView('ACCOUNT_REQUESTS')} badge={kpiData.pendingAccounts} />
+                    <NavItem icon={<UserPlus size={20} />} label="طلبات الحسابات" active={view === 'ACCOUNT_REQUESTS'} onClick={() => setView('ACCOUNT_REQUESTS')} badge={badges.accounts} />
                     <NavItem icon={<Users size={20} />} label="قاعدة العملاء (CRM)" active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
-                    <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => setView('QUOTES')} badge={kpiData.pendingQuotes} />
-                    <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => setView('IMPORT_REQUESTS')} />
-                    <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => setView('MISSING')} />
+                    <NavItem icon={<FileText size={20} />} label="طلبات التسعير" active={view === 'QUOTES'} onClick={() => setView('QUOTES')} badge={badges.quotes} />
+                    <NavItem icon={<Globe size={20} />} label="طلبات الاستيراد" active={view === 'IMPORT_REQUESTS'} onClick={() => setView('IMPORT_REQUESTS')} badge={badges.imports} />
+                    <NavItem icon={<SearchX size={20} />} label="النواقص (Missing)" active={view === 'MISSING'} onClick={() => setView('MISSING')} badge={badges.missing} />
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">الإعدادات</p>
                     <NavItem icon={<Database size={20} />} label="المنتجات" active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
@@ -684,5 +697,14 @@ const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
                 )}
             </div>
         </div>
+    );
+}
+
+// Wrapper component with provider
+export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
+    return (
+        <AdminBadgesProvider>
+            <AdminDashboardInner {...props} />
+        </AdminBadgesProvider>
     );
 }

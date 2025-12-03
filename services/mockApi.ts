@@ -463,7 +463,7 @@ export const MockApi = {
       
       return users.filter((u: User) => {
           // Exclude admin roles - only show customers online
-          if (!u.lastActiveAt || u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') return false;
+          if (!u.lastActiveAt || u.role === 'SUPER_ADMIN') return false;
           const lastActive = new Date(u.lastActiveAt).getTime();
           return (now - lastActive) <= thresholdMs;
       });
