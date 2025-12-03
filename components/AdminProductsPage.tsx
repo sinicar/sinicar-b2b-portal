@@ -5,10 +5,11 @@ import {
     Upload, Download, Search, Package, AlertTriangle, CheckCircle, 
     XCircle, Edit2, Trash2, Plus, RefreshCw, FileSpreadsheet, 
     ChevronLeft, ChevronRight, Filter, Eye, EyeOff, X, Settings, Save, Star, StarOff,
-    CheckSquare, Square, Shield
+    CheckSquare, Square, Shield, Lock
 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
+import { usePermission } from '../services/PermissionContext';
 
 interface AdminProductsPageProps {
     onRefresh?: () => void;
@@ -17,6 +18,12 @@ interface AdminProductsPageProps {
 export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh }) => {
     const { addToast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    // Permission checks
+    const { hasPermission } = usePermission();
+    const canCreate = hasPermission('products', 'create');
+    const canEdit = hasPermission('products', 'edit');
+    const canDelete = hasPermission('products', 'delete');
 
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -348,32 +355,41 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                             تحميل نموذج Excel
                         </button>
 
-                        <div className="relative group">
-                            <label className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm cursor-pointer transition-colors">
-                                <Upload size={18} />
-                                استيراد من أونيكس
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept=".xlsx,.xls"
-                                    className="hidden"
-                                    onChange={handleFileSelect}
-                                />
-                            </label>
-                            {columnPresets.find(p => p.isDefault) && (
-                                <div className="absolute -bottom-6 right-0 text-xs text-slate-500 whitespace-nowrap">
-                                    سيستخدم: {columnPresets.find(p => p.isDefault)?.name}
-                                </div>
-                            )}
-                        </div>
+                        {canCreate && (
+                            <div className="relative group">
+                                <label className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm cursor-pointer transition-colors">
+                                    <Upload size={18} />
+                                    استيراد من أونيكس
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".xlsx,.xls"
+                                        className="hidden"
+                                        onChange={handleFileSelect}
+                                    />
+                                </label>
+                                {columnPresets.find(p => p.isDefault) && (
+                                    <div className="absolute -bottom-6 right-0 text-xs text-slate-500 whitespace-nowrap">
+                                        سيستخدم: {columnPresets.find(p => p.isDefault)?.name}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                        <button
-                            onClick={handleAddProduct}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-[#0B1B3A] hover:bg-[#1a2e56] text-white rounded-xl font-bold text-sm transition-colors"
-                        >
-                            <Plus size={18} />
-                            إضافة منتج
-                        </button>
+                        {canCreate ? (
+                            <button
+                                onClick={handleAddProduct}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-[#0B1B3A] hover:bg-[#1a2e56] text-white rounded-xl font-bold text-sm transition-colors"
+                            >
+                                <Plus size={18} />
+                                إضافة منتج
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-400 rounded-xl font-bold text-sm cursor-not-allowed">
+                                <Lock size={18} />
+                                لا صلاحية للإضافة
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -562,20 +578,32 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                                 <td className="px-4 py-3 text-slate-500">{product.brand || '-'}</td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleEditProduct(product)}
-                                                            className="p-2 text-slate-400 hover:text-[#C8A04F] hover:bg-amber-50 rounded-lg transition-colors"
-                                                            title="تعديل"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteProduct(product.id)}
-                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="حذف"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                                        {canEdit ? (
+                                                            <button
+                                                                onClick={() => handleEditProduct(product)}
+                                                                className="p-2 text-slate-400 hover:text-[#C8A04F] hover:bg-amber-50 rounded-lg transition-colors"
+                                                                title="تعديل"
+                                                            >
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                        ) : (
+                                                            <span className="p-2 text-slate-300 cursor-not-allowed" title="لا صلاحية للتعديل">
+                                                                <Edit2 size={16} />
+                                                            </span>
+                                                        )}
+                                                        {canDelete ? (
+                                                            <button
+                                                                onClick={() => handleDeleteProduct(product.id)}
+                                                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="حذف"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        ) : (
+                                                            <span className="p-2 text-slate-300 cursor-not-allowed" title="لا صلاحية للحذف">
+                                                                <Trash2 size={16} />
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>

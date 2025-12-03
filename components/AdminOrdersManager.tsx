@@ -4,11 +4,12 @@ import { Order, OrderInternalStatus, OrderStatus, User } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
     FileText, Search, Filter, Eye, X, ChevronRight, ChevronLeft, 
-    Truck, CheckCircle, Clock, Save, History, Edit, AlertCircle, ShoppingBag
+    Truck, CheckCircle, Clock, Save, History, Edit, AlertCircle, ShoppingBag, Lock
 } from 'lucide-react';
 import { formatDateTime } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
+import { usePermission } from '../services/PermissionContext';
 
 interface AdminOrdersManagerProps {
     orders: Order[];
@@ -55,6 +56,11 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export const AdminOrdersManager: React.FC<AdminOrdersManagerProps> = ({ orders, users, onUpdate }) => {
+    // Permission checks
+    const { hasPermission } = usePermission();
+    const canEditOrder = hasPermission('orders', 'edit');
+    const canApproveOrder = hasPermission('orders', 'approve');
+    
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -381,54 +387,73 @@ export const AdminOrdersManager: React.FC<AdminOrdersManagerProps> = ({ orders, 
                             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                                 <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Eye size={18} className="text-blue-500"/> الحالة للعميل (External)</h4>
                                 <p className="text-xs text-slate-500 mb-3">سيتم إشعار العميل عند تغيير هذه الحالة.</p>
-                                <select 
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-700 mb-3"
-                                    value={selectedOrder.status}
-                                    onChange={(e) => handleUpdateExternalStatus(e.target.value as OrderStatus)}
-                                    disabled={isUpdating}
-                                >
-                                    {Object.entries(ORDER_STATUS_LABELS).map(([key, label]) => (
-                                        <option key={key} value={key}>{label}</option>
-                                    ))}
-                                </select>
+                                {canApproveOrder ? (
+                                    <select 
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-700 mb-3"
+                                        value={selectedOrder.status}
+                                        onChange={(e) => handleUpdateExternalStatus(e.target.value as OrderStatus)}
+                                        disabled={isUpdating}
+                                    >
+                                        {Object.entries(ORDER_STATUS_LABELS).map(([key, label]) => (
+                                            <option key={key} value={key}>{label}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 flex items-center gap-2">
+                                        <Lock size={16} className="text-slate-400" />
+                                        <span className="text-sm font-bold text-slate-500">ليس لديك صلاحية تغيير الحالة</span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Internal Status Control */}
                             <div className="bg-[#0B1B3A] p-5 rounded-xl border border-slate-700 shadow-lg text-white">
                                 <h4 className="font-bold text-[#C8A04F] mb-3 flex items-center gap-2"><Save size={18}/> الحالة الداخلية (Internal)</h4>
                                 <p className="text-xs text-slate-400 mb-3">للاستخدام الإداري فقط. لا يظهر للعميل.</p>
-                                <select 
-                                    className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg font-bold text-white mb-3 focus:ring-1 focus:ring-[#C8A04F]"
-                                    value={selectedOrder.internalStatus || 'NEW'}
-                                    onChange={(e) => handleUpdateInternalStatus(e.target.value as OrderInternalStatus)}
-                                    disabled={isUpdating}
-                                >
-                                    {Object.entries(INTERNAL_STATUS_LABELS).map(([key, label]) => (
-                                        <option key={key} value={key}>{label}</option>
-                                    ))}
-                                </select>
-                                
-                                <label className="block text-xs font-bold text-slate-400 mb-2 mt-4">ملاحظات داخلية</label>
-                                <textarea 
-                                    className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white focus:outline-none focus:border-[#C8A04F]"
-                                    rows={3}
-                                    placeholder="اكتب ملاحظة حول سبب تغيير الحالة..."
-                                    value={internalNote}
-                                    onChange={(e) => setInternalNote(e.target.value)}
-                                ></textarea>
-                                <button 
-                                    onClick={() => handleUpdateInternalStatus(selectedOrder.internalStatus || 'NEW')} // Just save notes if status same
-                                    className="w-full mt-3 bg-[#C8A04F] text-[#0B1B3A] py-2 rounded-lg font-bold text-sm hover:bg-[#b08d45] transition-colors"
-                                    disabled={isUpdating}
-                                >
-                                    حفظ الملاحظات
-                                </button>
+                                {canEditOrder ? (
+                                    <>
+                                        <select 
+                                            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg font-bold text-white mb-3 focus:ring-1 focus:ring-[#C8A04F]"
+                                            value={selectedOrder.internalStatus || 'NEW'}
+                                            onChange={(e) => handleUpdateInternalStatus(e.target.value as OrderInternalStatus)}
+                                            disabled={isUpdating}
+                                        >
+                                            {Object.entries(INTERNAL_STATUS_LABELS).map(([key, label]) => (
+                                                <option key={key} value={key}>{label}</option>
+                                            ))}
+                                        </select>
+                                        
+                                        <label className="block text-xs font-bold text-slate-400 mb-2 mt-4">ملاحظات داخلية</label>
+                                        <textarea 
+                                            className="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white focus:outline-none focus:border-[#C8A04F]"
+                                            rows={3}
+                                            placeholder="اكتب ملاحظة حول سبب تغيير الحالة..."
+                                            value={internalNote}
+                                            onChange={(e) => setInternalNote(e.target.value)}
+                                        ></textarea>
+                                        <button 
+                                            onClick={() => handleUpdateInternalStatus(selectedOrder.internalStatus || 'NEW')}
+                                            className="w-full mt-3 bg-[#C8A04F] text-[#0B1B3A] py-2 rounded-lg font-bold text-sm hover:bg-[#b08d45] transition-colors"
+                                            disabled={isUpdating}
+                                        >
+                                            حفظ الملاحظات
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="p-3 bg-slate-700 rounded-lg border border-slate-600 flex items-center gap-2">
+                                        <Lock size={16} className="text-slate-400" />
+                                        <span className="text-sm font-bold text-slate-400">ليس لديك صلاحية تعديل الحالة الداخلية</span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="bg-red-50 p-4 rounded-xl border border-red-100">
                                 <h4 className="font-bold text-red-800 mb-2 flex items-center gap-2"><AlertCircle size={16}/> منطقة الخطر</h4>
-                                <button className="w-full py-2 bg-white border border-red-200 text-red-600 rounded-lg font-bold text-sm hover:bg-red-50 transition-colors">
-                                    إلغاء الطلب نهائياً
+                                <button 
+                                    className={`w-full py-2 rounded-lg font-bold text-sm transition-colors ${canApproveOrder ? 'bg-white border border-red-200 text-red-600 hover:bg-red-50' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                                    disabled={!canApproveOrder}
+                                >
+                                    {canApproveOrder ? 'إلغاء الطلب نهائياً' : 'ليس لديك صلاحية'}
                                 </button>
                             </div>
 

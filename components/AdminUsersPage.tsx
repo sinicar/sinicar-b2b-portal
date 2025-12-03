@@ -6,11 +6,12 @@ import {
 } from '../types';
 import { formatDateTime } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
+import { usePermission } from '../services/PermissionContext';
 import { Modal } from './Modal';
 import { 
     Users, Plus, Edit2, Trash2, UserCheck, UserX, Search, 
     Phone, Mail, Clock, Download, X, Check, AlertTriangle, Key,
-    Shield, Settings, ChevronDown, ChevronUp, Save
+    Shield, Settings, ChevronDown, ChevronUp, Save, Lock
 } from 'lucide-react';
 
 interface AdminUsersPageProps {
@@ -83,6 +84,12 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
     const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Permission checks
+    const { hasPermission } = usePermission();
+    const canCreate = hasPermission('users', 'create');
+    const canEdit = hasPermission('users', 'edit');
+    const canDelete = hasPermission('users', 'delete');
     const [roleFilter, setRoleFilter] = useState<string>('ALL');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
     
@@ -453,14 +460,21 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
                         <Download size={18} />
                         تصدير
                     </button>
-                    <button
-                        onClick={handleOpenAdd}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-[#0B1B3A] text-white rounded-xl font-bold hover:bg-[#1a2e56] transition-colors"
-                        data-testid="button-add-user"
-                    >
-                        <Plus size={18} />
-                        إضافة مستخدم
-                    </button>
+                    {canCreate ? (
+                        <button
+                            onClick={handleOpenAdd}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-[#0B1B3A] text-white rounded-xl font-bold hover:bg-[#1a2e56] transition-colors"
+                            data-testid="button-add-user"
+                        >
+                            <Plus size={18} />
+                            إضافة مستخدم
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-400 rounded-xl font-bold cursor-not-allowed">
+                            <Lock size={18} />
+                            لا صلاحية للإضافة
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -530,42 +544,56 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
                                         </td>
                                         <td className="py-4 px-4">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button
-                                                    onClick={() => handleOpenEdit(user)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="تعديل"
-                                                    data-testid={`button-edit-user-${user.id}`}
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenResetPassword(user)}
-                                                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                                    title="إعادة تعيين كلمة المرور"
-                                                    data-testid={`button-reset-password-${user.id}`}
-                                                >
-                                                    <Key size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenToggle(user)}
-                                                    className={`p-2 rounded-lg transition-colors ${
-                                                        user.isActive 
-                                                            ? 'text-amber-600 hover:bg-amber-50' 
-                                                            : 'text-green-600 hover:bg-green-50'
-                                                    }`}
-                                                    title={user.isActive ? 'إيقاف' : 'تفعيل'}
-                                                    data-testid={`button-toggle-user-${user.id}`}
-                                                >
-                                                    {user.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenDelete(user)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="حذف"
-                                                    data-testid={`button-delete-user-${user.id}`}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                {canEdit ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleOpenEdit(user)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="تعديل"
+                                                            data-testid={`button-edit-user-${user.id}`}
+                                                        >
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleOpenResetPassword(user)}
+                                                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                                            title="إعادة تعيين كلمة المرور"
+                                                            data-testid={`button-reset-password-${user.id}`}
+                                                        >
+                                                            <Key size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleOpenToggle(user)}
+                                                            className={`p-2 rounded-lg transition-colors ${
+                                                                user.isActive 
+                                                                    ? 'text-amber-600 hover:bg-amber-50' 
+                                                                    : 'text-green-600 hover:bg-green-50'
+                                                            }`}
+                                                            title={user.isActive ? 'إيقاف' : 'تفعيل'}
+                                                            data-testid={`button-toggle-user-${user.id}`}
+                                                        >
+                                                            {user.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className="p-2 text-slate-300" title="لا صلاحية للتعديل">
+                                                        <Lock size={18} />
+                                                    </span>
+                                                )}
+                                                {canDelete ? (
+                                                    <button
+                                                        onClick={() => handleOpenDelete(user)}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="حذف"
+                                                        data-testid={`button-delete-user-${user.id}`}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                ) : (
+                                                    <span className="p-2 text-slate-300" title="لا صلاحية للحذف">
+                                                        <Trash2 size={18} />
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -1001,6 +1029,12 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
     const [submitting, setSubmitting] = useState(false);
     
     const { addToast } = useToast();
+    
+    // Permission checks for roles management
+    const { hasPermission } = usePermission();
+    const canCreateRole = hasPermission('roles', 'create');
+    const canEditRole = hasPermission('roles', 'edit');
+    const canDeleteRole = hasPermission('roles', 'delete');
 
     useEffect(() => {
         loadData();
@@ -1197,14 +1231,21 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
         <>
             <div className="p-4 border-b border-slate-100 flex justify-between items-center">
                 <p className="text-slate-600">إدارة الأدوار وتحديد صلاحيات كل دور</p>
-                <button
-                    onClick={handleOpenAdd}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-[#0B1B3A] text-white rounded-xl font-bold hover:bg-[#1a2e56] transition-colors"
-                    data-testid="button-add-role"
-                >
-                    <Plus size={18} />
-                    إضافة دور جديد
-                </button>
+                {canCreateRole ? (
+                    <button
+                        onClick={handleOpenAdd}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-[#0B1B3A] text-white rounded-xl font-bold hover:bg-[#1a2e56] transition-colors"
+                        data-testid="button-add-role"
+                    >
+                        <Plus size={18} />
+                        إضافة دور جديد
+                    </button>
+                ) : (
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-400 rounded-xl font-bold cursor-not-allowed">
+                        <Lock size={18} />
+                        لا صلاحية للإضافة
+                    </div>
+                )}
             </div>
 
             {roles.length === 0 ? (
@@ -1248,23 +1289,31 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
                                 </div>
                                 
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => handleOpenPermissions(role)}
-                                        className="flex items-center gap-1 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold text-sm"
-                                        data-testid={`button-permissions-role-${role.id}`}
-                                    >
-                                        <Settings size={16} />
-                                        الصلاحيات
-                                    </button>
-                                    <button
-                                        onClick={() => handleOpenEdit(role)}
-                                        className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                        title="تعديل"
-                                        data-testid={`button-edit-role-${role.id}`}
-                                    >
-                                        <Edit2 size={18} />
-                                    </button>
-                                    {!role.isSystem && (
+                                    {canEditRole ? (
+                                        <>
+                                            <button
+                                                onClick={() => handleOpenPermissions(role)}
+                                                className="flex items-center gap-1 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold text-sm"
+                                                data-testid={`button-permissions-role-${role.id}`}
+                                            >
+                                                <Settings size={16} />
+                                                الصلاحيات
+                                            </button>
+                                            <button
+                                                onClick={() => handleOpenEdit(role)}
+                                                className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                                title="تعديل"
+                                                data-testid={`button-edit-role-${role.id}`}
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <span className="p-2 text-slate-300" title="لا صلاحية للتعديل">
+                                            <Lock size={18} />
+                                        </span>
+                                    )}
+                                    {!role.isSystem && canDeleteRole && (
                                         <button
                                             onClick={() => handleOpenDelete(role)}
                                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -1273,6 +1322,11 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
                                         >
                                             <Trash2 size={18} />
                                         </button>
+                                    )}
+                                    {!role.isSystem && !canDeleteRole && (
+                                        <span className="p-2 text-slate-300" title="لا صلاحية للحذف">
+                                            <Trash2 size={18} />
+                                        </span>
                                     )}
                                 </div>
                             </div>
