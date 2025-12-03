@@ -648,10 +648,15 @@ export interface ApiConfig {
     customers: boolean;
     orders: boolean;
   };
-  webhooks: WebhookConfig[];
+  webhooks: { url: string; events: string[]; active: boolean }[];
   fieldMapping: string; // JSON String for mapping
   debugMode: boolean;
-  rateLimit: number; // Requests per minute
+  rateLimit: string; // Requests per minute
+  // New Data Sharing Settings
+  sharedData?: string[]; // Which data types to share via API
+  syncDirection?: 'PULL' | 'PUSH' | 'BIDIRECTIONAL'; // Direction of sync
+  timeout?: string; // Connection timeout in seconds
+  retryOnFail?: boolean; // Retry failed requests
 }
 
 // Status Labels Configuration - Centralized status display names

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Banner, SiteSettings, StatusLabelsConfig } from '../types';
 import { MockApi } from '../services/mockApi';
-import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil } from 'lucide-react';
+import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 
@@ -433,86 +433,347 @@ export const AdminSettings: React.FC = () => {
                 )}
 
                 {activeTab === 'API' && (
-                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
-                        <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-                            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                <Server className="text-brand-600" /> إعدادات الربط (ERP Integration)
-                            </h2>
-                            <button onClick={handleSaveGeneral} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50">
-                                حفظ الإعدادات
-                            </button>
+                     <div className="space-y-6 animate-slide-up">
+                        {/* Header */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                        <Server className="text-brand-600" /> إعدادات الربط (ERP Integration)
+                                    </h2>
+                                    <p className="text-sm text-slate-500 mt-1">ربط النظام مع Onyx ERP أو أي نظام خارجي</p>
+                                </div>
+                                <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
+                                    <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">رابط النظام المحاسبي (Cloud ERP URL)</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <Monitor size={16} />
+                        {/* Connection Settings */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
+                                <Link2 size={20} className="text-brand-600" />
+                                إعدادات الاتصال
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">رابط النظام المحاسبي (Cloud ERP URL)</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Monitor size={16} />
+                                        </div>
+                                        <input 
+                                            type="url" 
+                                            dir="ltr"
+                                            placeholder="https://api.your-erp.com/v1"
+                                            value={settings.apiConfig.baseUrl}
+                                            onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, baseUrl: e.target.value}})}
+                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm"
+                                            data-testid="input-api-url"
+                                        />
                                     </div>
-                                    <input 
-                                        type="url" 
-                                        dir="ltr"
-                                        placeholder="https://api.your-erp.com/v1"
-                                        value={settings.apiConfig.baseUrl}
-                                        onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, baseUrl: e.target.value}})}
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm"
-                                    />
+                                </div>
+                                
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">مفتاح الربط (API Token)</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <ShieldAlert size={16} />
+                                        </div>
+                                        <input 
+                                            type="password" 
+                                            dir="ltr"
+                                            value={settings.apiConfig.authToken}
+                                            onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, authToken: e.target.value}})}
+                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm"
+                                            placeholder="sk_live_xxxxxxxxxxxxxxxx"
+                                            data-testid="input-api-token"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">تكرار المزامنة (Sync Frequency)</label>
+                                    <select 
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                        value={settings.apiConfig.syncInterval}
+                                        onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, syncInterval: e.target.value as any}})}
+                                        data-testid="select-sync-interval"
+                                    >
+                                        <option value="REALTIME">فوري (Real-time)</option>
+                                        <option value="15MIN">كل 15 دقيقة</option>
+                                        <option value="HOURLY">كل ساعة</option>
+                                        <option value="DAILY">يومي</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">بيئة التشغيل</label>
+                                    <select 
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                        value={settings.apiConfig.environment}
+                                        onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, environment: e.target.value as any}})}
+                                        data-testid="select-environment"
+                                    >
+                                        <option value="PRODUCTION">Production (Live)</option>
+                                        <option value="SANDBOX">Sandbox (Test)</option>
+                                    </select>
                                 </div>
                             </div>
+
+                            <div className="border-t border-slate-100 pt-4 mt-6">
+                                <button 
+                                    id="test-conn-btn"
+                                    onClick={handleTestConnection}
+                                    className="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-400 transition-all flex justify-center items-center gap-2"
+                                    data-testid="button-test-connection"
+                                >
+                                    <Wifi size={20} /> اختبار الاتصال بالنظام
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Data Sharing Settings */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
+                                <Database size={20} className="text-green-600" />
+                                البيانات المشاركة عبر API
+                            </h3>
+                            <p className="text-sm text-slate-500 mb-4">حدد أنواع البيانات التي سيتم مزامنتها مع النظام الخارجي</p>
                             
-                            <div className="col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">مفتاح الربط (API Token)</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                        <ShieldAlert size={16} />
-                                    </div>
-                                    <input 
-                                        type="password" 
-                                        dir="ltr"
-                                        value={settings.apiConfig.authToken}
-                                        onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, authToken: e.target.value}})}
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm"
-                                        placeholder="sk_live_xxxxxxxxxxxxxxxx"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">تكرار المزامنة (Sync Frequency)</label>
-                                <select 
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                                    value={settings.apiConfig.syncInterval}
-                                    onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, syncInterval: e.target.value as any}})}
-                                >
-                                    <option value="REALTIME">فوري (Real-time)</option>
-                                    <option value="15MIN">كل 15 دقيقة</option>
-                                    <option value="HOURLY">كل ساعة</option>
-                                    <option value="DAILY">يومي</option>
-                                </select>
-                            </div>
-
-                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">بيئة التشغيل</label>
-                                <select 
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                                    value={settings.apiConfig.environment}
-                                    onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, environment: e.target.value as any}})}
-                                >
-                                    <option value="PRODUCTION">Production (Live)</option>
-                                    <option value="SANDBOX">Sandbox (Test)</option>
-                                </select>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[
+                                    { key: 'products', label: 'المنتجات والأصناف', icon: Package, desc: 'أسماء، أسعار، كميات' },
+                                    { key: 'orders', label: 'الطلبات', icon: ShoppingCart, desc: 'طلبات العملاء وحالاتها' },
+                                    { key: 'customers', label: 'العملاء', icon: Users, desc: 'بيانات العملاء والحسابات' },
+                                    { key: 'quotes', label: 'طلبات التسعير', icon: FileText, desc: 'عروض الأسعار المخصصة' },
+                                    { key: 'inventory', label: 'المخزون', icon: Warehouse, desc: 'كميات المخازن المختلفة' },
+                                    { key: 'prices', label: 'قوائم الأسعار', icon: DollarSign, desc: 'أسعار الجملة والتجزئة' },
+                                ].map((item) => (
+                                    <label 
+                                        key={item.key}
+                                        className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                            settings.apiConfig.sharedData?.includes(item.key)
+                                                ? 'border-brand-500 bg-brand-50'
+                                                : 'border-slate-200 hover:border-slate-300 bg-slate-50'
+                                        }`}
+                                        data-testid={`checkbox-share-${item.key}`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.apiConfig.sharedData?.includes(item.key) || false}
+                                            onChange={(e) => {
+                                                const current = settings.apiConfig.sharedData || [];
+                                                const updated = e.target.checked
+                                                    ? [...current, item.key]
+                                                    : current.filter(k => k !== item.key);
+                                                setSettings({
+                                                    ...settings, 
+                                                    apiConfig: {...settings.apiConfig, sharedData: updated}
+                                                });
+                                            }}
+                                            className="mt-1 w-4 h-4 text-brand-600 rounded"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <item.icon size={16} className="text-slate-600" />
+                                                <span className="font-bold text-slate-800">{item.label}</span>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-1">{item.desc}</p>
+                                        </div>
+                                    </label>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="border-t border-slate-100 pt-6 mt-4">
-                             <button 
-                                id="test-conn-btn"
-                                onClick={handleTestConnection}
-                                className="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-400 transition-all flex justify-center items-center gap-2"
-                             >
-                                 <Wifi size={20} /> اختبار الاتصال بالنظام
-                             </button>
+                        {/* Sync Direction */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
+                                <RefreshCw size={20} className="text-blue-600" />
+                                اتجاه المزامنة
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[
+                                    { value: 'PULL', label: 'سحب من ERP فقط', desc: 'استيراد البيانات من النظام المحاسبي', icon: ArrowDownCircle },
+                                    { value: 'PUSH', label: 'دفع إلى ERP فقط', desc: 'إرسال البيانات للنظام المحاسبي', icon: ArrowUpCircle },
+                                    { value: 'BIDIRECTIONAL', label: 'ثنائي الاتجاه', desc: 'مزامنة كاملة في الاتجاهين', icon: ArrowLeftRight },
+                                ].map((option) => (
+                                    <label
+                                        key={option.value}
+                                        className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 cursor-pointer transition-all text-center ${
+                                            settings.apiConfig.syncDirection === option.value
+                                                ? 'border-brand-500 bg-brand-50'
+                                                : 'border-slate-200 hover:border-slate-300 bg-slate-50'
+                                        }`}
+                                        data-testid={`radio-sync-${option.value.toLowerCase()}`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="syncDirection"
+                                            value={option.value}
+                                            checked={settings.apiConfig.syncDirection === option.value}
+                                            onChange={(e) => setSettings({
+                                                ...settings, 
+                                                apiConfig: {...settings.apiConfig, syncDirection: e.target.value as any}
+                                            })}
+                                            className="sr-only"
+                                        />
+                                        <option.icon size={32} className={settings.apiConfig.syncDirection === option.value ? 'text-brand-600' : 'text-slate-400'} />
+                                        <div>
+                                            <span className="font-bold text-slate-800 block">{option.label}</span>
+                                            <p className="text-xs text-slate-500 mt-1">{option.desc}</p>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Webhooks */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
+                                <Webhook size={20} className="text-purple-600" />
+                                Webhooks (إشعارات فورية)
+                            </h3>
+                            <p className="text-sm text-slate-500 mb-4">أضف روابط لاستقبال إشعارات فورية عند حدوث أحداث معينة</p>
+                            
+                            <div className="space-y-4">
+                                <div className="flex gap-3">
+                                    <input
+                                        type="url"
+                                        dir="ltr"
+                                        placeholder="https://your-webhook-url.com/endpoint"
+                                        className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm"
+                                        id="webhook-url-input"
+                                        data-testid="input-webhook-url"
+                                    />
+                                    <button 
+                                        onClick={() => {
+                                            const input = document.getElementById('webhook-url-input') as HTMLInputElement;
+                                            if (input?.value) {
+                                                const webhooks = settings.apiConfig.webhooks || [];
+                                                setSettings({
+                                                    ...settings,
+                                                    apiConfig: {
+                                                        ...settings.apiConfig,
+                                                        webhooks: [...webhooks, { url: input.value, events: ['order.created'], active: true }]
+                                                    }
+                                                });
+                                                input.value = '';
+                                                addToast('تم إضافة Webhook بنجاح', 'success');
+                                            }
+                                        }}
+                                        className="px-4 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 flex items-center gap-2"
+                                        data-testid="button-add-webhook"
+                                    >
+                                        <Plus size={18} /> إضافة
+                                    </button>
+                                </div>
+
+                                {settings.apiConfig.webhooks?.length > 0 && (
+                                    <div className="space-y-2">
+                                        {settings.apiConfig.webhooks.map((webhook, idx) => (
+                                            <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                                <div className={`w-2 h-2 rounded-full ${webhook.active ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                <code className="flex-1 text-sm font-mono text-slate-600 truncate">{webhook.url}</code>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded">
+                                                        {webhook.events?.length || 0} أحداث
+                                                    </span>
+                                                    <button
+                                                        onClick={() => {
+                                                            const webhooks = [...(settings.apiConfig.webhooks || [])];
+                                                            webhooks.splice(idx, 1);
+                                                            setSettings({...settings, apiConfig: {...settings.apiConfig, webhooks}});
+                                                        }}
+                                                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                                        data-testid={`button-delete-webhook-${idx}`}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Advanced Settings */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
+                                <Settings2 size={20} className="text-slate-600" />
+                                إعدادات متقدمة
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">حد الطلبات (Rate Limit)</label>
+                                    <select 
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                        value={settings.apiConfig.rateLimit || '100'}
+                                        onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, rateLimit: e.target.value}})}
+                                        data-testid="select-rate-limit"
+                                    >
+                                        <option value="50">50 طلب/دقيقة</option>
+                                        <option value="100">100 طلب/دقيقة</option>
+                                        <option value="500">500 طلب/دقيقة</option>
+                                        <option value="1000">1000 طلب/دقيقة</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">مهلة الاتصال (Timeout)</label>
+                                    <select 
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                        value={settings.apiConfig.timeout || '30'}
+                                        onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, timeout: e.target.value}})}
+                                        data-testid="select-timeout"
+                                    >
+                                        <option value="10">10 ثواني</option>
+                                        <option value="30">30 ثانية</option>
+                                        <option value="60">60 ثانية</option>
+                                        <option value="120">120 ثانية</option>
+                                    </select>
+                                </div>
+
+                                <div className="col-span-2">
+                                    <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.apiConfig.debugMode || false}
+                                            onChange={(e) => setSettings({
+                                                ...settings, 
+                                                apiConfig: {...settings.apiConfig, debugMode: e.target.checked}
+                                            })}
+                                            className="w-5 h-5 text-brand-600 rounded"
+                                            data-testid="checkbox-debug-mode"
+                                        />
+                                        <div>
+                                            <span className="font-bold text-slate-800">وضع التصحيح (Debug Mode)</span>
+                                            <p className="text-xs text-slate-500">تسجيل جميع الطلبات والاستجابات للتشخيص</p>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div className="col-span-2">
+                                    <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.apiConfig.retryOnFail || true}
+                                            onChange={(e) => setSettings({
+                                                ...settings, 
+                                                apiConfig: {...settings.apiConfig, retryOnFail: e.target.checked}
+                                            })}
+                                            className="w-5 h-5 text-brand-600 rounded"
+                                            data-testid="checkbox-retry-on-fail"
+                                        />
+                                        <div>
+                                            <span className="font-bold text-slate-800">إعادة المحاولة عند الفشل</span>
+                                            <p className="text-xs text-slate-500">إعادة محاولة الطلبات الفاشلة تلقائياً (حتى 3 مرات)</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                      </div>
                 )}

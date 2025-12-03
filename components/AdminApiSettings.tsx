@@ -609,7 +609,7 @@ export const AdminApiSettings: React.FC = () => {
                             min="1"
                             max="1000"
                             value={apiConfig.rateLimit}
-                            onChange={(e) => updateApiConfig({ rateLimit: parseInt(e.target.value) || 60 })}
+                            onChange={(e) => updateApiConfig({ rateLimit: e.target.value || '60' })}
                             className="w-full md:w-64 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
                             data-testid="input-rate-limit"
                         />
