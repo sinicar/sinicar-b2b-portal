@@ -131,7 +131,7 @@ export const AdminSettings: React.FC = () => {
         });
     };
 
-    if (loading || !settings) return <div className="p-10 text-center">جاري التحميل...</div>;
+    if (loading || !settings) return <div className="p-10 text-center">{t('adminSettings.loading')}</div>;
 
     const TabButton = ({ id, icon, label }: { id: string, icon: React.ReactNode, label: string }) => (
         <button 
@@ -148,15 +148,15 @@ export const AdminSettings: React.FC = () => {
             {/* Sidebar Navigation */}
             <div className="w-full lg:w-72 flex-shrink-0">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6 sticky top-6">
-                    <h3 className="font-black text-xl text-slate-800 mb-6 px-2">إعدادات النظام</h3>
+                    <h3 className="font-black text-xl text-slate-800 mb-6 px-2">{t('adminSettings.systemSettings')}</h3>
                     <nav>
-                        <TabButton id="GENERAL" icon={<Settings size={20} />} label="الإعدادات العامة" />
-                        <TabButton id="BANNERS" icon={<ImageIcon size={20} />} label="إدارة البنرات" />
-                        <TabButton id="FEATURES" icon={<Check size={20} />} label="لماذا صيني كار؟" />
-                        <TabButton id="TEXTS" icon={<Type size={20} />} label="إدارة النصوص" />
-                        <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label="حالات النظام" />
-                        <TabButton id="API" icon={<Server size={20} />} label="الربط البرمجي (API)" />
-                        <TabButton id="APPEARANCE" icon={<Palette size={20} />} label="المظهر والهوية" />
+                        <TabButton id="GENERAL" icon={<Settings size={20} />} label={t('adminSettings.generalSettings')} />
+                        <TabButton id="BANNERS" icon={<ImageIcon size={20} />} label={t('adminSettings.bannerManagement')} />
+                        <TabButton id="FEATURES" icon={<Check size={20} />} label={t('adminSettings.whySiniCar')} />
+                        <TabButton id="TEXTS" icon={<Type size={20} />} label={t('adminSettings.textManagement')} />
+                        <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label={t('adminSettings.statusLabels')} />
+                        <TabButton id="API" icon={<Server size={20} />} label={t('adminSettings.apiIntegration')} />
+                        <TabButton id="APPEARANCE" icon={<Palette size={20} />} label={t('adminSettings.appearanceIdentity')} />
                     </nav>
                 </div>
             </div>
@@ -167,16 +167,16 @@ export const AdminSettings: React.FC = () => {
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                <Settings className="text-brand-600" /> إعدادات الموقع الأساسية
+                                <Settings className="text-brand-600" /> {t('adminSettings.siteSettings')}
                             </h2>
                             <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
-                                <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                                <Save size={18} /> {saving ? t('adminSettings.saving') : t('adminSettings.saveChanges')}
                             </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">اسم الموقع / المتجر</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.siteName')}</label>
                                 <input 
                                     type="text" 
                                     value={settings.siteName}
@@ -185,7 +185,7 @@ export const AdminSettings: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">رقم الدعم الفني</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.supportPhone')}</label>
                                 <input 
                                     type="text" 
                                     value={settings.supportPhone}
@@ -195,7 +195,7 @@ export const AdminSettings: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">رقم واتساب المبيعات</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.salesWhatsApp')}</label>
                                 <input 
                                     type="text" 
                                     value={settings.supportWhatsapp || ''}
@@ -205,7 +205,7 @@ export const AdminSettings: React.FC = () => {
                                 />
                             </div>
                             <div className="col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">البريد الإلكتروني للدعم</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.supportEmail')}</label>
                                 <input 
                                     type="email" 
                                     value={settings.supportEmail}
@@ -220,12 +220,12 @@ export const AdminSettings: React.FC = () => {
                         <div className="mt-8 border-t border-slate-100 pt-8">
                              <div className="flex items-center gap-3 mb-6">
                                  <div className="p-2 bg-amber-100 text-amber-600 rounded-lg"><Megaphone size={20} /></div>
-                                 <h3 className="font-bold text-lg text-slate-800">شريط الأخبار المتحرك</h3>
+                                 <h3 className="font-bold text-lg text-slate-800">{t('adminSettings.newsTicker')}</h3>
                              </div>
                              
                              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
                                  <div className="flex items-center justify-between mb-2">
-                                     <span className="font-bold text-slate-700">تفعيل الشريط</span>
+                                     <span className="font-bold text-slate-700">{t('adminSettings.enableTicker')}</span>
                                      <label className="relative inline-flex items-center cursor-pointer">
                                         <input 
                                             type="checkbox" 
@@ -238,19 +238,18 @@ export const AdminSettings: React.FC = () => {
                                  </div>
 
                                  <div>
-                                     <label className="block text-sm font-bold text-slate-700 mb-2">نص الشريط</label>
+                                     <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.tickerText')}</label>
                                      <textarea 
                                         rows={2}
                                         className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm"
                                         value={settings.tickerText}
                                         onChange={e => setSettings({...settings, tickerText: e.target.value})}
-                                        placeholder="اكتب النص الذي سيظهر للعملاء..."
                                      ></textarea>
                                  </div>
 
                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                      <div>
-                                         <label className="block text-sm font-bold text-slate-700 mb-2">السرعة (1-10)</label>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.tickerSpeed')}</label>
                                          <input 
                                             type="number" 
                                             min={1} 
@@ -261,7 +260,7 @@ export const AdminSettings: React.FC = () => {
                                          />
                                      </div>
                                      <div>
-                                         <label className="block text-sm font-bold text-slate-700 mb-2">لون الخلفية (Hex)</label>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.bgColor')}</label>
                                          <div className="flex gap-2">
                                              <div className="w-10 h-10 rounded border border-slate-300" style={{backgroundColor: settings.tickerBgColor}}></div>
                                              <input 
@@ -273,7 +272,7 @@ export const AdminSettings: React.FC = () => {
                                          </div>
                                      </div>
                                      <div>
-                                         <label className="block text-sm font-bold text-slate-700 mb-2">لون النص (Hex)</label>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.textColor')}</label>
                                          <div className="flex gap-2">
                                              <div className="w-10 h-10 rounded border border-slate-300" style={{backgroundColor: settings.tickerTextColor}}></div>
                                              <input 
@@ -292,13 +291,13 @@ export const AdminSettings: React.FC = () => {
                         <div className="mt-8 border-t border-slate-100 pt-8">
                              <div className="flex items-center gap-3 mb-6">
                                  <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Eye size={20} /></div>
-                                 <h3 className="font-bold text-lg text-slate-800">إعدادات عرض المنتجات والبحث</h3>
+                                 <h3 className="font-bold text-lg text-slate-800">{t('adminSettings.productDisplaySettings')}</h3>
                              </div>
                              
                              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                      <div>
-                                         <label className="block text-sm font-bold text-slate-700 mb-2">أقل كمية لظهور المنتج للعملاء</label>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.minVisibleQty')}</label>
                                          <input 
                                             type="number" 
                                             min={0}
@@ -306,10 +305,10 @@ export const AdminSettings: React.FC = () => {
                                             value={settings.minVisibleQty ?? 1}
                                             onChange={e => setSettings({...settings, minVisibleQty: parseInt(e.target.value) || 0})}
                                          />
-                                         <p className="text-xs text-slate-500 mt-1">المنتجات التي كميتها أقل من هذا الرقم لن تظهر للعملاء (الافتراضي: 1)</p>
+                                         <p className="text-xs text-slate-500 mt-1">{t('adminSettings.minVisibleQtyNote')}</p>
                                      </div>
                                      <div>
-                                         <label className="block text-sm font-bold text-slate-700 mb-2">عتبة المخزون (نفذت الكمية)</label>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.stockThreshold')}</label>
                                          <input 
                                             type="number" 
                                             min={0}
@@ -317,11 +316,11 @@ export const AdminSettings: React.FC = () => {
                                             value={settings.stockThreshold ?? 0}
                                             onChange={e => setSettings({...settings, stockThreshold: parseInt(e.target.value) || 0})}
                                          />
-                                         <p className="text-xs text-slate-500 mt-1">المنتجات التي كميتها أقل من أو تساوي هذا الرقم تظهر كـ "نفذت الكمية" (الافتراضي: 0)</p>
+                                         <p className="text-xs text-slate-500 mt-1">{t('adminSettings.stockThresholdNote')}</p>
                                      </div>
                                  </div>
                                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-700">
-                                     <strong>ملاحظة:</strong> هذه الإعدادات تؤثر على نتائج البحث وعرض المنتجات للعملاء. المنتجات ذات الكمية المنخفضة ستظهر بدون سعر.
+                                     <strong>{t('common.note')}:</strong> {t('adminSettings.settingsNote')}
                                  </div>
                              </div>
                         </div>
@@ -333,8 +332,8 @@ export const AdminSettings: React.FC = () => {
                                         <ShieldAlert />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-red-900 text-lg">وضع الصيانة</h4>
-                                        <p className="text-red-700 text-sm">عند تفعيل هذا الخيار، سيظهر الموقع كـ "مغلق للصيانة" لجميع العملاء.</p>
+                                        <h4 className="font-bold text-red-900 text-lg">{t('adminSettings.maintenanceMode')}</h4>
+                                        <p className="text-red-700 text-sm">{t('adminSettings.maintenanceModeDesc')}</p>
                                     </div>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
@@ -355,32 +354,32 @@ export const AdminSettings: React.FC = () => {
                     <div className="space-y-6 animate-slide-up">
                          <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                              <div>
-                                 <h2 className="text-2xl font-bold text-slate-800">إدارة البنرات الإعلانية</h2>
-                                 <p className="text-slate-500 text-sm">تحكم في الصور والعروض التي تظهر في الصفحة الرئيسية</p>
+                                 <h2 className="text-2xl font-bold text-slate-800">{t('adminSettings.bannerAds')}</h2>
+                                 <p className="text-slate-500 text-sm">{t('adminSettings.bannerAdsDesc')}</p>
                              </div>
                              <button onClick={() => setShowBannerForm(true)} className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-slate-800">
-                                 <Plus size={16} /> إضافة بنر جديد
+                                 <Plus size={16} /> {t('adminSettings.addNewBanner')}
                              </button>
                          </div>
 
                          {showBannerForm && (
                              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 animate-fade-in">
-                                 <h4 className="font-bold mb-4">بيانات البنر الجديد</h4>
+                                 <h4 className="font-bold mb-4">{t('adminSettings.newBannerData')}</h4>
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                     <input placeholder="العنوان الرئيسي" className="p-3 rounded-lg border-slate-200" value={newBanner.title} onChange={e => setNewBanner({...newBanner, title: e.target.value})} />
-                                     <input placeholder="الوصف الفرعي" className="p-3 rounded-lg border-slate-200" value={newBanner.subtitle} onChange={e => setNewBanner({...newBanner, subtitle: e.target.value})} />
-                                     <input placeholder="نص الزر (مثال: تسوق الآن)" className="p-3 rounded-lg border-slate-200" value={newBanner.buttonText} onChange={e => setNewBanner({...newBanner, buttonText: e.target.value})} />
+                                     <input placeholder={t('adminSettings.mainTitle')} className="p-3 rounded-lg border-slate-200" value={newBanner.title} onChange={e => setNewBanner({...newBanner, title: e.target.value})} />
+                                     <input placeholder={t('adminSettings.subtitle')} className="p-3 rounded-lg border-slate-200" value={newBanner.subtitle} onChange={e => setNewBanner({...newBanner, subtitle: e.target.value})} />
+                                     <input placeholder={t('adminSettings.buttonText')} className="p-3 rounded-lg border-slate-200" value={newBanner.buttonText} onChange={e => setNewBanner({...newBanner, buttonText: e.target.value})} />
                                      <select className="p-3 rounded-lg border-slate-200" value={newBanner.colorClass} onChange={e => setNewBanner({...newBanner, colorClass: e.target.value})}>
-                                         <option value="from-slate-700 to-slate-900">رمادي داكن (افتراضي)</option>
-                                         <option value="from-primary-600 to-primary-900">أزرق ملكي</option>
-                                         <option value="from-secondary-500 to-secondary-700">برتقالي حيوي</option>
-                                         <option value="from-green-600 to-green-800">أخضر داكن</option>
+                                         <option value="from-slate-700 to-slate-900">{t('adminSettings.darkGray')}</option>
+                                         <option value="from-primary-600 to-primary-900">{t('adminSettings.royalBlue')}</option>
+                                         <option value="from-secondary-500 to-secondary-700">{t('adminSettings.vibrantOrange')}</option>
+                                         <option value="from-green-600 to-green-800">{t('adminSettings.darkGreen')}</option>
                                      </select>
-                                     <input placeholder="رابط الصورة (اختياري)" className="p-3 rounded-lg border-slate-200 col-span-2" value={newBanner.imageUrl} onChange={e => setNewBanner({...newBanner, imageUrl: e.target.value})} />
+                                     <input placeholder={t('adminSettings.imageUrl')} className="p-3 rounded-lg border-slate-200 col-span-2" value={newBanner.imageUrl} onChange={e => setNewBanner({...newBanner, imageUrl: e.target.value})} />
                                  </div>
                                  <div className="flex gap-3">
-                                     <button onClick={handleAddBanner} className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold">حفظ ونشر</button>
-                                     <button onClick={() => setShowBannerForm(false)} className="bg-white border border-slate-300 text-slate-600 px-6 py-2 rounded-lg font-bold">إلغاء</button>
+                                     <button onClick={handleAddBanner} className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold">{t('adminSettings.saveAndPublish')}</button>
+                                     <button onClick={() => setShowBannerForm(false)} className="bg-white border border-slate-300 text-slate-600 px-6 py-2 rounded-lg font-bold">{t('common.cancel')}</button>
                                  </div>
                              </div>
                          )}
@@ -396,7 +395,7 @@ export const AdminSettings: React.FC = () => {
                                          <p className="text-sm text-slate-500">{banner.subtitle}</p>
                                      </div>
                                      <div className="flex items-center gap-3">
-                                         <button onClick={() => toggleBanner(banner.id)} className={`p-2 rounded-lg transition-colors ${banner.isActive ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-100'}`} title={banner.isActive ? "إخفاء" : "إظهار"}>
+                                         <button onClick={() => toggleBanner(banner.id)} className={`p-2 rounded-lg transition-colors ${banner.isActive ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-100'}`} title={banner.isActive ? t('adminSettings.hide') : t('adminSettings.show')}>
                                              {banner.isActive ? <Eye size={20} /> : <EyeOff size={20} />}
                                          </button>
                                          <button onClick={() => handleDeleteBanner(banner.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -414,12 +413,12 @@ export const AdminSettings: React.FC = () => {
                         <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                             <div>
                                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                    <Type className="text-brand-600" /> إدارة نصوص واجهة المستخدم
+                                    <Type className="text-brand-600" /> {t('adminSettings.uiTextManagement')}
                                 </h2>
-                                <p className="text-sm text-slate-500 mt-1">يمكنك تعديل المسميات والعناوين الظاهرة للعملاء مباشرة من هنا.</p>
+                                <p className="text-sm text-slate-500 mt-1">{t('adminSettings.uiTextManagementDesc')}</p>
                             </div>
                             <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
-                                <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ النصوص'}
+                                <Save size={18} /> {saving ? t('adminSettings.saving') : t('adminSettings.saveTexts')}
                             </button>
                         </div>
 
@@ -450,12 +449,12 @@ export const AdminSettings: React.FC = () => {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                        <Server className="text-brand-600" /> إعدادات الربط (ERP Integration)
+                                        <Server className="text-brand-600" /> {t('adminSettings.erpIntegration')}
                                     </h2>
-                                    <p className="text-sm text-slate-500 mt-1">ربط النظام مع Onyx ERP أو أي نظام خارجي</p>
+                                    <p className="text-sm text-slate-500 mt-1">{t('adminSettings.erpIntegrationDesc')}</p>
                                 </div>
                                 <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
-                                    <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
+                                    <Save size={18} /> {saving ? t('adminSettings.saving') : t('adminSettings.saveSettings')}
                                 </button>
                             </div>
                         </div>
@@ -464,11 +463,11 @@ export const AdminSettings: React.FC = () => {
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
                                 <Link2 size={20} className="text-brand-600" />
-                                إعدادات الاتصال
+                                {t('adminSettings.connectionSettings')}
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">رابط النظام المحاسبي (Cloud ERP URL)</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.cloudErpUrl')}</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <Monitor size={16} />
@@ -486,7 +485,7 @@ export const AdminSettings: React.FC = () => {
                                 </div>
                                 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">مفتاح الربط (API Token)</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.apiToken')}</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <ShieldAlert size={16} />
@@ -504,30 +503,30 @@ export const AdminSettings: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">تكرار المزامنة (Sync Frequency)</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.syncFrequency')}</label>
                                     <select 
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
                                         value={settings.apiConfig.syncInterval}
                                         onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, syncInterval: e.target.value as any}})}
                                         data-testid="select-sync-interval"
                                     >
-                                        <option value="REALTIME">فوري (Real-time)</option>
-                                        <option value="15MIN">كل 15 دقيقة</option>
-                                        <option value="HOURLY">كل ساعة</option>
-                                        <option value="DAILY">يومي</option>
+                                        <option value="REALTIME">{t('adminSettings.realtime')}</option>
+                                        <option value="15MIN">{t('adminSettings.every15Min')}</option>
+                                        <option value="HOURLY">{t('adminSettings.hourly')}</option>
+                                        <option value="DAILY">{t('adminSettings.daily')}</option>
                                     </select>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">بيئة التشغيل</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.environment')}</label>
                                     <select 
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
                                         value={settings.apiConfig.environment}
                                         onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, environment: e.target.value as any}})}
                                         data-testid="select-environment"
                                     >
-                                        <option value="PRODUCTION">Production (Live)</option>
-                                        <option value="SANDBOX">Sandbox (Test)</option>
+                                        <option value="PRODUCTION">{t('adminSettings.production')}</option>
+                                        <option value="SANDBOX">{t('adminSettings.sandbox')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -539,7 +538,7 @@ export const AdminSettings: React.FC = () => {
                                     className="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-400 transition-all flex justify-center items-center gap-2"
                                     data-testid="button-test-connection"
                                 >
-                                    <Wifi size={20} /> اختبار الاتصال بالنظام
+                                    <Wifi size={20} /> {t('adminSettings.testConnection')}
                                 </button>
                             </div>
                         </div>
@@ -548,18 +547,18 @@ export const AdminSettings: React.FC = () => {
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
                                 <Database size={20} className="text-green-600" />
-                                البيانات المشاركة عبر API
+                                {t('adminSettings.sharedData')}
                             </h3>
-                            <p className="text-sm text-slate-500 mb-4">حدد أنواع البيانات التي سيتم مزامنتها مع النظام الخارجي</p>
+                            <p className="text-sm text-slate-500 mb-4">{t('adminSettings.sharedDataDesc')}</p>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[
-                                    { key: 'products', label: 'المنتجات والأصناف', icon: Package, desc: 'أسماء، أسعار، كميات' },
-                                    { key: 'orders', label: 'الطلبات', icon: ShoppingCart, desc: 'طلبات العملاء وحالاتها' },
-                                    { key: 'customers', label: 'العملاء', icon: Users, desc: 'بيانات العملاء والحسابات' },
-                                    { key: 'quotes', label: 'طلبات التسعير', icon: FileText, desc: 'عروض الأسعار المخصصة' },
-                                    { key: 'inventory', label: 'المخزون', icon: Warehouse, desc: 'كميات المخازن المختلفة' },
-                                    { key: 'prices', label: 'قوائم الأسعار', icon: DollarSign, desc: 'أسعار الجملة والتجزئة' },
+                                    { key: 'products', label: t('adminSettings.productsAndItems'), icon: Package, desc: t('adminSettings.productsDesc') },
+                                    { key: 'orders', label: t('adminSettings.ordersLabel'), icon: ShoppingCart, desc: t('adminSettings.ordersDesc') },
+                                    { key: 'customers', label: t('adminSettings.customersLabel'), icon: Users, desc: t('adminSettings.customersDesc') },
+                                    { key: 'quotes', label: t('adminSettings.quotesLabel'), icon: FileText, desc: t('adminSettings.quotesDesc') },
+                                    { key: 'inventory', label: t('adminSettings.inventoryLabel'), icon: Warehouse, desc: t('adminSettings.inventoryDesc') },
+                                    { key: 'prices', label: t('adminSettings.pricesLabel'), icon: DollarSign, desc: t('adminSettings.pricesDesc') },
                                 ].map((item) => (
                                     <label 
                                         key={item.key}
@@ -601,13 +600,13 @@ export const AdminSettings: React.FC = () => {
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
                                 <RefreshCw size={20} className="text-blue-600" />
-                                اتجاه المزامنة
+                                {t('adminSettings.syncDirection')}
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {[
-                                    { value: 'PULL', label: 'سحب من ERP فقط', desc: 'استيراد البيانات من النظام المحاسبي', icon: ArrowDownCircle },
-                                    { value: 'PUSH', label: 'دفع إلى ERP فقط', desc: 'إرسال البيانات للنظام المحاسبي', icon: ArrowUpCircle },
-                                    { value: 'BIDIRECTIONAL', label: 'ثنائي الاتجاه', desc: 'مزامنة كاملة في الاتجاهين', icon: ArrowLeftRight },
+                                    { value: 'PULL', label: t('adminSettings.pullOnly'), desc: t('adminSettings.pullOnlyDesc'), icon: ArrowDownCircle },
+                                    { value: 'PUSH', label: t('adminSettings.pushOnly'), desc: t('adminSettings.pushOnlyDesc'), icon: ArrowUpCircle },
+                                    { value: 'BIDIRECTIONAL', label: t('adminSettings.bidirectional'), desc: t('adminSettings.bidirectionalDesc'), icon: ArrowLeftRight },
                                 ].map((option) => (
                                     <label
                                         key={option.value}
@@ -643,9 +642,9 @@ export const AdminSettings: React.FC = () => {
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
                                 <Webhook size={20} className="text-purple-600" />
-                                Webhooks (إشعارات فورية)
+                                {t('adminSettings.webhooks')}
                             </h3>
-                            <p className="text-sm text-slate-500 mb-4">أضف روابط لاستقبال إشعارات فورية عند حدوث أحداث معينة</p>
+                            <p className="text-sm text-slate-500 mb-4">{t('adminSettings.webhooksDesc')}</p>
                             
                             <div className="space-y-4">
                                 <div className="flex gap-3">
@@ -676,7 +675,7 @@ export const AdminSettings: React.FC = () => {
                                         className="px-4 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 flex items-center gap-2"
                                         data-testid="button-add-webhook"
                                     >
-                                        <Plus size={18} /> إضافة
+                                        <Plus size={18} /> {t('common.add')}
                                     </button>
                                 </div>
 
@@ -688,7 +687,7 @@ export const AdminSettings: React.FC = () => {
                                                 <code className="flex-1 text-sm font-mono text-slate-600 truncate">{webhook.url}</code>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded">
-                                                        {webhook.events?.length || 0} أحداث
+                                                        {webhook.events?.length || 0} {t('adminSettings.events')}
                                                     </span>
                                                     <button
                                                         onClick={() => {
@@ -713,37 +712,37 @@ export const AdminSettings: React.FC = () => {
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4">
                                 <Settings2 size={20} className="text-slate-600" />
-                                إعدادات متقدمة
+                                {t('adminSettings.advancedSettings')}
                             </h3>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">حد الطلبات (Rate Limit)</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.rateLimit')}</label>
                                     <select 
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
                                         value={settings.apiConfig.rateLimit || '100'}
                                         onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, rateLimit: e.target.value}})}
                                         data-testid="select-rate-limit"
                                     >
-                                        <option value="50">50 طلب/دقيقة</option>
-                                        <option value="100">100 طلب/دقيقة</option>
-                                        <option value="500">500 طلب/دقيقة</option>
-                                        <option value="1000">1000 طلب/دقيقة</option>
+                                        <option value="50">{t('adminSettings.reqPerMin', { count: 50 })}</option>
+                                        <option value="100">{t('adminSettings.reqPerMin', { count: 100 })}</option>
+                                        <option value="500">{t('adminSettings.reqPerMin', { count: 500 })}</option>
+                                        <option value="1000">{t('adminSettings.reqPerMin', { count: 1000 })}</option>
                                     </select>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">مهلة الاتصال (Timeout)</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.timeout')}</label>
                                     <select 
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
                                         value={settings.apiConfig.timeout || '30'}
                                         onChange={e => setSettings({...settings, apiConfig: {...settings.apiConfig, timeout: e.target.value}})}
                                         data-testid="select-timeout"
                                     >
-                                        <option value="10">10 ثواني</option>
-                                        <option value="30">30 ثانية</option>
-                                        <option value="60">60 ثانية</option>
-                                        <option value="120">120 ثانية</option>
+                                        <option value="10">{t('adminSettings.seconds', { count: 10 })}</option>
+                                        <option value="30">{t('adminSettings.seconds', { count: 30 })}</option>
+                                        <option value="60">{t('adminSettings.seconds', { count: 60 })}</option>
+                                        <option value="120">{t('adminSettings.seconds', { count: 120 })}</option>
                                     </select>
                                 </div>
 
@@ -760,8 +759,8 @@ export const AdminSettings: React.FC = () => {
                                             data-testid="checkbox-debug-mode"
                                         />
                                         <div>
-                                            <span className="font-bold text-slate-800">وضع التصحيح (Debug Mode)</span>
-                                            <p className="text-xs text-slate-500">تسجيل جميع الطلبات والاستجابات للتشخيص</p>
+                                            <span className="font-bold text-slate-800">{t('adminSettings.debugMode')}</span>
+                                            <p className="text-xs text-slate-500">{t('adminSettings.debugModeDesc')}</p>
                                         </div>
                                     </label>
                                 </div>
@@ -779,8 +778,8 @@ export const AdminSettings: React.FC = () => {
                                             data-testid="checkbox-retry-on-fail"
                                         />
                                         <div>
-                                            <span className="font-bold text-slate-800">إعادة المحاولة عند الفشل</span>
-                                            <p className="text-xs text-slate-500">إعادة محاولة الطلبات الفاشلة تلقائياً (حتى 3 مرات)</p>
+                                            <span className="font-bold text-slate-800">{t('adminSettings.retryOnFail')}</span>
+                                            <p className="text-xs text-slate-500">{t('adminSettings.retryOnFailDesc')}</p>
                                         </div>
                                     </label>
                                 </div>
@@ -794,24 +793,24 @@ export const AdminSettings: React.FC = () => {
                         <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
                             <div>
                                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                    <Check className="text-brand-600" /> إدارة قسم "لماذا صيني كار؟"
+                                    <Check className="text-brand-600" /> {t('adminSettings.whySiniCarSection')}
                                 </h2>
-                                <p className="text-sm text-slate-500 mt-1">تعديل بطاقات المميزات التي تظهر في الصفحة الرئيسية</p>
+                                <p className="text-sm text-slate-500 mt-1">{t('adminSettings.whySiniCarSectionDesc')}</p>
                             </div>
                             <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
-                                <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                                <Save size={18} /> {saving ? t('adminSettings.saving') : t('adminSettings.saveChanges')}
                             </button>
                         </div>
 
                         {/* Section Title */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">عنوان القسم</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.sectionTitle')}</label>
                             <input 
                                 type="text" 
-                                value={settings.whySiniCarTitle || 'لماذا صيني كار؟'}
+                                value={settings.whySiniCarTitle || t('adminSettings.whySiniCar')}
                                 onChange={e => setSettings({...settings, whySiniCarTitle: e.target.value})}
                                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                                placeholder="لماذا صيني كار؟"
+                                placeholder={t('adminSettings.whySiniCar')}
                                 data-testid="input-why-title"
                             />
                         </div>
@@ -819,7 +818,7 @@ export const AdminSettings: React.FC = () => {
                         {/* Feature Cards */}
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <h3 className="font-bold text-slate-800">بطاقات المميزات</h3>
+                                <h3 className="font-bold text-slate-800">{t('adminSettings.featureCards')}</h3>
                                 <button
                                     onClick={() => {
                                         const features = settings.whySiniCarFeatures || [];
@@ -829,8 +828,8 @@ export const AdminSettings: React.FC = () => {
                                                 ...features,
                                                 {
                                                     id: `F-${Date.now()}`,
-                                                    title: 'ميزة جديدة',
-                                                    description: 'وصف الميزة هنا',
+                                                    title: t('adminSettings.newFeature'),
+                                                    description: t('adminSettings.featureDescPlaceholder'),
                                                     icon: 'star',
                                                     iconColor: 'text-amber-400'
                                                 }
@@ -840,7 +839,7 @@ export const AdminSettings: React.FC = () => {
                                     className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700"
                                     data-testid="button-add-feature"
                                 >
-                                    <Plus size={18} /> إضافة بطاقة
+                                    <Plus size={18} /> {t('adminSettings.addCard')}
                                 </button>
                             </div>
 
@@ -853,7 +852,7 @@ export const AdminSettings: React.FC = () => {
                                 ]).map((feature, idx) => (
                                     <div key={feature.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
                                         <div className="flex justify-between items-start">
-                                            <span className="text-xs font-bold text-slate-400">بطاقة {idx + 1}</span>
+                                            <span className="text-xs font-bold text-slate-400">{t('adminSettings.card')} {idx + 1}</span>
                                             <button
                                                 onClick={() => {
                                                     const features = settings.whySiniCarFeatures || [];
@@ -870,7 +869,7 @@ export const AdminSettings: React.FC = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-600 mb-1">العنوان</label>
+                                            <label className="block text-xs font-bold text-slate-600 mb-1">{t('adminSettings.title')}</label>
                                             <input 
                                                 type="text" 
                                                 value={feature.title}
@@ -888,7 +887,7 @@ export const AdminSettings: React.FC = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-600 mb-1">الوصف</label>
+                                            <label className="block text-xs font-bold text-slate-600 mb-1">{t('adminSettings.description')}</label>
                                             <textarea 
                                                 value={feature.description}
                                                 onChange={e => {
@@ -907,7 +906,7 @@ export const AdminSettings: React.FC = () => {
 
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-xs font-bold text-slate-600 mb-1">الأيقونة</label>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1">{t('adminSettings.icon')}</label>
                                                 <select 
                                                     value={feature.icon}
                                                     onChange={e => {
@@ -921,20 +920,20 @@ export const AdminSettings: React.FC = () => {
                                                     className="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm"
                                                     data-testid={`select-feature-icon-${idx}`}
                                                 >
-                                                    <option value="box">صندوق</option>
-                                                    <option value="chart">مخطط</option>
-                                                    <option value="anchor">مرساة</option>
-                                                    <option value="headphones">سماعات</option>
-                                                    <option value="truck">شاحنة</option>
-                                                    <option value="shield">درع</option>
-                                                    <option value="globe">كرة أرضية</option>
-                                                    <option value="star">نجمة</option>
-                                                    <option value="clock">ساعة</option>
-                                                    <option value="award">جائزة</option>
+                                                    <option value="box">{t('adminSettings.iconBox')}</option>
+                                                    <option value="chart">{t('adminSettings.iconChart')}</option>
+                                                    <option value="anchor">{t('adminSettings.iconAnchor')}</option>
+                                                    <option value="headphones">{t('adminSettings.iconHeadphones')}</option>
+                                                    <option value="truck">{t('adminSettings.iconTruck')}</option>
+                                                    <option value="shield">{t('adminSettings.iconShield')}</option>
+                                                    <option value="globe">{t('adminSettings.iconGlobe')}</option>
+                                                    <option value="star">{t('adminSettings.iconStar')}</option>
+                                                    <option value="clock">{t('adminSettings.iconClock')}</option>
+                                                    <option value="award">{t('adminSettings.iconAward')}</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-slate-600 mb-1">لون الأيقونة</label>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1">{t('adminSettings.iconColor')}</label>
                                                 <select 
                                                     value={feature.iconColor}
                                                     onChange={e => {
@@ -948,14 +947,14 @@ export const AdminSettings: React.FC = () => {
                                                     className="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm"
                                                     data-testid={`select-feature-color-${idx}`}
                                                 >
-                                                    <option value="text-cyan-400">سماوي</option>
-                                                    <option value="text-green-400">أخضر</option>
-                                                    <option value="text-amber-400">ذهبي</option>
-                                                    <option value="text-purple-400">بنفسجي</option>
-                                                    <option value="text-red-400">أحمر</option>
-                                                    <option value="text-blue-400">أزرق</option>
-                                                    <option value="text-pink-400">وردي</option>
-                                                    <option value="text-orange-400">برتقالي</option>
+                                                    <option value="text-cyan-400">{t('adminSettings.colorCyan')}</option>
+                                                    <option value="text-green-400">{t('adminSettings.colorGreen')}</option>
+                                                    <option value="text-amber-400">{t('adminSettings.colorGold')}</option>
+                                                    <option value="text-purple-400">{t('adminSettings.colorPurple')}</option>
+                                                    <option value="text-red-400">{t('adminSettings.colorRed')}</option>
+                                                    <option value="text-blue-400">{t('adminSettings.colorBlue')}</option>
+                                                    <option value="text-pink-400">{t('adminSettings.colorPink')}</option>
+                                                    <option value="text-orange-400">{t('adminSettings.colorOrange')}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -988,16 +987,16 @@ export const AdminSettings: React.FC = () => {
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-8 animate-slide-up">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                <Palette className="text-purple-500" /> المظهر والتخصيص
+                                <Palette className="text-purple-500" /> {t('adminSettings.appearanceCustomization')}
                             </h2>
                             <button onClick={handleSaveGeneral} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50">
-                                حفظ التغييرات
+                                {t('adminSettings.saveChanges')}
                             </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                              <div>
-                                 <label className="block text-sm font-bold text-slate-700 mb-4">لون الهوية الأساسي</label>
+                                 <label className="block text-sm font-bold text-slate-700 mb-4">{t('adminSettings.primaryColor')}</label>
                                  <div className="flex items-center gap-4">
                                      <div className="w-16 h-16 rounded-xl shadow-md border-4 border-white ring-1 ring-slate-200" style={{backgroundColor: settings.primaryColor}}></div>
                                      <input 
@@ -1007,11 +1006,11 @@ export const AdminSettings: React.FC = () => {
                                         className="h-12 w-32 p-1 rounded-lg cursor-pointer" 
                                      />
                                  </div>
-                                 <p className="text-xs text-slate-500 mt-2">يؤثر هذا اللون على الأزرار، الروابط، والعناوين الرئيسية.</p>
+                                 <p className="text-xs text-slate-500 mt-2">{t('adminSettings.primaryColorDesc')}</p>
                              </div>
 
                              <div>
-                                 <label className="block text-sm font-bold text-slate-700 mb-4">شعار الموقع (Logo)</label>
+                                 <label className="block text-sm font-bold text-slate-700 mb-4">{t('adminSettings.siteLogo')}</label>
                                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors">
                                      {settings.logoUrl ? (
                                          <div className="relative w-fit mx-auto">
@@ -1019,9 +1018,9 @@ export const AdminSettings: React.FC = () => {
                                              <button onClick={() => setSettings({...settings, logoUrl: ''})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X size={12}/></button>
                                          </div>
                                      ) : (
-                                         <div className="text-slate-400 cursor-pointer" onClick={() => addToast('خاصية الرفع غير مفعلة في النسخة التجريبية', 'info')}>
+                                         <div className="text-slate-400 cursor-pointer" onClick={() => addToast(t('adminSettings.uploadNotAvailable'), 'info')}>
                                              <Upload className="mx-auto mb-2" />
-                                             <span className="text-xs font-bold">اضغط لرفع الشعار</span>
+                                             <span className="text-xs font-bold">{t('adminSettings.clickToUploadLogo')}</span>
                                          </div>
                                      )}
                                  </div>
@@ -1030,11 +1029,11 @@ export const AdminSettings: React.FC = () => {
                         
                         <div className="bg-slate-900 text-white p-6 rounded-xl flex items-center justify-between">
                              <div>
-                                 <h4 className="font-bold">معاينة حية</h4>
-                                 <p className="text-sm opacity-70">هكذا سيظهر الزر الرئيسي باللون المختار</p>
+                                 <h4 className="font-bold">{t('adminSettings.livePreview')}</h4>
+                                 <p className="text-sm opacity-70">{t('adminSettings.livePreviewDesc')}</p>
                              </div>
                              <button style={{backgroundColor: settings.primaryColor}} className="px-6 py-3 rounded-lg font-bold shadow-lg">
-                                 مثال للزر الرئيسي
+                                 {t('adminSettings.primaryButtonExample')}
                              </button>
                         </div>
                     </div>
@@ -1071,17 +1070,17 @@ interface StatusDefinition {
     sortOrder?: number;
 }
 
-const STATUS_CATEGORIES = [
-    { key: 'orderStatus', label: 'حالات الطلبات (الظاهرة للعميل)', icon: <ShoppingCart size={16} /> },
-    { key: 'orderInternalStatus', label: 'حالات الطلبات الداخلية', icon: <Warehouse size={16} /> },
-    { key: 'accountRequestStatus', label: 'حالات طلبات الحسابات', icon: <Users size={16} /> },
-    { key: 'quoteRequestStatus', label: 'حالات طلبات التسعير', icon: <DollarSign size={16} /> },
-    { key: 'quoteItemStatus', label: 'حالات أصناف التسعير', icon: <FileText size={16} /> },
-    { key: 'missingStatus', label: 'حالات النواقص', icon: <Package size={16} /> },
-    { key: 'importRequestStatus', label: 'حالات طلبات الاستيراد', icon: <Truck size={16} /> },
-    { key: 'customerStatus', label: 'حالات العملاء', icon: <Globe size={16} /> },
-    { key: 'staffStatus', label: 'حالات الموظفين', icon: <Users size={16} /> }
-] as const;
+const getStatusCategories = (t: (key: string) => string) => [
+    { key: 'orderStatus', label: t('adminSettings.statusCategories.orderStatus'), icon: <ShoppingCart size={16} /> },
+    { key: 'orderInternalStatus', label: t('adminSettings.statusCategories.orderInternalStatus'), icon: <Warehouse size={16} /> },
+    { key: 'accountRequestStatus', label: t('adminSettings.statusCategories.accountRequestStatus'), icon: <Users size={16} /> },
+    { key: 'quoteRequestStatus', label: t('adminSettings.statusCategories.quoteRequestStatus'), icon: <DollarSign size={16} /> },
+    { key: 'quoteItemStatus', label: t('adminSettings.statusCategories.quoteItemStatus'), icon: <FileText size={16} /> },
+    { key: 'missingStatus', label: t('adminSettings.statusCategories.missingStatus'), icon: <Package size={16} /> },
+    { key: 'importRequestStatus', label: t('adminSettings.statusCategories.importRequestStatus'), icon: <Truck size={16} /> },
+    { key: 'customerStatus', label: t('adminSettings.statusCategories.customerStatus'), icon: <Globe size={16} /> },
+    { key: 'staffStatus', label: t('adminSettings.statusCategories.staffStatus'), icon: <Users size={16} /> }
+];
 
 const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onUpdate, onSave, saving }) => {
     const [selectedCategory, setSelectedCategory] = useState<string>('orderStatus');
@@ -1097,7 +1096,9 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [checkingUsage, setCheckingUsage] = useState(false);
     const { addToast } = useToast();
+    const { t } = useLanguage();
 
+    const STATUS_CATEGORIES = getStatusCategories(t);
     const statusLabels = settings.statusLabels;
     if (!statusLabels) return null;
 
@@ -1144,7 +1145,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         
         await MockApi.updateStatusLabels(updatedLabels);
         setEditingStatus(null);
-        addToast('تم تحديث الحالة بنجاح', 'success');
+        addToast(t('adminSettings.statusUpdated'), 'success');
     };
 
     const handleEditCancel = () => {
@@ -1153,13 +1154,13 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
 
     const handleAddStatus = async () => {
         if (!newStatusKey.trim() || !newStatusLabel.trim()) {
-            addToast('يرجى تعبئة المفتاح والاسم', 'error');
+            addToast(t('adminSettings.fillKeyAndName'), 'error');
             return;
         }
         
         const keyFormatted = newStatusKey.trim().toUpperCase().replace(/\s+/g, '_');
         if (currentCategory[keyFormatted]) {
-            addToast('هذا المفتاح موجود بالفعل', 'error');
+            addToast(t('adminSettings.keyExists'), 'error');
             return;
         }
 
@@ -1191,13 +1192,13 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         setNewStatusLabel('');
         setNewStatusColor('#6b7280');
         setNewStatusBgColor('#f3f4f6');
-        addToast('تم إضافة الحالة الجديدة بنجاح', 'success');
+        addToast(t('adminSettings.statusAdded'), 'success');
     };
 
     const handleDeleteStatus = async (statusKey: string) => {
         const status = currentCategory[statusKey];
         if (status.isSystem) {
-            addToast('لا يمكن حذف حالة نظامية', 'error');
+            addToast(t('adminSettings.cannotDeleteSystem'), 'error');
             return;
         }
 
@@ -1206,7 +1207,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         setCheckingUsage(false);
 
         if (usageCount > 0) {
-            addToast(`لا يمكن الحذف، يوجد ${usageCount} سجل يستخدم هذه الحالة`, 'error');
+            addToast(t('adminSettings.cannotDeleteInUse', { count: usageCount }), 'error');
             setDeleteConfirm(null);
             return;
         }
@@ -1226,7 +1227,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         
         await MockApi.updateStatusLabels(updatedLabels);
         setDeleteConfirm(null);
-        addToast('تم حذف الحالة بنجاح', 'success');
+        addToast(t('adminSettings.statusDeleted'), 'success');
     };
 
     const handleSetDefault = async (statusKey: string) => {
@@ -1246,22 +1247,22 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
         });
         
         await MockApi.updateStatusLabels(updatedLabels);
-        addToast('تم تعيين الحالة الافتراضية', 'success');
+        addToast(t('adminSettings.defaultStatusSet'), 'success');
     };
 
     return (
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <Tags className="text-orange-500" /> إدارة حالات النظام
+                    <Tags className="text-orange-500" /> {t('adminSettings.statusLabelsManagement')}
                 </h2>
                 <button onClick={onSave} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2" data-testid="button-save-status-labels">
-                    <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                    <Save size={18} /> {saving ? t('adminSettings.saving') : t('adminSettings.saveChanges')}
                 </button>
             </div>
 
             <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-xl">
-                يمكنك من هنا تخصيص مسميات الحالات وألوانها التي تظهر في لوحة التحكم وللعملاء. الحالات النظامية محمية ولا يمكن حذفها، لكن يمكن تعديل اسمها ولونها.
+                {t('adminSettings.statusLabelsDescription')}
             </p>
 
             {/* Category Selector */}
@@ -1292,17 +1293,17 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                         className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors"
                         data-testid="button-add-new-status"
                     >
-                        <Plus size={16} /> إضافة حالة جديدة
+                        <Plus size={16} /> {t('adminSettings.addNewStatus')}
                     </button>
                 </div>
 
                 {/* Add New Status Form */}
                 {showAddForm && (
                     <div className="bg-brand-50 p-6 border-b border-brand-200 animate-slide-up">
-                        <h4 className="font-bold text-brand-800 mb-4 flex items-center gap-2"><Plus size={18} /> إضافة حالة جديدة</h4>
+                        <h4 className="font-bold text-brand-800 mb-4 flex items-center gap-2"><Plus size={18} /> {t('adminSettings.addNewStatus')}</h4>
                         <div className="flex flex-wrap items-end gap-4">
                             <div className="flex-1 min-w-[150px]">
-                                <label className="block text-xs text-slate-500 mb-1">المفتاح (بالإنجليزية)</label>
+                                <label className="block text-xs text-slate-500 mb-1">{t('adminSettings.statusKey')}</label>
                                 <input
                                     type="text"
                                     value={newStatusKey}
@@ -1313,18 +1314,18 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                 />
                             </div>
                             <div className="flex-1 min-w-[150px]">
-                                <label className="block text-xs text-slate-500 mb-1">اسم الحالة (بالعربية)</label>
+                                <label className="block text-xs text-slate-500 mb-1">{t('adminSettings.statusLabel')}</label>
                                 <input
                                     type="text"
                                     value={newStatusLabel}
                                     onChange={e => setNewStatusLabel(e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-lg text-sm font-bold"
-                                    placeholder="حالة جديدة"
+                                    placeholder={t('adminSettings.newStatus')}
                                     data-testid="input-new-status-label"
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <label className="text-xs text-slate-500">النص:</label>
+                                <label className="text-xs text-slate-500">{t('adminSettings.textColor')}:</label>
                                 <input
                                     type="color"
                                     value={newStatusColor}
@@ -1334,7 +1335,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <label className="text-xs text-slate-500">الخلفية:</label>
+                                <label className="text-xs text-slate-500">{t('adminSettings.backgroundColor')}:</label>
                                 <input
                                     type="color"
                                     value={newStatusBgColor}
@@ -1347,21 +1348,21 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                 className="px-3 py-1 rounded-full text-xs font-bold"
                                 style={{ backgroundColor: newStatusBgColor, color: newStatusColor }}
                             >
-                                {newStatusLabel || 'معاينة'}
+                                {newStatusLabel || t('adminSettings.preview')}
                             </div>
                             <button 
                                 onClick={handleAddStatus}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
                                 data-testid="button-confirm-add-status"
                             >
-                                إضافة
+                                {t('adminSettings.add')}
                             </button>
                             <button 
                                 onClick={() => setShowAddForm(false)}
                                 className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition-colors"
                                 data-testid="button-cancel-add-status"
                             >
-                                إلغاء
+                                {t('common.cancel')}
                             </button>
                         </div>
                     </div>
@@ -1377,11 +1378,11 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         value={tempLabel}
                                         onChange={e => setTempLabel(e.target.value)}
                                         className="flex-1 min-w-[150px] p-2 border border-slate-300 rounded-lg text-sm font-bold"
-                                        placeholder="اسم الحالة"
+                                        placeholder={t('adminSettings.statusLabel')}
                                         data-testid="input-edit-status-label"
                                     />
                                     <div className="flex items-center gap-2">
-                                        <label className="text-xs text-slate-500">لون النص:</label>
+                                        <label className="text-xs text-slate-500">{t('adminSettings.textColor')}:</label>
                                         <input
                                             type="color"
                                             value={tempColor}
@@ -1391,7 +1392,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <label className="text-xs text-slate-500">لون الخلفية:</label>
+                                        <label className="text-xs text-slate-500">{t('adminSettings.backgroundColor')}:</label>
                                         <input
                                             type="color"
                                             value={tempBgColor}
@@ -1404,7 +1405,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         className="px-3 py-1 rounded-full text-xs font-bold"
                                         style={{ backgroundColor: tempBgColor, color: tempColor }}
                                     >
-                                        {tempLabel || 'معاينة'}
+                                        {tempLabel || t('adminSettings.preview')}
                                     </div>
                                     <div className="flex gap-2">
                                         <button 
@@ -1426,7 +1427,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                             ) : deleteConfirm === key ? (
                                 <div className="flex-1 flex items-center justify-between">
                                     <span className="text-red-600 font-bold text-sm">
-                                        {checkingUsage ? 'جاري التحقق من الاستخدام...' : 'هل أنت متأكد من الحذف؟'}
+                                        {checkingUsage ? t('adminSettings.checkingUsage') : t('adminSettings.confirmDelete')}
                                     </span>
                                     <div className="flex gap-2">
                                         <button 
@@ -1435,14 +1436,14 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                             className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
                                             data-testid="button-confirm-delete-status"
                                         >
-                                            نعم، احذف
+                                            {t('adminSettings.yesDelete')}
                                         </button>
                                         <button 
                                             onClick={() => setDeleteConfirm(null)}
                                             className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors"
                                             data-testid="button-cancel-delete-status"
                                         >
-                                            إلغاء
+                                            {t('common.cancel')}
                                         </button>
                                     </div>
                                 </div>
@@ -1458,12 +1459,12 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         </span>
                                         {value.isSystem && (
                                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold flex items-center gap-1">
-                                                <ShieldCheck size={10} /> نظامي
+                                                <ShieldCheck size={10} /> {t('adminSettings.systemStatus')}
                                             </span>
                                         )}
                                         {value.isDefault && (
                                             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-bold flex items-center gap-1">
-                                                <Star size={10} /> افتراضي
+                                                <Star size={10} /> {t('adminSettings.defaultStatus')}
                                             </span>
                                         )}
                                         {value.sortOrder && (
@@ -1475,7 +1476,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                             <button 
                                                 onClick={() => handleSetDefault(key)}
                                                 className="p-2 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
-                                                title="تعيين كافتراضي"
+                                                title={t('adminSettings.setAsDefault')}
                                                 data-testid={`button-set-default-${key}`}
                                             >
                                                 <Star size={16} />
@@ -1484,7 +1485,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                         <button 
                                             onClick={() => handleEditStart(key)}
                                             className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                                            title="تعديل"
+                                            title={t('common.edit')}
                                             data-testid={`button-edit-status-${key}`}
                                         >
                                             <Pencil size={16} />
@@ -1493,7 +1494,7 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
                                             <button 
                                                 onClick={() => setDeleteConfirm(key)}
                                                 className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="حذف"
+                                                title={t('common.delete')}
                                                 data-testid={`button-delete-status-${key}`}
                                             >
                                                 <Trash2 size={16} />
@@ -1509,12 +1510,12 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-800 text-sm">
-                    <div className="flex items-center gap-2 font-bold mb-2"><ShieldCheck size={16} /> الحالات النظامية</div>
-                    محمية ولا يمكن حذفها، لكن يمكنك تعديل الاسم واللون فقط. هذه الحالات مرتبطة بمنطق النظام الأساسي.
+                    <div className="flex items-center gap-2 font-bold mb-2"><ShieldCheck size={16} /> {t('adminSettings.systemStatuses')}</div>
+                    {t('adminSettings.systemStatusesDesc')}
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm">
-                    <div className="flex items-center gap-2 font-bold mb-2"><Star size={16} /> الحالة الافتراضية</div>
-                    تُستخدم عند إنشاء سجلات جديدة. يمكنك تعيين أي حالة كافتراضية عبر أيقونة النجمة.
+                    <div className="flex items-center gap-2 font-bold mb-2"><Star size={16} /> {t('adminSettings.defaultStatusInfo')}</div>
+                    {t('adminSettings.defaultStatusInfoDesc')}
                 </div>
             </div>
         </div>
