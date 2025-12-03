@@ -115,6 +115,9 @@ export interface AccountOpeningRequest {
 
   createdAt: string;
   updatedAt?: string;
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
 }
 
 // ------------------------------------------
@@ -426,6 +429,9 @@ export interface QuoteRequest {
   approvedItemsCount?: number;
   missingItemsCount?: number;
   resultReady?: boolean; // Is ready for customer download
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
 }
 
 // --- Missing Parts (Nawaqis) ---
@@ -473,6 +479,9 @@ export interface MissingProductRequest {
   status?: MissingStatus;
   adminNotes?: string;
   importRequestId?: string;         // Link to future import request
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
 }
 
 // --- New Features Interfaces ---
@@ -563,6 +572,9 @@ export interface ImportRequest {
   // ملاحظات إدارية داخلية:
   adminNotes?: string | null;
   assignedSalesRepId?: string | null; // الموظف المسؤول عن الاستيراد
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
 }
 
 export interface Banner {
