@@ -622,7 +622,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
             </div>
 
             {showAddModal && (
-                <Modal onClose={() => setShowAddModal(false)}>
+                <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
                     <div className="p-6 max-w-lg w-full">
                         <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
                             <Plus className="text-[#C8A04F]" size={24} />
@@ -753,7 +753,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
             )}
 
             {showEditModal && selectedUser && (
-                <Modal onClose={() => setShowEditModal(false)}>
+                <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)}>
                     <div className="p-6 max-w-lg w-full">
                         <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
                             <Edit2 className="text-[#C8A04F]" size={24} />
@@ -868,7 +868,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
             )}
 
             {showResetPasswordModal && selectedUser && (
-                <Modal onClose={() => setShowResetPasswordModal(false)}>
+                <Modal isOpen={showResetPasswordModal} onClose={() => setShowResetPasswordModal(false)}>
                     <div className="p-6 max-w-md w-full">
                         <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
                             <Key className="text-purple-600" size={24} />
@@ -920,7 +920,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
             )}
 
             {showToggleConfirm && selectedUser && (
-                <Modal onClose={() => setShowToggleConfirm(false)}>
+                <Modal isOpen={showToggleConfirm} onClose={() => setShowToggleConfirm(false)}>
                     <div className="p-6 max-w-md w-full text-center">
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
                             selectedUser.isActive ? 'bg-amber-100' : 'bg-green-100'
@@ -966,7 +966,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
             )}
 
             {showDeleteConfirm && selectedUser && (
-                <Modal onClose={() => setShowDeleteConfirm(false)}>
+                <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
                     <div className="p-6 max-w-md w-full text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="text-red-600" size={32} />
@@ -1343,7 +1343,7 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
             </div>
 
             {showAddModal && (
-                <Modal onClose={() => setShowAddModal(false)}>
+                <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
                     <div className="p-6 max-w-md w-full">
                         <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
                             <Plus className="text-[#C8A04F]" size={24} />
@@ -1404,7 +1404,7 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
             )}
 
             {showEditModal && selectedRole && (
-                <Modal onClose={() => setShowEditModal(false)}>
+                <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)}>
                     <div className="p-6 max-w-md w-full">
                         <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
                             <Edit2 className="text-[#C8A04F]" size={24} />
@@ -1463,7 +1463,7 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
             )}
 
             {showPermissionsEditor && selectedRole && (
-                <Modal onClose={() => setShowPermissionsEditor(false)}>
+                <Modal isOpen={showPermissionsEditor} onClose={() => setShowPermissionsEditor(false)}>
                     <div className="p-6 max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
@@ -1576,7 +1576,7 @@ const RolesTab: React.FC<RolesTabProps> = ({ onRefresh }) => {
             )}
 
             {showDeleteConfirm && selectedRole && (
-                <Modal onClose={() => setShowDeleteConfirm(false)}>
+                <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
                     <div className="p-6 max-w-md w-full text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="text-red-600" size={32} />
