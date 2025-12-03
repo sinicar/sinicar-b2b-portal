@@ -84,9 +84,8 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
     }, [hasPermission]);
 
     const refreshPermissions = useCallback(async () => {
-        setLoading(true);
-        await loadRole();
-    }, [loadRole]);
+        await loadRole(adminUser);
+    }, [loadRole, adminUser]);
 
     const value: PermissionContextType = {
         adminUser,
