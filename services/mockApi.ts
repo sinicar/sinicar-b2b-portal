@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, AdminRole } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -298,7 +298,8 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'siniCar_notifications_v2',
   ACTIVITY_LOGS: 'siniCar_activity_logs',
   EXCEL_COLUMN_PRESETS: 'siniCar_excel_column_presets',
-  STATUS_LABELS: 'siniCar_status_labels_v1'
+  STATUS_LABELS: 'siniCar_status_labels_v1',
+  ADMIN_USERS: 'siniCar_admin_users_v1'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -2784,5 +2785,188 @@ export const MockApi = {
           imports: imports.filter(r => r.isNew === true).length,
           missing: missing.filter(r => r.isNew === true).length
       };
+  },
+
+  // --- Admin Users Management ---
+
+  getDefaultAdminUsers(): AdminUser[] {
+      return [
+          {
+              id: 'admin-1',
+              name: 'أحمد المشرف',
+              username: 'admin',
+              phone: '0500000001',
+              email: 'admin@sinicar.com',
+              role: 'SUPER_ADMIN',
+              isActive: true,
+              lastLoginAt: new Date().toISOString(),
+              createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'admin-2',
+              name: 'محمد المدير',
+              username: 'manager',
+              phone: '0500000002',
+              email: 'manager@sinicar.com',
+              role: 'ADMIN',
+              isActive: true,
+              lastLoginAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+              createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'admin-3',
+              name: 'خالد مدير المبيعات',
+              username: 'sales_mgr',
+              phone: '0500000003',
+              role: 'SALES_MANAGER',
+              isActive: true,
+              lastLoginAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+              createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'admin-4',
+              name: 'سعد مندوب المبيعات',
+              username: 'sales_agent',
+              phone: '0500000004',
+              role: 'SALES_AGENT',
+              isActive: true,
+              createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+              id: 'admin-5',
+              name: 'فهد المشاهد',
+              username: 'viewer',
+              phone: '0500000005',
+              role: 'VIEWER',
+              isActive: false,
+              createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+          }
+      ];
+  },
+
+  async getAdminUsers(): Promise<AdminUser[]> {
+      let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USERS) || 'null') as AdminUser[] | null;
+      if (!users) {
+          users = this.getDefaultAdminUsers();
+          localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      }
+      return users;
+  },
+
+  async createAdminUser(userData: Omit<AdminUser, 'id' | 'createdAt'>): Promise<AdminUser> {
+      const users = await this.getAdminUsers();
+      
+      // Check for duplicate username
+      if (users.some(u => u.username === userData.username)) {
+          throw new Error('اسم المستخدم موجود بالفعل');
+      }
+      
+      const newUser: AdminUser = {
+          ...userData,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString()
+      };
+      
+      users.push(newUser);
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم إنشاء مستخدم جديد: ${newUser.name} (${newUser.username})`,
+          metadata: { adminUserId: newUser.id, action: 'create_admin_user' }
+      });
+      
+      return newUser;
+  },
+
+  async updateAdminUser(id: string, updates: Partial<AdminUser>): Promise<AdminUser | null> {
+      const users = await this.getAdminUsers();
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index === -1) return null;
+      
+      // Check for duplicate username if changing username
+      if (updates.username && updates.username !== users[index].username) {
+          if (users.some(u => u.username === updates.username && u.id !== id)) {
+              throw new Error('اسم المستخدم موجود بالفعل');
+          }
+      }
+      
+      users[index] = { ...users[index], ...updates };
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم تحديث بيانات المستخدم: ${users[index].name}`,
+          metadata: { adminUserId: id, action: 'update_admin_user', updates }
+      });
+      
+      return users[index];
+  },
+
+  async toggleAdminUserStatus(id: string): Promise<AdminUser | null> {
+      const users = await this.getAdminUsers();
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index === -1) return null;
+      
+      // Prevent deactivating the last active super admin
+      if (users[index].role === 'SUPER_ADMIN' && users[index].isActive) {
+          const activeSuperAdmins = users.filter(u => u.role === 'SUPER_ADMIN' && u.isActive);
+          if (activeSuperAdmins.length <= 1) {
+              throw new Error('لا يمكن إيقاف المشرف العام الوحيد النشط');
+          }
+      }
+      
+      users[index].isActive = !users[index].isActive;
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      const action = users[index].isActive ? 'تفعيل' : 'إيقاف';
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: users[index].isActive ? 'USER_REACTIVATED' : 'USER_SUSPENDED',
+          description: `تم ${action} المستخدم: ${users[index].name}`,
+          metadata: { adminUserId: id, action: 'toggle_admin_user_status' }
+      });
+      
+      return users[index];
+  },
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+      const users = await this.getAdminUsers();
+      const userToDelete = users.find(u => u.id === id);
+      
+      if (!userToDelete) return false;
+      
+      // Prevent deleting the last super admin
+      if (userToDelete.role === 'SUPER_ADMIN') {
+          const superAdmins = users.filter(u => u.role === 'SUPER_ADMIN');
+          if (superAdmins.length <= 1) {
+              throw new Error('لا يمكن حذف المشرف العام الوحيد');
+          }
+      }
+      
+      const filteredUsers = users.filter(u => u.id !== id);
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(filteredUsers));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: `تم حذف المستخدم: ${userToDelete.name} (${userToDelete.username})`,
+          metadata: { adminUserId: id, action: 'delete_admin_user' }
+      });
+      
+      return true;
+  },
+
+  async getAdminUserById(id: string): Promise<AdminUser | null> {
+      const users = await this.getAdminUsers();
+      return users.find(u => u.id === id) || null;
   }
 };
