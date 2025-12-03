@@ -780,6 +780,29 @@ export const MockApi = {
     let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
     let profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
 
+    // Ensure demo staff user exists (even if demo owner was already created in previous session)
+    const demoStaffExists = users.find((u: User) => u.phone === '0500056988' && u.role === 'CUSTOMER_STAFF');
+    if (!demoStaffExists) {
+        const demoStaffUser: User = {
+            id: 'demo-staff-id',
+            clientId: 'STAFF-001',
+            name: 'موظف تجريبي',
+            email: 'staff@sinicar.com',
+            phone: '0500056988',
+            activationCode: '381960',
+            role: 'CUSTOMER_STAFF',
+            parentId: 'demo-user-id',
+            businessId: 'demo-user-id',
+            searchLimit: 20,
+            searchUsed: 0,
+            status: 'ACTIVE',
+            isApproved: true,
+            accountStatus: 'ACTIVE'
+        };
+        users.push(demoStaffUser);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+
     if (identifier === '1' && secret === '1' && type === 'OWNER') {
         const demoUserExists = users.find((u: User) => u.clientId === '1');
         if (!demoUserExists) {
