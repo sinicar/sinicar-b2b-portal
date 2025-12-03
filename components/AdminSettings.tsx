@@ -277,6 +277,44 @@ export const AdminSettings: React.FC = () => {
                              </div>
                         </div>
 
+                        {/* Product Visibility & Search Settings */}
+                        <div className="mt-8 border-t border-slate-100 pt-8">
+                             <div className="flex items-center gap-3 mb-6">
+                                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Eye size={20} /></div>
+                                 <h3 className="font-bold text-lg text-slate-800">إعدادات عرض المنتجات والبحث</h3>
+                             </div>
+                             
+                             <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     <div>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">أقل كمية لظهور المنتج للعملاء</label>
+                                         <input 
+                                            type="number" 
+                                            min={0}
+                                            className="w-full p-3 bg-white border border-slate-300 rounded-lg"
+                                            value={settings.minVisibleQty ?? 1}
+                                            onChange={e => setSettings({...settings, minVisibleQty: parseInt(e.target.value) || 0})}
+                                         />
+                                         <p className="text-xs text-slate-500 mt-1">المنتجات التي كميتها أقل من هذا الرقم لن تظهر للعملاء (الافتراضي: 1)</p>
+                                     </div>
+                                     <div>
+                                         <label className="block text-sm font-bold text-slate-700 mb-2">عتبة المخزون (نفذت الكمية)</label>
+                                         <input 
+                                            type="number" 
+                                            min={0}
+                                            className="w-full p-3 bg-white border border-slate-300 rounded-lg"
+                                            value={settings.stockThreshold ?? 0}
+                                            onChange={e => setSettings({...settings, stockThreshold: parseInt(e.target.value) || 0})}
+                                         />
+                                         <p className="text-xs text-slate-500 mt-1">المنتجات التي كميتها أقل من أو تساوي هذا الرقم تظهر كـ "نفذت الكمية" (الافتراضي: 0)</p>
+                                     </div>
+                                 </div>
+                                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-700">
+                                     <strong>ملاحظة:</strong> هذه الإعدادات تؤثر على نتائج البحث وعرض المنتجات للعملاء. المنتجات ذات الكمية المنخفضة ستظهر بدون سعر.
+                                 </div>
+                             </div>
+                        </div>
+
                         <div className="bg-red-50 p-6 rounded-xl border border-red-100 mt-8">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">

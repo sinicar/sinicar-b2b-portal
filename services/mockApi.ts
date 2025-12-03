@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -292,7 +292,8 @@ const STORAGE_KEYS = {
   IMPORT_REQUESTS: 'b2b_import_requests_sini_v2',
   ACCOUNT_REQUESTS: 'siniCar_account_opening_requests',
   NOTIFICATIONS: 'siniCar_notifications_v2',
-  ACTIVITY_LOGS: 'siniCar_activity_logs'
+  ACTIVITY_LOGS: 'siniCar_activity_logs',
+  EXCEL_COLUMN_PRESETS: 'siniCar_excel_column_presets'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -1330,6 +1331,174 @@ export const MockApi = {
       return updated;
   },
 
+  // --- Search Pipeline Helpers ---
+  getStockThreshold(): number {
+      const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}') as SiteSettings;
+      return settings.stockThreshold ?? 0;
+  },
+
+  getMinVisibleQty(): number {
+      const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}') as SiteSettings;
+      return settings.minVisibleQty ?? 1;
+  },
+
+  async logMissingPartFromSearch(data: {
+      partNumber: string;
+      normalizedPartNumber: string;
+      productId?: string;
+      productName?: string;
+      brand?: string;
+      customerId: string | null;
+      customerName?: string;
+      carInfo?: string;
+      branchId?: string;
+      availabilityStatus: 'not_found' | 'out_of_stock';
+      searchSource: 'heroSearch' | 'catalogSearch' | 'quoteRequest';
+  }): Promise<void> {
+      const today = new Date().toISOString().split('T')[0];
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.MISSING_REQUESTS) || '[]') as MissingProductRequest[];
+      
+      const existingIndex = requests.findIndex(r => 
+          r.normalizedPartNumber === data.normalizedPartNumber && 
+          r.userId === (data.customerId || 'guest') &&
+          r.lastSearchDate === today
+      );
+
+      if (existingIndex >= 0) {
+          const existing = requests[existingIndex];
+          requests[existingIndex] = {
+              ...existing,
+              searchCount: (existing.searchCount || 1) + 1,
+              lastRequestedAt: new Date().toISOString(),
+              totalRequestsCount: (existing.totalRequestsCount || 1) + 1,
+              availabilityStatus: data.availabilityStatus,
+              searchSource: data.searchSource
+          };
+      } else {
+          const newRequest: MissingProductRequest = {
+              id: crypto.randomUUID(),
+              userId: data.customerId || 'guest',
+              userName: data.customerName,
+              query: data.partNumber,
+              partNumber: data.partNumber,
+              normalizedPartNumber: data.normalizedPartNumber,
+              name: data.productName,
+              brand: data.brand,
+              carModel: data.carInfo,
+              branchId: data.branchId,
+              productId: data.productId,
+              createdAt: new Date().toISOString(),
+              source: 'SEARCH',
+              availabilityStatus: data.availabilityStatus,
+              searchSource: data.searchSource,
+              searchCount: 1,
+              lastSearchDate: today,
+              status: 'NEW',
+              totalRequestsCount: 1,
+              uniqueCustomersCount: 1,
+              customerIds: data.customerId ? [data.customerId] : [],
+              lastRequestedAt: new Date().toISOString(),
+              isNew: true
+          };
+          requests.push(newRequest);
+      }
+
+      localStorage.setItem(STORAGE_KEYS.MISSING_REQUESTS, JSON.stringify(requests));
+  },
+
+  // --- Excel Column Presets (CRUD) ---
+  getExcelColumnPresets(): ExcelColumnPreset[] {
+      const stored = localStorage.getItem(STORAGE_KEYS.EXCEL_COLUMN_PRESETS);
+      if (!stored) {
+          const defaultPreset: ExcelColumnPreset = {
+              id: 'default-preset',
+              name: 'الإعداد الافتراضي',
+              isDefault: true,
+              mappings: [
+                  { internalField: 'partNumber', excelHeader: 'رقم الصنف', isEnabled: true, isRequired: true },
+                  { internalField: 'name', excelHeader: 'اسم المنتج', isEnabled: true, isRequired: true },
+                  { internalField: 'brand', excelHeader: 'الماركة', isEnabled: true, isRequired: false },
+                  { internalField: 'qtyTotal', excelHeader: 'الكمية', isEnabled: true, isRequired: true },
+                  { internalField: 'priceWholesale', excelHeader: 'سعر الجملة', isEnabled: true, isRequired: false },
+                  { internalField: 'priceRetail', excelHeader: 'سعر التجزئة', isEnabled: true, isRequired: false },
+              ],
+              createdAt: new Date().toISOString()
+          };
+          localStorage.setItem(STORAGE_KEYS.EXCEL_COLUMN_PRESETS, JSON.stringify([defaultPreset]));
+          return [defaultPreset];
+      }
+      return JSON.parse(stored);
+  },
+
+  getDefaultExcelColumnPreset(): ExcelColumnPreset | null {
+      const presets = this.getExcelColumnPresets();
+      return presets.find(p => p.isDefault) || presets[0] || null;
+  },
+
+  createExcelColumnPreset(preset: Omit<ExcelColumnPreset, 'id' | 'createdAt'>): ExcelColumnPreset {
+      const presets = this.getExcelColumnPresets();
+      const newPreset: ExcelColumnPreset = {
+          ...preset,
+          id: `preset-${Date.now()}`,
+          createdAt: new Date().toISOString()
+      };
+      
+      if (preset.isDefault) {
+          presets.forEach(p => p.isDefault = false);
+      }
+      
+      presets.push(newPreset);
+      localStorage.setItem(STORAGE_KEYS.EXCEL_COLUMN_PRESETS, JSON.stringify(presets));
+      return newPreset;
+  },
+
+  updateExcelColumnPreset(id: string, updates: Partial<ExcelColumnPreset>): ExcelColumnPreset | null {
+      const presets = this.getExcelColumnPresets();
+      const index = presets.findIndex(p => p.id === id);
+      if (index === -1) return null;
+      
+      if (updates.isDefault) {
+          presets.forEach(p => p.isDefault = false);
+      }
+      
+      presets[index] = {
+          ...presets[index],
+          ...updates,
+          updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(STORAGE_KEYS.EXCEL_COLUMN_PRESETS, JSON.stringify(presets));
+      return presets[index];
+  },
+
+  deleteExcelColumnPreset(id: string): boolean {
+      const presets = this.getExcelColumnPresets();
+      const index = presets.findIndex(p => p.id === id);
+      if (index === -1) return false;
+      
+      const wasDefault = presets[index].isDefault;
+      presets.splice(index, 1);
+      
+      if (wasDefault && presets.length > 0) {
+          presets[0].isDefault = true;
+      }
+      
+      localStorage.setItem(STORAGE_KEYS.EXCEL_COLUMN_PRESETS, JSON.stringify(presets));
+      return true;
+  },
+
+  setDefaultExcelColumnPreset(id: string): boolean {
+      const presets = this.getExcelColumnPresets();
+      const index = presets.findIndex(p => p.id === id);
+      if (index === -1) return false;
+      
+      presets.forEach(p => p.isDefault = false);
+      presets[index].isDefault = true;
+      
+      localStorage.setItem(STORAGE_KEYS.EXCEL_COLUMN_PRESETS, JSON.stringify(presets));
+      return true;
+  },
+
   // --- Import From China Requests (Enhanced) ---
   async getImportRequests(): Promise<ImportRequest[]> {
       return JSON.parse(localStorage.getItem(STORAGE_KEYS.IMPORT_REQUESTS) || '[]');
@@ -2201,7 +2370,7 @@ export const MockApi = {
 
   // --- Products Import from Onyx Pro Excel ---
   
-  async importProductsFromOnyxExcel(file: File): Promise<{ imported: number; updated: number; skipped: number; errors: string[] }> {
+  async importProductsFromOnyxExcel(file: File, presetId?: string): Promise<{ imported: number; updated: number; skipped: number; errors: string[] }> {
       const parseNumber = (value: any): number | null => {
           if (value === null || value === undefined || value === '') return null;
           const num = typeof value === 'number' ? value : parseFloat(String(value).replace(/,/g, ''));
@@ -2209,6 +2378,50 @@ export const MockApi = {
       };
 
       const generateId = () => `P-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      
+      const preset = presetId 
+          ? this.getExcelColumnPresets().find(p => p.id === presetId)
+          : this.getDefaultExcelColumnPreset();
+      
+      const getExcelHeader = (internalField: string): string => {
+          if (!preset) {
+              const defaultHeaders: Record<string, string> = {
+                  partNumber: 'رقم الصنف',
+                  name: 'اسم الصنف',
+                  brand: ' الماركة',
+                  qtyTotal: 'الإجمالي',
+                  priceWholesale: 'سعر الجملة',
+                  priceRetail: 'سعر التجزئة',
+                  priceWholeWholesale: 'سعر جملة الجملة',
+                  priceEcommerce: 'سعر المتجر الالكتروني',
+                  qtyStore103: '  كمية المخزن 103',
+                  qtyStore105: '  كمية المخزن 105',
+                  rack103: 'رف المخزن 103',
+                  rack105: 'رف المخزن 105',
+                  carName: ' اسم السيارة',
+                  description: ' المواصفات',
+                  manufacturerPartNumber: 'رقم التصنيع',
+                  globalCategory: ' التصنيف العالمي',
+                  modelYear: ' سنة الصنع',
+                  quality: 'الجودة'
+              };
+              return defaultHeaders[internalField] || internalField;
+          }
+          const mapping = preset.mappings.find(m => m.internalField === internalField && m.isEnabled);
+          return mapping?.excelHeader || internalField;
+      };
+      
+      const getDefaultValue = (internalField: string): any => {
+          if (!preset) return undefined;
+          const mapping = preset.mappings.find(m => m.internalField === internalField);
+          return mapping?.defaultValue;
+      };
+      
+      const isFieldEnabled = (internalField: string): boolean => {
+          if (!preset) return true;
+          const mapping = preset.mappings.find(m => m.internalField === internalField);
+          return mapping?.isEnabled ?? false;
+      };
 
       return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -2232,8 +2445,11 @@ export const MockApi = {
                       const row = jsonData[i] as Record<string, any>;
                       const rowNum = i + 2;
                       
-                      const partNumber = row['رقم الصنف']?.toString().trim();
-                      const name = row['اسم الصنف']?.toString().trim();
+                      const partNumberHeader = getExcelHeader('partNumber');
+                      const nameHeader = getExcelHeader('name');
+                      
+                      const partNumber = row[partNumberHeader]?.toString().trim() || getDefaultValue('partNumber');
+                      const name = row[nameHeader]?.toString().trim() || getDefaultValue('name');
 
                       if (!partNumber) {
                           skipped++;
@@ -2250,24 +2466,24 @@ export const MockApi = {
                           id: generateId(),
                           partNumber,
                           name,
-                          priceRetail: parseNumber(row['سعر التجزئة']),
-                          priceWholesale: parseNumber(row['سعر الجملة']),
-                          priceWholeWholesale: parseNumber(row['سعر جملة الجملة']),
-                          priceEcommerce: parseNumber(row['سعر المتجر الالكتروني']),
-                          qtyStore103: parseNumber(row['  كمية المخزن 103']),
-                          qtyStore105: parseNumber(row['  كمية المخزن 105']),
-                          qtyTotal: parseNumber(row['الإجمالي']),
-                          price: parseNumber(row['سعر الجملة']) || parseNumber(row['سعر التجزئة']) || 0,
-                          stock: parseNumber(row['الإجمالي']) || 0,
-                          brand: row[' الماركة']?.toString().trim() || undefined,
-                          description: row[' المواصفات']?.toString().trim() || undefined,
-                          carName: row[' اسم السيارة']?.toString().trim() || null,
-                          globalCategory: row[' التصنيف العالمي']?.toString().trim() || null,
-                          modelYear: row[' سنة الصنع']?.toString().trim() || null,
-                          quality: row['الجودة']?.toString().trim() || null,
-                          manufacturerPartNumber: row['رقم التصنيع']?.toString().trim() || null,
-                          rack103: row['رف المخزن 103']?.toString().trim() || null,
-                          rack105: row['رف المخزن 105']?.toString().trim() || null,
+                          priceRetail: isFieldEnabled('priceRetail') ? parseNumber(row[getExcelHeader('priceRetail')]) ?? parseNumber(getDefaultValue('priceRetail')) : null,
+                          priceWholesale: isFieldEnabled('priceWholesale') ? parseNumber(row[getExcelHeader('priceWholesale')]) ?? parseNumber(getDefaultValue('priceWholesale')) : null,
+                          priceWholeWholesale: isFieldEnabled('priceWholeWholesale') ? parseNumber(row[getExcelHeader('priceWholeWholesale')]) ?? parseNumber(getDefaultValue('priceWholeWholesale')) : null,
+                          priceEcommerce: isFieldEnabled('priceEcommerce') ? parseNumber(row[getExcelHeader('priceEcommerce')]) ?? parseNumber(getDefaultValue('priceEcommerce')) : null,
+                          qtyStore103: isFieldEnabled('qtyStore103') ? parseNumber(row[getExcelHeader('qtyStore103')]) ?? parseNumber(getDefaultValue('qtyStore103')) : null,
+                          qtyStore105: isFieldEnabled('qtyStore105') ? parseNumber(row[getExcelHeader('qtyStore105')]) ?? parseNumber(getDefaultValue('qtyStore105')) : null,
+                          qtyTotal: isFieldEnabled('qtyTotal') ? parseNumber(row[getExcelHeader('qtyTotal')]) ?? parseNumber(getDefaultValue('qtyTotal')) : 0,
+                          price: parseNumber(row[getExcelHeader('priceWholesale')]) || parseNumber(row[getExcelHeader('priceRetail')]) || 0,
+                          stock: parseNumber(row[getExcelHeader('qtyTotal')]) || 0,
+                          brand: isFieldEnabled('brand') ? row[getExcelHeader('brand')]?.toString().trim() || getDefaultValue('brand') : undefined,
+                          description: isFieldEnabled('description') ? row[getExcelHeader('description')]?.toString().trim() || getDefaultValue('description') : undefined,
+                          carName: isFieldEnabled('carName') ? row[getExcelHeader('carName')]?.toString().trim() || getDefaultValue('carName') : null,
+                          globalCategory: isFieldEnabled('globalCategory') ? row[getExcelHeader('globalCategory')]?.toString().trim() || getDefaultValue('globalCategory') : null,
+                          modelYear: isFieldEnabled('modelYear') ? row[getExcelHeader('modelYear')]?.toString().trim() || getDefaultValue('modelYear') : null,
+                          quality: isFieldEnabled('quality') ? row[getExcelHeader('quality')]?.toString().trim() || getDefaultValue('quality') : null,
+                          manufacturerPartNumber: isFieldEnabled('manufacturerPartNumber') ? row[getExcelHeader('manufacturerPartNumber')]?.toString().trim() || getDefaultValue('manufacturerPartNumber') : null,
+                          rack103: isFieldEnabled('rack103') ? row[getExcelHeader('rack103')]?.toString().trim() || getDefaultValue('rack103') : null,
+                          rack105: isFieldEnabled('rack105') ? row[getExcelHeader('rack105')]?.toString().trim() || getDefaultValue('rack105') : null,
                           createdAt: new Date().toISOString()
                       };
 

@@ -1,0 +1,278 @@
+Prompt to Replit Agent – Strong, clear search engine logic for part numbers
+
+Act as a senior full-stack engineer.
+The primary purpose of this application is to search for car spare parts by part number and route results correctly into the customer UI and the admin “Missing” module.
+
+I want you to redesign and implement a strong, clear, and robust search mechanism for the main part-number search bar on the landing page.
+
+The behavior must be:
+
+Consistent
+
+Predictable
+
+Easy to maintain
+
+Ready for future integration with a real backend API
+
+1. Unified search entry point
+
+Create a single, well-named handler function, for example:
+
+handlePartSearch(partNumberInput: string)
+
+
+Both of these must call this handler:
+
+Pressing Enter inside the search field.
+
+Clicking the search button/icon.
+
+Make sure there’s no duplicate logic; everything goes through handlePartSearch.
+
+2. Input validation & normalization
+
+Inside handlePartSearch:
+
+Trim whitespace from both sides.
+
+Normalize the part number:
+
+Keep leading zeros (e.g. 00415441 must stay as 00415441).
+
+Remove any illegal characters (anything other than digits and allowed letters, if applicable).
+
+If the field is empty or invalid after cleaning:
+
+Show a friendly error message like:
+
+"الرجاء إدخال رقم القطعة بشكل صحيح."
+
+Do not call the search logic.
+
+Encapsulate this logic in a helper function, e.g.:
+
+normalizePartNumber(raw: string): string | null
+
+3. Search pipeline design
+
+Create a clear search pipeline:
+
+async function handlePartSearch(partNumberInput: string) {
+  const normalized = normalizePartNumber(partNumberInput);
+  if (!normalized) { showValidationError(); return; }
+
+  setSearchLoading(true);
+
+  const context = getCurrentCustomerContext(); // customerId, car info, etc.
+
+  const result = await searchPartInCatalog(normalized);
+
+  if (result.type === 'NOT_FOUND') {
+    await handleNotFoundCase(normalized, context);
+  } else if (result.type === 'FOUND_OUT_OF_STOCK') {
+    await handleOutOfStockCase(result.product, context);
+  } else if (result.type === 'FOUND_AVAILABLE') {
+    await handleAvailableCase(result.product, context);
+  }
+
+  setSearchLoading(false);
+}
+
+
+Implement it in this spirit: one clean flow, no nested spaghetti.
+
+4. Catalog search results – define 3 strict cases
+
+Implement a function (in a service module) like:
+
+type SearchResult =
+  | { type: 'NOT_FOUND' }
+  | { type: 'FOUND_OUT_OF_STOCK'; product: Product }
+  | { type: 'FOUND_AVAILABLE'; product: Product };
+
+async function searchPartInCatalog(partNumber: string): Promise<SearchResult>
+
+
+Logic:
+
+Look up the product in the catalog (mockApi/localStorage).
+
+Use a global stock threshold from settings:
+
+If quantity > threshold → FOUND_AVAILABLE
+
+If product exists but quantity ≤ threshold → FOUND_OUT_OF_STOCK
+
+If no product found → NOT_FOUND
+
+This function is the only place that decides these three cases.
+
+5. Case A: NOT_FOUND – log silently to Missing
+
+handleNotFoundCase(partNumber, context) must:
+
+Customer UI:
+
+Show a simple message:
+
+"القطعة غير متوفرة حاليًا."
+
+Do not mention anything about “missing list”, admin, or internal logging.
+
+Admin / Missing module:
+
+Call a reusable service, e.g.:
+
+logMissingPart({
+  partNumber,
+  customerId: context.customerId ?? null,
+  carInfo: context.carInfo ?? null,
+  availabilityStatus: 'not_found',
+  searchSource: 'heroSearch',
+});
+
+
+Store at least:
+
+partNumber
+
+customerId/guest
+
+searchSource = "heroSearch"
+
+availabilityStatus = "not_found"
+
+createdAt timestamp
+
+Avoid uncontrolled duplicates:
+
+If an identical record exists (same partNumber + same customerId + same day), update a counter field instead of creating a new record.
+
+Example extra field: searchCount.
+
+6. Case B: FOUND_OUT_OF_STOCK – show product, hide price, log as missing
+
+handleOutOfStockCase(product, context) must:
+
+Customer UI:
+
+Show product details:
+
+name
+
+brand
+
+part number
+
+image
+
+Do not show any price.
+
+Show message:
+
+"الكمية نفذت حاليًا من هذه القطعة."
+
+Admin / Missing module:
+
+Also call logMissingPart:
+
+logMissingPart({
+  partNumber: product.partNumber,
+  customerId: context.customerId ?? null,
+  carInfo: context.carInfo ?? null,
+  availabilityStatus: 'out_of_stock',
+  searchSource: 'heroSearch',
+  productId: product.id,
+});
+
+
+Same duplicate control logic as in NOT_FOUND case.
+
+7. Case C: FOUND_AVAILABLE – normal behavior, no missing record
+
+handleAvailableCase(product, context):
+
+Show full product details including price and stock.
+
+Do not log anything into Missing.
+
+Keep existing UI behavior (e.g. add to quote/cart) if already implemented.
+
+8. Missing module integration
+
+Ensure the admin Missing (النواقص) page uses these fields:
+
+partNumber
+
+customer
+
+availabilityStatus (not_found / out_of_stock)
+
+searchSource (heroSearch)
+
+createdAt
+
+searchCount (if implemented)
+
+The page should clearly distinguish between:
+
+Parts never seen in catalog (not_found)
+
+Parts known but currently out of stock (out_of_stock)
+
+Also, the Missing sidebar badge should increment only when a new Missing record is created (isNew = true), and should clear according to the unread logic we discussed earlier.
+
+9. Performance & UX
+
+Add a small loading indicator while the search is running.
+
+Use a tiny debounce (e.g. 200–300 ms) only if necessary to avoid duplicate triggers, but don’t delay the user noticeably.
+
+Make sure pressing Enter doesn’t cause a full page reload.
+
+Handle all errors gracefully:
+
+If something unexpected fails, show:
+
+"حدث خطأ غير متوقع، الرجاء المحاولة مرة أخرى."
+
+Log full error details to console for debugging.
+
+10. Clean architecture & TypeScript
+
+Put search-related logic in a dedicated service module (for example searchService.ts) rather than mixing all logic in the component.
+
+Define clear TypeScript types for:
+
+Product
+
+MissingPart
+
+SearchResult
+
+SearchContext (customerId, car info)
+
+Ensure npm run build works with no TypeScript errors or runtime errors in the console.
+
+11. Final verification
+
+After implementing:
+
+Test three explicit scenarios with part numbers:
+
+Number not in catalog → customer sees “غير متوفرة حاليًا”; admin sees new Missing record (not_found).
+
+Number exists but stock = 0 → customer sees product without price and “الكمية نفذت حاليًا”; admin sees Missing record (out_of_stock).
+
+Number exists and stock > threshold → normal product result with price, no Missing record.
+
+Verify:
+
+Both Enter key and search button trigger the same logic.
+
+Badge on Missing page increases only on new missing entries.
+
+No UI changes reveal internal logging to the customer.
+
+End of prompt.

@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react';
-import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings } from '../types';
+import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
   LayoutDashboard, ShoppingCart, Users, Package, LogOut, Search, 
@@ -9,21 +9,22 @@ import {
   Clock, CheckCircle,
   Building2, Trash2, Menu, X,
   ShieldCheck, Headphones, History, AlertTriangle, Loader2, Plus, Globe,
-  FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag
+  FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX
 } from 'lucide-react';
 import { OrdersPage } from './OrdersPage';
 import { QuoteRequestPage } from './QuoteRequestPage';
 import { AboutPage } from './AboutPage';
 import { OrganizationPage } from './OrganizationPage';
 import { ProductCard } from './ProductCard';
-import { ImportFromChinaPage } from './ImportFromChinaPage'; // NEW IMPORT
+import { ImportFromChinaPage } from './ImportFromChinaPage';
 import { Modal } from './Modal';
 import { useLanguage, LanguageSwitcher } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime } from '../utils/dateUtils';
-import { searchProducts } from '../utils/arabicSearch'; // Import Search Engine
-import { UsageIntroModal } from './UsageIntroModal'; // Import Usage Modal
-import { NotificationBell } from './NotificationBell'; // Import Notification Bell
+import { searchProducts } from '../utils/arabicSearch';
+import { UsageIntroModal } from './UsageIntroModal';
+import { NotificationBell } from './NotificationBell';
+import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 
 interface DashboardProps {
   user: User;
@@ -262,6 +263,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const [showSearchDropdown, setShowSearchDropdown] = useState(false);
     const [revealedSearchIds, setRevealedSearchIds] = useState<Set<string>>(new Set());
     
+    // Search Pipeline States
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [pipelineResult, setPipelineResult] = useState<PartSearchResult | null>(null);
+    
     // History State
     const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
 
@@ -361,35 +366,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Track if we've already recorded a missing part for the current search
     const [missingRecorded, setMissingRecorded] = useState<string | null>(null);
 
-    // Enhanced Search Logic (Memoized)
+    // Enhanced Search Logic (Memoized) - Apply minVisibleQty filter for customers
     const searchResults = useMemo(() => {
         if (debouncedSearchQuery.trim().length < 2) return [];
-        const results = searchProducts(debouncedSearchQuery, allProducts);
-        return results.slice(0, 8); // Limit to 8 items
+        const filteredProducts = filterProductsForCustomer(allProducts);
+        const results = searchProducts(debouncedSearchQuery, filteredProducts);
+        return results.slice(0, 8);
     }, [debouncedSearchQuery, allProducts]);
 
-    // Auto-record missing parts when no results found (with deduplication)
+    // Reset pipeline result when search query changes
     useEffect(() => {
-        const trimmedQuery = debouncedSearchQuery.trim();
-        
-        // Only proceed if:
-        // 1. Query is at least 3 characters
-        // 2. No results found
-        // 3. We haven't already recorded this exact query
-        if (
-            trimmedQuery.length >= 3 && 
-            searchResults.length === 0 && 
-            missingRecorded !== trimmedQuery
-        ) {
-            // Record missing part automatically
-            MockApi.logMissingProduct(user.id, trimmedQuery, user.name, 'SEARCH');
-            setMissingRecorded(trimmedQuery);
-        }
-    }, [debouncedSearchQuery, searchResults.length, missingRecorded, user.id, user.name]);
-
-    // Reset missing recorded flag when search query changes significantly
-    useEffect(() => {
-        if (searchQuery.trim().length < 3) {
+        if (searchQuery.trim().length < 2) {
+            setPipelineResult(null);
             setMissingRecorded(null);
         }
     }, [searchQuery]);
@@ -402,12 +390,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         }
     }, [debouncedSearchQuery]);
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
+    const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // If no results and query is valid, show confirmation toast
-        if (searchResults.length === 0 && searchQuery.trim().length >= 3) {
-             addToast('القطعة غير متوفرة حالياً، تم تسجيل طلبك في قائمة النواقص', 'info');
-             setShowSearchDropdown(false);
+        const trimmedQuery = searchQuery.trim();
+        
+        if (trimmedQuery.length < 2) {
+            addToast('الرجاء إدخال رقم القطعة بشكل صحيح.', 'warning');
+            return;
+        }
+        
+        setSearchLoading(true);
+        setPipelineResult(null);
+        
+        try {
+            const context = createSearchContext(user);
+            const result = await handlePartSearch(trimmedQuery, context, 'heroSearch');
+            setPipelineResult(result);
+            
+            if (result.type === 'NOT_FOUND') {
+                addToast(result.message, 'info');
+            } else if (result.type === 'FOUND_OUT_OF_STOCK') {
+                addToast(result.message, 'warning');
+            }
+            
+            setShowSearchDropdown(true);
+        } catch (error) {
+            console.error('Search error:', error);
+            addToast('حدث خطأ غير متوقع، الرجاء المحاولة مرة أخرى.', 'error');
+        } finally {
+            setSearchLoading(false);
         }
     };
 
@@ -611,12 +622,55 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             {/* Search Dropdown Results */}
                                             {showSearchDropdown && (
                                                 <>
-                                                    <div className="fixed inset-0 z-10" onClick={() => setShowSearchDropdown(false)}></div>
+                                                    <div className="fixed inset-0 z-10" onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}></div>
                                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 animate-slide-up text-right max-h-80 overflow-y-auto">
-                                                        {searchResults.length > 0 ? (
+                                                        {searchLoading ? (
+                                                            <div className="p-8 text-center">
+                                                                <Loader2 size={32} className="animate-spin text-brand-600 mx-auto mb-3" />
+                                                                <p className="text-sm font-bold text-slate-600">جاري البحث...</p>
+                                                            </div>
+                                                        ) : pipelineResult?.type === 'FOUND_OUT_OF_STOCK' && pipelineResult.product ? (
+                                                            <div className="p-5">
+                                                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                                                                    <div className="flex items-center gap-2 text-amber-700 mb-2">
+                                                                        <PackageX size={20} />
+                                                                        <span className="font-bold">الكمية نفذت حاليًا من هذه القطعة</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                                                    <div className="p-3 bg-slate-200 rounded-xl text-slate-600">
+                                                                        <Box size={24} />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <p className="font-bold text-slate-800 text-base">{pipelineResult.product.name}</p>
+                                                                        <p className="text-sm text-slate-500 font-mono mt-1">
+                                                                            <span className="bg-white px-2 py-0.5 rounded border border-slate-200 font-bold">{pipelineResult.product.partNumber}</span>
+                                                                            {pipelineResult.product.brand && <span className="mr-2">| {pipelineResult.product.brand}</span>}
+                                                                        </p>
+                                                                    </div>
+                                                                    <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                                                                        نفذت الكمية
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ) : pipelineResult?.type === 'NOT_FOUND' ? (
+                                                            <div className="p-6 text-center">
+                                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-50 text-amber-500 rounded-full mb-4">
+                                                                    <AlertTriangle size={32} />
+                                                                </div>
+                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">القطعة غير متوفرة حالياً</h4>
+                                                                <p className="text-sm text-slate-600">
+                                                                    لم يتم العثور على نتائج لـ: <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
+                                                                </p>
+                                                            </div>
+                                                        ) : searchResults.length > 0 ? (
                                                             <div className="divide-y divide-slate-100">
                                                                 {searchResults.map(product => {
                                                                     const isRevealed = revealedSearchIds.has(product.id) || MockApi.hasRecentPriceView(user.id, product.id);
+                                                                    const qty = product.qtyTotal ?? product.stock ?? 0;
+                                                                    const minVisible = MockApi.getMinVisibleQty();
+                                                                    const isOutOfStock = qty <= 0;
+                                                                    
                                                                     return (
                                                                         <div 
                                                                             key={product.id}
@@ -637,19 +691,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                             </div>
 
                                                                             <div className="flex items-center gap-3">
-                                                                                <span className={`text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-full border ${product.stock > 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                                                                                    {product.stock > 0 ? 'متوفر' : 'غير متوفر'}
+                                                                                <span className={`text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-full border ${!isOutOfStock ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                                                                    {!isOutOfStock ? 'متوفر' : 'نفذت الكمية'}
                                                                                 </span>
 
-                                                                                {isRevealed ? (
-                                                                                    // If Revealed: Show Price Text + Action Button to Open Modal
+                                                                                {isOutOfStock ? (
+                                                                                    <span className="text-xs text-slate-400 font-bold">السعر غير متاح</span>
+                                                                                ) : isRevealed ? (
                                                                                     <div className="flex items-center gap-3">
                                                                                         <div className="flex flex-col items-end px-2">
-                                                                                            <span className="text-sm font-black text-slate-900">{product.price} ر.س</span>
+                                                                                            <span className="text-sm font-black text-slate-900">{product.priceWholesale || product.price} ر.س</span>
                                                                                         </div>
                                                                                         <button 
                                                                                             onClick={(e) => handleRevealPrice(e, product)}
-                                                                                            disabled={product.stock === 0}
                                                                                             className="bg-brand-600 text-white p-2 rounded-lg hover:bg-brand-700 shadow-sm"
                                                                                             title="إضافة للسلة"
                                                                                         >
@@ -657,7 +711,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                                         </button>
                                                                                     </div>
                                                                                 ) : (
-                                                                                    // If NOT Revealed: Show only Reveal Button (Consumes point then opens modal)
                                                                                     <button 
                                                                                         onClick={(e) => handleRevealPrice(e, product)}
                                                                                         className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors flex items-center gap-1"
@@ -671,24 +724,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                     );
                                                                 })}
                                                             </div>
-                                                        ) : (
+                                                        ) : debouncedSearchQuery.trim().length >= 2 ? (
                                                             <div className="p-6 text-center">
-                                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-50 text-amber-500 rounded-full mb-4">
-                                                                    <AlertTriangle size={32} />
+                                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 text-slate-400 rounded-full mb-4">
+                                                                    <Search size={32} />
                                                                 </div>
-                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">القطعة غير متوفرة حالياً</h4>
-                                                                <p className="text-sm text-slate-600 mb-3">
-                                                                    لم يتم العثور على نتائج لـ: <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
+                                                                <h4 className="text-lg font-bold text-slate-800 mb-2">لا توجد نتائج</h4>
+                                                                <p className="text-sm text-slate-600">
+                                                                    اضغط على زر البحث للبحث الدقيق عن: <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">"{searchQuery}"</span>
                                                                 </p>
-                                                                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm">
-                                                                    <CheckCircle size={16} className="inline-block ml-1" />
-                                                                    تم تسجيل طلبك تلقائياً في قائمة النواقص
-                                                                </div>
+                                                            </div>
+                                                        ) : null}
+                                                        {(searchResults.length > 0 || pipelineResult?.type === 'FOUND_AVAILABLE') && (
+                                                            <div className="bg-slate-50 p-2.5 text-center text-xs font-bold text-slate-500 border-t border-slate-100 sticky bottom-0">
+                                                                اضغط على (السعر) لعرض التفاصيل وإضافة المنتج
                                                             </div>
                                                         )}
-                                                        <div className="bg-slate-50 p-2.5 text-center text-xs font-bold text-slate-500 border-t border-slate-100 sticky bottom-0">
-                                                            اضغط على (السعر) لعرض التفاصيل وإضافة المنتج
-                                                        </div>
                                                     </div>
                                                 </>
                                             )}

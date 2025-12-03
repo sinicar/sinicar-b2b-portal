@@ -441,6 +441,12 @@ export interface QuoteRequest {
 
 export type MissingSource = 'QUOTE' | 'SEARCH';
 
+// حالة التوفر عند البحث
+export type MissingAvailabilityStatus = 'not_found' | 'out_of_stock';
+
+// مصدر البحث
+export type SearchSourceType = 'heroSearch' | 'catalogSearch' | 'quoteRequest';
+
 export type MissingStatus =
   | 'NEW'            // نقص جديد لم يُعالَج بعد
   | 'UNDER_REVIEW'   // تحت الدراسة
@@ -477,6 +483,13 @@ export interface MissingProductRequest {
   uniqueCustomersCount?: number;    // How many unique customers
   customerIds?: string[];           // List of user IDs who requested this
   lastRequestedAt?: string;         // Most recent request date
+  
+  // Search Pipeline Fields (New)
+  availabilityStatus?: MissingAvailabilityStatus;  // 'not_found' or 'out_of_stock'
+  searchSource?: SearchSourceType;                  // 'heroSearch', 'catalogSearch', etc.
+  searchCount?: number;                             // عدد مرات البحث عن نفس القطعة (للتجميع)
+  lastSearchDate?: string;                          // آخر تاريخ بحث (YYYY-MM-DD)
+  productId?: string;                               // معرف المنتج إذا كان موجودًا لكن نفذت الكمية
 
   // Management
   status?: MissingStatus;
@@ -485,6 +498,16 @@ export interface MissingProductRequest {
   
   // Admin Badge Tracking
   isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
+}
+
+// --- Search Service Types ---
+
+export type SearchResultType = 'NOT_FOUND' | 'FOUND_OUT_OF_STOCK' | 'FOUND_AVAILABLE';
+
+export interface SearchResult {
+  type: SearchResultType;
+  product?: Product;           // المنتج إذا تم العثور عليه
+  normalizedQuery?: string;    // الاستعلام بعد التطبيع
 }
 
 // --- New Features Interfaces ---
@@ -664,7 +687,52 @@ export interface SiteSettings {
   tickerTextColor?: string;
   // Status Labels Configuration
   statusLabels?: StatusLabelsConfig;
+  
+  // --- Product Visibility & Search Settings ---
+  minVisibleQty?: number;           // أقل كمية لظهور المنتج للعملاء (default: 1)
+  stockThreshold?: number;          // عتبة المخزون لتحديد "نفذت الكمية" (default: 0)
 }
+
+// --- Excel Import Column Presets ---
+
+export interface ExcelColumnMapping {
+  internalField: string;            // اسم الحقل الداخلي (partNumber, name, etc.)
+  excelHeader: string;              // اسم العمود في ملف الإكسل
+  isEnabled: boolean;               // هل هذا الحقل مفعل للاستيراد؟
+  isRequired: boolean;              // هل هو حقل إجباري؟
+  defaultValue?: string | number;   // قيمة افتراضية إذا كان العمود فارغًا
+}
+
+export interface ExcelColumnPreset {
+  id: string;
+  name: string;                     // اسم الإعداد (مثل "Onyx Export", "Supplier A")
+  isDefault: boolean;               // هل هو الإعداد الافتراضي؟
+  mappings: ExcelColumnMapping[];   // قائمة تعيينات الأعمدة
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// الحقول الداخلية المتاحة للتعيين
+export const INTERNAL_PRODUCT_FIELDS = [
+  { key: 'partNumber', label: 'رقم الصنف', required: true },
+  { key: 'name', label: 'اسم المنتج', required: true },
+  { key: 'brand', label: 'الماركة', required: false },
+  { key: 'qtyTotal', label: 'الكمية', required: true },
+  { key: 'priceWholesale', label: 'سعر الجملة', required: false },
+  { key: 'priceRetail', label: 'سعر التجزئة', required: false },
+  { key: 'priceWholeWholesale', label: 'سعر جملة الجملة', required: false },
+  { key: 'priceEcommerce', label: 'سعر المتجر الالكتروني', required: false },
+  { key: 'qtyStore103', label: 'كمية المخزن 103', required: false },
+  { key: 'qtyStore105', label: 'كمية المخزن 105', required: false },
+  { key: 'rack103', label: 'رف المخزن 103', required: false },
+  { key: 'rack105', label: 'رف المخزن 105', required: false },
+  { key: 'carName', label: 'اسم السيارة', required: false },
+  { key: 'description', label: 'المواصفات', required: false },
+  { key: 'manufacturerPartNumber', label: 'رقم التصنيع', required: false },
+  { key: 'globalCategory', label: 'التصنيف العالمي', required: false },
+  { key: 'modelYear', label: 'سنة الصنع', required: false },
+  { key: 'quality', label: 'الجودة', required: false },
+] as const;
 
 // --- Activity Log Types (New) ---
 
