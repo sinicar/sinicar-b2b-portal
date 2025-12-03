@@ -26,6 +26,13 @@ export const AdminSettings: React.FC = () => {
         loadData();
     }, []);
 
+    const defaultFeatures = [
+        { id: '1', title: 'خبرة متخصصة', description: 'متخصصون في قطع الغيار الصينية فقط، مما يضمن دقة القطع.', icon: 'box' as const, iconColor: 'text-cyan-400' },
+        { id: '2', title: 'تكامل تقني', description: 'ربط مباشر مع المخزون والنظام المحاسبي لتحديث فوري.', icon: 'chart' as const, iconColor: 'text-green-400' },
+        { id: '3', title: 'تواجد دولي', description: 'مكاتب خاصة للاستيراد والتصدير في 3 مدن صينية رئيسية.', icon: 'anchor' as const, iconColor: 'text-amber-400' },
+        { id: '4', title: 'دعم فني B2B', description: 'فريق مبيعات مخصص لخدمة الجملة متاح طوال أيام الأسبوع.', icon: 'headphones' as const, iconColor: 'text-purple-400' }
+    ];
+
     const loadData = async () => {
         setLoading(true);
         try {
@@ -33,6 +40,9 @@ export const AdminSettings: React.FC = () => {
                 MockApi.getSettings(),
                 MockApi.getBanners()
             ]);
+            if (!s.whySiniCarFeatures || s.whySiniCarFeatures.length === 0) {
+                s.whySiniCarFeatures = defaultFeatures;
+            }
             setSettings(s);
             setBanners(b);
         } catch (e) {
