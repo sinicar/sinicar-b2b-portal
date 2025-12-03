@@ -24,20 +24,25 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
     children, 
     initialAdminUser = null 
 }) => {
-    const [adminUser, setAdminUser] = useState<AdminUser | null>(initialAdminUser);
+    const [adminUser, setAdminUserState] = useState<AdminUser | null>(initialAdminUser);
     const [role, setRole] = useState<Role | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const loadRole = useCallback(async () => {
-        if (!adminUser?.roleId) {
+    const setAdminUser = useCallback((user: AdminUser | null) => {
+        setAdminUserState(user);
+    }, []);
+
+    const loadRole = useCallback(async (user: AdminUser | null) => {
+        if (!user?.roleId) {
             setRole(null);
             setLoading(false);
             return;
         }
 
+        setLoading(true);
         try {
             const roles = await MockApi.getRoles();
-            const userRole = roles.find(r => r.id === adminUser.roleId);
+            const userRole = roles.find(r => r.id === user.roleId);
             setRole(userRole || null);
         } catch (e) {
             console.error('Failed to load role:', e);
@@ -45,17 +50,17 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [adminUser?.roleId]);
-
-    useEffect(() => {
-        loadRole();
-    }, [loadRole]);
+    }, []);
 
     useEffect(() => {
         if (initialAdminUser) {
-            setAdminUser(initialAdminUser);
+            setAdminUserState(initialAdminUser);
         }
     }, [initialAdminUser]);
+
+    useEffect(() => {
+        loadRole(adminUser);
+    }, [adminUser, loadRole]);
 
     const isSuperAdmin = useMemo(() => {
         if (!role) return false;
