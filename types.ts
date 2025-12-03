@@ -243,18 +243,47 @@ export interface BusinessProfile {
 
 export interface Product {
   id: string;
-  partNumber: string;
-  name: string;
-  brand: string; // Changan, MG
-  price: number;
-  stock: number;
+  partNumber: string;         // رقم الصنف من عمود "رقم الصنف"
+  name: string;               // اسم الصنف من عمود "اسم الصنف"
+  
+  // Legacy fields (kept for backward compatibility)
+  brand?: string;             // Changan, MG - now optional
+  price?: number;             // Legacy price field - optional
+  stock?: number;             // Legacy stock - optional
   image?: string;
+  
   // Marketing fields
   oldPrice?: number;
   isOnSale?: boolean;
   isNew?: boolean;
-  description?: string;
+  description?: string;       // من " المواصفات"
   category?: string;
+  
+  // مستويات التسعير من نظام أونيكس برو:
+  priceRetail?: number | null;        // من "سعر التجزئة"
+  priceWholesale?: number | null;     // من "سعر الجملة"
+  priceWholeWholesale?: number | null;// من "سعر جملة الجملة"
+  priceEcommerce?: number | null;     // من "سعر المتجر الالكتروني"
+
+  // الكميات:
+  qtyStore103?: number | null;        // من "  كمية المخزن 103"
+  qtyStore105?: number | null;        // من "  كمية المخزن 105"
+  qtyTotal?: number | null;           // من "الإجمالي"
+
+  // حقول إضافية (اختيارية):
+  manufacturerPartNumber?: string | null; // من "رقم التصنيع"
+  carName?: string | null;              // من " اسم السيارة"
+  globalCategory?: string | null;       // من " التصنيف العالمي"
+  modelYear?: string | null;            // من " سنة الصنع"
+  quality?: string | null;              // من "الجودة"
+
+  // مواقع الرفوف (اختيارية):
+  rack103?: string | null;             // من "رف المخزن 103"
+  rack105?: string | null;             // من "رف المخزن 105"
+
+  // حقول نظامية:
+  createdAt?: string;
+  updatedAt?: string;
   
   // Search Indexing Fields (Optional)
   normalizedPart?: string;
