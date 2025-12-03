@@ -1,0 +1,7 @@
+{
+  "name": "Mobile Warehouse System",
+  "description": "A comprehensive, mobile-first warehouse management system focusing on inventory control, bin management, and transfers without accounting features.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

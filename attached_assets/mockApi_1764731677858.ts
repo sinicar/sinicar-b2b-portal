@@ -1,7 +1,6 @@
 
 import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
-import * as XLSX from 'xlsx';
 
 // Default UI Texts for the Text Manager System
 const DEFAULT_UI_TEXTS: Record<string, string> = {
@@ -744,6 +743,12 @@ export const MockApi = {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
   },
 
+  async deleteProduct(id: string) {
+      let products = await this.searchProducts('');
+      products = products.filter(p => p.id !== id);
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+  },
+
   // --- Auth ---
   async login(identifier: string, secret: string, type: 'OWNER' | 'STAFF'): Promise<{ user: User; profile: BusinessProfile | null }> {
     // Reduced delay
@@ -1268,6 +1273,10 @@ export const MockApi = {
       const request = requests[index];
       
       const timelineEntry: ImportRequestTimelineEntry = {
+          status: 'WAITING_CUSTOMER_EXCEL', // It remains in this stage until admin moves it, or we can move it to 'PRICING_IN_PROGRESS' automatically? 
+          // Better logic: Status stays 'WAITING_CUSTOMER_EXCEL' or moves to 'PRICING_IN_PROGRESS' if we want automation.
+          // Let's keep status same but log the upload. Or admin manually moves it.
+          // For UX, let's just log it.
           status: request.status, 
           note: `تم رفع ملف الأصناف: ${fileName}`,
           changedAt: new Date().toISOString(),
@@ -1857,165 +1866,5 @@ export const MockApi = {
   async getEmployees(mainUserId: string): Promise<User[]> {
       const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
       return users.filter((u:User) => u.parentId === mainUserId && u.role === 'CUSTOMER_STAFF');
-  },
-
-  // --- Products Import from Onyx Pro Excel ---
-  
-  async importProductsFromOnyxExcel(file: File): Promise<{ imported: number; updated: number; skipped: number; errors: string[] }> {
-      const parseNumber = (value: any): number | null => {
-          if (value === null || value === undefined || value === '') return null;
-          const num = typeof value === 'number' ? value : parseFloat(String(value).replace(/,/g, ''));
-          return isNaN(num) ? null : num;
-      };
-
-      const generateId = () => `P-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-
-      return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          
-          reader.onload = async (e) => {
-              try {
-                  const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                  const workbook = XLSX.read(data, { type: 'array' });
-                  const firstSheetName = workbook.SheetNames[0];
-                  const worksheet = workbook.Sheets[firstSheetName];
-                  const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-                  const existingProducts = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS) || '[]') as Product[];
-                  
-                  let imported = 0;
-                  let updated = 0;
-                  let skipped = 0;
-                  const errors: string[] = [];
-
-                  for (let i = 0; i < jsonData.length; i++) {
-                      const row = jsonData[i] as Record<string, any>;
-                      const rowNum = i + 2;
-                      
-                      const partNumber = row['رقم الصنف']?.toString().trim();
-                      const name = row['اسم الصنف']?.toString().trim();
-
-                      if (!partNumber) {
-                          skipped++;
-                          continue;
-                      }
-
-                      if (!name) {
-                          errors.push(`صف ${rowNum}: اسم الصنف فارغ لرقم الصنف ${partNumber}`);
-                          skipped++;
-                          continue;
-                      }
-
-                      const product: Product = {
-                          id: generateId(),
-                          partNumber,
-                          name,
-                          priceRetail: parseNumber(row['سعر التجزئة']),
-                          priceWholesale: parseNumber(row['سعر الجملة']),
-                          priceWholeWholesale: parseNumber(row['سعر جملة الجملة']),
-                          priceEcommerce: parseNumber(row['سعر المتجر الالكتروني']),
-                          qtyStore103: parseNumber(row['  كمية المخزن 103']),
-                          qtyStore105: parseNumber(row['  كمية المخزن 105']),
-                          qtyTotal: parseNumber(row['الإجمالي']),
-                          price: parseNumber(row['سعر الجملة']) || parseNumber(row['سعر التجزئة']) || 0,
-                          stock: parseNumber(row['الإجمالي']) || 0,
-                          brand: row[' الماركة']?.toString().trim() || undefined,
-                          description: row[' المواصفات']?.toString().trim() || undefined,
-                          carName: row[' اسم السيارة']?.toString().trim() || null,
-                          globalCategory: row[' التصنيف العالمي']?.toString().trim() || null,
-                          modelYear: row[' سنة الصنع']?.toString().trim() || null,
-                          quality: row['الجودة']?.toString().trim() || null,
-                          manufacturerPartNumber: row['رقم التصنيع']?.toString().trim() || null,
-                          rack103: row['رف المخزن 103']?.toString().trim() || null,
-                          rack105: row['رف المخزن 105']?.toString().trim() || null,
-                          createdAt: new Date().toISOString()
-                      };
-
-                      const existingIndex = existingProducts.findIndex(p => p.partNumber === partNumber);
-                      
-                      if (existingIndex !== -1) {
-                          existingProducts[existingIndex] = {
-                              ...existingProducts[existingIndex],
-                              ...product,
-                              id: existingProducts[existingIndex].id,
-                              createdAt: existingProducts[existingIndex].createdAt,
-                              updatedAt: new Date().toISOString()
-                          };
-                          updated++;
-                      } else {
-                          existingProducts.push(product);
-                          imported++;
-                      }
-                  }
-
-                  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(existingProducts));
-                  
-                  resolve({ imported, updated, skipped, errors });
-              } catch (err: any) {
-                  reject(new Error(`خطأ في قراءة الملف: ${err.message}`));
-              }
-          };
-
-          reader.onerror = () => reject(new Error('فشل في قراءة الملف'));
-          reader.readAsArrayBuffer(file);
-      });
-  },
-
-  async getProducts(): Promise<Product[]> {
-      const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-      if (stored) return JSON.parse(stored);
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
-      return INITIAL_PRODUCTS;
-  },
-
-  async addProduct(product: Omit<Product, 'id' | 'createdAt'>): Promise<Product> {
-      const products = await this.getProducts();
-      const newProduct: Product = {
-          ...product,
-          id: `P-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          createdAt: new Date().toISOString()
-      };
-      products.push(newProduct);
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-      return newProduct;
-  },
-
-  async updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
-      const products = await this.getProducts();
-      const index = products.findIndex(p => p.id === id);
-      if (index === -1) throw new Error('المنتج غير موجود');
-      
-      products[index] = {
-          ...products[index],
-          ...updates,
-          updatedAt: new Date().toISOString()
-      };
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-      return products[index];
-  },
-
-  async deleteProduct(id: string): Promise<void> {
-      const products = await this.getProducts();
-      const filtered = products.filter(p => p.id !== id);
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
-  },
-
-  generateOnyxExcelTemplate(): void {
-      const headers = [
-          'رقم الصنف',
-          'اسم الصنف',
-          'سعر التجزئة',
-          'سعر الجملة',
-          'سعر جملة الجملة',
-          'سعر المتجر الالكتروني',
-          '  كمية المخزن 103',
-          '  كمية المخزن 105',
-          'الإجمالي'
-      ];
-      
-      const ws = XLSX.utils.aoa_to_array([headers]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers]), 'Products');
-      XLSX.writeFile(wb, 'نموذج_أصناف_أونيكس.xlsx');
   }
 };
