@@ -8,7 +8,7 @@ import {
     CheckCircle, XCircle, Clock, MoreHorizontal, UserCheck, 
     Building2, MapPin, Phone, Briefcase, Lock, Key, 
     Trash2, AlertTriangle, Activity, Database, FileText, 
-    RefreshCcw, UserMinus, Plus, X
+    RefreshCcw, UserMinus, Plus, Minus, X
 } from 'lucide-react';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
@@ -423,10 +423,29 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
 
     const handleAddPoints = async () => {
         const points = prompt('أدخل عدد النقاط للإضافة:', '50');
-        if (points) {
+        if (points && parseInt(points) > 0) {
             await MockApi.addCustomerSearchPoints(customer.userId, parseInt(points));
-            addToast('تم إضافة النقاط', 'success');
+            addToast(`تم إضافة ${points} نقطة بنجاح`, 'success');
             onUpdate();
+        }
+    };
+
+    const handleDeductPoints = async () => {
+        const currentBalance = customer.searchPointsRemaining || 0;
+        const points = prompt(`الرصيد الحالي: ${currentBalance} نقطة\n\nأدخل عدد النقاط للخصم:`, '10');
+        if (points && parseInt(points) > 0) {
+            const pointsNum = parseInt(points);
+            if (pointsNum > currentBalance) {
+                addToast(`لا يمكن خصم أكثر من الرصيد المتبقي (${currentBalance} نقطة)`, 'error');
+                return;
+            }
+            const success = await MockApi.deductCustomerSearchPoints(customer.userId, pointsNum);
+            if (success) {
+                addToast(`تم خصم ${points} نقطة بنجاح`, 'success');
+                onUpdate();
+            } else {
+                addToast('حدث خطأ أثناء خصم النقاط', 'error');
+            }
         }
     };
 
@@ -536,7 +555,22 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-slate-800 flex items-center gap-2"><Search size={18} className="text-blue-500"/> محفظة البحث</h3>
-                                    <button onClick={handleAddPoints} className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-100">+ إضافة رصيد</button>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={handleAddPoints} 
+                                            className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-lg font-bold hover:bg-green-100 transition-colors flex items-center gap-1"
+                                            data-testid="button-add-points"
+                                        >
+                                            <Plus size={14} /> إضافة رصيد
+                                        </button>
+                                        <button 
+                                            onClick={handleDeductPoints} 
+                                            className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg font-bold hover:bg-red-100 transition-colors flex items-center gap-1"
+                                            data-testid="button-deduct-points"
+                                        >
+                                            <Minus size={14} /> خصم رصيد
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 text-center">
                                     <div className="p-3 bg-slate-50 rounded-xl">
@@ -547,9 +581,9 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                         <p className="text-xs text-slate-400 font-bold uppercase">المستخدم</p>
                                         <p className="text-xl font-black text-slate-800">{(customer.searchPointsTotal || 0) - (customer.searchPointsRemaining || 0)}</p>
                                     </div>
-                                    <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                                        <p className="text-xs text-blue-400 font-bold uppercase">المتبقي</p>
-                                        <p className="text-xl font-black text-blue-600">{customer.searchPointsRemaining || 0}</p>
+                                    <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl shadow-sm">
+                                        <p className="text-xs text-blue-500 font-bold uppercase">المتبقي</p>
+                                        <p className="text-2xl font-black text-blue-600">{customer.searchPointsRemaining || 0}</p>
                                     </div>
                                 </div>
                             </div>

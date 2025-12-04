@@ -833,6 +833,49 @@ export const MockApi = {
           profiles[pIdx].searchPointsRemaining = (profiles[pIdx].searchPointsRemaining || 0) + points;
           localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
       }
+      
+      // Log activity
+      internalRecordActivity({
+          userId: 'super-admin',
+          userName: 'System Admin',
+          role: 'SUPER_ADMIN',
+          eventType: 'SEARCH_POINTS_ADDED',
+          description: `تم إضافة ${points} نقطة بحث للعميل`,
+          metadata: { targetUserId: customerId, pointsAdded: points }
+      });
+  },
+
+  async deductCustomerSearchPoints(customerId: string, points: number): Promise<boolean> {
+      const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+      const pIdx = profiles.findIndex((p: BusinessProfile) => p.userId === customerId);
+      
+      if (pIdx === -1) return false;
+      
+      const currentRemaining = profiles[pIdx].searchPointsRemaining || 0;
+      if (points > currentRemaining) return false;
+      
+      profiles[pIdx].searchPointsRemaining = currentRemaining - points;
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+      
+      // Also update user's searchLimit to reflect remaining
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const uIdx = users.findIndex((u: User) => u.id === customerId);
+      if (uIdx !== -1) {
+          users[uIdx].searchLimit = profiles[pIdx].searchPointsRemaining;
+          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      }
+      
+      // Log activity
+      internalRecordActivity({
+          userId: 'super-admin',
+          userName: 'System Admin',
+          role: 'SUPER_ADMIN',
+          eventType: 'SEARCH_POINTS_DEDUCTED',
+          description: `تم خصم ${points} نقطة بحث من العميل`,
+          metadata: { targetUserId: customerId, pointsDeducted: points, newBalance: profiles[pIdx].searchPointsRemaining }
+      });
+      
+      return true;
   },
 
   async updateStaffStatus(staffId: string, status: 'ACTIVE' | 'SUSPENDED' | 'BLOCKED'): Promise<void> {
