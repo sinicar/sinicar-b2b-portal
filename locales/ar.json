@@ -80,7 +80,16 @@
     "openNewAccount": "طلب فتح حساب جديد",
     "invalidCredentials": "بيانات الدخول غير صحيحة",
     "loginSuccess": "تم تسجيل الدخول بنجاح",
-    "logoutSuccess": "تم تسجيل الخروج بنجاح"
+    "logoutSuccess": "تم تسجيل الخروج بنجاح",
+    "enterAsGuest": "تصفح كزائر",
+    "guest": "زائر",
+    "guestWelcome": "أهلاً بك كزائر! يمكنك تصفح المنتجات فقط"
+  },
+  "guestMode": {
+    "restrictedTitle": "يلزم تسجيل الدخول",
+    "restrictedMessage": "هذه الميزة متاحة فقط للعملاء المسجلين. قم بتسجيل الدخول أو طلب فتح حساب جديد للاستفادة من جميع المزايا.",
+    "loginButton": "تسجيل الدخول أو فتح حساب",
+    "browseOnly": "الاستمرار بالتصفح فقط"
   },
   "register": {
     "title": "طلب فتح حساب جديد",

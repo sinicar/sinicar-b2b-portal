@@ -528,6 +528,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const handleCartIconMount = useCallback((element: HTMLButtonElement | null) => {
         setCartIconElement(element);
     }, []);
+    
+    // Guest Mode State - Show prompt when guest tries restricted action
+    const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+    const isGuest = user.isGuest === true;
 
     const { t, tDynamic, dir } = useLanguage();
     const { addToast } = useToast();
@@ -639,6 +643,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Block guests from searching
+        if (isGuest) {
+            setShowGuestPrompt(true);
+            return;
+        }
+        
         const trimmedQuery = searchQuery.trim();
         
         if (trimmedQuery.length < 2) {
@@ -671,6 +682,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     const handleRevealPrice = async (e: React.MouseEvent, product: Product) => {
         e.stopPropagation();
+        
+        // Block guests from viewing prices
+        if (isGuest) {
+            setShowGuestPrompt(true);
+            return;
+        }
         
         // Reset quantity for new modal opening
         setModalQuantity(1);
@@ -750,6 +767,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     }, [cartIconElement]);
 
     const handleAddToCart = (product: Product, quantity: number, startElement?: HTMLElement | null) => {
+        // Block guests from adding to cart
+        if (isGuest) {
+            setShowGuestPrompt(true);
+            return;
+        }
+        
         const existingItem = cart.find(item => item.id === product.id);
         
         // Trigger flying animation
@@ -851,6 +874,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             
             {/* New First Time User Modal */}
             <UsageIntroModal />
+            
+            {/* Guest Restriction Modal */}
+            <Modal isOpen={showGuestPrompt} onClose={() => setShowGuestPrompt(false)}>
+                <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto text-center space-y-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto">
+                        <Globe size={40} className="text-amber-600" />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-slate-800">
+                            {t('guestMode.restrictedTitle')}
+                        </h3>
+                        <p className="text-slate-500 text-sm leading-relaxed">
+                            {t('guestMode.restrictedMessage')}
+                        </p>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => {
+                                setShowGuestPrompt(false);
+                                onLogout(); // Go back to login page
+                            }}
+                            className="w-full py-3 px-6 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors flex items-center justify-center gap-2"
+                            data-testid="button-guest-login"
+                        >
+                            <UserIcon size={18} />
+                            {t('guestMode.loginButton')}
+                        </button>
+                        <button
+                            onClick={() => setShowGuestPrompt(false)}
+                            className="w-full py-3 px-6 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+                            data-testid="button-guest-cancel"
+                        >
+                            {t('guestMode.browseOnly')}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Mobile Sidebar Overlay - Must be BEFORE sidebar in DOM but with lower z-index */}
             <div 

@@ -80,7 +80,16 @@
     "openNewAccount": "申请新账户",
     "invalidCredentials": "凭证无效",
     "loginSuccess": "登录成功",
-    "logoutSuccess": "退出成功"
+    "logoutSuccess": "退出成功",
+    "enterAsGuest": "以访客身份浏览",
+    "guest": "访客",
+    "guestWelcome": "欢迎访客！您只能浏览产品"
+  },
+  "guestMode": {
+    "restrictedTitle": "需要登录",
+    "restrictedMessage": "此功能仅对注册客户开放。登录或申请新账户以使用所有功能。",
+    "loginButton": "登录或开户",
+    "browseOnly": "仅继续浏览"
   },
   "register": {
     "title": "新账户申请",

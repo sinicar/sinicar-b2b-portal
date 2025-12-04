@@ -80,7 +80,16 @@
     "openNewAccount": "Request New Account",
     "invalidCredentials": "Invalid credentials",
     "loginSuccess": "Login successful",
-    "logoutSuccess": "Logout successful"
+    "logoutSuccess": "Logout successful",
+    "enterAsGuest": "Browse as Guest",
+    "guest": "Guest",
+    "guestWelcome": "Welcome as a guest! You can browse products only"
+  },
+  "guestMode": {
+    "restrictedTitle": "Login Required",
+    "restrictedMessage": "This feature is only available to registered customers. Log in or request a new account to access all features.",
+    "loginButton": "Login or Open Account",
+    "browseOnly": "Continue Browsing Only"
   },
   "register": {
     "title": "New Account Request",
