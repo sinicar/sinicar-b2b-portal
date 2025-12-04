@@ -86,10 +86,27 @@
     "guestWelcome": "أهلاً بك كزائر! يمكنك تصفح المنتجات فقط"
   },
   "guestMode": {
-    "restrictedTitle": "يلزم تسجيل الدخول",
-    "restrictedMessage": "هذه الميزة متاحة فقط للعملاء المسجلين. قم بتسجيل الدخول أو طلب فتح حساب جديد للاستفادة من جميع المزايا.",
-    "loginButton": "تسجيل الدخول أو فتح حساب",
-    "browseOnly": "الاستمرار بالتصفح فقط"
+    "restrictedTitle": "خدمة حصرية لعملاء الجملة",
+    "restrictedSubtitle": "منصة صيني كار للأعمال B2B",
+    "restrictedMessage": "نوفر خدماتنا حصرياً لـ:",
+    "targetAudience": {
+      "partsStores": "محلات قطع الغيار",
+      "insuranceCompanies": "شركات التأمين",
+      "rentalCompanies": "شركات تأجير السيارات",
+      "salesReps": "مندوبي المبيعات والوكلاء"
+    },
+    "benefitsTitle": "مزايا العضوية الكاملة",
+    "benefits": {
+      "prices": "أسعار جملة تنافسية",
+      "catalog": "كتالوج شامل لقطع الغيار",
+      "orders": "طلبات سريعة ومتابعة فورية",
+      "support": "دعم فني متخصص"
+    },
+    "callToAction": "إذا كنت من أصحاب هذه الأنشطة، سجّل الآن واحصل على عضوية كاملة!",
+    "loginButton": "تسجيل الدخول",
+    "requestAccountButton": "طلب فتح حساب جديد",
+    "browseOnly": "متابعة التصفح",
+    "blurredResultsNote": "سجّل لعرض التفاصيل والأسعار"
   },
   "register": {
     "title": "طلب فتح حساب جديد",

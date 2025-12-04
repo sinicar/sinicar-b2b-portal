@@ -86,10 +86,27 @@
     "guestWelcome": "欢迎访客！您只能浏览产品"
   },
   "guestMode": {
-    "restrictedTitle": "需要登录",
-    "restrictedMessage": "此功能仅对注册客户开放。登录或申请新账户以使用所有功能。",
-    "loginButton": "登录或开户",
-    "browseOnly": "仅继续浏览"
+    "restrictedTitle": "B2B批发专属服务",
+    "restrictedSubtitle": "新尼汽车商业平台",
+    "restrictedMessage": "我们专为以下客户提供服务：",
+    "targetAudience": {
+      "partsStores": "汽车配件商店",
+      "insuranceCompanies": "保险公司",
+      "rentalCompanies": "汽车租赁公司",
+      "salesReps": "销售代表和代理商"
+    },
+    "benefitsTitle": "完整会员权益",
+    "benefits": {
+      "prices": "有竞争力的批发价格",
+      "catalog": "完整的配件目录",
+      "orders": "快速下单实时追踪",
+      "support": "专业技术支持"
+    },
+    "callToAction": "如果您属于以上行业，立即注册获取完整会员资格！",
+    "loginButton": "登录",
+    "requestAccountButton": "申请新账户",
+    "browseOnly": "继续浏览",
+    "blurredResultsNote": "注册查看详情和价格"
   },
   "register": {
     "title": "新账户申请",

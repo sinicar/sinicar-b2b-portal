@@ -8,7 +8,7 @@ import {
   TrendingUp, Truck, Bell, Box, 
   Clock, CheckCircle,
   Building2, Trash2, Menu, X,
-  ShieldCheck, Headphones, History, AlertTriangle, Loader2, Plus, Globe,
+  ShieldCheck, Headphones, History, AlertTriangle, Loader2, Plus, Globe, Lock,
   FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX
 } from 'lucide-react';
 import { OrdersPage } from './OrdersPage';
@@ -875,35 +875,110 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             {/* New First Time User Modal */}
             <UsageIntroModal />
             
-            {/* Guest Restriction Modal */}
-            <Modal isOpen={showGuestPrompt} onClose={() => setShowGuestPrompt(false)}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-auto text-center space-y-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto">
-                        <Globe size={40} className="text-amber-600" />
-                    </div>
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-slate-800">
+            {/* Guest Restriction Modal - Professional Marketing Style */}
+            <Modal isOpen={showGuestPrompt} onClose={() => setShowGuestPrompt(false)} maxWidth="max-w-lg">
+                <div className="bg-white rounded-2xl p-6 md:p-8 w-full mx-auto space-y-6">
+                    {/* Header with Logo */}
+                    <div className="text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-200">
+                            <Building2 size={40} className="text-white" />
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-800">
                             {t('guestMode.restrictedTitle')}
                         </h3>
-                        <p className="text-slate-500 text-sm leading-relaxed">
-                            {t('guestMode.restrictedMessage')}
+                        <p className="text-brand-600 font-bold text-sm mt-1">
+                            {t('guestMode.restrictedSubtitle')}
                         </p>
                     </div>
+
+                    {/* Target Audience */}
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <p className="text-slate-600 font-bold text-sm mb-3 text-center">
+                            {t('guestMode.restrictedMessage')}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
+                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Package size={16} className="text-blue-600" />
+                                </div>
+                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.partsStores')}</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
+                                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <ShieldCheck size={16} className="text-green-600" />
+                                </div>
+                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.insuranceCompanies')}</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
+                                <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                                    <Car size={16} className="text-amber-600" />
+                                </div>
+                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.rentalCompanies')}</span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
+                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <Users size={16} className="text-purple-600" />
+                                </div>
+                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.salesReps')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Benefits */}
+                    <div className="space-y-2">
+                        <p className="text-slate-800 font-bold text-sm text-center">{t('guestMode.benefitsTitle')}</p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200">
+                                <CheckCircle size={12} /> {t('guestMode.benefits.prices')}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-200">
+                                <CheckCircle size={12} /> {t('guestMode.benefits.catalog')}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-200">
+                                <CheckCircle size={12} /> {t('guestMode.benefits.orders')}
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-bold rounded-full border border-purple-200">
+                                <CheckCircle size={12} /> {t('guestMode.benefits.support')}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Call to Action */}
+                    <div className="bg-gradient-to-r from-brand-50 to-blue-50 rounded-xl p-4 border border-brand-100 text-center">
+                        <p className="text-slate-700 font-bold text-sm leading-relaxed">
+                            {t('guestMode.callToAction')}
+                        </p>
+                    </div>
+
+                    {/* Action Buttons */}
                     <div className="flex flex-col gap-3">
-                        <button
-                            onClick={() => {
-                                setShowGuestPrompt(false);
-                                onLogout(); // Go back to login page
-                            }}
-                            className="w-full py-3 px-6 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors flex items-center justify-center gap-2"
-                            data-testid="button-guest-login"
-                        >
-                            <UserIcon size={18} />
-                            {t('guestMode.loginButton')}
-                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowGuestPrompt(false);
+                                    onLogout();
+                                }}
+                                className="py-3 px-4 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-200"
+                                data-testid="button-guest-login"
+                            >
+                                <UserIcon size={18} />
+                                {t('guestMode.loginButton')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowGuestPrompt(false);
+                                    onLogout();
+                                }}
+                                className="py-3 px-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200"
+                                data-testid="button-guest-request-account"
+                            >
+                                <FileText size={18} />
+                                {t('guestMode.requestAccountButton')}
+                            </button>
+                        </div>
                         <button
                             onClick={() => setShowGuestPrompt(false)}
-                            className="w-full py-3 px-6 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+                            className="w-full py-2.5 px-6 bg-slate-100 text-slate-500 rounded-xl font-medium hover:bg-slate-200 transition-colors text-sm"
                             data-testid="button-guest-cancel"
                         >
                             {t('guestMode.browseOnly')}
@@ -1053,7 +1128,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                 </p>
                                                             </div>
                                                         ) : searchResults.length > 0 ? (
-                                                            <div className="divide-y divide-slate-100">
+                                                            <div className="relative">
+                                                                {/* Guest Blur Overlay */}
+                                                                {isGuest && (
+                                                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-xl">
+                                                                        <div className="text-center p-6">
+                                                                            <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                                                <Lock size={28} className="text-brand-600" />
+                                                                            </div>
+                                                                            <h4 className="font-bold text-slate-800 mb-2">{t('guestMode.restrictedTitle')}</h4>
+                                                                            <p className="text-sm text-slate-500 mb-4">{t('guestMode.blurredResultsNote')}</p>
+                                                                            <button
+                                                                                onClick={() => setShowGuestPrompt(true)}
+                                                                                className="px-6 py-2.5 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition-colors flex items-center gap-2 mx-auto"
+                                                                            >
+                                                                                <UserIcon size={16} />
+                                                                                {t('guestMode.loginButton')}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                <div className={`divide-y divide-slate-100 ${isGuest ? 'blur-sm pointer-events-none select-none' : ''}`}>
                                                                 {searchResults.map(product => {
                                                                     const isRevealed = revealedSearchIds.has(product.id) || MockApi.hasRecentPriceView(user.id, product.id);
                                                                     const qty = product.qtyTotal ?? product.stock ?? 0;
@@ -1112,6 +1207,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                         </div>
                                                                     );
                                                                 })}
+                                                                </div>
                                                             </div>
                                                         ) : debouncedSearchQuery.trim().length >= 2 ? (
                                                             <div className="p-6 text-center">
