@@ -10,11 +10,30 @@ Preferred communication style: Simple, everyday language.
 
 # System Architecture
 
+## Project Structure (Production-Ready)
+
+```
+├── index.html              # Entry HTML (points to /src/index.tsx)
+├── tailwind.config.js      # Tailwind v4 configuration
+├── postcss.config.js       # PostCSS with @tailwindcss/postcss
+├── tsconfig.json           # TypeScript config
+├── vite.local.config.ts    # Vite dev configuration
+├── src/
+│   ├── index.tsx          # React entry point
+│   ├── index.css          # Tailwind imports & custom styles
+│   ├── App.tsx            # Main application component
+│   ├── types.ts           # TypeScript interfaces
+│   ├── components/        # React components
+│   ├── services/          # API, i18n, contexts
+│   ├── utils/             # Utility functions
+│   └── locales/           # Translation files (ar, en, hi, zh)
+```
+
 ## Frontend Architecture
 
 **Framework**: React 19.2 with TypeScript, built using Vite
 
-**UI Library**: Tailwind CSS with custom design tokens for Royal Blue/Orange/Navy color scheme
+**UI Library**: Tailwind CSS v4 with @tailwindcss/postcss (local installation, no CDN)
 
 **State Management**: React hooks (useState, useEffect, useMemo) with local component state - no global state management library
 
