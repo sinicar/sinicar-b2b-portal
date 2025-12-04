@@ -1472,15 +1472,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                              <div className="flex items-center justify-center border border-slate-300 rounded-xl h-11 md:h-12 bg-white w-40 md:w-48 mx-auto shadow-sm overflow-hidden">
                                 <button 
                                     onClick={() => setModalQuantity(Math.max(1, modalQuantity - 1))} 
+                                    data-testid="button-quantity-decrease"
                                     className="w-10 md:w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-l border-slate-200 transition-colors"
                                 >
                                     <Minus size={18} />
                                 </button>
-                                <div className="flex-1 flex items-center justify-center font-black text-base md:text-lg text-slate-800">
+                                <div className="flex-1 flex items-center justify-center font-black text-base md:text-lg text-slate-800" data-testid="text-quantity-value">
                                     {modalQuantity}
                                 </div>
                                 <button 
                                     onClick={() => setModalQuantity(modalQuantity + 1)} 
+                                    data-testid="button-quantity-increase"
                                     className="w-10 md:w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-r border-slate-200 transition-colors"
                                 >
                                     <Plus size={18} />
@@ -1488,17 +1490,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                             </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-2 md:gap-3">
+                        <div className="flex flex-col-reverse md:flex-row gap-2 md:gap-3">
                             <button
                                 onClick={() => setPriceModalProduct(null)}
-                                className="w-full md:flex-1 py-3 md:py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors order-2 md:order-1"
+                                data-testid="button-modal-close"
+                                className="w-full md:flex-1 py-3 md:py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
                             >
                                 {t('customerDashboard.priceModal.close')}
                             </button>
                             <button
                                 onClick={handleAddToCartFromModal}
                                 disabled={priceModalProduct.stock === 0}
-                                className={`w-full md:flex-1 py-3 md:py-3.5 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-colors order-1 md:order-2 ${
+                                data-testid="button-modal-add-to-cart"
+                                className={`w-full md:flex-1 py-3 md:py-3.5 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-colors ${
                                     priceModalProduct.stock > 0 
                                     ? 'bg-brand-600 hover:bg-brand-700 shadow-brand-200' 
                                     : 'bg-slate-300 cursor-not-allowed shadow-none'
