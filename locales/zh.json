@@ -1188,9 +1188,500 @@
   },
   "accessDenied": {
     "title": "访问被拒绝",
-    "message": "您没有访问此页面的权限",
-    "contactAdmin": "请联系系统管理员获取所需权限",
+    "message": "您没有权限查看此页面或执行此操作",
+    "contactAdmin": "请联系系统管理员",
+    "requestedPage": "请求的页面",
     "goBack": "返回",
-    "goHome": "返回首页"
+    "goHome": "控制面板",
+    "errorCode": "错误代码"
+  },
+  "adminQuoteManager": {
+    "searchPlaceholder": "按请求号、客户搜索...",
+    "allStatuses": "所有状态",
+    "table": {
+      "requestNumber": "请求号",
+      "businessCustomer": "企业 / 客户",
+      "uploadDate": "上传日期",
+      "itemsCount": "项目数量",
+      "priceType": "价格类型",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "reviewDetails": "审核 / 详情",
+    "noRequests": "未找到请求",
+    "panel": {
+      "reviewRequest": "审核请求",
+      "proposedTotal": "建议总额",
+      "approving": "审批中...",
+      "approveAndSend": "批准并发送给客户",
+      "selectAll": "全选",
+      "changeSelectedStatus": "更改所选状态",
+      "available": "可用 (Approved)",
+      "unavailable": "不可用 (Missing)",
+      "rejected": "已拒绝 (Rejected)",
+      "customerPartNumber": "零件号（客户）",
+      "customerPartName": "零件名称（客户）",
+      "quantity": "数量",
+      "matchedProduct": "匹配产品",
+      "price": "价格",
+      "decision": "决定",
+      "notes": "备注",
+      "generalNotes": "给客户的一般备注",
+      "notesPlaceholder": "将向客户显示的附加备注...",
+      "itemStatus": {
+        "approved": "可用",
+        "missing": "不可用",
+        "rejected": "已拒绝",
+        "pending": "待处理"
+      }
+    },
+    "status": {
+      "new": "新建",
+      "underReview": "审核中",
+      "partiallyApproved": "部分批准",
+      "approved": "完全批准",
+      "quoted": "已报价",
+      "processed": "已处理",
+      "rejected": "已拒绝"
+    },
+    "toast": {
+      "itemsUpdated": "已更新 {{count}} 个项目",
+      "approvedWithoutPriceWarning": "警告：某些已批准的项目没有价格。您确定要继续吗？",
+      "pricingSentSuccess": "定价已批准并发送给客户",
+      "saveError": "保存更改时出错"
+    }
+  },
+  "adminMissingParts": {
+    "tabs": {
+      "all": "全部",
+      "fromSearch": "来自搜索",
+      "fromQuote": "来自报价"
+    },
+    "stats": {
+      "totalMissing": "缺货总数",
+      "newMissing": "新缺货",
+      "underReview": "审核中",
+      "ordered": "已订购",
+      "solved": "已解决",
+      "orderedImport": "已订购 / 进口",
+      "addedToStock": "已添加到库存",
+      "fromQuote": "来自报价",
+      "fromSearch": "来自搜索"
+    },
+    "searchPlaceholder": "按零件号搜索...",
+    "allStatuses": "所有状态",
+    "noMatchingMissing": "未找到匹配的缺货零件",
+    "table": {
+      "partNumber": "零件号 / 搜索",
+      "partInfo": "零件信息",
+      "requestCount": "请求次数",
+      "requestFrequency": "请求频率",
+      "interestedCustomers": "感兴趣的客户",
+      "source": "来源",
+      "date": "日期",
+      "lastRequest": "最后请求",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "source": {
+      "search": "搜索",
+      "quote": "报价"
+    },
+    "actions": {
+      "details": "详情",
+      "linkToImport": "关联到进口",
+      "addToStock": "添加到库存",
+      "saving": "保存中...",
+      "saveChanges": "保存更改"
+    },
+    "view": "查看",
+    "noMatchingParts": "未找到匹配结果",
+    "pagination": {
+      "page": "页",
+      "of": "共"
+    },
+    "export": {
+      "partNumber": "零件号",
+      "itemName": "项目名称",
+      "source": "来源",
+      "requestCount": "请求次数",
+      "customerCount": "客户数量",
+      "status": "状态",
+      "lastRequest": "最后请求",
+      "adminNotes": "管理员备注"
+    },
+    "panel": {
+      "title": "缺货零件详情",
+      "missingDetails": "缺货详情",
+      "partDetails": "零件详情",
+      "requestedItem": "请求的项目",
+      "suggestedName": "建议名称",
+      "brand": "品牌",
+      "searchQuery": "原始搜索",
+      "partNumber": "零件号",
+      "partName": "零件名称",
+      "requestCount": "请求次数",
+      "differentCustomers": "不同客户",
+      "source": "请求来源",
+      "sourceQuote": "来源：报价请求",
+      "firstRequest": "首次请求",
+      "lastRequest": "最后请求",
+      "requestingCustomers": "请求客户",
+      "updateStatus": "更新状态",
+      "followUp": "跟进",
+      "internalNotes": "内部备注",
+      "adminNotes": "管理员备注",
+      "notesPlaceholder": "写跟进备注（例如，已联系供应商...）",
+      "saving": "保存中...",
+      "saveStatus": "保存状态"
+    },
+    "status": {
+      "new": "新缺货",
+      "underReview": "审核中",
+      "orderPlanned": "计划进口",
+      "ordered": "已订购",
+      "addedToStock": "已添加到库存",
+      "ignored": "已忽略"
+    },
+    "sourceLabels": {
+      "search": "搜索",
+      "quote": "报价"
+    },
+    "toast": {
+      "statusUpdated": "项目状态更新成功",
+      "saveError": "保存更改时出错",
+      "exportSuccess": "报告导出成功",
+      "exportFailed": "导出失败",
+      "linkImportSoon": "进口关联即将启用",
+      "redirectToAddProduct": "正在重定向到添加产品页面..."
+    }
+  },
+  "adminImport": {
+    "stats": {
+      "newRequests": "新请求",
+      "pending": "待处理",
+      "inProgress": "进行中",
+      "awaitingCustomer": "等待客户",
+      "completed": "已完成",
+      "delivered": "已交付"
+    },
+    "table": {
+      "requestNumber": "请求号",
+      "customer": "客户",
+      "service": "服务",
+      "requestDate": "请求日期",
+      "date": "日期",
+      "category": "类别",
+      "status": "状态",
+      "action": "操作",
+      "actions": "操作"
+    },
+    "serviceType": {
+      "fullService": "全套服务",
+      "processingOnly": "仅处理",
+      "fullImport": "全套进口",
+      "goodsPreparation": "货物准备"
+    },
+    "actions": {
+      "manageRequest": "管理请求",
+      "startReview": "开始审核",
+      "requestItemsFile": "请求项目文件",
+      "cancelRequest": "取消请求"
+    },
+    "viewDetails": "查看详情",
+    "noRequests": "未找到进口请求",
+    "modal": {
+      "manageRequest": "管理进口请求",
+      "currentStatus": "当前状态",
+      "timeline": "事件日志（时间线）"
+    },
+    "pricing": {
+      "preparePricing": "准备报价",
+      "customerFile": "客户文件",
+      "download": "下载",
+      "waitingForFile": "等待客户上传项目文件...",
+      "totalOffer": "总报价 (SAR)",
+      "sendToCustomer": "发送报价给客户"
+    },
+    "details": {
+      "title": "请求详情",
+      "requestedBrands": "请求的品牌",
+      "serviceType": "服务类型",
+      "branchesCount": "分店数量",
+      "estimatedValue": "估计价值",
+      "customerNotes": "客户备注"
+    },
+    "statusControl": {
+      "title": "更新状态（手动）",
+      "hint": "使用此选项在运输阶段（工厂、海运、港口...）中前进"
+    },
+    "panel": {
+      "title": "进口请求详情",
+      "requestInfo": "请求信息",
+      "customer": "客户",
+      "category": "类别",
+      "description": "描述",
+      "estimatedQuantity": "预计数量",
+      "timeline": "时间线",
+      "updateStatus": "更新状态",
+      "pricingSection": "定价部分",
+      "totalAmount": "总金额",
+      "enterAmount": "输入金额",
+      "note": "备注",
+      "notePlaceholder": "给客户的备注...",
+      "sendPricing": "发送报价"
+    },
+    "status": {
+      "new": "新请求",
+      "underReview": "审核中",
+      "waitingCustomerExcel": "等待客户文件",
+      "pricingInProgress": "定价中",
+      "pricingSent": "报价已发送",
+      "waitingCustomerApproval": "等待批准",
+      "approvedByCustomer": "客户已批准",
+      "inFactory": "在工厂",
+      "shipmentBooked": "已预订装运",
+      "onTheSea": "海运中",
+      "inPort": "已到港口",
+      "customsCleared": "已清关",
+      "onTheWay": "运输中",
+      "delivered": "已交付",
+      "cancelled": "已取消"
+    },
+    "toast": {
+      "statusUpdated": "状态更新成功",
+      "updateFailed": "更新失败",
+      "enterValidAmount": "请输入有效金额",
+      "pricingSent": "报价已发送给客户",
+      "sendFailed": "发送失败"
+    }
+  },
+  "adminCustomers": {
+    "title": "客户数据库 (CRM)",
+    "loading": "正在加载数据...",
+    "stats": {
+      "totalCustomers": "客户总数",
+      "activeCustomers": "活跃客户",
+      "suspendedBlocked": "暂停/封禁"
+    },
+    "searchPlaceholder": "按企业名称、电话或城市搜索...",
+    "allStatuses": "所有状态",
+    "table": {
+      "customer": "客户",
+      "city": "城市",
+      "priceLevel": "价格等级",
+      "ordersCount": "订单数量",
+      "totalPurchases": "总购买额",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "view": "查看",
+    "noMatchingCustomers": "未找到匹配的客户",
+    "status": {
+      "active": "活跃",
+      "suspended": "暂停",
+      "blocked": "封禁",
+      "pending": "待激活",
+      "inactive": "不活跃"
+    },
+    "panel": {
+      "title": "客户资料",
+      "tabs": {
+        "overview": "概览",
+        "orders": "订单",
+        "activity": "活动"
+      },
+      "businessInfo": "企业信息",
+      "companyName": "公司名称",
+      "city": "城市",
+      "phone": "电话",
+      "crNumber": "商业登记号",
+      "priceLevel": "价格等级",
+      "customerType": "客户类型",
+      "accountStatus": "账户状态",
+      "searchBalance": "搜索余额",
+      "staffUsers": "员工用户",
+      "accessValidity": "访问有效期",
+      "ordersHistory": "订单历史",
+      "activityLog": "活动日志"
+    },
+    "toast": {
+      "loadError": "加载数据库失败"
+    }
+  },
+  "adminUsers": {
+    "title": "用户和角色管理",
+    "subtitle": "管理管理员用户账户、角色和权限",
+    "tabs": {
+      "users": "用户",
+      "roles": "角色和权限"
+    },
+    "searchPlaceholder": "按用户名或邮箱搜索...",
+    "allRoles": "所有角色",
+    "allStatuses": "所有状态",
+    "addUser": "添加用户",
+    "exportUsers": "导出数据",
+    "table": {
+      "user": "用户",
+      "role": "角色",
+      "contact": "联系方式",
+      "lastLogin": "最后登录",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "status": {
+      "active": "活跃",
+      "inactive": "不活跃"
+    },
+    "modal": {
+      "addTitle": "添加新用户",
+      "editTitle": "编辑用户",
+      "deleteConfirm": "确认删除",
+      "deleteMessage": "您确定要删除此用户吗？",
+      "resetPassword": "重置密码",
+      "toggleStatus": "更改状态"
+    },
+    "form": {
+      "fullName": "全名",
+      "username": "用户名",
+      "email": "邮箱",
+      "phone": "电话号码",
+      "role": "角色",
+      "password": "密码",
+      "newPassword": "新密码",
+      "confirmPassword": "确认密码",
+      "save": "保存",
+      "cancel": "取消"
+    },
+    "validation": {
+      "nameRequired": "姓名必填",
+      "usernameRequired": "用户名必填",
+      "emailRequired": "邮箱必填",
+      "emailInvalid": "邮箱无效",
+      "passwordRequired": "密码必填",
+      "passwordMinLength": "密码至少需要6个字符",
+      "roleRequired": "角色必填"
+    },
+    "toast": {
+      "userCreated": "用户创建成功",
+      "userUpdated": "用户更新成功",
+      "userDeleted": "用户删除成功",
+      "passwordReset": "密码重置成功",
+      "statusChanged": "用户状态已更改",
+      "createError": "创建用户失败",
+      "updateError": "更新用户失败",
+      "deleteError": "删除用户失败",
+      "loadError": "加载用户失败"
+    },
+    "roles": {
+      "title": "角色管理",
+      "addRole": "添加新角色",
+      "editRole": "编辑角色",
+      "deleteRole": "删除角色",
+      "roleName": "角色名称",
+      "roleDescription": "角色描述",
+      "permissions": "权限",
+      "usersCount": "用户数量",
+      "isSystemRole": "系统角色",
+      "noRoles": "未找到角色",
+      "toast": {
+        "roleCreated": "角色创建成功",
+        "roleUpdated": "角色更新成功",
+        "roleDeleted": "角色删除成功"
+      }
+    }
+  },
+  "adminProducts": {
+    "title": "产品管理",
+    "subtitle": "管理产品目录、价格和库存",
+    "searchPlaceholder": "按零件号或名称搜索...",
+    "addProduct": "添加产品",
+    "importExcel": "导入Excel",
+    "exportExcel": "导出Excel",
+    "columnSettings": "列设置",
+    "visibilitySettings": "可见性设置",
+    "stats": {
+      "totalProducts": "产品总数",
+      "inStock": "有库存",
+      "outOfStock": "缺货",
+      "hidden": "隐藏"
+    },
+    "table": {
+      "partNumber": "零件号",
+      "name": "产品名称",
+      "brand": "品牌",
+      "quantity": "数量",
+      "price": "价格",
+      "visibility": "可见性",
+      "actions": "操作"
+    },
+    "modal": {
+      "addTitle": "添加新产品",
+      "editTitle": "编辑产品",
+      "deleteConfirm": "确认删除",
+      "deleteMessage": "您确定要删除此产品吗？",
+      "importTitle": "从Excel导入",
+      "columnSettingsTitle": "Excel列设置"
+    },
+    "form": {
+      "partNumber": "零件号",
+      "name": "产品名称",
+      "brand": "品牌",
+      "quantity": "数量",
+      "price": "价格",
+      "costPrice": "成本价",
+      "description": "描述",
+      "isVisible": "对客户可见",
+      "save": "保存",
+      "cancel": "取消"
+    },
+    "import": {
+      "selectFile": "选择Excel文件",
+      "dragDrop": "或拖放文件到此处",
+      "processing": "处理中...",
+      "success": "导入成功",
+      "imported": "已导入",
+      "updated": "已更新",
+      "skipped": "已跳过",
+      "errors": "错误"
+    },
+    "validation": {
+      "partNumberRequired": "零件号必填",
+      "nameRequired": "产品名称必填",
+      "priceInvalid": "价格无效",
+      "quantityInvalid": "数量无效"
+    },
+    "toast": {
+      "productCreated": "产品添加成功",
+      "productUpdated": "产品更新成功",
+      "productDeleted": "产品删除成功",
+      "importSuccess": "产品导入成功",
+      "createError": "添加产品失败",
+      "updateError": "更新产品失败",
+      "deleteError": "删除产品失败",
+      "importError": "导入文件失败",
+      "loadError": "加载产品失败",
+      "visibilityThresholdSaved": "最小显示数量已保存"
+    },
+    "presets": {
+      "title": "导入列设置",
+      "name": "预设名称",
+      "isDefault": "默认",
+      "mappings": "列映射",
+      "internalField": "内部字段",
+      "excelHeader": "Excel列",
+      "enabled": "启用",
+      "required": "必填",
+      "addPreset": "添加新预设",
+      "editPreset": "编辑预设",
+      "deletePreset": "删除预设",
+      "savePreset": "保存预设",
+      "toast": {
+        "presetCreated": "预设创建成功",
+        "presetUpdated": "预设更新成功",
+        "presetDeleted": "预设删除成功",
+        "presetSetDefault": "预设已设为默认"
+      }
+    }
   }
 }

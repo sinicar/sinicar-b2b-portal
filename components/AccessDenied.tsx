@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldX, ArrowRight, Home, HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AccessDeniedProps {
     resourceName?: string;
@@ -12,6 +13,8 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
     onGoBack,
     onGoHome
 }) => {
+    const { t } = useTranslation();
+    
     return (
         <div className="min-h-[400px] flex items-center justify-center p-8">
             <div className="max-w-md w-full text-center">
@@ -20,18 +23,18 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
                 </div>
                 
                 <h1 className="text-2xl font-black text-slate-800 mb-3">
-                    لا تملك صلاحية للوصول
+                    {t('accessDenied.title')}
                 </h1>
                 
                 <p className="text-slate-600 mb-6 leading-relaxed">
-                    ليس لديك صلاحية لعرض هذه الصفحة أو تنفيذ هذا الإجراء.
+                    {t('accessDenied.message')}
                     <br />
-                    الرجاء التواصل مع مسؤول النظام.
+                    {t('accessDenied.contactAdmin')}
                 </p>
                 
                 {resourceName && (
                     <div className="bg-slate-100 rounded-xl p-4 mb-6">
-                        <p className="text-sm text-slate-500 mb-1">الصفحة المطلوبة:</p>
+                        <p className="text-sm text-slate-500 mb-1">{t('accessDenied.requestedPage')}:</p>
                         <p className="font-bold text-slate-700">{resourceName}</p>
                     </div>
                 )}
@@ -44,7 +47,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
                             data-testid="button-access-denied-back"
                         >
                             <ArrowRight size={18} />
-                            العودة
+                            {t('accessDenied.goBack')}
                         </button>
                     )}
                     {onGoHome && (
@@ -54,7 +57,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
                             data-testid="button-access-denied-home"
                         >
                             <Home size={18} />
-                            لوحة التحكم
+                            {t('accessDenied.goHome')}
                         </button>
                     )}
                 </div>
@@ -62,7 +65,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
                 <div className="mt-8 pt-6 border-t border-slate-200">
                     <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
                         <HelpCircle size={16} />
-                        <span>رمز الخطأ: ACCESS_DENIED_403</span>
+                        <span>{t('accessDenied.errorCode')}: ACCESS_DENIED_403</span>
                     </div>
                 </div>
             </div>

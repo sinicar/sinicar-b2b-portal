@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { 
     AdminUser, Role, Permission, PermissionResource, PermissionAction,
@@ -21,6 +22,7 @@ interface AdminUsersPageProps {
 type TabType = 'users' | 'roles';
 
 export const AdminUsersPage: React.FC<AdminUsersPageProps> = ({ onRefresh }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('users');
     
     return (
@@ -29,9 +31,9 @@ export const AdminUsersPage: React.FC<AdminUsersPageProps> = ({ onRefresh }) => 
                 <div>
                     <h1 className="text-2xl font-black text-slate-800 flex items-center gap-3">
                         <Users className="text-[#C8A04F]" size={28} />
-                        إدارة المستخدمين والأدوار
+                        {t('adminUsers.title', 'إدارة المستخدمين والأدوار')}
                     </h1>
-                    <p className="text-slate-500 mt-1">إدارة حسابات المستخدمين الإداريين والأدوار والصلاحيات</p>
+                    <p className="text-slate-500 mt-1">{t('adminUsers.subtitle', 'إدارة حسابات المستخدمين الإداريين والأدوار والصلاحيات')}</p>
                 </div>
             </div>
 
@@ -48,7 +50,7 @@ export const AdminUsersPage: React.FC<AdminUsersPageProps> = ({ onRefresh }) => 
                             data-testid="tab-users"
                         >
                             <Users size={20} />
-                            المستخدمون
+                            {t('adminUsers.tabs.users', 'المستخدمون')}
                         </button>
                         <button
                             onClick={() => setActiveTab('roles')}
@@ -60,7 +62,7 @@ export const AdminUsersPage: React.FC<AdminUsersPageProps> = ({ onRefresh }) => 
                             data-testid="tab-roles"
                         >
                             <Shield size={20} />
-                            الأدوار والصلاحيات
+                            {t('adminUsers.tabs.roles', 'الأدوار والصلاحيات')}
                         </button>
                     </div>
                 </div>
@@ -80,6 +82,7 @@ interface UsersTabProps {
 }
 
 const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
+    const { t } = useTranslation();
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
@@ -134,7 +137,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
             }
         } catch (e) {
             console.error('Failed to load data', e);
-            addToast('فشل في تحميل البيانات', 'error');
+            addToast(t('adminUsers.toast.loadError', 'فشل في تحميل البيانات'), 'error');
         } finally {
             setLoading(false);
         }
@@ -142,7 +145,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
 
     const getRoleName = (roleId: string): string => {
         const role = roles.find(r => r.id === roleId);
-        return role?.name || 'غير محدد';
+        return role?.name || t('common.unassigned', 'غير محدد');
     };
 
     const filteredUsers = users.filter(user => {

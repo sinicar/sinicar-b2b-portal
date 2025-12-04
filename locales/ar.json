@@ -1187,10 +1187,501 @@
     "resetPassword": "إعادة تعيين كلمة المرور"
   },
   "accessDenied": {
-    "title": "غير مصرح بالوصول",
-    "message": "ليس لديك صلاحية للوصول إلى هذه الصفحة",
-    "contactAdmin": "يرجى التواصل مع مدير النظام للحصول على الصلاحيات المطلوبة",
-    "goBack": "العودة للصفحة السابقة",
-    "goHome": "الذهاب للصفحة الرئيسية"
+    "title": "لا تملك صلاحية للوصول",
+    "message": "ليس لديك صلاحية لعرض هذه الصفحة أو تنفيذ هذا الإجراء",
+    "contactAdmin": "الرجاء التواصل مع مسؤول النظام",
+    "requestedPage": "الصفحة المطلوبة",
+    "goBack": "العودة",
+    "goHome": "لوحة التحكم",
+    "errorCode": "رمز الخطأ"
+  },
+  "adminQuoteManager": {
+    "searchPlaceholder": "بحث برقم الطلب، العميل...",
+    "allStatuses": "جميع الحالات",
+    "table": {
+      "requestNumber": "رقم الطلب",
+      "businessCustomer": "المنشأة / العميل",
+      "uploadDate": "تاريخ الرفع",
+      "itemsCount": "عدد الأصناف",
+      "priceType": "نوع السعر",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "reviewDetails": "مراجعة / تفاصيل",
+    "noRequests": "لا توجد طلبات",
+    "panel": {
+      "reviewRequest": "مراجعة الطلب",
+      "proposedTotal": "إجمالي المقترح",
+      "approving": "جاري الاعتماد...",
+      "approveAndSend": "اعتماد وإرسال للعميل",
+      "selectAll": "تحديد الكل",
+      "changeSelectedStatus": "تغيير حالة المحدد",
+      "available": "متوفر (Approved)",
+      "unavailable": "غير متوفر (Missing)",
+      "rejected": "مرفوض (Rejected)",
+      "customerPartNumber": "رقم القطعة (العميل)",
+      "customerPartName": "اسم القطعة (العميل)",
+      "quantity": "الكمية",
+      "matchedProduct": "المطابقة (اسم المنتج)",
+      "price": "السعر",
+      "decision": "القرار",
+      "notes": "ملاحظات",
+      "generalNotes": "ملاحظات عامة للعميل",
+      "notesPlaceholder": "ملاحظات إضافية ستظهر للعميل...",
+      "itemStatus": {
+        "approved": "متوفر",
+        "missing": "غير متوفر",
+        "rejected": "مرفوض",
+        "pending": "بالانتظار"
+      }
+    },
+    "status": {
+      "new": "جديد",
+      "underReview": "قيد المراجعة",
+      "partiallyApproved": "معتمد جزئياً",
+      "approved": "معتمد بالكامل",
+      "quoted": "تم التسعير",
+      "processed": "تمت المعالجة",
+      "rejected": "مرفوض"
+    },
+    "toast": {
+      "itemsUpdated": "تم تحديث {{count}} صنف",
+      "approvedWithoutPriceWarning": "تنبيه: يوجد أصناف معتمدة (Approved) بدون سعر. هل أنت متأكد من المتابعة؟",
+      "pricingSentSuccess": "تم اعتماد التسعير وإرسال النتيجة للعميل",
+      "saveError": "حدث خطأ أثناء الحفظ"
+    }
+  },
+  "adminMissingParts": {
+    "tabs": {
+      "all": "الكل",
+      "fromSearch": "من البحث",
+      "fromQuote": "من التسعير"
+    },
+    "stats": {
+      "totalMissing": "إجمالي النواقص",
+      "newMissing": "نواقص جديدة",
+      "underReview": "تحت الدراسة",
+      "ordered": "تم طلبها",
+      "solved": "تم حلها",
+      "orderedImport": "تم طلبها / استيراد",
+      "addedToStock": "أضيفت للمخزون",
+      "fromQuote": "من التسعير",
+      "fromSearch": "من البحث"
+    },
+    "searchPlaceholder": "بحث برقم القطعة...",
+    "allStatuses": "جميع الحالات",
+    "noMatchingMissing": "لا توجد نواقص مطابقة",
+    "table": {
+      "partNumber": "رقم القطعة / البحث",
+      "partInfo": "معلومات القطعة",
+      "requestCount": "عدد الطلبات",
+      "requestFrequency": "تكرار الطلب",
+      "interestedCustomers": "عملاء مهتمين",
+      "source": "المصدر",
+      "date": "التاريخ",
+      "lastRequest": "آخر طلب",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "source": {
+      "search": "بحث",
+      "quote": "تسعير"
+    },
+    "actions": {
+      "details": "تفاصيل",
+      "linkToImport": "ربط بطلب استيراد",
+      "addToStock": "إضافة للمخزون",
+      "saving": "جاري الحفظ...",
+      "saveChanges": "حفظ التغييرات"
+    },
+    "view": "عرض",
+    "noMatchingParts": "لا توجد نتائج مطابقة",
+    "pagination": {
+      "page": "صفحة",
+      "of": "من"
+    },
+    "export": {
+      "partNumber": "رقم القطعة",
+      "itemName": "اسم الصنف",
+      "source": "المصدر",
+      "requestCount": "عدد الطلبات",
+      "customerCount": "عدد العملاء",
+      "status": "الحالة",
+      "lastRequest": "آخر طلب",
+      "adminNotes": "ملاحظات الإدارة"
+    },
+    "panel": {
+      "title": "تفاصيل الصنف الناقص",
+      "missingDetails": "تفاصيل النقص",
+      "partDetails": "تفاصيل القطعة",
+      "requestedItem": "الصنف المطلوب",
+      "suggestedName": "الاسم المقترح",
+      "brand": "الماركة",
+      "searchQuery": "البحث الأصلي",
+      "partNumber": "رقم القطعة",
+      "partName": "اسم القطعة",
+      "requestCount": "عدد مرات الطلب",
+      "differentCustomers": "عملاء مختلفين",
+      "source": "مصدر الطلب",
+      "sourceQuote": "المصدر: طلب تسعير",
+      "firstRequest": "أول طلب",
+      "lastRequest": "آخر طلب",
+      "requestingCustomers": "العملاء الطالبين",
+      "updateStatus": "تحديث الحالة",
+      "followUp": "متابعة الطلب",
+      "internalNotes": "ملاحظات داخلية",
+      "adminNotes": "ملاحظات إدارية",
+      "notesPlaceholder": "اكتب ملاحظات للمتابعة (مثال: تم التواصل مع المورد...)",
+      "saving": "جاري الحفظ...",
+      "saveStatus": "حفظ الحالة"
+    },
+    "status": {
+      "new": "نقص جديد",
+      "underReview": "تحت الدراسة",
+      "orderPlanned": "مجدول للاستيراد",
+      "ordered": "تم طلبه",
+      "addedToStock": "مضاف للمخزون",
+      "ignored": "تم تجاهله"
+    },
+    "sourceLabels": {
+      "search": "بحث",
+      "quote": "تسعير"
+    },
+    "toast": {
+      "statusUpdated": "تم تحديث حالة الصنف بنجاح",
+      "saveError": "حدث خطأ أثناء الحفظ",
+      "exportSuccess": "تم تصدير التقرير بنجاح",
+      "exportFailed": "فشل التصدير",
+      "linkImportSoon": "سيتم تفعيل ربط الاستيراد قريباً",
+      "redirectToAddProduct": "سيتم نقلك لصفحة إضافة منتج..."
+    }
+  },
+  "adminImport": {
+    "stats": {
+      "newRequests": "طلبات جديدة",
+      "pending": "معلقة",
+      "inProgress": "قيد التنفيذ",
+      "awaitingCustomer": "بانتظار العميل",
+      "completed": "مكتملة",
+      "delivered": "تم التسليم"
+    },
+    "table": {
+      "requestNumber": "رقم الطلب",
+      "customer": "العميل",
+      "service": "الخدمة",
+      "requestDate": "تاريخ الطلب",
+      "date": "التاريخ",
+      "category": "الفئة",
+      "status": "الحالة",
+      "action": "إجراء",
+      "actions": "إجراءات"
+    },
+    "serviceType": {
+      "fullService": "شامل",
+      "processingOnly": "تجهيز فقط",
+      "fullImport": "استيراد شامل",
+      "goodsPreparation": "تجهيز بضاعة"
+    },
+    "actions": {
+      "manageRequest": "إدارة الطلب",
+      "startReview": "بدء المراجعة",
+      "requestItemsFile": "طلب ملف الأصناف",
+      "cancelRequest": "إلغاء الطلب"
+    },
+    "viewDetails": "عرض التفاصيل",
+    "noRequests": "لا توجد طلبات استيراد",
+    "modal": {
+      "manageRequest": "إدارة طلب الاستيراد",
+      "currentStatus": "الحالة الحالية",
+      "timeline": "سجل الأحداث (Timeline)"
+    },
+    "pricing": {
+      "preparePricing": "إعداد عرض السعر",
+      "customerFile": "ملف العميل",
+      "download": "تحميل",
+      "waitingForFile": "بانتظار رفع ملف الأصناف من العميل...",
+      "totalOffer": "إجمالي العرض (ر.س)",
+      "sendToCustomer": "إرسال العرض للعميل"
+    },
+    "details": {
+      "title": "تفاصيل الطلب",
+      "requestedBrands": "الماركات المطلوبة",
+      "serviceType": "نوع الخدمة",
+      "branchesCount": "عدد الفروع",
+      "estimatedValue": "قيمة تقديرية",
+      "customerNotes": "ملاحظات العميل"
+    },
+    "statusControl": {
+      "title": "تحديث الحالة (يدوي)",
+      "hint": "استخدم هذا الخيار للتقدم في مراحل الشحن (المصنع، البحر، الميناء...)"
+    },
+    "panel": {
+      "title": "تفاصيل طلب الاستيراد",
+      "requestInfo": "معلومات الطلب",
+      "customer": "العميل",
+      "category": "الفئة",
+      "description": "الوصف",
+      "estimatedQuantity": "الكمية التقديرية",
+      "timeline": "المسار الزمني",
+      "updateStatus": "تحديث الحالة",
+      "pricingSection": "قسم التسعير",
+      "totalAmount": "المبلغ الإجمالي",
+      "enterAmount": "أدخل المبلغ",
+      "note": "ملاحظة",
+      "notePlaceholder": "ملاحظة للعميل...",
+      "sendPricing": "إرسال عرض السعر"
+    },
+    "status": {
+      "new": "طلب جديد",
+      "underReview": "قيد المراجعة",
+      "waitingCustomerExcel": "بانتظار ملف العميل",
+      "pricingInProgress": "جاري التسعير",
+      "pricingSent": "تم إرسال العرض",
+      "waitingCustomerApproval": "بانتظار الموافقة",
+      "approvedByCustomer": "تمت موافقة العميل",
+      "inFactory": "في المصنع",
+      "shipmentBooked": "تم حجز الشحن",
+      "onTheSea": "في البحر",
+      "inPort": "وصل الميناء",
+      "customsCleared": "تم التخليص",
+      "onTheWay": "في الطريق",
+      "delivered": "تم التسليم",
+      "cancelled": "ملغي"
+    },
+    "toast": {
+      "statusUpdated": "تم تحديث الحالة بنجاح",
+      "updateFailed": "فشل التحديث",
+      "enterValidAmount": "يرجى إدخال مبلغ صحيح",
+      "pricingSent": "تم إرسال عرض السعر للعميل",
+      "sendFailed": "فشل الإرسال"
+    }
+  },
+  "adminCustomers": {
+    "title": "قاعدة بيانات العملاء (CRM)",
+    "loading": "جاري تحميل البيانات...",
+    "stats": {
+      "totalCustomers": "إجمالي العملاء",
+      "activeCustomers": "عملاء نشطين",
+      "suspendedBlocked": "موقوفين/محظورين"
+    },
+    "searchPlaceholder": "بحث باسم المنشأة أو الجوال أو المدينة...",
+    "allStatuses": "كل الحالات",
+    "table": {
+      "customer": "العميل",
+      "city": "المدينة",
+      "priceLevel": "مستوى السعر",
+      "ordersCount": "عدد الطلبات",
+      "totalPurchases": "إجمالي المشتريات",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "view": "عرض",
+    "noMatchingCustomers": "لا يوجد عملاء مطابقين",
+    "status": {
+      "active": "نشط",
+      "suspended": "موقوف",
+      "blocked": "محظور",
+      "pending": "قيد التفعيل",
+      "inactive": "غير نشط"
+    },
+    "panel": {
+      "title": "ملف العميل",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "orders": "الطلبات",
+        "activity": "النشاط"
+      },
+      "businessInfo": "معلومات المنشأة",
+      "companyName": "اسم المنشأة",
+      "city": "المدينة",
+      "phone": "الجوال",
+      "crNumber": "السجل التجاري",
+      "priceLevel": "مستوى التسعير",
+      "customerType": "نوع العميل",
+      "accountStatus": "حالة الحساب",
+      "searchBalance": "رصيد البحث",
+      "staffUsers": "الموظفين",
+      "accessValidity": "صلاحية الدخول",
+      "ordersHistory": "سجل الطلبات",
+      "activityLog": "سجل النشاط"
+    },
+    "toast": {
+      "loadError": "فشل في تحميل قاعدة البيانات"
+    }
+  },
+  "adminUsers": {
+    "title": "إدارة المستخدمين والأدوار",
+    "subtitle": "إدارة حسابات المستخدمين الإداريين والأدوار والصلاحيات",
+    "tabs": {
+      "users": "المستخدمون",
+      "roles": "الأدوار والصلاحيات"
+    },
+    "searchPlaceholder": "بحث باسم المستخدم أو البريد...",
+    "allRoles": "جميع الأدوار",
+    "allStatuses": "جميع الحالات",
+    "addUser": "إضافة مستخدم",
+    "exportUsers": "تصدير البيانات",
+    "table": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "contact": "التواصل",
+      "lastLogin": "آخر دخول",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "modal": {
+      "addTitle": "إضافة مستخدم جديد",
+      "editTitle": "تعديل المستخدم",
+      "deleteConfirm": "تأكيد الحذف",
+      "deleteMessage": "هل أنت متأكد من حذف هذا المستخدم؟",
+      "resetPassword": "إعادة تعيين كلمة المرور",
+      "toggleStatus": "تغيير الحالة"
+    },
+    "form": {
+      "fullName": "الاسم الكامل",
+      "username": "اسم المستخدم",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الجوال",
+      "role": "الدور",
+      "password": "كلمة المرور",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "validation": {
+      "nameRequired": "الاسم مطلوب",
+      "usernameRequired": "اسم المستخدم مطلوب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "البريد الإلكتروني غير صالح",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordMinLength": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "roleRequired": "الدور مطلوب"
+    },
+    "toast": {
+      "userCreated": "تم إنشاء المستخدم بنجاح",
+      "userUpdated": "تم تحديث المستخدم بنجاح",
+      "userDeleted": "تم حذف المستخدم بنجاح",
+      "passwordReset": "تم إعادة تعيين كلمة المرور",
+      "statusChanged": "تم تغيير حالة المستخدم",
+      "createError": "فشل في إنشاء المستخدم",
+      "updateError": "فشل في تحديث المستخدم",
+      "deleteError": "فشل في حذف المستخدم",
+      "loadError": "فشل في تحميل المستخدمين"
+    },
+    "roles": {
+      "title": "إدارة الأدوار",
+      "addRole": "إضافة دور جديد",
+      "editRole": "تعديل الدور",
+      "deleteRole": "حذف الدور",
+      "roleName": "اسم الدور",
+      "roleDescription": "وصف الدور",
+      "permissions": "الصلاحيات",
+      "usersCount": "عدد المستخدمين",
+      "isSystemRole": "دور نظام",
+      "noRoles": "لا توجد أدوار",
+      "toast": {
+        "roleCreated": "تم إنشاء الدور بنجاح",
+        "roleUpdated": "تم تحديث الدور بنجاح",
+        "roleDeleted": "تم حذف الدور بنجاح"
+      }
+    }
+  },
+  "adminProducts": {
+    "title": "إدارة المنتجات",
+    "subtitle": "إدارة كتالوج المنتجات والأسعار والمخزون",
+    "searchPlaceholder": "بحث برقم الصنف أو الاسم...",
+    "addProduct": "إضافة منتج",
+    "importExcel": "استيراد Excel",
+    "exportExcel": "تصدير Excel",
+    "columnSettings": "إعدادات الأعمدة",
+    "visibilitySettings": "إعدادات الرؤية",
+    "stats": {
+      "totalProducts": "إجمالي المنتجات",
+      "inStock": "متوفر",
+      "outOfStock": "غير متوفر",
+      "hidden": "مخفي"
+    },
+    "table": {
+      "partNumber": "رقم الصنف",
+      "name": "اسم المنتج",
+      "brand": "الماركة",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "visibility": "الرؤية",
+      "actions": "إجراءات"
+    },
+    "modal": {
+      "addTitle": "إضافة منتج جديد",
+      "editTitle": "تعديل المنتج",
+      "deleteConfirm": "تأكيد الحذف",
+      "deleteMessage": "هل أنت متأكد من حذف هذا المنتج؟",
+      "importTitle": "استيراد من Excel",
+      "columnSettingsTitle": "إعدادات أعمدة Excel"
+    },
+    "form": {
+      "partNumber": "رقم الصنف",
+      "name": "اسم المنتج",
+      "brand": "الماركة",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "costPrice": "سعر التكلفة",
+      "description": "الوصف",
+      "isVisible": "مرئي للعملاء",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "import": {
+      "selectFile": "اختر ملف Excel",
+      "dragDrop": "أو اسحب وأفلت الملف هنا",
+      "processing": "جاري المعالجة...",
+      "success": "تم الاستيراد بنجاح",
+      "imported": "تم استيراد",
+      "updated": "تم تحديث",
+      "skipped": "تم تخطي",
+      "errors": "أخطاء"
+    },
+    "validation": {
+      "partNumberRequired": "رقم الصنف مطلوب",
+      "nameRequired": "اسم المنتج مطلوب",
+      "priceInvalid": "السعر غير صالح",
+      "quantityInvalid": "الكمية غير صالحة"
+    },
+    "toast": {
+      "productCreated": "تم إضافة المنتج بنجاح",
+      "productUpdated": "تم تحديث المنتج بنجاح",
+      "productDeleted": "تم حذف المنتج بنجاح",
+      "importSuccess": "تم استيراد المنتجات بنجاح",
+      "createError": "فشل في إضافة المنتج",
+      "updateError": "فشل في تحديث المنتج",
+      "deleteError": "فشل في حذف المنتج",
+      "importError": "فشل في استيراد الملف",
+      "loadError": "فشل في تحميل المنتجات",
+      "visibilityThresholdSaved": "تم حفظ الحد الأدنى لعرض الكمية"
+    },
+    "presets": {
+      "title": "إعدادات أعمدة الاستيراد",
+      "name": "اسم الإعداد",
+      "isDefault": "افتراضي",
+      "mappings": "ربط الأعمدة",
+      "internalField": "الحقل الداخلي",
+      "excelHeader": "عمود Excel",
+      "enabled": "مفعل",
+      "required": "مطلوب",
+      "addPreset": "إضافة إعداد جديد",
+      "editPreset": "تعديل الإعداد",
+      "deletePreset": "حذف الإعداد",
+      "savePreset": "حفظ الإعداد",
+      "toast": {
+        "presetCreated": "تم إنشاء الإعداد بنجاح",
+        "presetUpdated": "تم تحديث الإعداد بنجاح",
+        "presetDeleted": "تم حذف الإعداد بنجاح",
+        "presetSetDefault": "تم تعيين الإعداد كافتراضي"
+      }
+    }
   }
 }

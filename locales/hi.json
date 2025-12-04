@@ -1188,9 +1188,500 @@
   },
   "accessDenied": {
     "title": "पहुंच अस्वीकृत",
-    "message": "आपको इस पृष्ठ तक पहुंचने की अनुमति नहीं है",
-    "contactAdmin": "आवश्यक अनुमतियों के लिए कृपया सिस्टम एडमिनिस्ट्रेटर से संपर्क करें",
+    "message": "आपको इस पृष्ठ को देखने या यह क्रिया करने की अनुमति नहीं है",
+    "contactAdmin": "कृपया सिस्टम एडमिनिस्ट्रेटर से संपर्क करें",
+    "requestedPage": "अनुरोधित पृष्ठ",
     "goBack": "वापस जाएं",
-    "goHome": "होम पर जाएं"
+    "goHome": "डैशबोर्ड",
+    "errorCode": "त्रुटि कोड"
+  },
+  "adminQuoteManager": {
+    "searchPlaceholder": "अनुरोध नंबर, ग्राहक से खोजें...",
+    "allStatuses": "सभी स्थिति",
+    "table": {
+      "requestNumber": "अनुरोध नंबर",
+      "businessCustomer": "व्यवसाय / ग्राहक",
+      "uploadDate": "अपलोड तिथि",
+      "itemsCount": "आइटम गणना",
+      "priceType": "मूल्य प्रकार",
+      "status": "स्थिति",
+      "actions": "क्रियाएं"
+    },
+    "reviewDetails": "समीक्षा / विवरण",
+    "noRequests": "कोई अनुरोध नहीं मिला",
+    "panel": {
+      "reviewRequest": "अनुरोध समीक्षा",
+      "proposedTotal": "प्रस्तावित कुल",
+      "approving": "स्वीकृति जारी...",
+      "approveAndSend": "स्वीकृत करें और ग्राहक को भेजें",
+      "selectAll": "सभी चुनें",
+      "changeSelectedStatus": "चयनित स्थिति बदलें",
+      "available": "उपलब्ध (Approved)",
+      "unavailable": "अनुपलब्ध (Missing)",
+      "rejected": "अस्वीकृत (Rejected)",
+      "customerPartNumber": "पार्ट नंबर (ग्राहक)",
+      "customerPartName": "पार्ट नाम (ग्राहक)",
+      "quantity": "मात्रा",
+      "matchedProduct": "मिलान उत्पाद",
+      "price": "कीमत",
+      "decision": "निर्णय",
+      "notes": "नोट्स",
+      "generalNotes": "ग्राहक के लिए सामान्य नोट्स",
+      "notesPlaceholder": "अतिरिक्त नोट्स जो ग्राहक को दिखाई देंगे...",
+      "itemStatus": {
+        "approved": "उपलब्ध",
+        "missing": "अनुपलब्ध",
+        "rejected": "अस्वीकृत",
+        "pending": "लंबित"
+      }
+    },
+    "status": {
+      "new": "नया",
+      "underReview": "समीक्षाधीन",
+      "partiallyApproved": "आंशिक रूप से स्वीकृत",
+      "approved": "पूर्ण रूप से स्वीकृत",
+      "quoted": "कोटेड",
+      "processed": "प्रोसेस्ड",
+      "rejected": "अस्वीकृत"
+    },
+    "toast": {
+      "itemsUpdated": "{{count}} आइटम अपडेट किए गए",
+      "approvedWithoutPriceWarning": "चेतावनी: कुछ स्वीकृत आइटम में कोई कीमत नहीं है। क्या आप जारी रखना चाहते हैं?",
+      "pricingSentSuccess": "मूल्य निर्धारण स्वीकृत और ग्राहक को भेजा गया",
+      "saveError": "परिवर्तन सहेजने में त्रुटि"
+    }
+  },
+  "adminMissingParts": {
+    "tabs": {
+      "all": "सभी",
+      "fromSearch": "खोज से",
+      "fromQuote": "कोटेशन से"
+    },
+    "stats": {
+      "totalMissing": "कुल गायब",
+      "newMissing": "नई कमी",
+      "underReview": "समीक्षाधीन",
+      "ordered": "ऑर्डर किया गया",
+      "solved": "हल किया गया",
+      "orderedImport": "ऑर्डर / आयात",
+      "addedToStock": "स्टॉक में जोड़ा गया",
+      "fromQuote": "कोटेशन से",
+      "fromSearch": "खोज से"
+    },
+    "searchPlaceholder": "पार्ट नंबर से खोजें...",
+    "allStatuses": "सभी स्थिति",
+    "noMatchingMissing": "कोई मिलान गायब पार्ट नहीं मिला",
+    "table": {
+      "partNumber": "पार्ट नंबर / खोज",
+      "partInfo": "पार्ट जानकारी",
+      "requestCount": "अनुरोध गणना",
+      "requestFrequency": "अनुरोध आवृत्ति",
+      "interestedCustomers": "इच्छुक ग्राहक",
+      "source": "स्रोत",
+      "date": "तारीख",
+      "lastRequest": "अंतिम अनुरोध",
+      "status": "स्थिति",
+      "actions": "क्रियाएं"
+    },
+    "source": {
+      "search": "खोज",
+      "quote": "कोटेशन"
+    },
+    "actions": {
+      "details": "विवरण",
+      "linkToImport": "आयात से जोड़ें",
+      "addToStock": "स्टॉक में जोड़ें",
+      "saving": "सहेजा जा रहा है...",
+      "saveChanges": "परिवर्तन सहेजें"
+    },
+    "view": "देखें",
+    "noMatchingParts": "कोई मिलान परिणाम नहीं मिला",
+    "pagination": {
+      "page": "पृष्ठ",
+      "of": "का"
+    },
+    "export": {
+      "partNumber": "पार्ट नंबर",
+      "itemName": "आइटम नाम",
+      "source": "स्रोत",
+      "requestCount": "अनुरोध गणना",
+      "customerCount": "ग्राहक गणना",
+      "status": "स्थिति",
+      "lastRequest": "अंतिम अनुरोध",
+      "adminNotes": "एडमिन नोट्स"
+    },
+    "panel": {
+      "title": "गायब पार्ट विवरण",
+      "missingDetails": "कमी विवरण",
+      "partDetails": "पार्ट विवरण",
+      "requestedItem": "अनुरोधित आइटम",
+      "suggestedName": "सुझाया गया नाम",
+      "brand": "ब्रांड",
+      "searchQuery": "मूल खोज",
+      "partNumber": "पार्ट नंबर",
+      "partName": "पार्ट नाम",
+      "requestCount": "अनुरोध गणना",
+      "differentCustomers": "विभिन्न ग्राहक",
+      "source": "अनुरोध स्रोत",
+      "sourceQuote": "स्रोत: कोटेशन अनुरोध",
+      "firstRequest": "पहला अनुरोध",
+      "lastRequest": "अंतिम अनुरोध",
+      "requestingCustomers": "अनुरोध करने वाले ग्राहक",
+      "updateStatus": "स्थिति अपडेट करें",
+      "followUp": "फॉलो अप",
+      "internalNotes": "आंतरिक नोट्स",
+      "adminNotes": "एडमिन नोट्स",
+      "notesPlaceholder": "फॉलो-अप नोट्स लिखें (जैसे, आपूर्तिकर्ता से संपर्क किया...)",
+      "saving": "सहेजा जा रहा है...",
+      "saveStatus": "स्थिति सहेजें"
+    },
+    "status": {
+      "new": "नया गायब",
+      "underReview": "समीक्षाधीन",
+      "orderPlanned": "आयात के लिए निर्धारित",
+      "ordered": "ऑर्डर किया गया",
+      "addedToStock": "स्टॉक में जोड़ा गया",
+      "ignored": "अनदेखा किया गया"
+    },
+    "sourceLabels": {
+      "search": "खोज",
+      "quote": "कोटेशन"
+    },
+    "toast": {
+      "statusUpdated": "आइटम स्थिति सफलतापूर्वक अपडेट की गई",
+      "saveError": "परिवर्तन सहेजने में त्रुटि",
+      "exportSuccess": "रिपोर्ट सफलतापूर्वक निर्यात की गई",
+      "exportFailed": "निर्यात विफल",
+      "linkImportSoon": "आयात लिंकिंग जल्द सक्षम होगी",
+      "redirectToAddProduct": "उत्पाद जोड़ें पृष्ठ पर पुनर्निर्देशित हो रहा है..."
+    }
+  },
+  "adminImport": {
+    "stats": {
+      "newRequests": "नए अनुरोध",
+      "pending": "लंबित",
+      "inProgress": "प्रगति में",
+      "awaitingCustomer": "ग्राहक की प्रतीक्षा",
+      "completed": "पूर्ण",
+      "delivered": "वितरित"
+    },
+    "table": {
+      "requestNumber": "अनुरोध नंबर",
+      "customer": "ग्राहक",
+      "service": "सेवा",
+      "requestDate": "अनुरोध तिथि",
+      "date": "तारीख",
+      "category": "श्रेणी",
+      "status": "स्थिति",
+      "action": "क्रिया",
+      "actions": "क्रियाएं"
+    },
+    "serviceType": {
+      "fullService": "पूर्ण सेवा",
+      "processingOnly": "केवल प्रसंस्करण",
+      "fullImport": "पूर्ण आयात",
+      "goodsPreparation": "माल तैयारी"
+    },
+    "actions": {
+      "manageRequest": "अनुरोध प्रबंधित करें",
+      "startReview": "समीक्षा शुरू करें",
+      "requestItemsFile": "आइटम फ़ाइल अनुरोध करें",
+      "cancelRequest": "अनुरोध रद्द करें"
+    },
+    "viewDetails": "विवरण देखें",
+    "noRequests": "कोई आयात अनुरोध नहीं मिला",
+    "modal": {
+      "manageRequest": "आयात अनुरोध प्रबंधित करें",
+      "currentStatus": "वर्तमान स्थिति",
+      "timeline": "ईवेंट लॉग (टाइमलाइन)"
+    },
+    "pricing": {
+      "preparePricing": "मूल्य प्रस्ताव तैयार करें",
+      "customerFile": "ग्राहक फ़ाइल",
+      "download": "डाउनलोड",
+      "waitingForFile": "ग्राहक द्वारा आइटम फ़ाइल अपलोड की प्रतीक्षा...",
+      "totalOffer": "कुल प्रस्ताव (SAR)",
+      "sendToCustomer": "ग्राहक को प्रस्ताव भेजें"
+    },
+    "details": {
+      "title": "अनुरोध विवरण",
+      "requestedBrands": "अनुरोधित ब्रांड",
+      "serviceType": "सेवा प्रकार",
+      "branchesCount": "शाखाओं की संख्या",
+      "estimatedValue": "अनुमानित मूल्य",
+      "customerNotes": "ग्राहक नोट्स"
+    },
+    "statusControl": {
+      "title": "स्थिति अपडेट करें (मैन्युअल)",
+      "hint": "शिपिंग चरणों में आगे बढ़ने के लिए इस विकल्प का उपयोग करें (फैक्ट्री, समुद्र, बंदरगाह...)"
+    },
+    "panel": {
+      "title": "आयात अनुरोध विवरण",
+      "requestInfo": "अनुरोध जानकारी",
+      "customer": "ग्राहक",
+      "category": "श्रेणी",
+      "description": "विवरण",
+      "estimatedQuantity": "अनुमानित मात्रा",
+      "timeline": "समयरेखा",
+      "updateStatus": "स्थिति अपडेट करें",
+      "pricingSection": "मूल्य निर्धारण अनुभाग",
+      "totalAmount": "कुल राशि",
+      "enterAmount": "राशि दर्ज करें",
+      "note": "नोट",
+      "notePlaceholder": "ग्राहक के लिए नोट...",
+      "sendPricing": "मूल्य प्रस्ताव भेजें"
+    },
+    "status": {
+      "new": "नया अनुरोध",
+      "underReview": "समीक्षाधीन",
+      "waitingCustomerExcel": "ग्राहक फ़ाइल की प्रतीक्षा",
+      "pricingInProgress": "मूल्य निर्धारण जारी",
+      "pricingSent": "प्रस्ताव भेजा गया",
+      "waitingCustomerApproval": "स्वीकृति की प्रतीक्षा",
+      "approvedByCustomer": "ग्राहक द्वारा स्वीकृत",
+      "inFactory": "फैक्ट्री में",
+      "shipmentBooked": "शिपमेंट बुक",
+      "onTheSea": "समुद्र में",
+      "inPort": "बंदरगाह पर पहुंचा",
+      "customsCleared": "कस्टम क्लियर",
+      "onTheWay": "रास्ते में",
+      "delivered": "वितरित",
+      "cancelled": "रद्द"
+    },
+    "toast": {
+      "statusUpdated": "स्थिति सफलतापूर्वक अपडेट की गई",
+      "updateFailed": "अपडेट विफल",
+      "enterValidAmount": "कृपया एक वैध राशि दर्ज करें",
+      "pricingSent": "मूल्य प्रस्ताव ग्राहक को भेजा गया",
+      "sendFailed": "भेजने में विफल"
+    }
+  },
+  "adminCustomers": {
+    "title": "ग्राहक डेटाबेस (CRM)",
+    "loading": "डेटा लोड हो रहा है...",
+    "stats": {
+      "totalCustomers": "कुल ग्राहक",
+      "activeCustomers": "सक्रिय ग्राहक",
+      "suspendedBlocked": "निलंबित/अवरुद्ध"
+    },
+    "searchPlaceholder": "व्यवसाय नाम, फोन, या शहर से खोजें...",
+    "allStatuses": "सभी स्थिति",
+    "table": {
+      "customer": "ग्राहक",
+      "city": "शहर",
+      "priceLevel": "मूल्य स्तर",
+      "ordersCount": "ऑर्डर गणना",
+      "totalPurchases": "कुल खरीद",
+      "status": "स्थिति",
+      "actions": "क्रियाएं"
+    },
+    "view": "देखें",
+    "noMatchingCustomers": "कोई मिलान ग्राहक नहीं मिला",
+    "status": {
+      "active": "सक्रिय",
+      "suspended": "निलंबित",
+      "blocked": "अवरुद्ध",
+      "pending": "सक्रियण लंबित",
+      "inactive": "निष्क्रिय"
+    },
+    "panel": {
+      "title": "ग्राहक प्रोफ़ाइल",
+      "tabs": {
+        "overview": "अवलोकन",
+        "orders": "ऑर्डर",
+        "activity": "गतिविधि"
+      },
+      "businessInfo": "व्यवसाय जानकारी",
+      "companyName": "कंपनी का नाम",
+      "city": "शहर",
+      "phone": "फोन",
+      "crNumber": "वाणिज्यिक रजिस्टर",
+      "priceLevel": "मूल्य स्तर",
+      "customerType": "ग्राहक प्रकार",
+      "accountStatus": "खाता स्थिति",
+      "searchBalance": "खोज शेष",
+      "staffUsers": "स्टाफ उपयोगकर्ता",
+      "accessValidity": "एक्सेस वैधता",
+      "ordersHistory": "ऑर्डर इतिहास",
+      "activityLog": "गतिविधि लॉग"
+    },
+    "toast": {
+      "loadError": "डेटाबेस लोड करने में विफल"
+    }
+  },
+  "adminUsers": {
+    "title": "उपयोगकर्ता और भूमिका प्रबंधन",
+    "subtitle": "एडमिन उपयोगकर्ता खाते, भूमिकाएं और अनुमतियां प्रबंधित करें",
+    "tabs": {
+      "users": "उपयोगकर्ता",
+      "roles": "भूमिकाएं और अनुमतियां"
+    },
+    "searchPlaceholder": "उपयोगकर्ता नाम या ईमेल से खोजें...",
+    "allRoles": "सभी भूमिकाएं",
+    "allStatuses": "सभी स्थिति",
+    "addUser": "उपयोगकर्ता जोड़ें",
+    "exportUsers": "डेटा निर्यात करें",
+    "table": {
+      "user": "उपयोगकर्ता",
+      "role": "भूमिका",
+      "contact": "संपर्क",
+      "lastLogin": "अंतिम लॉगिन",
+      "status": "स्थिति",
+      "actions": "क्रियाएं"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "modal": {
+      "addTitle": "नया उपयोगकर्ता जोड़ें",
+      "editTitle": "उपयोगकर्ता संपादित करें",
+      "deleteConfirm": "हटाने की पुष्टि",
+      "deleteMessage": "क्या आप वाकई इस उपयोगकर्ता को हटाना चाहते हैं?",
+      "resetPassword": "पासवर्ड रीसेट करें",
+      "toggleStatus": "स्थिति बदलें"
+    },
+    "form": {
+      "fullName": "पूरा नाम",
+      "username": "उपयोगकर्ता नाम",
+      "email": "ईमेल",
+      "phone": "फोन नंबर",
+      "role": "भूमिका",
+      "password": "पासवर्ड",
+      "newPassword": "नया पासवर्ड",
+      "confirmPassword": "पासवर्ड की पुष्टि करें",
+      "save": "सहेजें",
+      "cancel": "रद्द करें"
+    },
+    "validation": {
+      "nameRequired": "नाम आवश्यक है",
+      "usernameRequired": "उपयोगकर्ता नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "emailInvalid": "ईमेल अमान्य है",
+      "passwordRequired": "पासवर्ड आवश्यक है",
+      "passwordMinLength": "पासवर्ड कम से कम 6 वर्ण का होना चाहिए",
+      "roleRequired": "भूमिका आवश्यक है"
+    },
+    "toast": {
+      "userCreated": "उपयोगकर्ता सफलतापूर्वक बनाया गया",
+      "userUpdated": "उपयोगकर्ता सफलतापूर्वक अपडेट किया गया",
+      "userDeleted": "उपयोगकर्ता सफलतापूर्वक हटाया गया",
+      "passwordReset": "पासवर्ड सफलतापूर्वक रीसेट किया गया",
+      "statusChanged": "उपयोगकर्ता स्थिति बदली गई",
+      "createError": "उपयोगकर्ता बनाने में विफल",
+      "updateError": "उपयोगकर्ता अपडेट करने में विफल",
+      "deleteError": "उपयोगकर्ता हटाने में विफल",
+      "loadError": "उपयोगकर्ता लोड करने में विफल"
+    },
+    "roles": {
+      "title": "भूमिका प्रबंधन",
+      "addRole": "नई भूमिका जोड़ें",
+      "editRole": "भूमिका संपादित करें",
+      "deleteRole": "भूमिका हटाएं",
+      "roleName": "भूमिका का नाम",
+      "roleDescription": "भूमिका विवरण",
+      "permissions": "अनुमतियां",
+      "usersCount": "उपयोगकर्ता गणना",
+      "isSystemRole": "सिस्टम भूमिका",
+      "noRoles": "कोई भूमिका नहीं मिली",
+      "toast": {
+        "roleCreated": "भूमिका सफलतापूर्वक बनाई गई",
+        "roleUpdated": "भूमिका सफलतापूर्वक अपडेट की गई",
+        "roleDeleted": "भूमिका सफलतापूर्वक हटाई गई"
+      }
+    }
+  },
+  "adminProducts": {
+    "title": "उत्पाद प्रबंधन",
+    "subtitle": "उत्पाद कैटलॉग, कीमतें और इन्वेंट्री प्रबंधित करें",
+    "searchPlaceholder": "पार्ट नंबर या नाम से खोजें...",
+    "addProduct": "उत्पाद जोड़ें",
+    "importExcel": "Excel आयात करें",
+    "exportExcel": "Excel निर्यात करें",
+    "columnSettings": "कॉलम सेटिंग्स",
+    "visibilitySettings": "दृश्यता सेटिंग्स",
+    "stats": {
+      "totalProducts": "कुल उत्पाद",
+      "inStock": "स्टॉक में",
+      "outOfStock": "स्टॉक में नहीं",
+      "hidden": "छुपा हुआ"
+    },
+    "table": {
+      "partNumber": "पार्ट नंबर",
+      "name": "उत्पाद का नाम",
+      "brand": "ब्रांड",
+      "quantity": "मात्रा",
+      "price": "कीमत",
+      "visibility": "दृश्यता",
+      "actions": "क्रियाएं"
+    },
+    "modal": {
+      "addTitle": "नया उत्पाद जोड़ें",
+      "editTitle": "उत्पाद संपादित करें",
+      "deleteConfirm": "हटाने की पुष्टि",
+      "deleteMessage": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
+      "importTitle": "Excel से आयात करें",
+      "columnSettingsTitle": "Excel कॉलम सेटिंग्स"
+    },
+    "form": {
+      "partNumber": "पार्ट नंबर",
+      "name": "उत्पाद का नाम",
+      "brand": "ब्रांड",
+      "quantity": "मात्रा",
+      "price": "कीमत",
+      "costPrice": "लागत मूल्य",
+      "description": "विवरण",
+      "isVisible": "ग्राहकों को दिखाई दे",
+      "save": "सहेजें",
+      "cancel": "रद्द करें"
+    },
+    "import": {
+      "selectFile": "Excel फ़ाइल चुनें",
+      "dragDrop": "या फ़ाइल यहां खींचें और छोड़ें",
+      "processing": "प्रोसेसिंग...",
+      "success": "आयात सफल",
+      "imported": "आयात किया गया",
+      "updated": "अपडेट किया गया",
+      "skipped": "छोड़ा गया",
+      "errors": "त्रुटियां"
+    },
+    "validation": {
+      "partNumberRequired": "पार्ट नंबर आवश्यक है",
+      "nameRequired": "उत्पाद का नाम आवश्यक है",
+      "priceInvalid": "कीमत अमान्य है",
+      "quantityInvalid": "मात्रा अमान्य है"
+    },
+    "toast": {
+      "productCreated": "उत्पाद सफलतापूर्वक जोड़ा गया",
+      "productUpdated": "उत्पाद सफलतापूर्वक अपडेट किया गया",
+      "productDeleted": "उत्पाद सफलतापूर्वक हटाया गया",
+      "importSuccess": "उत्पाद सफलतापूर्वक आयात किए गए",
+      "createError": "उत्पाद जोड़ने में विफल",
+      "updateError": "उत्पाद अपडेट करने में विफल",
+      "deleteError": "उत्पाद हटाने में विफल",
+      "importError": "फ़ाइल आयात करने में विफल",
+      "loadError": "उत्पाद लोड करने में विफल",
+      "visibilityThresholdSaved": "न्यूनतम प्रदर्शन मात्रा सहेजी गई"
+    },
+    "presets": {
+      "title": "आयात कॉलम सेटिंग्स",
+      "name": "प्रीसेट नाम",
+      "isDefault": "डिफ़ॉल्ट",
+      "mappings": "कॉलम मैपिंग",
+      "internalField": "आंतरिक फ़ील्ड",
+      "excelHeader": "Excel कॉलम",
+      "enabled": "सक्षम",
+      "required": "आवश्यक",
+      "addPreset": "नया प्रीसेट जोड़ें",
+      "editPreset": "प्रीसेट संपादित करें",
+      "deletePreset": "प्रीसेट हटाएं",
+      "savePreset": "प्रीसेट सहेजें",
+      "toast": {
+        "presetCreated": "प्रीसेट सफलतापूर्वक बनाया गया",
+        "presetUpdated": "प्रीसेट सफलतापूर्वक अपडेट किया गया",
+        "presetDeleted": "प्रीसेट सफलतापूर्वक हटाया गया",
+        "presetSetDefault": "प्रीसेट डिफ़ॉल्ट के रूप में सेट किया गया"
+      }
+    }
   }
 }

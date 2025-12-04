@@ -1188,9 +1188,500 @@
   },
   "accessDenied": {
     "title": "Access Denied",
-    "message": "You do not have permission to access this page",
-    "contactAdmin": "Please contact the system administrator for required permissions",
+    "message": "You do not have permission to view this page or perform this action",
+    "contactAdmin": "Please contact the system administrator",
+    "requestedPage": "Requested Page",
     "goBack": "Go Back",
-    "goHome": "Go to Home"
+    "goHome": "Dashboard",
+    "errorCode": "Error Code"
+  },
+  "adminQuoteManager": {
+    "searchPlaceholder": "Search by request number, customer...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "requestNumber": "Request Number",
+      "businessCustomer": "Business / Customer",
+      "uploadDate": "Upload Date",
+      "itemsCount": "Items Count",
+      "priceType": "Price Type",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "reviewDetails": "Review / Details",
+    "noRequests": "No requests found",
+    "panel": {
+      "reviewRequest": "Review Request",
+      "proposedTotal": "Proposed Total",
+      "approving": "Approving...",
+      "approveAndSend": "Approve and Send to Customer",
+      "selectAll": "Select All",
+      "changeSelectedStatus": "Change Selected Status",
+      "available": "Available (Approved)",
+      "unavailable": "Unavailable (Missing)",
+      "rejected": "Rejected",
+      "customerPartNumber": "Part Number (Customer)",
+      "customerPartName": "Part Name (Customer)",
+      "quantity": "Quantity",
+      "matchedProduct": "Matched Product",
+      "price": "Price",
+      "decision": "Decision",
+      "notes": "Notes",
+      "generalNotes": "General Notes for Customer",
+      "notesPlaceholder": "Additional notes that will be shown to customer...",
+      "itemStatus": {
+        "approved": "Available",
+        "missing": "Unavailable",
+        "rejected": "Rejected",
+        "pending": "Pending"
+      }
+    },
+    "status": {
+      "new": "New",
+      "underReview": "Under Review",
+      "partiallyApproved": "Partially Approved",
+      "approved": "Fully Approved",
+      "quoted": "Quoted",
+      "processed": "Processed",
+      "rejected": "Rejected"
+    },
+    "toast": {
+      "itemsUpdated": "{{count}} items updated",
+      "approvedWithoutPriceWarning": "Warning: Some approved items have no price. Are you sure you want to continue?",
+      "pricingSentSuccess": "Pricing approved and sent to customer",
+      "saveError": "Error saving changes"
+    }
+  },
+  "adminMissingParts": {
+    "tabs": {
+      "all": "All",
+      "fromSearch": "From Search",
+      "fromQuote": "From Quote"
+    },
+    "stats": {
+      "totalMissing": "Total Missing",
+      "newMissing": "New Missing",
+      "underReview": "Under Review",
+      "ordered": "Ordered",
+      "solved": "Solved",
+      "orderedImport": "Ordered / Import",
+      "addedToStock": "Added to Stock",
+      "fromQuote": "From Quote",
+      "fromSearch": "From Search"
+    },
+    "searchPlaceholder": "Search by part number...",
+    "allStatuses": "All Statuses",
+    "noMatchingMissing": "No matching missing parts found",
+    "table": {
+      "partNumber": "Part Number / Search",
+      "partInfo": "Part Information",
+      "requestCount": "Request Count",
+      "requestFrequency": "Request Frequency",
+      "interestedCustomers": "Interested Customers",
+      "source": "Source",
+      "date": "Date",
+      "lastRequest": "Last Request",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "source": {
+      "search": "Search",
+      "quote": "Quote"
+    },
+    "actions": {
+      "details": "Details",
+      "linkToImport": "Link to Import",
+      "addToStock": "Add to Stock",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes"
+    },
+    "view": "View",
+    "noMatchingParts": "No matching results found",
+    "pagination": {
+      "page": "Page",
+      "of": "of"
+    },
+    "export": {
+      "partNumber": "Part Number",
+      "itemName": "Item Name",
+      "source": "Source",
+      "requestCount": "Request Count",
+      "customerCount": "Customer Count",
+      "status": "Status",
+      "lastRequest": "Last Request",
+      "adminNotes": "Admin Notes"
+    },
+    "panel": {
+      "title": "Missing Part Details",
+      "missingDetails": "Missing Details",
+      "partDetails": "Part Details",
+      "requestedItem": "Requested Item",
+      "suggestedName": "Suggested Name",
+      "brand": "Brand",
+      "searchQuery": "Original Search",
+      "partNumber": "Part Number",
+      "partName": "Part Name",
+      "requestCount": "Request Count",
+      "differentCustomers": "Different Customers",
+      "source": "Request Source",
+      "sourceQuote": "Source: Quote Request",
+      "firstRequest": "First Request",
+      "lastRequest": "Last Request",
+      "requestingCustomers": "Requesting Customers",
+      "updateStatus": "Update Status",
+      "followUp": "Follow Up",
+      "internalNotes": "Internal Notes",
+      "adminNotes": "Admin Notes",
+      "notesPlaceholder": "Write follow-up notes (e.g., Contacted supplier...)",
+      "saving": "Saving...",
+      "saveStatus": "Save Status"
+    },
+    "status": {
+      "new": "New Missing",
+      "underReview": "Under Review",
+      "orderPlanned": "Scheduled for Import",
+      "ordered": "Ordered",
+      "addedToStock": "Added to Stock",
+      "ignored": "Ignored"
+    },
+    "sourceLabels": {
+      "search": "Search",
+      "quote": "Quote"
+    },
+    "toast": {
+      "statusUpdated": "Item status updated successfully",
+      "saveError": "Error saving changes",
+      "exportSuccess": "Report exported successfully",
+      "exportFailed": "Export failed",
+      "linkImportSoon": "Import linking will be enabled soon",
+      "redirectToAddProduct": "Redirecting to add product page..."
+    }
+  },
+  "adminImport": {
+    "stats": {
+      "newRequests": "New Requests",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "awaitingCustomer": "Awaiting Customer",
+      "completed": "Completed",
+      "delivered": "Delivered"
+    },
+    "table": {
+      "requestNumber": "Request Number",
+      "customer": "Customer",
+      "service": "Service",
+      "requestDate": "Request Date",
+      "date": "Date",
+      "category": "Category",
+      "status": "Status",
+      "action": "Action",
+      "actions": "Actions"
+    },
+    "serviceType": {
+      "fullService": "Full Service",
+      "processingOnly": "Processing Only",
+      "fullImport": "Full Import",
+      "goodsPreparation": "Goods Preparation"
+    },
+    "actions": {
+      "manageRequest": "Manage Request",
+      "startReview": "Start Review",
+      "requestItemsFile": "Request Items File",
+      "cancelRequest": "Cancel Request"
+    },
+    "viewDetails": "View Details",
+    "noRequests": "No import requests found",
+    "modal": {
+      "manageRequest": "Manage Import Request",
+      "currentStatus": "Current Status",
+      "timeline": "Events Log (Timeline)"
+    },
+    "pricing": {
+      "preparePricing": "Prepare Price Offer",
+      "customerFile": "Customer File",
+      "download": "Download",
+      "waitingForFile": "Waiting for customer to upload items file...",
+      "totalOffer": "Total Offer (SAR)",
+      "sendToCustomer": "Send Offer to Customer"
+    },
+    "details": {
+      "title": "Request Details",
+      "requestedBrands": "Requested Brands",
+      "serviceType": "Service Type",
+      "branchesCount": "Branches Count",
+      "estimatedValue": "Estimated Value",
+      "customerNotes": "Customer Notes"
+    },
+    "statusControl": {
+      "title": "Update Status (Manual)",
+      "hint": "Use this option to progress through shipping stages (Factory, Sea, Port...)"
+    },
+    "panel": {
+      "title": "Import Request Details",
+      "requestInfo": "Request Information",
+      "customer": "Customer",
+      "category": "Category",
+      "description": "Description",
+      "estimatedQuantity": "Estimated Quantity",
+      "timeline": "Timeline",
+      "updateStatus": "Update Status",
+      "pricingSection": "Pricing Section",
+      "totalAmount": "Total Amount",
+      "enterAmount": "Enter amount",
+      "note": "Note",
+      "notePlaceholder": "Note for customer...",
+      "sendPricing": "Send Price Offer"
+    },
+    "status": {
+      "new": "New Request",
+      "underReview": "Under Review",
+      "waitingCustomerExcel": "Waiting Customer File",
+      "pricingInProgress": "Pricing in Progress",
+      "pricingSent": "Offer Sent",
+      "waitingCustomerApproval": "Waiting Approval",
+      "approvedByCustomer": "Customer Approved",
+      "inFactory": "In Factory",
+      "shipmentBooked": "Shipment Booked",
+      "onTheSea": "On the Sea",
+      "inPort": "Arrived at Port",
+      "customsCleared": "Customs Cleared",
+      "onTheWay": "On the Way",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "toast": {
+      "statusUpdated": "Status updated successfully",
+      "updateFailed": "Update failed",
+      "enterValidAmount": "Please enter a valid amount",
+      "pricingSent": "Price offer sent to customer",
+      "sendFailed": "Failed to send"
+    }
+  },
+  "adminCustomers": {
+    "title": "Customer Database (CRM)",
+    "loading": "Loading data...",
+    "stats": {
+      "totalCustomers": "Total Customers",
+      "activeCustomers": "Active Customers",
+      "suspendedBlocked": "Suspended/Blocked"
+    },
+    "searchPlaceholder": "Search by business name, phone, or city...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "customer": "Customer",
+      "city": "City",
+      "priceLevel": "Price Level",
+      "ordersCount": "Orders Count",
+      "totalPurchases": "Total Purchases",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "noMatchingCustomers": "No matching customers found",
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "blocked": "Blocked",
+      "pending": "Pending Activation",
+      "inactive": "Inactive"
+    },
+    "panel": {
+      "title": "Customer Profile",
+      "tabs": {
+        "overview": "Overview",
+        "orders": "Orders",
+        "activity": "Activity"
+      },
+      "businessInfo": "Business Information",
+      "companyName": "Company Name",
+      "city": "City",
+      "phone": "Phone",
+      "crNumber": "Commercial Register",
+      "priceLevel": "Price Level",
+      "customerType": "Customer Type",
+      "accountStatus": "Account Status",
+      "searchBalance": "Search Balance",
+      "staffUsers": "Staff Users",
+      "accessValidity": "Access Validity",
+      "ordersHistory": "Orders History",
+      "activityLog": "Activity Log"
+    },
+    "toast": {
+      "loadError": "Failed to load database"
+    }
+  },
+  "adminUsers": {
+    "title": "Users & Roles Management",
+    "subtitle": "Manage admin user accounts, roles and permissions",
+    "tabs": {
+      "users": "Users",
+      "roles": "Roles & Permissions"
+    },
+    "searchPlaceholder": "Search by username or email...",
+    "allRoles": "All Roles",
+    "allStatuses": "All Statuses",
+    "addUser": "Add User",
+    "exportUsers": "Export Data",
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "contact": "Contact",
+      "lastLogin": "Last Login",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "modal": {
+      "addTitle": "Add New User",
+      "editTitle": "Edit User",
+      "deleteConfirm": "Confirm Delete",
+      "deleteMessage": "Are you sure you want to delete this user?",
+      "resetPassword": "Reset Password",
+      "toggleStatus": "Change Status"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "username": "Username",
+      "email": "Email",
+      "phone": "Phone Number",
+      "role": "Role",
+      "password": "Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "usernameRequired": "Username is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Email is invalid",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "roleRequired": "Role is required"
+    },
+    "toast": {
+      "userCreated": "User created successfully",
+      "userUpdated": "User updated successfully",
+      "userDeleted": "User deleted successfully",
+      "passwordReset": "Password reset successfully",
+      "statusChanged": "User status changed",
+      "createError": "Failed to create user",
+      "updateError": "Failed to update user",
+      "deleteError": "Failed to delete user",
+      "loadError": "Failed to load users"
+    },
+    "roles": {
+      "title": "Roles Management",
+      "addRole": "Add New Role",
+      "editRole": "Edit Role",
+      "deleteRole": "Delete Role",
+      "roleName": "Role Name",
+      "roleDescription": "Role Description",
+      "permissions": "Permissions",
+      "usersCount": "Users Count",
+      "isSystemRole": "System Role",
+      "noRoles": "No roles found",
+      "toast": {
+        "roleCreated": "Role created successfully",
+        "roleUpdated": "Role updated successfully",
+        "roleDeleted": "Role deleted successfully"
+      }
+    }
+  },
+  "adminProducts": {
+    "title": "Products Management",
+    "subtitle": "Manage product catalog, prices and inventory",
+    "searchPlaceholder": "Search by part number or name...",
+    "addProduct": "Add Product",
+    "importExcel": "Import Excel",
+    "exportExcel": "Export Excel",
+    "columnSettings": "Column Settings",
+    "visibilitySettings": "Visibility Settings",
+    "stats": {
+      "totalProducts": "Total Products",
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock",
+      "hidden": "Hidden"
+    },
+    "table": {
+      "partNumber": "Part Number",
+      "name": "Product Name",
+      "brand": "Brand",
+      "quantity": "Quantity",
+      "price": "Price",
+      "visibility": "Visibility",
+      "actions": "Actions"
+    },
+    "modal": {
+      "addTitle": "Add New Product",
+      "editTitle": "Edit Product",
+      "deleteConfirm": "Confirm Delete",
+      "deleteMessage": "Are you sure you want to delete this product?",
+      "importTitle": "Import from Excel",
+      "columnSettingsTitle": "Excel Column Settings"
+    },
+    "form": {
+      "partNumber": "Part Number",
+      "name": "Product Name",
+      "brand": "Brand",
+      "quantity": "Quantity",
+      "price": "Price",
+      "costPrice": "Cost Price",
+      "description": "Description",
+      "isVisible": "Visible to Customers",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "import": {
+      "selectFile": "Select Excel File",
+      "dragDrop": "Or drag and drop file here",
+      "processing": "Processing...",
+      "success": "Import successful",
+      "imported": "Imported",
+      "updated": "Updated",
+      "skipped": "Skipped",
+      "errors": "Errors"
+    },
+    "validation": {
+      "partNumberRequired": "Part number is required",
+      "nameRequired": "Product name is required",
+      "priceInvalid": "Price is invalid",
+      "quantityInvalid": "Quantity is invalid"
+    },
+    "toast": {
+      "productCreated": "Product added successfully",
+      "productUpdated": "Product updated successfully",
+      "productDeleted": "Product deleted successfully",
+      "importSuccess": "Products imported successfully",
+      "createError": "Failed to add product",
+      "updateError": "Failed to update product",
+      "deleteError": "Failed to delete product",
+      "importError": "Failed to import file",
+      "loadError": "Failed to load products",
+      "visibilityThresholdSaved": "Minimum display quantity saved"
+    },
+    "presets": {
+      "title": "Import Column Settings",
+      "name": "Preset Name",
+      "isDefault": "Default",
+      "mappings": "Column Mappings",
+      "internalField": "Internal Field",
+      "excelHeader": "Excel Column",
+      "enabled": "Enabled",
+      "required": "Required",
+      "addPreset": "Add New Preset",
+      "editPreset": "Edit Preset",
+      "deletePreset": "Delete Preset",
+      "savePreset": "Save Preset",
+      "toast": {
+        "presetCreated": "Preset created successfully",
+        "presetUpdated": "Preset updated successfully",
+        "presetDeleted": "Preset deleted successfully",
+        "presetSetDefault": "Preset set as default"
+      }
+    }
   }
 }

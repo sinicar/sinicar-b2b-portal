@@ -8,20 +8,21 @@ import {
 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime } from '../utils/dateUtils';
+import { useTranslation } from 'react-i18next';
 
 interface AdminQuoteManagerProps {
     quotes: QuoteRequest[];
     onUpdate: () => void;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-    'NEW': 'جديد',
-    'UNDER_REVIEW': 'قيد المراجعة',
-    'PARTIALLY_APPROVED': 'معتمد جزئياً',
-    'APPROVED': 'معتمد بالكامل',
-    'QUOTED': 'تم التسعير',
-    'PROCESSED': 'تمت المعالجة',
-    'REJECTED': 'مرفوض'
+const STATUS_KEYS: Record<string, string> = {
+    'NEW': 'new',
+    'UNDER_REVIEW': 'underReview',
+    'PARTIALLY_APPROVED': 'partiallyApproved',
+    'APPROVED': 'approved',
+    'QUOTED': 'quoted',
+    'PROCESSED': 'processed',
+    'REJECTED': 'rejected'
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -35,6 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, onUpdate }) => {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('ALL');
     const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null);
@@ -46,6 +48,11 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
     const [generalNote, setGeneralNote] = useState('');
 
     const { addToast } = useToast();
+    
+    const getStatusLabel = (status: string): string => {
+        const key = STATUS_KEYS[status];
+        return key ? t(`adminQuoteManager.status.${key}`) : status;
+    };
 
     // Filtering
     const filteredQuotes = useMemo(() => {
@@ -104,7 +111,7 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
             }
         });
         setLocalItems(newItems);
-        addToast(`تم تحديث ${selectedItemIndices.size} صنف`, 'info');
+        addToast(t('adminQuoteManager.toast.itemsUpdated', { count: selectedItemIndices.size }), 'info');
     };
 
     const handleFinalize = async () => {
@@ -113,7 +120,7 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
         // Basic validation
         const hasApprovedWithoutPrice = localItems.some(i => i.approvalStatus === 'APPROVED' && (!i.matchedPrice || i.matchedPrice <= 0));
         if (hasApprovedWithoutPrice) {
-            if (!confirm('تنبيه: يوجد أصناف معتمدة (Approved) بدون سعر. هل أنت متأكد من المتابعة؟')) return;
+            if (!confirm(t('adminQuoteManager.toast.approvedWithoutPriceWarning'))) return;
         }
 
         setIsSaving(true);
@@ -130,11 +137,11 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
             // Finalize
             await MockApi.finalizeQuoteRequest(selectedQuote.id, 'Admin', generalNote);
             
-            addToast('تم اعتماد التسعير وإرسال النتيجة للعميل', 'success');
+            addToast(t('adminQuoteManager.toast.pricingSentSuccess'), 'success');
             onUpdate();
             setSelectedQuote(null);
         } catch (e) {
-            addToast('حدث خطأ أثناء الحفظ', 'error');
+            addToast(t('adminQuoteManager.toast.saveError'), 'error');
         } finally {
             setIsSaving(false);
         }
@@ -153,7 +160,7 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                     <Search className="absolute right-3 top-3 text-slate-400" size={18} />
                     <input 
                         type="text" 
-                        placeholder="بحث برقم الطلب، العميل..." 
+                        placeholder={t('adminQuoteManager.searchPlaceholder')} 
                         className="w-full pr-10 pl-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,9 +171,9 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                    <option value="ALL">جميع الحالات</option>
-                    {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                        <option key={key} value={key}>{label}</option>
+                    <option value="ALL">{t('adminQuoteManager.allStatuses')}</option>
+                    {Object.keys(STATUS_KEYS).map((key) => (
+                        <option key={key} value={key}>{getStatusLabel(key)}</option>
                     ))}
                 </select>
             </div>
@@ -176,13 +183,13 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                 <table className="w-full text-right text-sm">
                     <thead className="bg-[#0B1B3A] text-white font-bold">
                         <tr>
-                            <th className="p-4">رقم الطلب</th>
-                            <th className="p-4">المنشأة / العميل</th>
-                            <th className="p-4">تاريخ الرفع</th>
-                            <th className="p-4 text-center">عدد الأصناف</th>
-                            <th className="p-4 text-center">نوع السعر</th>
-                            <th className="p-4 text-center">الحالة</th>
-                            <th className="p-4 text-center">إجراءات</th>
+                            <th className="p-4">{t('adminQuoteManager.table.requestNumber')}</th>
+                            <th className="p-4">{t('adminQuoteManager.table.businessCustomer')}</th>
+                            <th className="p-4">{t('adminQuoteManager.table.uploadDate')}</th>
+                            <th className="p-4 text-center">{t('adminQuoteManager.table.itemsCount')}</th>
+                            <th className="p-4 text-center">{t('adminQuoteManager.table.priceType')}</th>
+                            <th className="p-4 text-center">{t('adminQuoteManager.table.status')}</th>
+                            <th className="p-4 text-center">{t('adminQuoteManager.table.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -200,7 +207,7 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                                 </td>
                                 <td className="p-4 text-center">
                                     <span className={`px-2 py-1 rounded text-xs font-bold ${STATUS_COLORS[quote.status] || 'bg-gray-100 text-gray-600'}`}>
-                                        {STATUS_LABELS[quote.status] || quote.status}
+                                        {getStatusLabel(quote.status)}
                                     </span>
                                 </td>
                                 <td className="p-4 text-center">
@@ -208,13 +215,13 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                                         onClick={() => openQuote(quote)}
                                         className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors"
                                     >
-                                        مراجعة / تفاصيل
+                                        {t('adminQuoteManager.reviewDetails')}
                                     </button>
                                 </td>
                             </tr>
                         ))}
                         {filteredQuotes.length === 0 && (
-                            <tr><td colSpan={7} className="p-10 text-center text-slate-400">لا توجد طلبات</td></tr>
+                            <tr><td colSpan={7} className="p-10 text-center text-slate-400">{t('adminQuoteManager.noRequests')}</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -231,22 +238,22 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                             </button>
                             <div>
                                 <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                                    مراجعة الطلب <span className="font-mono text-[#C8A04F] bg-[#0B1B3A] px-2 py-0.5 rounded text-base">{selectedQuote.id}</span>
+                                    {t('adminQuoteManager.panel.reviewRequest')} <span className="font-mono text-[#C8A04F] bg-[#0B1B3A] px-2 py-0.5 rounded text-base">{selectedQuote.id}</span>
                                 </h2>
                                 <p className="text-xs text-slate-500 font-bold">{selectedQuote.companyName} • {selectedQuote.priceType}</p>
                             </div>
                         </div>
                         <div className="flex gap-4 items-center">
                             <div className="text-center px-4 border-l border-slate-200">
-                                <p className="text-xs font-bold text-slate-400">إجمالي المقترح</p>
-                                <p className="text-lg font-black text-slate-800">{totalPotential.toLocaleString()} ر.س</p>
+                                <p className="text-xs font-bold text-slate-400">{t('adminQuoteManager.panel.proposedTotal')}</p>
+                                <p className="text-lg font-black text-slate-800">{totalPotential.toLocaleString()} {t('common.currency')}</p>
                             </div>
                             <button 
                                 onClick={handleFinalize}
                                 disabled={isSaving}
                                 className="bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2 disabled:opacity-50"
                             >
-                                <Save size={18} /> {isSaving ? 'جاري الاعتماد...' : 'اعتماد وإرسال للعميل'}
+                                <Save size={18} /> {isSaving ? t('adminQuoteManager.panel.approving') : t('adminQuoteManager.panel.approveAndSend')}
                             </button>
                         </div>
                     </div>
@@ -260,19 +267,19 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                                 checked={selectedItemIndices.size === localItems.length && localItems.length > 0}
                                 onChange={toggleSelectAll}
                             />
-                            <span className="text-sm font-bold text-slate-600">تحديد الكل</span>
+                            <span className="text-sm font-bold text-slate-600">{t('adminQuoteManager.panel.selectAll')}</span>
                         </div>
                         
-                        <span className="text-xs font-bold text-slate-400 mx-2">تغيير حالة المحدد ({selectedItemIndices.size}):</span>
+                        <span className="text-xs font-bold text-slate-400 mx-2">{t('adminQuoteManager.panel.changeSelectedStatus')} ({selectedItemIndices.size}):</span>
                         
                         <button onClick={() => bulkUpdateStatus('APPROVED')} disabled={selectedItemIndices.size === 0} className="px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold hover:bg-green-100 disabled:opacity-50">
-                            متوفر (Approved)
+                            {t('adminQuoteManager.panel.available')}
                         </button>
                         <button onClick={() => bulkUpdateStatus('MISSING')} disabled={selectedItemIndices.size === 0} className="px-3 py-1.5 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg text-xs font-bold hover:bg-yellow-100 disabled:opacity-50">
-                            غير متوفر (Missing)
+                            {t('adminQuoteManager.panel.unavailable')}
                         </button>
                         <button onClick={() => bulkUpdateStatus('REJECTED')} disabled={selectedItemIndices.size === 0} className="px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 disabled:opacity-50">
-                            مرفوض (Rejected)
+                            {t('adminQuoteManager.panel.rejected')}
                         </button>
                     </div>
 
@@ -283,13 +290,13 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                                 <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                                     <tr>
                                         <th className="p-3 w-10"></th>
-                                        <th className="p-3">رقم القطعة (العميل)</th>
-                                        <th className="p-3">اسم القطعة (العميل)</th>
-                                        <th className="p-3 w-20 text-center">الكمية</th>
-                                        <th className="p-3 w-40">المطابقة (اسم المنتج)</th>
-                                        <th className="p-3 w-32 text-center">السعر</th>
-                                        <th className="p-3 w-40 text-center">القرار</th>
-                                        <th className="p-3">ملاحظات</th>
+                                        <th className="p-3">{t('adminQuoteManager.panel.customerPartNumber')}</th>
+                                        <th className="p-3">{t('adminQuoteManager.panel.customerPartName')}</th>
+                                        <th className="p-3 w-20 text-center">{t('adminQuoteManager.panel.quantity')}</th>
+                                        <th className="p-3 w-40">{t('adminQuoteManager.panel.matchedProduct')}</th>
+                                        <th className="p-3 w-32 text-center">{t('adminQuoteManager.panel.price')}</th>
+                                        <th className="p-3 w-40 text-center">{t('adminQuoteManager.panel.decision')}</th>
+                                        <th className="p-3">{t('adminQuoteManager.panel.notes')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -341,10 +348,10 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                                                         value={item.approvalStatus || 'PENDING'}
                                                         onChange={(e) => handleItemChange(idx, 'approvalStatus', e.target.value)}
                                                     >
-                                                        <option value="PENDING">مراجعة</option>
-                                                        <option value="APPROVED">متوفر</option>
-                                                        <option value="MISSING">غير متوفر</option>
-                                                        <option value="REJECTED">مرفوض</option>
+                                                        <option value="PENDING">{t('adminQuoteManager.panel.itemStatus.pending')}</option>
+                                                        <option value="APPROVED">{t('adminQuoteManager.panel.itemStatus.approved')}</option>
+                                                        <option value="MISSING">{t('adminQuoteManager.panel.itemStatus.missing')}</option>
+                                                        <option value="REJECTED">{t('adminQuoteManager.panel.itemStatus.rejected')}</option>
                                                     </select>
                                                 </td>
 
@@ -365,13 +372,13 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
                         </div>
                         
                         <div className="mt-6 max-w-2xl">
-                            <label className="block text-sm font-bold text-slate-700 mb-2">ملاحظات عامة على الطلب (تظهر للعميل)</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminQuoteManager.panel.generalNotes')}</label>
                             <textarea 
                                 className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                                 rows={3}
                                 value={generalNote}
                                 onChange={(e) => setGeneralNote(e.target.value)}
-                                placeholder="مثال: بعض الأصناف غير متوفرة حالياً، تم تسعير المتوفر فقط."
+                                placeholder={t('adminQuoteManager.panel.notesPlaceholder')}
                             ></textarea>
                         </div>
                     </div>

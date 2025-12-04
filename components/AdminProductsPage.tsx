@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { Product, ExcelColumnPreset, ExcelColumnMapping, INTERNAL_PRODUCT_FIELDS, SiteSettings } from '../types';
 import { 
@@ -16,6 +17,7 @@ interface AdminProductsPageProps {
 }
 
 export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh }) => {
+    const { t } = useTranslation();
     const { addToast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
     
