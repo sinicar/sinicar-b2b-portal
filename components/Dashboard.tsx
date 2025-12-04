@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from '
 import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
-  LayoutDashboard, ShoppingCart, Users, Package, LogOut, Search, 
+  LayoutDashboard, ShoppingCart, Users, User as UserIcon, Package, LogOut, Search, 
   TrendingUp, Truck, Bell, Box, 
   Clock, CheckCircle,
   Building2, Trash2, Menu, X,
@@ -166,10 +166,10 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
             <div className="p-4">
                 <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700/50">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 border border-slate-600 shrink-0">
-                            <Users size={22} />
+                        <div className="w-11 h-11 rounded-xl bg-brand-600/20 flex items-center justify-center text-brand-400 border border-brand-500/30 shrink-0">
+                            <UserIcon size={20} strokeWidth={2} />
                         </div>
-                        <div className="overflow-hidden">
+                        <div className="overflow-hidden flex-1">
                             <p className="font-bold text-[15px] truncate text-slate-100">{user.name}</p>
                             <p className="text-xs text-slate-400 truncate font-mono mt-0.5">{user.clientId}</p>
                         </div>
