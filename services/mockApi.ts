@@ -152,7 +152,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
       'SUSPENDED': { label: 'موقوف', color: '#f59e0b', bgColor: '#fef3c7', isSystem: true, sortOrder: 2 },
       'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 3 }
     }
-  }
+  },
+  guestModeEnabled: true
 };
 
 const INITIAL_PRODUCTS: Product[] = [

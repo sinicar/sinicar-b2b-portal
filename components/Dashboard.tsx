@@ -1141,6 +1141,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                             <button
                                                                                 onClick={() => setShowGuestPrompt(true)}
                                                                                 className="px-6 py-2.5 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition-colors flex items-center gap-2 mx-auto"
+                                                                                data-testid="button-guest-overlay-login"
                                                                             >
                                                                                 <UserIcon size={16} />
                                                                                 {t('guestMode.loginButton')}
