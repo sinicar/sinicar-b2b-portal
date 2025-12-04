@@ -8,6 +8,7 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   maxWidth?: string; // e.g., 'max-w-lg', 'max-w-2xl'
+  noPadding?: boolean; // للتحكم في padding المحتوى
 }
 
 export const Modal: React.FC<ModalProps> = ({ 
@@ -15,7 +16,8 @@ export const Modal: React.FC<ModalProps> = ({
   onClose, 
   title, 
   children, 
-  maxWidth = 'max-w-lg' 
+  maxWidth = 'max-w-lg',
+  noPadding = false
 }) => {
   const [show, setShow] = useState(false);
   const [animate, setAnimate] = useState(false);
@@ -54,19 +56,24 @@ export const Modal: React.FC<ModalProps> = ({
           ${animate ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'}
         `}
       >
-        {/* رأس المودال */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-100 flex-shrink-0">
-          {title && <h3 className="text-xl font-bold text-slate-800">{title}</h3>}
-          <button 
-            onClick={onClose} 
-            className="p-2 bg-slate-50 rounded-full hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
-          >
-            <X size={20} />
-          </button>
-        </div>
+        {/* زر الإغلاق - يظهر دائماً في الزاوية */}
+        <button 
+          onClick={onClose} 
+          className="absolute top-4 left-4 z-20 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
+          data-testid="button-modal-close"
+        >
+          <X size={18} />
+        </button>
+
+        {/* رأس المودال - يظهر فقط إذا كان هناك عنوان */}
+        {title && (
+          <div className="flex justify-between items-center p-6 pb-4 border-b border-slate-100 flex-shrink-0">
+            <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+          </div>
+        )}
 
         {/* محتوى المودال */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className={`flex-1 overflow-y-auto ${noPadding ? '' : 'p-6'}`}>
           {children}
         </div>
       </div>

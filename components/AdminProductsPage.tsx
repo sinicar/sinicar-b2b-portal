@@ -646,8 +646,8 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             </div>
 
             {showImportModal && (
-                <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)}>
-                    <div className="p-6 max-w-md">
+                <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} title="نتيجة الاستيراد">
+                    <div className="max-w-md mx-auto">
                         <div className="flex items-center gap-3 mb-6">
                             <div className={`p-3 rounded-xl ${importing ? 'bg-blue-100' : importResult?.imported || importResult?.updated ? 'bg-emerald-100' : 'bg-red-100'}`}>
                                 {importing ? (
@@ -713,12 +713,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             )}
 
             {showProductModal && (
-                <Modal isOpen={showProductModal} onClose={() => setShowProductModal(false)}>
-                    <div className="p-6 max-w-lg">
-                        <h3 className="font-bold text-xl text-slate-800 mb-6">
-                            {editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}
-                        </h3>
-                        
+                <Modal isOpen={showProductModal} onClose={() => setShowProductModal(false)} title={editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -834,7 +829,6 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                 </button>
                             </div>
                         </div>
-                    </div>
                 </Modal>
             )}
 
