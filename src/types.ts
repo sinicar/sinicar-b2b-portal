@@ -132,6 +132,11 @@ export type CustomerStatus =
   | 'PENDING'         // قيد التفعيل
   | 'INACTIVE';       // غير نشط (لا يستخدم النظام)
 
+// نوع رؤية الأسعار للعميل
+export type PriceVisibilityType =
+  | 'VISIBLE'         // أسعار ظاهرة دائماً (بدون نظام نقاط)
+  | 'HIDDEN';         // أسعار مخفية (تحتاج نقاط بحث للكشف)
+
 export type StaffStatus = 'ACTIVE' | 'SUSPENDED' | 'BLOCKED';
 
 export interface Branch {
@@ -237,6 +242,9 @@ export interface BusinessProfile {
   businessCustomerType?: BusinessCustomerType; // Mapped from AccountRequest
   assignedPriceLevel?: PriceLevel;             // LEVEL_1 / LEVEL_2 ...
   status?: CustomerStatus;
+  
+  // نوع رؤية الأسعار - VISIBLE = ظاهرة دائماً, HIDDEN = تحتاج نقاط بحث
+  priceVisibility?: PriceVisibilityType;
   
   // Access Control
   portalAccessStart?: string | null;
@@ -726,6 +734,15 @@ export interface SiteSettings {
   
   // --- Guest Visibility Controls ---
   guestSettings?: GuestModeSettings;
+  
+  // --- إعدادات نقاط البحث التلقائية حسب حالة الطلب ---
+  orderStatusPointsConfig?: OrderStatusPointsConfig;
+}
+
+// إعدادات النقاط المضافة تلقائياً عند تغيير حالة الطلب
+export interface OrderStatusPointsConfig {
+  enabled: boolean;                              // تفعيل/إيقاف الإضافة التلقائية
+  pointsPerStatus: Record<string, number>;       // النقاط لكل حالة (مثل: DELIVERED: 5)
 }
 
 // Guest Mode Visibility Settings - Controls what guests can see/access
@@ -817,6 +834,7 @@ export type ActivityEventType =
   | 'ORDER_CANCELLED'    // إلغاء طلب
   | 'ORDER_DELETED'      // حذف طلب
   | 'SEARCH_POINTS_ADDED' // إضافة نقاط بحث
+  | 'SEARCH_POINTS_DEDUCTED' // خصم نقاط بحث
   | 'ORDER_STATUS_CHANGED' // External status changed (Admin)
   | 'ORDER_INTERNAL_STATUS_CHANGED' // Internal status changed (Admin)
   | 'USER_SUSPENDED'     // إيقاف مستخدم

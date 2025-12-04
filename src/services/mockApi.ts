@@ -168,6 +168,16 @@ const DEFAULT_SETTINGS: SiteSettings = {
     allowedPages: [],             // الصفحات المسموحة (فارغ = الرئيسية فقط)
     allowSearch: true,            // السماح بالبحث
     showSearchResults: true       // إظهار نتائج البحث (مشوشة)
+  },
+  
+  // إعدادات نقاط البحث التلقائية حسب حالة الطلب
+  orderStatusPointsConfig: {
+    enabled: true,                // تفعيل الإضافة التلقائية
+    pointsPerStatus: {
+      'DELIVERED': 5,             // تم التسليم = 5 نقاط
+      'APPROVED': 2,              // تم الاعتماد = 2 نقاط
+      'SHIPPED': 1                // تم الشحن = 1 نقطة
+    }
   }
 };
 
@@ -876,6 +886,26 @@ export const MockApi = {
       });
       
       return true;
+  },
+
+  async updateCustomerPriceVisibility(customerId: string, visibility: 'VISIBLE' | 'HIDDEN'): Promise<void> {
+      const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+      const pIdx = profiles.findIndex((p: BusinessProfile) => p.userId === customerId);
+      
+      if (pIdx !== -1) {
+          profiles[pIdx].priceVisibility = visibility;
+          localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+          
+          // Log activity
+          internalRecordActivity({
+              userId: 'super-admin',
+              userName: 'System Admin',
+              role: 'SUPER_ADMIN',
+              eventType: 'OTHER',
+              description: `تغيير نوع عرض الأسعار للعميل إلى ${visibility === 'VISIBLE' ? 'ظاهرة' : 'مخفية'}`,
+              metadata: { targetUserId: customerId, priceVisibility: visibility }
+          });
+      }
   },
 
   async updateStaffStatus(staffId: string, status: 'ACTIVE' | 'SUSPENDED' | 'BLOCKED'): Promise<void> {
@@ -2159,6 +2189,52 @@ export const MockApi = {
           const u = users[userIdx];
           u.hasUnreadOrders = true;
           updateLocalUser(u);
+      }
+
+      // --- إضافة نقاط تلقائية حسب إعدادات الحالة ---
+      const settings = await this.getSettings();
+      const pointsConfig = settings.orderStatusPointsConfig;
+      
+      if (pointsConfig?.enabled) {
+          // تحويل حالة الطلب إلى مفتاح البحث في الإعدادات
+          const statusKey = Object.entries(OrderStatus).find(([key, val]) => val === newStatus)?.[0];
+          const pointsToAdd = statusKey ? pointsConfig.pointsPerStatus[statusKey] : 0;
+          
+          if (pointsToAdd && pointsToAdd > 0) {
+              // البحث عن العميل وإضافة النقاط
+              const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+              const customerUser = users.find((u: User) => u.id === order.userId);
+              
+              if (customerUser) {
+                  // البحث عن الملف الشخصي (للمالك أو عبر parentId للموظف)
+                  const targetUserId = customerUser.role === 'CUSTOMER_STAFF' ? customerUser.parentId : customerUser.id;
+                  const pIdx = profiles.findIndex((p: BusinessProfile) => p.userId === targetUserId);
+                  
+                  if (pIdx !== -1) {
+                      profiles[pIdx].searchPointsRemaining = (profiles[pIdx].searchPointsRemaining || 0) + pointsToAdd;
+                      profiles[pIdx].searchPointsTotal = (profiles[pIdx].searchPointsTotal || 0) + pointsToAdd;
+                      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+                      
+                      // إشعار العميل بإضافة النقاط
+                      internalCreateNotification(
+                          order.userId,
+                          'SEARCH_POINTS_ADDED',
+                          'تم إضافة نقاط بحث',
+                          `تم إضافة ${pointsToAdd} نقاط بحث لحسابك بسبب تحويل طلبك #${order.id} إلى "${newStatus}"`
+                      );
+                      
+                      // تسجيل النشاط
+                      internalRecordActivity({
+                          userId: 'super-admin',
+                          userName: 'النظام',
+                          role: 'SUPER_ADMIN',
+                          eventType: 'SEARCH_POINTS_ADDED',
+                          description: `إضافة تلقائية: ${pointsToAdd} نقاط بحث للعميل بسبب حالة الطلب "${newStatus}"`,
+                          metadata: { orderId: order.id, pointsAdded: pointsToAdd, targetUserId }
+                      });
+                  }
+              }
+          }
       }
 
       return updated;

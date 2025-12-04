@@ -329,6 +329,82 @@ export const AdminSettings: React.FC = () => {
                              </div>
                         </div>
 
+                        {/* إعدادات نقاط البحث التلقائية حسب حالة الطلب */}
+                        <div className="mt-8 border-t border-slate-100 pt-8">
+                             <div className="flex items-center gap-3 mb-6">
+                                 <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><Sparkles size={20} /></div>
+                                 <h3 className="font-bold text-lg text-slate-800">نقاط البحث التلقائية</h3>
+                             </div>
+                             
+                             <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
+                                 <div className="flex items-center justify-between mb-4">
+                                     <div>
+                                         <span className="font-bold text-slate-700">تفعيل الإضافة التلقائية</span>
+                                         <p className="text-xs text-slate-500">إضافة نقاط بحث تلقائياً للعملاء عند تغيير حالة طلباتهم</p>
+                                     </div>
+                                     <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={settings.orderStatusPointsConfig?.enabled ?? true} 
+                                            onChange={e => setSettings({
+                                                ...settings, 
+                                                orderStatusPointsConfig: {
+                                                    ...settings.orderStatusPointsConfig,
+                                                    enabled: e.target.checked,
+                                                    pointsPerStatus: settings.orderStatusPointsConfig?.pointsPerStatus ?? {}
+                                                }
+                                            })}
+                                            className="sr-only peer" 
+                                            data-testid="toggle-auto-points"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                 </div>
+
+                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                     {[
+                                         { key: 'DELIVERED', label: 'تم التسليم', color: 'emerald' },
+                                         { key: 'APPROVED', label: 'تم الاعتماد', color: 'blue' },
+                                         { key: 'SHIPPED', label: 'تم الشحن', color: 'cyan' }
+                                     ].map(status => (
+                                         <div key={status.key} className={`bg-white p-4 rounded-lg border border-slate-200`}>
+                                             <label className="block text-sm font-bold text-slate-700 mb-2">
+                                                 <span className={`inline-block w-2 h-2 rounded-full bg-${status.color}-500 mr-2`}></span>
+                                                 {status.label}
+                                             </label>
+                                             <div className="flex items-center gap-2">
+                                                 <input 
+                                                    type="number" 
+                                                    min={0}
+                                                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-center font-bold"
+                                                    value={settings.orderStatusPointsConfig?.pointsPerStatus?.[status.key] ?? 0}
+                                                    onChange={e => {
+                                                        const val = parseInt(e.target.value) || 0;
+                                                        setSettings({
+                                                            ...settings,
+                                                            orderStatusPointsConfig: {
+                                                                enabled: settings.orderStatusPointsConfig?.enabled ?? true,
+                                                                pointsPerStatus: {
+                                                                    ...settings.orderStatusPointsConfig?.pointsPerStatus,
+                                                                    [status.key]: val
+                                                                }
+                                                            }
+                                                        });
+                                                    }}
+                                                    data-testid={`input-points-${status.key.toLowerCase()}`}
+                                                 />
+                                                 <span className="text-slate-500 text-sm">نقطة</span>
+                                             </div>
+                                         </div>
+                                     ))}
+                                 </div>
+                                 
+                                 <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-sm text-emerald-700">
+                                     <strong>ملاحظة:</strong> عند تحويل طلب إلى أي من هذه الحالات، سيتم إضافة النقاط المحددة تلقائياً لرصيد العميل
+                                 </div>
+                             </div>
+                        </div>
+
                         {/* Guest Mode Settings */}
                         <div className="bg-cyan-50 p-6 rounded-xl border border-cyan-100 mt-8">
                             <div className="flex items-center justify-between">

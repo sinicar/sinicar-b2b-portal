@@ -551,7 +551,41 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                 </button>
                             </div>
 
-                            {/* Search Points Wallet */}
+                            {/* Price Visibility Setting */}
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-3 rounded-xl ${customer.priceVisibility === 'VISIBLE' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                                            {customer.priceVisibility === 'VISIBLE' ? <Eye size={20} className="text-emerald-600" /> : <EyeOff size={20} className="text-amber-600" />}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-800">نوع عرض الأسعار</h3>
+                                            <p className="text-xs text-slate-500">
+                                                {customer.priceVisibility === 'VISIBLE' 
+                                                    ? 'الأسعار ظاهرة دائماً - بدون نظام نقاط' 
+                                                    : 'الأسعار مخفية - يحتاج نقاط بحث للكشف'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <select 
+                                        className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm font-bold"
+                                        value={customer.priceVisibility || 'HIDDEN'}
+                                        onChange={async (e) => {
+                                            const newValue = e.target.value as 'VISIBLE' | 'HIDDEN';
+                                            await MockApi.updateCustomerPriceVisibility(customer.userId, newValue);
+                                            addToast(`تم تغيير نوع عرض الأسعار إلى ${newValue === 'VISIBLE' ? 'ظاهرة' : 'مخفية'}`, 'success');
+                                            onUpdate();
+                                        }}
+                                        data-testid="select-price-visibility"
+                                    >
+                                        <option value="VISIBLE">🟢 أسعار ظاهرة (بدون نقاط)</option>
+                                        <option value="HIDDEN">🟡 أسعار مخفية (بنقاط)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Search Points Wallet - Only show if prices are hidden */}
+                            {customer.priceVisibility !== 'VISIBLE' && (
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-slate-800 flex items-center gap-2"><Search size={18} className="text-blue-500"/> محفظة البحث</h3>
@@ -587,6 +621,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                     </div>
                                 </div>
                             </div>
+                            )}
 
                             {/* Info Grid */}
                             <div className="grid grid-cols-2 gap-6">

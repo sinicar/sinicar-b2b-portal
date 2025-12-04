@@ -30,7 +30,7 @@ function useIsMobile(breakpoint = 768) {
 import { 
   LayoutDashboard, ShoppingCart, Users, User as UserIcon, Package, LogOut, Search, 
   TrendingUp, Truck, Bell, Box, 
-  Clock, CheckCircle,
+  Clock, CheckCircle, ChevronLeft,
   Building2, Trash2, Menu, X,
   ShieldCheck, Headphones, History, AlertTriangle, Loader2, Plus, Globe, Lock,
   FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX
@@ -450,14 +450,18 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                 )}
             </div>
 
-            {/* Toggle Collapse Button - Desktop Only */}
+            {/* Toggle Collapse Button - Desktop Only - Animated & Eye-catching */}
             <button 
                 onClick={() => setCollapsed(!collapsed)}
-                className={`hidden lg:flex absolute ${isRTL ? '-left-3' : '-right-3'} top-20 w-7 h-7 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-full items-center justify-center transition-all duration-300 shadow-lg shadow-brand-500/40 z-50 ring-2 ring-white/20`}
+                className={`hidden lg:flex absolute ${isRTL ? '-left-4' : '-right-4'} top-20 w-8 h-8 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 text-white rounded-full items-center justify-center transition-all duration-500 shadow-xl shadow-brand-500/50 z-50 ring-2 ring-white/30 hover:ring-white/50 hover:shadow-2xl hover:shadow-brand-400/60 hover:scale-110 active:scale-95 group`}
                 data-testid="button-toggle-sidebar"
                 title={collapsed ? t('sidebar.expand', 'توسيع') : t('sidebar.collapse', 'طي')}
             >
-                {collapsed ? (isRTL ? <X size={14} /> : <Menu size={14} />) : (isRTL ? <Menu size={14} /> : <X size={14} />)}
+                <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+                <ChevronLeft 
+                    size={18} 
+                    className={`transition-transform duration-500 ease-in-out ${collapsed ? (isRTL ? 'rotate-180' : 'rotate-0') : (isRTL ? 'rotate-0' : 'rotate-180')}`}
+                />
             </button>
 
             {/* User Info Card - Modern Glass Effect */}
@@ -2025,88 +2029,106 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 </div>
             </Modal>
 
-            {/* --- PRICE & ADD TO CART MODAL (NEW) --- */}
+            {/* --- PRICE & ADD TO CART MODAL - Compact & Magical --- */}
             {priceModalProduct && (
                 <Modal
                     isOpen={!!priceModalProduct}
                     onClose={() => setPriceModalProduct(null)}
-                    title={t('customerDashboard.priceModal.productDetails')}
-                    maxWidth="max-w-md"
+                    title=""
+                    maxWidth="max-w-sm"
                 >
-                    <div className="text-center p-3 md:p-4">
-                        <div className="mb-4 md:mb-6">
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-600 mx-auto mb-3 md:mb-4 border border-slate-100">
-                                <Box size={32} className="md:w-10 md:h-10" />
-                            </div>
-                            <h3 className="text-lg md:text-xl font-bold text-slate-900 leading-snug px-2">{priceModalProduct.name}</h3>
-                            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                                <span className="text-xs md:text-sm text-slate-500 font-mono font-bold bg-slate-100 px-2 py-0.5 rounded">{priceModalProduct.partNumber}</span>
-                                <span className="text-xs text-brand-600 font-bold uppercase border border-brand-200 px-2 py-0.5 rounded bg-brand-50">{priceModalProduct.brand}</span>
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200 mb-4 md:mb-6">
-                             <div className="mb-2 text-slate-500 font-bold text-xs uppercase tracking-wider">{t('customerDashboard.priceModal.wholesalePrice')}</div>
-                             <div className="text-3xl md:text-4xl font-black text-slate-900">{priceModalProduct.price} <span className="text-base md:text-lg text-slate-500 font-bold">{t('customerDashboard.sar')}</span></div>
-                             {priceModalProduct.stock > 0 ? (
-                                 <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
-                                     <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></div>
-                                     {t('customerDashboard.available')}
-                                 </div>
-                             ) : (
-                                 <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">
-                                     <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                                     {t('customerDashboard.outOfStock')}
-                                 </div>
-                             )}
-                        </div>
-
-                        <div className="mb-4 md:mb-6">
-                             <div className="flex items-center justify-center border border-slate-300 rounded-xl h-11 md:h-12 bg-white w-40 md:w-48 mx-auto shadow-sm overflow-hidden">
-                                <button 
-                                    onClick={() => setModalQuantity(Math.max(1, modalQuantity - 1))} 
-                                    data-testid="button-quantity-decrease"
-                                    className="w-10 md:w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-l border-slate-200 transition-colors"
-                                >
-                                    <Minus size={18} />
-                                </button>
-                                <div className="flex-1 flex items-center justify-center font-black text-base md:text-lg text-slate-800" data-testid="text-quantity-value">
-                                    {modalQuantity}
+                    <div className="relative overflow-hidden">
+                        {/* Magical Gradient Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-white to-amber-50 opacity-60"></div>
+                        <div className="absolute top-0 left-0 w-24 h-24 bg-brand-400/10 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="absolute bottom-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full blur-2xl translate-x-1/3 translate-y-1/3"></div>
+                        
+                        <div className="relative text-center p-4">
+                            {/* Compact Header with Icon */}
+                            <div className="mb-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-brand-100 to-brand-50 rounded-xl flex items-center justify-center text-brand-600 mx-auto mb-2 shadow-sm border border-brand-100/50 transform hover:scale-105 transition-transform">
+                                    <Package size={24} />
                                 </div>
-                                <button 
-                                    onClick={() => setModalQuantity(modalQuantity + 1)} 
-                                    data-testid="button-quantity-increase"
-                                    className="w-10 md:w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-r border-slate-200 transition-colors"
+                                <h3 className="text-base font-bold text-slate-800 leading-tight line-clamp-2">{priceModalProduct.name}</h3>
+                                <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1.5">
+                                    <span className="text-[11px] text-slate-500 font-mono font-bold bg-slate-100/80 px-1.5 py-0.5 rounded">{priceModalProduct.partNumber}</span>
+                                    <span className="text-[11px] text-brand-700 font-bold uppercase px-1.5 py-0.5 rounded bg-brand-50 border border-brand-100/50">{priceModalProduct.brand}</span>
+                                </div>
+                            </div>
+
+                            {/* Price Display - Compact & Eye-catching */}
+                            <div className="bg-gradient-to-br from-white to-slate-50/80 p-3 rounded-xl border border-slate-100 mb-3 shadow-sm backdrop-blur-sm">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-right">
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">{t('customerDashboard.priceModal.wholesalePrice')}</div>
+                                        <div className="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                                            {priceModalProduct.price} <span className="text-sm text-slate-500 font-bold">{t('customerDashboard.sar')}</span>
+                                        </div>
+                                    </div>
+                                    {priceModalProduct.stock > 0 ? (
+                                        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200/50">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                            <span className="text-[10px] font-bold text-emerald-700">{t('customerDashboard.available')}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 border border-red-200/50">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                            <span className="text-[10px] font-bold text-red-700">{t('customerDashboard.outOfStock')}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Compact Quantity Selector */}
+                            <div className="flex items-center justify-center gap-3 mb-3">
+                                <span className="text-xs text-slate-500 font-bold">{t('customerDashboard.priceModal.quantity') || 'الكمية'}:</span>
+                                <div className="flex items-center border border-slate-200 rounded-lg h-9 bg-white shadow-sm overflow-hidden">
+                                    <button 
+                                        onClick={() => setModalQuantity(Math.max(1, modalQuantity - 1))} 
+                                        data-testid="button-quantity-decrease"
+                                        className="w-9 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-brand-50 border-l border-slate-100 transition-colors"
+                                    >
+                                        <Minus size={14} />
+                                    </button>
+                                    <div className="w-10 flex items-center justify-center font-black text-sm text-slate-800" data-testid="text-quantity-value">
+                                        {modalQuantity}
+                                    </div>
+                                    <button 
+                                        onClick={() => setModalQuantity(modalQuantity + 1)} 
+                                        data-testid="button-quantity-increase"
+                                        className="w-9 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-brand-50 border-r border-slate-100 transition-colors"
+                                    >
+                                        <Plus size={14} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons - Compact */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setPriceModalProduct(null)}
+                                    data-testid="button-modal-close"
+                                    className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
                                 >
-                                    <Plus size={18} />
+                                    {t('customerDashboard.priceModal.close')}
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddToCartFromModal();
+                                    }}
+                                    disabled={priceModalProduct.stock === 0}
+                                    data-testid="button-modal-add-to-cart"
+                                    className={`flex-1 py-2.5 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
+                                        priceModalProduct.stock > 0 
+                                        ? 'bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-md shadow-brand-500/20' 
+                                        : 'bg-slate-300 cursor-not-allowed shadow-none'
+                                    }`}
+                                >
+                                    <ShoppingCart size={15} />
+                                    {t('customerDashboard.priceModal.addToCart')}
                                 </button>
                             </div>
-                        </div>
-
-                        <div className="flex flex-col-reverse md:flex-row gap-2 md:gap-3">
-                            <button
-                                onClick={() => setPriceModalProduct(null)}
-                                data-testid="button-modal-close"
-                                className="w-full md:flex-1 py-3 md:py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
-                            >
-                                {t('customerDashboard.priceModal.close')}
-                            </button>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddToCartFromModal();
-                                }}
-                                disabled={priceModalProduct.stock === 0}
-                                data-testid="button-modal-add-to-cart"
-                                className={`w-full md:flex-1 py-3 md:py-3.5 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-colors ${
-                                    priceModalProduct.stock > 0 
-                                    ? 'bg-brand-600 hover:bg-brand-700 shadow-brand-200' 
-                                    : 'bg-slate-300 cursor-not-allowed shadow-none'
-                                }`}
-                            >
-                                <ShoppingCart size={18} />
-                                {t('customerDashboard.priceModal.addToCart')}
-                            </button>
                         </div>
                     </div>
                 </Modal>
