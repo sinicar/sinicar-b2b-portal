@@ -1,6 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType, GuestModeSettings } from '../types';
 import { MockApi } from '../services/mockApi';
 
@@ -1294,28 +1295,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             </form>
                                             )}
                                             
-                                            {/* Search Dropdown Results - Unified component with JS-based responsive */}
-                                            {showSearchDropdown && (
+                                            {/* Search Dropdown Results - Rendered via Portal to escape stacking context */}
+                                            {showSearchDropdown && typeof document !== 'undefined' && createPortal(
                                                 <>
                                                     {/* Dark Backdrop */}
                                                     <div 
-                                                        className={`fixed inset-0 z-[9998] transition-opacity ${isMobile ? 'bg-black/60' : 'bg-black/20'}`}
+                                                        className={`fixed inset-0 transition-opacity ${isMobile ? 'bg-black/60' : 'bg-black/20'}`}
+                                                        style={{ zIndex: 99998 }}
                                                         onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}
                                                         data-testid="search-backdrop"
                                                     ></div>
                                                     
-                                                    {/* Results Container - FIXED positioning for both mobile and desktop */}
+                                                    {/* Results Container - FIXED positioning via Portal */}
                                                     <div 
-                                                        className={`fixed z-[9999] bg-white shadow-2xl text-right overflow-hidden flex flex-col animate-slide-up ${
+                                                        className={`fixed bg-white shadow-2xl text-right overflow-hidden flex flex-col animate-slide-up ${
                                                             isMobile 
                                                                 ? 'inset-x-0 bottom-0 rounded-t-3xl border-t-2 border-slate-200 max-h-[80vh]' 
                                                                 : 'rounded-2xl border border-slate-200 max-h-96'
                                                         }`}
-                                                        style={!isMobile && searchDropdownPosition ? {
-                                                            top: searchDropdownPosition.top,
-                                                            left: searchDropdownPosition.left,
-                                                            width: searchDropdownPosition.width
-                                                        } : undefined}
+                                                        style={{
+                                                            zIndex: 99999,
+                                                            ...(!isMobile && searchDropdownPosition ? {
+                                                                top: searchDropdownPosition.top,
+                                                                left: searchDropdownPosition.left,
+                                                                width: searchDropdownPosition.width
+                                                            } : {})
+                                                        }}
                                                         data-testid="search-results-container"
                                                     >
                                                         {/* Header - Different styling for mobile vs desktop */}
@@ -1498,7 +1503,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                             </div>
                                                         )}
                                                     </div>
-                                                </>
+                                                </>,
+                                                document.body
                                             )}
                                         </div>
                                     </div>
