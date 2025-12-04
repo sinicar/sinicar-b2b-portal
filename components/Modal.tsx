@@ -55,6 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
           transform transition-all duration-200 ease-out
           ${animate ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'}
         `}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* زر الإغلاق - يظهر دائماً في الزاوية */}
         <button 

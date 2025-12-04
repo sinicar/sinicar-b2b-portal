@@ -1743,7 +1743,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                 {t('customerDashboard.priceModal.close')}
                             </button>
                             <button
-                                onClick={handleAddToCartFromModal}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddToCartFromModal();
+                                }}
                                 disabled={priceModalProduct.stock === 0}
                                 data-testid="button-modal-add-to-cart"
                                 className={`w-full md:flex-1 py-3 md:py-3.5 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-colors ${
