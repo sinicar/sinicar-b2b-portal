@@ -117,8 +117,8 @@ export function FilterBar<T extends Record<string, any>>({
     return (
         <div className={`space-y-3 ${className}`}>
             {/* شريط البحث الرئيسي */}
-            <div className="flex flex-wrap gap-3">
-                <div className="flex-1 min-w-[250px] relative">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="w-full sm:flex-1 sm:min-w-[250px] relative">
                     <Search size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
@@ -141,7 +141,7 @@ export function FilterBar<T extends Record<string, any>>({
                 {filterDefinitions.length > 0 && (
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center gap-2 px-4 py-3 border rounded-xl font-bold text-sm transition-colors ${
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-xl font-bold text-sm transition-colors ${
                             showFilters || activeFilters.length > 0
                                 ? 'bg-[#C8A04F] text-white border-[#C8A04F]'
                                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -149,7 +149,7 @@ export function FilterBar<T extends Record<string, any>>({
                         data-testid="button-toggle-filters"
                     >
                         <Filter size={18} />
-                        الفلاتر
+                        <span className="hidden sm:inline">الفلاتر</span>
                         {activeFilters.length > 0 && (
                             <span className="bg-white text-[#C8A04F] px-2 py-0.5 rounded-full text-xs font-bold">
                                 {activeFilters.length}
@@ -161,11 +161,11 @@ export function FilterBar<T extends Record<string, any>>({
                 {hasActiveFilters && (
                     <button
                         onClick={clearAllFilters}
-                        className="flex items-center gap-2 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-bold text-sm transition-colors"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-bold text-sm transition-colors"
                         data-testid="button-clear-filters"
                     >
                         <RefreshCw size={18} />
-                        مسح الكل
+                        <span className="hidden sm:inline">مسح</span>
                     </button>
                 )}
             </div>

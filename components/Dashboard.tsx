@@ -364,8 +364,10 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
     
     const sidebarWidth = collapsed ? 'w-20' : 'w-72';
     
+    const sidebarPointerEvents = sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none lg:pointer-events-auto';
+    
     return (
-        <aside className={`fixed lg:static inset-y-0 ${sidebarPosition} ${sidebarWidth} bg-slate-900 text-white transform transition-all duration-300 z-50 flex flex-col shadow-2xl lg:shadow-none ${sidebarTransform}`}>
+        <aside className={`fixed lg:static inset-y-0 ${sidebarPosition} ${sidebarWidth} bg-slate-900 text-white transform transition-all duration-300 z-50 flex flex-col shadow-2xl lg:shadow-none ${sidebarTransform} ${sidebarPointerEvents}`}>
             {/* Logo Area */}
             <div className={`p-4 ${collapsed ? 'px-3' : 'p-6'} border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
                 {!collapsed ? (
@@ -1168,14 +1170,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 {/* Scrollable Page Content */}
                 <div className="flex-1 overflow-y-auto scroll-smooth">
                     {/* Wider Container for all views */}
-                    <div className="w-full max-w-[1600px] mx-auto px-4 lg:px-8 py-6 lg:py-8 h-full">
+                    <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 h-full">
 
                         {view === 'HOME' && (
                              <div className="animate-fade-in flex flex-col gap-8">
                                 
                                 {/* Hero Marketing & Search */}
                                 {/* UPDATED: Removed overflow-hidden from here to allow dropdown to overflow */}
-                                <div className="relative w-full rounded-3xl bg-gradient-to-r from-[#081a33] to-[#102b57] px-6 py-8 md:px-10 md:py-12 text-center text-white shadow-xl isolate">
+                                <div className="relative w-full rounded-3xl bg-gradient-to-r from-[#081a33] to-[#102b57] px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-12 text-center text-white shadow-xl isolate">
                                     {/* UPDATED: Added overflow-hidden here to contain the background blobs */}
                                     <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
                                          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] bg-brand-600 rounded-full opacity-20 blur-3xl"></div>
@@ -1191,7 +1193,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         </p>
                                         
                                         {/* Prominent Search Bar - Fixed for Mobile */}
-                                        <div className="relative w-full max-w-2xl mx-auto mt-6 md:mt-10 z-20 px-2 sm:px-0">
+                                        <div className="relative w-full max-w-2xl mx-auto mt-4 sm:mt-6 md:mt-10 z-20">
                                             <div className="flex justify-center md:justify-end mb-3">
                                                 <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 md:px-4 py-1 text-[10px] md:text-xs font-bold text-emerald-300 border border-emerald-500/40 backdrop-blur-sm shadow-sm">
                                                     <CheckCircle size={10} className="md:w-3 md:h-3" />
