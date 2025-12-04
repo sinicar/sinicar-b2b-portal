@@ -667,6 +667,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const [cartIconElement, setCartIconElement] = useState<HTMLButtonElement | null>(null);
     const [showCartDropdown, setShowCartDropdown] = useState(false);
     
+    // Search Input Ref for dropdown positioning
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const [searchDropdownPosition, setSearchDropdownPosition] = useState<{top: number; left: number; width: number} | null>(null);
+    
     // Callback for cart icon mount
     const handleCartIconMount = useCallback((element: HTMLButtonElement | null) => {
         setCartIconElement(element);
@@ -815,6 +819,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             setShowSearchDropdown(false);
         }
     }, [debouncedSearchQuery]);
+
+    // Update dropdown position when it opens
+    useEffect(() => {
+        if (showSearchDropdown && searchInputRef.current && !isMobile) {
+            const rect = searchInputRef.current.getBoundingClientRect();
+            setSearchDropdownPosition({
+                top: rect.bottom + 8,
+                left: rect.left,
+                width: rect.width
+            });
+        }
+    }, [showSearchDropdown, isMobile]);
 
     const handleSearchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1260,6 +1276,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             ) : (
                                             <form onSubmit={handleSearchSubmit} className="relative group w-full">
                                                 <input 
+                                                    ref={searchInputRef}
                                                     type="text" 
                                                     className="w-full h-12 md:h-16 pr-14 md:pr-16 pl-4 md:pl-6 bg-white text-slate-900 rounded-full shadow-2xl shadow-slate-900/30 focus:ring-4 focus:ring-brand-500/30 border-0 text-sm md:text-lg font-bold placeholder:text-slate-400 transition-all outline-none"
                                                     placeholder={t('customerDashboard.searchPlaceholder')}
@@ -1282,18 +1299,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 <>
                                                     {/* Dark Backdrop */}
                                                     <div 
-                                                        className={`fixed inset-0 z-[100] transition-opacity ${isMobile ? 'bg-black/60' : 'bg-black/20'}`}
+                                                        className={`fixed inset-0 z-[9998] transition-opacity ${isMobile ? 'bg-black/60' : 'bg-black/20'}`}
                                                         onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}
                                                         data-testid="search-backdrop"
                                                     ></div>
                                                     
-                                                    {/* Results Container - Single component that adapts based on isMobile */}
+                                                    {/* Results Container - FIXED positioning for both mobile and desktop */}
                                                     <div 
-                                                        className={`z-[101] bg-white shadow-2xl text-right overflow-hidden flex flex-col animate-slide-up ${
+                                                        className={`fixed z-[9999] bg-white shadow-2xl text-right overflow-hidden flex flex-col animate-slide-up ${
                                                             isMobile 
-                                                                ? 'fixed inset-x-0 bottom-0 rounded-t-3xl border-t-2 border-slate-200 max-h-[80vh]' 
-                                                                : 'absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-200 max-h-96'
+                                                                ? 'inset-x-0 bottom-0 rounded-t-3xl border-t-2 border-slate-200 max-h-[80vh]' 
+                                                                : 'rounded-2xl border border-slate-200 max-h-96'
                                                         }`}
+                                                        style={!isMobile && searchDropdownPosition ? {
+                                                            top: searchDropdownPosition.top,
+                                                            left: searchDropdownPosition.left,
+                                                            width: searchDropdownPosition.width
+                                                        } : undefined}
                                                         data-testid="search-results-container"
                                                     >
                                                         {/* Header - Different styling for mobile vs desktop */}
