@@ -1012,7 +1012,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             {showSearchDropdown && (
                                                 <>
                                                     <div className="fixed inset-0 z-10" onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}></div>
-                                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 animate-slide-up text-right max-h-80 overflow-y-auto">
+                                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 animate-slide-up text-right max-h-[60vh] md:max-h-80 overflow-y-auto">
                                                         {searchLoading ? (
                                                             <div className="p-8 text-center">
                                                                 <Loader2 size={32} className="animate-spin text-brand-600 mx-auto mb-3" />
@@ -1063,18 +1063,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                     return (
                                                                         <div 
                                                                             key={product.id}
-                                                                            className="w-full text-right p-4 hover:bg-brand-50 flex items-center justify-between group transition-colors cursor-default"
+                                                                            className="w-full text-right p-3 md:p-4 hover:bg-brand-50 flex flex-col md:flex-row md:items-center md:justify-between group transition-colors cursor-default gap-2 md:gap-4"
                                                                         >
-                                                                            <div className="flex items-center gap-4 flex-1">
-                                                                                <div className="p-2.5 bg-slate-100 rounded-xl text-slate-600 group-hover:bg-white group-hover:text-brand-600 border border-slate-200">
-                                                                                    <Box size={20} />
+                                                                            <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                                                                                <div className="p-2 md:p-2.5 bg-slate-100 rounded-xl text-slate-600 group-hover:bg-white group-hover:text-brand-600 border border-slate-200 shrink-0">
+                                                                                    <Box size={18} className="md:w-5 md:h-5" />
                                                                                 </div>
-                                                                                <div>
-                                                                                    <p className="font-bold text-slate-800 text-sm md:text-base group-hover:text-brand-700">{product.name}</p>
-                                                                                    <p className="text-xs md:text-sm text-slate-500 font-mono mt-0.5 flex items-center gap-2">
+                                                                                <div className="min-w-0 flex-1">
+                                                                                    <p className="font-bold text-slate-800 text-sm md:text-base group-hover:text-brand-700 truncate">{product.name}</p>
+                                                                                    <p className="text-xs md:text-sm text-slate-500 font-mono mt-0.5 flex flex-wrap items-center gap-1 md:gap-2">
                                                                                         <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-bold">{product.partNumber}</span>
-                                                                                        <span className="text-slate-400">|</span>
-                                                                                        {product.brand} - {product.category}
+                                                                                        <span className="text-slate-400 hidden md:inline">|</span>
+                                                                                        <span className="text-xs">{product.brand}</span>
                                                                                     </p>
                                                                                 </div>
                                                                             </div>
@@ -1440,21 +1440,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     title={t('customerDashboard.priceModal.productDetails')}
                     maxWidth="max-w-md"
                 >
-                    <div className="text-center p-4">
-                        <div className="mb-6">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-600 mx-auto mb-4 border border-slate-100">
-                                <Box size={40} />
+                    <div className="text-center p-3 md:p-4">
+                        <div className="mb-4 md:mb-6">
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-600 mx-auto mb-3 md:mb-4 border border-slate-100">
+                                <Box size={32} className="md:w-10 md:h-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 leading-snug">{priceModalProduct.name}</h3>
-                            <div className="flex items-center justify-center gap-2 mt-2">
-                                <span className="text-sm text-slate-500 font-mono font-bold bg-slate-100 px-2 py-0.5 rounded">{priceModalProduct.partNumber}</span>
+                            <h3 className="text-lg md:text-xl font-bold text-slate-900 leading-snug px-2">{priceModalProduct.name}</h3>
+                            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                                <span className="text-xs md:text-sm text-slate-500 font-mono font-bold bg-slate-100 px-2 py-0.5 rounded">{priceModalProduct.partNumber}</span>
                                 <span className="text-xs text-brand-600 font-bold uppercase border border-brand-200 px-2 py-0.5 rounded bg-brand-50">{priceModalProduct.brand}</span>
                             </div>
                         </div>
 
-                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-6">
+                        <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200 mb-4 md:mb-6">
                              <div className="mb-2 text-slate-500 font-bold text-xs uppercase tracking-wider">{t('customerDashboard.priceModal.wholesalePrice')}</div>
-                             <div className="text-4xl font-black text-slate-900">{priceModalProduct.price} <span className="text-lg text-slate-500 font-bold">{t('customerDashboard.sar')}</span></div>
+                             <div className="text-3xl md:text-4xl font-black text-slate-900">{priceModalProduct.price} <span className="text-base md:text-lg text-slate-500 font-bold">{t('customerDashboard.sar')}</span></div>
                              {priceModalProduct.stock > 0 ? (
                                  <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
                                      <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></div>
@@ -1468,43 +1468,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                              )}
                         </div>
 
-                        <div className="mb-6">
-                             <div className="flex items-center justify-center border border-slate-300 rounded-xl h-12 bg-white w-48 mx-auto shadow-sm overflow-hidden">
+                        <div className="mb-4 md:mb-6">
+                             <div className="flex items-center justify-center border border-slate-300 rounded-xl h-11 md:h-12 bg-white w-40 md:w-48 mx-auto shadow-sm overflow-hidden">
                                 <button 
                                     onClick={() => setModalQuantity(Math.max(1, modalQuantity - 1))} 
-                                    className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-l border-slate-200 transition-colors"
+                                    className="w-10 md:w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-l border-slate-200 transition-colors"
                                 >
-                                    <Minus size={20} />
+                                    <Minus size={18} />
                                 </button>
-                                <div className="flex-1 flex items-center justify-center font-black text-lg text-slate-800">
+                                <div className="flex-1 flex items-center justify-center font-black text-base md:text-lg text-slate-800">
                                     {modalQuantity}
                                 </div>
                                 <button 
                                     onClick={() => setModalQuantity(modalQuantity + 1)} 
-                                    className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-r border-slate-200 transition-colors"
+                                    className="w-10 md:w-12 h-full flex items-center justify-center text-slate-500 hover:text-brand-600 hover:bg-slate-50 border-r border-slate-200 transition-colors"
                                 >
-                                    <Plus size={20} />
+                                    <Plus size={18} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col md:flex-row gap-2 md:gap-3">
                             <button
                                 onClick={() => setPriceModalProduct(null)}
-                                className="flex-1 py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
+                                className="w-full md:flex-1 py-3 md:py-3.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors order-2 md:order-1"
                             >
                                 {t('customerDashboard.priceModal.close')}
                             </button>
                             <button
                                 onClick={handleAddToCartFromModal}
                                 disabled={priceModalProduct.stock === 0}
-                                className={`flex-1 py-3.5 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-colors ${
+                                className={`w-full md:flex-1 py-3 md:py-3.5 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-colors order-1 md:order-2 ${
                                     priceModalProduct.stock > 0 
                                     ? 'bg-brand-600 hover:bg-brand-700 shadow-brand-200' 
                                     : 'bg-slate-300 cursor-not-allowed shadow-none'
                                 }`}
                             >
-                                <ShoppingCart size={20} />
+                                <ShoppingCart size={18} />
                                 {t('customerDashboard.priceModal.addToCart')}
                             </button>
                         </div>
