@@ -1014,6 +1014,96 @@
       "other": "مستند آخر"
     }
   },
+  "adminAccountRequests": {
+    "stats": {
+      "newRequests": "طلبات جديدة",
+      "underReview": "قيد المراجعة",
+      "approved": "تمت الموافقة",
+      "rejected": "مرفوضة"
+    },
+    "status": {
+      "new": "طلب جديد",
+      "underReview": "قيد المراجعة",
+      "approved": "تم الموافقة",
+      "rejected": "مرفوض",
+      "onHold": "مؤجل"
+    },
+    "docTypes": {
+      "crCertificate": "السجل التجاري",
+      "vatCertificate": "شهادة الرقم الضريبي",
+      "nationalId": "الهوية الوطنية",
+      "authLetter": "خطاب التفويض",
+      "other": "مستند آخر"
+    },
+    "categories": {
+      "spareParts": "محل قطع غيار",
+      "rental": "تأجير سيارات",
+      "insurance": "شركة تأمين",
+      "agent": "مندوب"
+    },
+    "searchPlaceholder": "بحث باسم المنشأة، الجوال...",
+    "allStatuses": "جميع الحالات",
+    "table": {
+      "businessName": "اسم المنشأة / العميل",
+      "activityType": "نوع النشاط",
+      "city": "المدينة",
+      "date": "التاريخ",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "approvedAccount": "حساب معتمد",
+    "view": "عرض",
+    "noMatchingRequests": "لا توجد طلبات مطابقة",
+    "panel": {
+      "title": "تفاصيل طلب الاعتماد",
+      "customerData": "بيانات العميل",
+      "businessName": "اسم المنشأة",
+      "activity": "النشاط",
+      "city": "المدينة",
+      "contactNumber": "رقم التواصل",
+      "crNumber": "السجل التجاري",
+      "vatNumber": "الرقم الضريبي",
+      "customerNotes": "ملاحظات العميل",
+      "attachedDocuments": "المستندات المرفقة",
+      "adminDecision": "قرار الإدارة والصلاحيات"
+    },
+    "form": {
+      "requestStatus": "حالة الطلب",
+      "statusNew": "جديد",
+      "statusUnderReview": "قيد المراجعة",
+      "statusApproved": "موافقة (اعتماد)",
+      "statusRejected": "رفض",
+      "statusOnHold": "معلق",
+      "customerType": "تصنيف العميل",
+      "typePartsShop": "محل قطع غيار",
+      "typeRentalCompany": "شركة تأجير",
+      "typeInsuranceCompany": "شركة تأمين",
+      "typeSalesAgent": "مندوب",
+      "typeFleetCustomer": "أسطول سيارات",
+      "typeOther": "أخرى",
+      "priceLevel": "مستوى التسعير",
+      "level1": "Level 1 (VIP - أفضل سعر)",
+      "level2": "Level 2 (جملة)",
+      "level3": "Level 3 (تجزئة/صغير)",
+      "levelSpecial": "خاص",
+      "accessValidity": "صلاحية الدخول",
+      "to": "إلى",
+      "openEnded": "صلاحية مفتوحة (بدون تاريخ انتهاء)",
+      "searchPoints": "رصيد نقاط البحث",
+      "initialBalance": "الرصيد الأولي",
+      "monthlyRenewal": "تجديد شهري",
+      "allowAddStaff": "السماح بإضافة موظفين",
+      "maxLimit": "الحد الأقصى",
+      "adminNotes": "ملاحظات إدارية (للاستخدام الداخلي)",
+      "notesPlaceholder": "اكتب أي ملاحظات حول المراجعة...",
+      "saveDecision": "حفظ القرار",
+      "cancel": "إلغاء"
+    },
+    "toast": {
+      "saveSuccess": "تم حفظ القرار بنجاح",
+      "saveError": "حدث خطأ أثناء الحفظ"
+    }
+  },
   "adminQuotes": {
     "title": "إدارة طلبات التسعير",
     "pendingQuotes": "تسعيرات معلقة",

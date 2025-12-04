@@ -1014,6 +1014,96 @@
       "other": "अन्य दस्तावेज़"
     }
   },
+  "adminAccountRequests": {
+    "stats": {
+      "newRequests": "नए अनुरोध",
+      "underReview": "समीक्षाधीन",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत"
+    },
+    "status": {
+      "new": "नया अनुरोध",
+      "underReview": "समीक्षाधीन",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "onHold": "होल्ड पर"
+    },
+    "docTypes": {
+      "crCertificate": "वाणिज्यिक रजिस्टर",
+      "vatCertificate": "VAT प्रमाणपत्र",
+      "nationalId": "राष्ट्रीय पहचान पत्र",
+      "authLetter": "प्राधिकरण पत्र",
+      "other": "अन्य दस्तावेज़"
+    },
+    "categories": {
+      "spareParts": "स्पेयर पार्ट्स शॉप",
+      "rental": "कार रेंटल",
+      "insurance": "बीमा कंपनी",
+      "agent": "सेल्स एजेंट"
+    },
+    "searchPlaceholder": "व्यवसाय नाम, फोन से खोजें...",
+    "allStatuses": "सभी स्थिति",
+    "table": {
+      "businessName": "व्यवसाय का नाम / ग्राहक",
+      "activityType": "गतिविधि प्रकार",
+      "city": "शहर",
+      "date": "तारीख",
+      "status": "स्थिति",
+      "actions": "क्रियाएं"
+    },
+    "approvedAccount": "स्वीकृत खाता",
+    "view": "देखें",
+    "noMatchingRequests": "कोई मिलान अनुरोध नहीं मिला",
+    "panel": {
+      "title": "अनुमोदन अनुरोध विवरण",
+      "customerData": "ग्राहक डेटा",
+      "businessName": "व्यवसाय का नाम",
+      "activity": "गतिविधि",
+      "city": "शहर",
+      "contactNumber": "संपर्क नंबर",
+      "crNumber": "वाणिज्यिक रजिस्टर",
+      "vatNumber": "VAT नंबर",
+      "customerNotes": "ग्राहक नोट्स",
+      "attachedDocuments": "संलग्न दस्तावेज़",
+      "adminDecision": "एडमिन निर्णय और अनुमतियां"
+    },
+    "form": {
+      "requestStatus": "अनुरोध स्थिति",
+      "statusNew": "नया",
+      "statusUnderReview": "समीक्षाधीन",
+      "statusApproved": "स्वीकृत",
+      "statusRejected": "अस्वीकृत",
+      "statusOnHold": "होल्ड पर",
+      "customerType": "ग्राहक प्रकार",
+      "typePartsShop": "पार्ट्स शॉप",
+      "typeRentalCompany": "रेंटल कंपनी",
+      "typeInsuranceCompany": "बीमा कंपनी",
+      "typeSalesAgent": "सेल्स एजेंट",
+      "typeFleetCustomer": "फ्लीट ग्राहक",
+      "typeOther": "अन्य",
+      "priceLevel": "मूल्य स्तर",
+      "level1": "Level 1 (VIP - सर्वश्रेष्ठ मूल्य)",
+      "level2": "Level 2 (थोक)",
+      "level3": "Level 3 (खुदरा/छोटा)",
+      "levelSpecial": "विशेष",
+      "accessValidity": "एक्सेस वैधता",
+      "to": "से",
+      "openEnded": "खुली समाप्ति (कोई समाप्ति तिथि नहीं)",
+      "searchPoints": "खोज अंक शेष",
+      "initialBalance": "प्रारंभिक शेष",
+      "monthlyRenewal": "मासिक नवीनीकरण",
+      "allowAddStaff": "स्टाफ जोड़ने की अनुमति",
+      "maxLimit": "अधिकतम सीमा",
+      "adminNotes": "एडमिन नोट्स (आंतरिक उपयोग)",
+      "notesPlaceholder": "समीक्षा के बारे में कोई नोट लिखें...",
+      "saveDecision": "निर्णय सहेजें",
+      "cancel": "रद्द करें"
+    },
+    "toast": {
+      "saveSuccess": "निर्णय सफलतापूर्वक सहेजा गया",
+      "saveError": "निर्णय सहेजने में त्रुटि"
+    }
+  },
   "adminQuotes": {
     "title": "कोटेशन अनुरोध प्रबंधन",
     "pendingQuotes": "लंबित कोटेशन",

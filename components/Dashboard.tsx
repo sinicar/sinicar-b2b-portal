@@ -131,6 +131,188 @@ const InfoCard = memo(({ icon, title, desc, colorClass = "bg-slate-50 text-brand
     </div>
 ));
 
+// Flying Cart Item Animation Component
+interface FlyingCartItemProps {
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    onComplete: () => void;
+}
+
+const FlyingCartItem = memo(({ startX, startY, endX, endY, onComplete }: FlyingCartItemProps) => {
+    const [position, setPosition] = useState({ x: startX, y: startY, scale: 1, opacity: 1 });
+    
+    useEffect(() => {
+        // Start animation after mount
+        requestAnimationFrame(() => {
+            setPosition({ x: endX, y: endY, scale: 0.3, opacity: 0.5 });
+        });
+        
+        const timer = setTimeout(onComplete, 800);
+        return () => clearTimeout(timer);
+    }, [endX, endY, onComplete]);
+    
+    return (
+        <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{
+                left: position.x,
+                top: position.y,
+                transform: `translate(-50%, -50%) scale(${position.scale})`,
+                opacity: position.opacity,
+                transition: 'all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            }}
+        >
+            <div className="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center shadow-lg shadow-brand-600/50">
+                <ShoppingCart size={18} className="text-white" />
+            </div>
+        </div>
+    );
+});
+
+// Cart Icon with Badge Component
+interface CartIconButtonProps {
+    cartCount: number;
+    cartTotal: number;
+    cart: CartItem[];
+    onRemoveItem: (id: string) => void;
+    onSubmitOrder: () => void;
+    showDropdown: boolean;
+    setShowDropdown: (show: boolean) => void;
+    onCartIconMount: (element: HTMLButtonElement | null) => void;
+    t: (key: string, fallback?: string) => string;
+    isRTL: boolean;
+}
+
+const CartIconButton = memo(({ 
+    cartCount, 
+    cartTotal, 
+    cart, 
+    onRemoveItem, 
+    onSubmitOrder, 
+    showDropdown, 
+    setShowDropdown, 
+    onCartIconMount,
+    t,
+    isRTL
+}: CartIconButtonProps) => {
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    
+    // Report button element to parent
+    useEffect(() => {
+        onCartIconMount(buttonRef.current);
+        return () => onCartIconMount(null);
+    }, [onCartIconMount]);
+    
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+                buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [setShowDropdown]);
+    
+    return (
+        <div className="relative">
+            <button
+                ref={buttonRef}
+                onClick={() => setShowDropdown(!showDropdown)}
+                className={`relative p-2.5 rounded-xl transition-all ${
+                    cartCount > 0 
+                        ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md shadow-brand-600/30' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+                data-testid="button-cart"
+                aria-label="Shopping Cart"
+            >
+                <ShoppingCart size={20} />
+                {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm animate-pulse">
+                        {cartCount}
+                    </span>
+                )}
+            </button>
+            
+            {/* Cart Dropdown */}
+            {showDropdown && (
+                <div 
+                    ref={dropdownRef}
+                    className={`absolute top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 ${
+                        isRTL ? 'left-0' : 'right-0'
+                    }`}
+                >
+                    <div className="p-4 bg-slate-50 border-b border-slate-200">
+                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                            <ShoppingCart size={18} />
+                            {t('customerDashboard.cart', 'سلة المشتريات')}
+                            <span className="bg-brand-600 text-white text-xs px-2 py-0.5 rounded-full">{cartCount}</span>
+                        </h3>
+                    </div>
+                    
+                    <div className="max-h-64 overflow-y-auto">
+                        {cart.length === 0 ? (
+                            <div className="p-8 text-center text-slate-400">
+                                <ShoppingCart size={32} className="mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">{t('customerDashboard.emptyCart', 'السلة فارغة')}</p>
+                            </div>
+                        ) : (
+                            cart.map(item => (
+                                <div key={item.id} className="p-3 border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-bold text-slate-800 truncate">{item.name}</p>
+                                            <p className="text-xs text-slate-500">
+                                                {item.quantity} × {item.price.toLocaleString()} {t('customerDashboard.sar', 'ر.س')}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold text-brand-600">
+                                                {(item.quantity * item.price).toLocaleString()}
+                                            </span>
+                                            <button
+                                                onClick={() => onRemoveItem(item.id)}
+                                                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                data-testid={`button-remove-item-${item.id}`}
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                    
+                    {cart.length > 0 && (
+                        <div className="p-4 bg-slate-50 border-t border-slate-200">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm text-slate-600">{t('customerDashboard.total', 'الإجمالي')}:</span>
+                                <span className="text-lg font-black text-slate-900">
+                                    {cartTotal.toLocaleString()} {t('customerDashboard.sar', 'ر.س')}
+                                </span>
+                            </div>
+                            <button
+                                onClick={onSubmitOrder}
+                                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors shadow-md shadow-brand-600/30"
+                                data-testid="button-submit-order-dropdown"
+                            >
+                                {t('customerDashboard.confirmOrder', 'تأكيد الطلب')}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+});
+
 // --- Extract Sidebar and Header for better memoization ---
 const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL }: any) => {
     // RTL: sidebar on right, slides from right. LTR: sidebar on left, slides from left
@@ -231,7 +413,21 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
     );
 });
 
-const DashboardHeader = memo(({ view, setSidebarOpen, user, tDynamic, isRTL }: any) => {
+const DashboardHeader = memo(({ 
+    view, 
+    setSidebarOpen, 
+    user, 
+    tDynamic, 
+    t,
+    isRTL,
+    cart,
+    cartTotal,
+    onRemoveItem,
+    onSubmitOrder,
+    showCartDropdown,
+    setShowCartDropdown,
+    onCartIconMount
+}: any) => {
     return (
         <header className="h-16 md:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 lg:px-8 flex-shrink-0 z-30 shadow-sm gap-2">
             <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
@@ -259,6 +455,21 @@ const DashboardHeader = memo(({ view, setSidebarOpen, user, tDynamic, isRTL }: a
                         <Clock size={16} />
                         <span>{formatDateTime(new Date().toISOString())}</span>
                     </div>
+                    
+                    {/* Cart Icon with Dropdown */}
+                    <CartIconButton
+                        cartCount={cart?.length || 0}
+                        cartTotal={cartTotal || 0}
+                        cart={cart || []}
+                        onRemoveItem={onRemoveItem}
+                        onSubmitOrder={onSubmitOrder}
+                        showDropdown={showCartDropdown}
+                        setShowDropdown={setShowCartDropdown}
+                        onCartIconMount={onCartIconMount}
+                        t={t}
+                        isRTL={isRTL}
+                    />
+                    
                     <NotificationBell user={user} />
                     <LanguageSwitcher />
             </div>
@@ -302,6 +513,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const [priceModalProduct, setPriceModalProduct] = useState<Product | null>(null);
     const [modalQuantity, setModalQuantity] = useState(1);
     const [priceLoading, setPriceLoading] = useState(false);
+
+    // Flying Cart Animation State
+    const [flyingItems, setFlyingItems] = useState<Array<{
+        id: string;
+        startX: number;
+        startY: number;
+        productName: string;
+    }>>([]);
+    const [cartIconElement, setCartIconElement] = useState<HTMLButtonElement | null>(null);
+    const [showCartDropdown, setShowCartDropdown] = useState(false);
+    
+    // Callback for cart icon mount
+    const handleCartIconMount = useCallback((element: HTMLButtonElement | null) => {
+        setCartIconElement(element);
+    }, []);
 
     const { t, tDynamic, dir } = useLanguage();
     const { addToast } = useToast();
@@ -483,8 +709,51 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         }
     };
 
-    const handleAddToCart = (product: Product, quantity: number) => {
+    // Trigger flying animation for cart items
+    const triggerFlyingAnimation = useCallback((product: Product, quantity: number, startElement?: HTMLElement | null) => {
+        if (!cartIconElement) return;
+        
+        // Get start position (from button or center of screen)
+        let startX = window.innerWidth / 2;
+        let startY = window.innerHeight / 2;
+        
+        if (startElement) {
+            const rect = startElement.getBoundingClientRect();
+            startX = rect.left + rect.width / 2;
+            startY = rect.top + rect.height / 2;
+        }
+        
+        // Create multiple flying items based on quantity (max 5 for performance)
+        const itemCount = Math.min(quantity, 5);
+        const newItems: Array<{id: string; startX: number; startY: number; productName: string}> = [];
+        
+        for (let i = 0; i < itemCount; i++) {
+            newItems.push({
+                id: `${product.id}-${Date.now()}-${i}`,
+                startX: startX + (Math.random() - 0.5) * 40, // Slight random offset
+                startY: startY + (Math.random() - 0.5) * 40,
+                productName: product.name
+            });
+        }
+        
+        // Stagger the animations
+        newItems.forEach((item, index) => {
+            setTimeout(() => {
+                setFlyingItems(prev => [...prev, item]);
+                
+                // Remove item after animation completes
+                setTimeout(() => {
+                    setFlyingItems(prev => prev.filter(fi => fi.id !== item.id));
+                }, 800);
+            }, index * 100); // 100ms delay between each item
+        });
+    }, [cartIconElement]);
+
+    const handleAddToCart = (product: Product, quantity: number, startElement?: HTMLElement | null) => {
         const existingItem = cart.find(item => item.id === product.id);
+        
+        // Trigger flying animation
+        triggerFlyingAnimation(product, quantity, startElement);
         
         if (existingItem) {
             setDuplicateConfirmation({ product, quantity });
@@ -553,8 +822,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const remainingCredits = user.searchLimit === 0 ? '∞' : (user.searchLimit || 50) - (user.searchUsed || 0);
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+    // Get cart icon position for flying animation
+    const getCartIconPosition = useCallback(() => {
+        if (cartIconElement) {
+            const rect = cartIconElement.getBoundingClientRect();
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        return { x: window.innerWidth - 100, y: 50 };
+    }, [cartIconElement]);
+
     return (
         <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-800" dir={dir}>
+            
+            {/* Flying Cart Items Animation */}
+            {flyingItems.map(item => {
+                const endPos = getCartIconPosition();
+                return (
+                    <FlyingCartItem
+                        key={item.id}
+                        startX={item.startX}
+                        startY={item.startY}
+                        endX={endPos.x}
+                        endY={endPos.y}
+                        onComplete={() => setFlyingItems(prev => prev.filter(fi => fi.id !== item.id))}
+                    />
+                );
+            })}
             
             {/* New First Time User Modal */}
             <UsageIntroModal />
@@ -594,7 +887,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     setSidebarOpen={setSidebarOpen}
                     user={user}
                     tDynamic={tDynamic}
+                    t={t}
                     isRTL={dir === 'rtl'}
+                    cart={cart}
+                    cartTotal={cartTotal}
+                    onRemoveItem={handleRemoveFromCart}
+                    onSubmitOrder={handleSubmitOrder}
+                    showCartDropdown={showCartDropdown}
+                    setShowCartDropdown={setShowCartDropdown}
+                    onCartIconMount={handleCartIconMount}
                 />
 
                 {/* Scrollable Page Content */}

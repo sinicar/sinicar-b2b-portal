@@ -1014,6 +1014,96 @@
       "other": "其他文件"
     }
   },
+  "adminAccountRequests": {
+    "stats": {
+      "newRequests": "新申请",
+      "underReview": "审核中",
+      "approved": "已批准",
+      "rejected": "已拒绝"
+    },
+    "status": {
+      "new": "新申请",
+      "underReview": "审核中",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "onHold": "暂停"
+    },
+    "docTypes": {
+      "crCertificate": "商业登记证",
+      "vatCertificate": "增值税证书",
+      "nationalId": "国民身份证",
+      "authLetter": "授权书",
+      "other": "其他文件"
+    },
+    "categories": {
+      "spareParts": "汽车配件店",
+      "rental": "汽车租赁",
+      "insurance": "保险公司",
+      "agent": "销售代理"
+    },
+    "searchPlaceholder": "按企业名称、电话搜索...",
+    "allStatuses": "所有状态",
+    "table": {
+      "businessName": "企业名称 / 客户",
+      "activityType": "活动类型",
+      "city": "城市",
+      "date": "日期",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "approvedAccount": "已批准账户",
+    "view": "查看",
+    "noMatchingRequests": "未找到匹配的申请",
+    "panel": {
+      "title": "审批申请详情",
+      "customerData": "客户数据",
+      "businessName": "企业名称",
+      "activity": "活动",
+      "city": "城市",
+      "contactNumber": "联系电话",
+      "crNumber": "商业登记号",
+      "vatNumber": "增值税号",
+      "customerNotes": "客户备注",
+      "attachedDocuments": "附件",
+      "adminDecision": "管理员决定和权限"
+    },
+    "form": {
+      "requestStatus": "申请状态",
+      "statusNew": "新建",
+      "statusUnderReview": "审核中",
+      "statusApproved": "已批准",
+      "statusRejected": "已拒绝",
+      "statusOnHold": "暂停",
+      "customerType": "客户类型",
+      "typePartsShop": "配件店",
+      "typeRentalCompany": "租赁公司",
+      "typeInsuranceCompany": "保险公司",
+      "typeSalesAgent": "销售代理",
+      "typeFleetCustomer": "车队客户",
+      "typeOther": "其他",
+      "priceLevel": "价格等级",
+      "level1": "Level 1 (VIP - 最优价格)",
+      "level2": "Level 2 (批发)",
+      "level3": "Level 3 (零售/小型)",
+      "levelSpecial": "特殊",
+      "accessValidity": "访问有效期",
+      "to": "至",
+      "openEnded": "无限期（无到期日）",
+      "searchPoints": "搜索积分余额",
+      "initialBalance": "初始余额",
+      "monthlyRenewal": "月度更新",
+      "allowAddStaff": "允许添加员工",
+      "maxLimit": "最大限制",
+      "adminNotes": "管理员备注（内部使用）",
+      "notesPlaceholder": "写下关于审核的任何备注...",
+      "saveDecision": "保存决定",
+      "cancel": "取消"
+    },
+    "toast": {
+      "saveSuccess": "决定保存成功",
+      "saveError": "保存决定时出错"
+    }
+  },
   "adminQuotes": {
     "title": "报价请求管理",
     "pendingQuotes": "待处理报价",

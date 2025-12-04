@@ -1014,6 +1014,96 @@
       "other": "Other Document"
     }
   },
+  "adminAccountRequests": {
+    "stats": {
+      "newRequests": "New Requests",
+      "underReview": "Under Review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "status": {
+      "new": "New Request",
+      "underReview": "Under Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "onHold": "On Hold"
+    },
+    "docTypes": {
+      "crCertificate": "Commercial Register",
+      "vatCertificate": "VAT Certificate",
+      "nationalId": "National ID",
+      "authLetter": "Authorization Letter",
+      "other": "Other Document"
+    },
+    "categories": {
+      "spareParts": "Spare Parts Shop",
+      "rental": "Car Rental",
+      "insurance": "Insurance Company",
+      "agent": "Sales Agent"
+    },
+    "searchPlaceholder": "Search by business name, phone...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "businessName": "Business Name / Customer",
+      "activityType": "Activity Type",
+      "city": "City",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "approvedAccount": "Approved Account",
+    "view": "View",
+    "noMatchingRequests": "No matching requests found",
+    "panel": {
+      "title": "Approval Request Details",
+      "customerData": "Customer Data",
+      "businessName": "Business Name",
+      "activity": "Activity",
+      "city": "City",
+      "contactNumber": "Contact Number",
+      "crNumber": "Commercial Register",
+      "vatNumber": "VAT Number",
+      "customerNotes": "Customer Notes",
+      "attachedDocuments": "Attached Documents",
+      "adminDecision": "Admin Decision & Permissions"
+    },
+    "form": {
+      "requestStatus": "Request Status",
+      "statusNew": "New",
+      "statusUnderReview": "Under Review",
+      "statusApproved": "Approved",
+      "statusRejected": "Rejected",
+      "statusOnHold": "On Hold",
+      "customerType": "Customer Type",
+      "typePartsShop": "Parts Shop",
+      "typeRentalCompany": "Rental Company",
+      "typeInsuranceCompany": "Insurance Company",
+      "typeSalesAgent": "Sales Agent",
+      "typeFleetCustomer": "Fleet Customer",
+      "typeOther": "Other",
+      "priceLevel": "Price Level",
+      "level1": "Level 1 (VIP - Best Price)",
+      "level2": "Level 2 (Wholesale)",
+      "level3": "Level 3 (Retail/Small)",
+      "levelSpecial": "Special",
+      "accessValidity": "Access Validity",
+      "to": "to",
+      "openEnded": "Open-ended (no expiry date)",
+      "searchPoints": "Search Points Balance",
+      "initialBalance": "Initial Balance",
+      "monthlyRenewal": "Monthly Renewal",
+      "allowAddStaff": "Allow Adding Staff",
+      "maxLimit": "Maximum Limit",
+      "adminNotes": "Admin Notes (Internal Use)",
+      "notesPlaceholder": "Write any notes about the review...",
+      "saveDecision": "Save Decision",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "saveSuccess": "Decision saved successfully",
+      "saveError": "Error saving decision"
+    }
+  },
   "adminQuotes": {
     "title": "Quote Requests Management",
     "pendingQuotes": "Pending Quotes",
