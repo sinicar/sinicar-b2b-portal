@@ -223,5 +223,21 @@ Preferred communication style: Simple, everyday language.
 - Editable fields: business name, CR number, VAT number, national address, city, phone, email
 - Four tabs: Profile, Branches, Employees, Security
 
+**Guest Mode System** (Dec 2025):
+- Guest browsing allows visitors to preview the portal without account
+- Content protection with configurable blur intensity (light/medium/heavy)
+- Admin-controlled visibility for each section (businessTypes, mainServices, howItWorks, whySiniCar, cart, marketingCards)
+- Search blocking when allowSearch = false - shows login prompt instead of search bar
+- Overlay controls: show/hide blur overlay buttons on protected sections
+- Page restrictions: guests can only view HOME, clicking other pages triggers marketing modal
+- Professional marketing modal prompts guests to register as wholesale customers
+- Guest settings managed via GUEST_MODE tab in Admin Settings
+
+**Flying Cart Animation**:
+- Animated shopping cart with dynamic flying items effect
+- Products fly from add-to-cart button to cart icon
+- Multiple items animate based on quantity (max 5 for performance)
+- Smooth cubic-bezier easing with scale and opacity transitions
+
 **Known Enhancement Opportunities**:
 - Status labels configuration in AdminSettings stores data but components still use hardcoded STATUS_COLORS maps - future enhancement to propagate configurable labels to all badge renderers
