@@ -3,6 +3,29 @@
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react';
 import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType, GuestModeSettings } from '../types';
 import { MockApi } from '../services/mockApi';
+
+// Custom hook for responsive breakpoint detection
+function useIsMobile(breakpoint = 768) {
+    const [isMobile, setIsMobile] = useState(() => 
+        typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+    );
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < breakpoint);
+        };
+        
+        // Set initial value
+        handleResize();
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [breakpoint]);
+
+    return isMobile;
+}
 import { 
   LayoutDashboard, ShoppingCart, Users, User as UserIcon, Package, LogOut, Search, 
   TrendingUp, Truck, Bell, Box, 
@@ -587,6 +610,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     // Sidebar Mobile
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Mobile detection for responsive components
+    const isMobile = useIsMobile(768);
     
     // Collapsible Sidebar State with localStorage persistence
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -1231,11 +1257,65 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             </form>
                                             )}
                                             
-                                            {/* Search Dropdown Results */}
+                                            {/* Search Dropdown Results - Unified component with JS-based responsive */}
                                             {showSearchDropdown && (
                                                 <>
-                                                    <div className="fixed inset-0 z-10" onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}></div>
-                                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 animate-slide-up text-right max-h-[60vh] md:max-h-80 overflow-y-auto">
+                                                    {/* Dark Backdrop */}
+                                                    <div 
+                                                        className={`fixed inset-0 z-[100] transition-opacity ${isMobile ? 'bg-black/60' : 'bg-black/20'}`}
+                                                        onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}
+                                                        data-testid="search-backdrop"
+                                                    ></div>
+                                                    
+                                                    {/* Results Container - Single component that adapts based on isMobile */}
+                                                    <div 
+                                                        className={`z-[101] bg-white shadow-2xl text-right overflow-hidden flex flex-col animate-slide-up ${
+                                                            isMobile 
+                                                                ? 'fixed inset-x-0 bottom-0 rounded-t-3xl border-t-2 border-slate-200 max-h-[80vh]' 
+                                                                : 'absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-200 max-h-96'
+                                                        }`}
+                                                        data-testid="search-results-container"
+                                                    >
+                                                        {/* Header - Different styling for mobile vs desktop */}
+                                                        {isMobile ? (
+                                                            <>
+                                                                <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-gradient-to-b from-slate-100 to-white">
+                                                                    <button 
+                                                                        onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}
+                                                                        className="p-2.5 bg-slate-200 rounded-full text-slate-600 hover:bg-slate-300 active:scale-95 transition-all"
+                                                                        data-testid="button-close-search"
+                                                                    >
+                                                                        <X size={20} />
+                                                                    </button>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <h3 className="font-bold text-slate-800 text-base">
+                                                                            {t('customerDashboard.searchResults', 'نتائج البحث')}
+                                                                        </h3>
+                                                                        <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+                                                                            <Search size={16} className="text-brand-600" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                {/* Drag indicator */}
+                                                                <div className="flex justify-center py-1 bg-white">
+                                                                    <div className="w-10 h-1 bg-slate-300 rounded-full"></div>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            /* Desktop close button - small X in corner */
+                                                            <div className="absolute top-2 left-2 z-20">
+                                                                <button 
+                                                                    onClick={() => { setShowSearchDropdown(false); setPipelineResult(null); }}
+                                                                    className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-700 transition-all"
+                                                                    data-testid="button-close-search-desktop"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        
+                                                        {/* Scrollable Content */}
+                                                        <div className="flex-1 overflow-y-auto bg-white">
                                                         {searchLoading ? (
                                                             <div className="p-8 text-center">
                                                                 <Loader2 size={32} className="animate-spin text-brand-600 mx-auto mb-3" />
@@ -1257,7 +1337,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                         <p className="font-bold text-slate-800 text-base">{pipelineResult.product.name}</p>
                                                                         <p className="text-sm text-slate-500 font-mono mt-1">
                                                                             <span className="bg-white px-2 py-0.5 rounded border border-slate-200 font-bold">{pipelineResult.product.partNumber}</span>
-                                                                            {pipelineResult.product.brand && <span className="mr-2">| {pipelineResult.product.brand}</span>}
                                                                         </p>
                                                                     </div>
                                                                     <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200">
@@ -1369,8 +1448,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                 </p>
                                                             </div>
                                                         ) : null}
+                                                        </div>
+                                                        {/* Footer */}
                                                         {(searchResults.length > 0 || pipelineResult?.type === 'FOUND_AVAILABLE') && (
-                                                            <div className="bg-slate-50 p-2.5 text-center text-xs font-bold text-slate-500 border-t border-slate-100 sticky bottom-0">
+                                                            <div className="bg-slate-50 p-2.5 text-center text-xs font-bold text-slate-500 border-t border-slate-100 shrink-0">
                                                                 {t('customerDashboard.addToCartTip')}
                                                             </div>
                                                         )}
