@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLevel, StaffStatus, QuoteRequest, OrderStatus } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
-    Search, Filter, ChevronRight, ChevronLeft, Eye, ShieldAlert, 
+    Search, Filter, ChevronRight, ChevronLeft, Eye, EyeOff, ShieldAlert, 
     CheckCircle, XCircle, Clock, MoreHorizontal, UserCheck, 
     Building2, MapPin, Phone, Briefcase, Lock, Key, 
     Trash2, AlertTriangle, Activity, Database, FileText, 
