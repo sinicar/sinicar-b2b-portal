@@ -138,18 +138,38 @@ const MarketingCard = memo(({ icon, title, desc }: { icon: React.ReactNode, titl
     </div>
 ));
 
-// New B2B Info Card Component
+// New B2B Info Card Component - Enhanced Design
 const InfoCard = memo(({ icon, title, desc, colorClass = "bg-slate-50 text-brand-600", onClick }: { icon: React.ReactNode, title: string, desc: string, colorClass?: string, onClick?: () => void }) => (
     <div 
         onClick={onClick}
-        className={`bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-4 transition-all hover:border-brand-200 group h-full ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
+        className={`bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-3 sm:gap-4 transition-all duration-300 group h-full ${onClick ? 'cursor-pointer hover:shadow-lg hover:border-brand-300 hover:-translate-y-1' : 'hover:shadow-md'}`}
     >
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colorClass}`}>
+        <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 ${colorClass}`}>
             {icon}
         </div>
         <div>
-            <h4 className={`font-bold text-slate-800 text-lg mb-2 ${onClick ? 'group-hover:text-brand-700' : ''}`}>{title}</h4>
-            <p className="text-sm text-slate-500 leading-relaxed font-medium">{desc}</p>
+            <h4 className={`font-bold text-slate-800 text-base sm:text-lg mb-1.5 sm:mb-2 transition-colors ${onClick ? 'group-hover:text-brand-700' : ''}`}>{title}</h4>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">{desc}</p>
+        </div>
+    </div>
+));
+
+// Business Type Card - New Premium Design
+const BusinessTypeCard = memo(({ icon, title, desc, colorClass, iconBgClass }: { 
+    icon: React.ReactNode, 
+    title: string, 
+    desc: string, 
+    colorClass: string,
+    iconBgClass: string
+}) => (
+    <div className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 transition-all duration-300 hover:shadow-xl hover:border-brand-200 hover:-translate-y-1 overflow-hidden">
+        <div className={`absolute top-0 right-0 w-24 h-24 ${iconBgClass} opacity-10 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-150`}></div>
+        <div className="relative z-10">
+            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm transition-all duration-300 group-hover:scale-105 ${colorClass}`}>
+                {icon}
+            </div>
+            <h4 className="font-bold text-slate-800 text-base sm:text-lg mb-2 group-hover:text-brand-700 transition-colors">{title}</h4>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{desc}</p>
         </div>
     </div>
 ));
@@ -1466,217 +1486,300 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                     {/* Left Content: Corporate Info Sections (Instead of Products) */}
                                     <div className="xl:col-span-3 space-y-12">
                                         
-                                        {/* Section: Who We Serve - Blurred for Guest (controlled by admin settings) */}
+                                        {/* Section: Who We Serve - Premium Design */}
                                         {isSectionVisible('businessTypes') && (
                                         <section className="relative">
                                             {showBlurOverlay && (
-                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-3xl">
                                                     <button 
                                                         onClick={() => setShowGuestPrompt(true)}
-                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        className="flex flex-col items-center gap-4 p-8 bg-white rounded-2xl shadow-2xl border border-brand-100 hover:shadow-3xl transition-all transform hover:scale-105"
                                                         data-testid="button-guest-section-cta"
                                                     >
-                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
-                                                            <Lock size={24} className="text-brand-600" />
+                                                        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-lg">
+                                                            <Lock size={28} className="text-white" />
                                                         </div>
-                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="font-bold text-slate-800 text-lg">{t('guestMode.restrictedTitle')}</span>
                                                         <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
                                                     </button>
                                                 </div>
                                             )}
-                                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
-                                                <Users className="text-brand-600" size={24}/>
-                                                {t('customerDashboard.whoWeServe')}
-                                            </h3>
-                                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
-                                                <InfoCard 
-                                                    icon={<Building2 size={24}/>}
+                                            
+                                            {/* Section Header - Enhanced */}
+                                            <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-200">
+                                                    <Users className="text-white" size={22}/>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800">
+                                                        {t('customerDashboard.whoWeServe')}
+                                                    </h3>
+                                                    <p className="text-xs sm:text-sm text-slate-500 font-medium">{t('customerDashboard.whoWeServeSubtitle', 'نخدم كبار عملاء قطاع السيارات')}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Cards Grid - Premium Layout */}
+                                            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
+                                                <BusinessTypeCard 
+                                                    icon={<Building2 size={26}/>}
                                                     title={t('customerDashboard.partsStores')}
                                                     desc={t('customerDashboard.partsStoresDesc')}
-                                                    colorClass="bg-blue-50 text-blue-600"
+                                                    colorClass="bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                                                    iconBgClass="bg-blue-500"
                                                 />
-                                                <InfoCard 
-                                                    icon={<ShieldCheck size={24}/>}
+                                                <BusinessTypeCard 
+                                                    icon={<ShieldCheck size={26}/>}
                                                     title={t('customerDashboard.insuranceCompanies')}
                                                     desc={t('customerDashboard.insuranceDesc')}
-                                                    colorClass="bg-green-50 text-green-600"
+                                                    colorClass="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white"
+                                                    iconBgClass="bg-emerald-500"
                                                 />
-                                                <InfoCard 
-                                                    icon={<Car size={24}/>}
+                                                <BusinessTypeCard 
+                                                    icon={<Car size={26}/>}
                                                     title={t('customerDashboard.rentalCompanies')}
                                                     desc={t('customerDashboard.rentalDesc')}
-                                                    colorClass="bg-amber-50 text-amber-600"
+                                                    colorClass="bg-gradient-to-br from-amber-500 to-orange-500 text-white"
+                                                    iconBgClass="bg-amber-500"
                                                 />
-                                                <InfoCard 
-                                                    icon={<Briefcase size={24}/>}
+                                                <BusinessTypeCard 
+                                                    icon={<Briefcase size={26}/>}
                                                     title={t('customerDashboard.salesReps')}
                                                     desc={t('customerDashboard.salesRepsDesc')}
-                                                    colorClass="bg-purple-50 text-purple-600"
+                                                    colorClass="bg-gradient-to-br from-purple-500 to-purple-600 text-white"
+                                                    iconBgClass="bg-purple-500"
                                                 />
                                             </div>
                                         </section>
                                         )}
 
-                                        {/* Section: Key Services - Blurred for Guest (controlled by admin settings) */}
+                                        {/* Section: Key Services - Premium Interactive Cards */}
                                         {isSectionVisible('mainServices') && (
                                         <section className="relative">
                                             {showBlurOverlay && (
-                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-3xl">
                                                     <button 
                                                         onClick={() => setShowGuestPrompt(true)}
-                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        className="flex flex-col items-center gap-4 p-8 bg-white rounded-2xl shadow-2xl border border-brand-100 hover:shadow-3xl transition-all transform hover:scale-105"
                                                         data-testid="button-guest-services-cta"
                                                     >
-                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
-                                                            <Lock size={24} className="text-brand-600" />
+                                                        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-lg">
+                                                            <Lock size={28} className="text-white" />
                                                         </div>
-                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="font-bold text-slate-800 text-lg">{t('guestMode.restrictedTitle')}</span>
                                                         <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
                                                     </button>
                                                 </div>
                                             )}
-                                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
-                                                <Briefcase className="text-brand-600" size={24}/>
-                                                {t('customerDashboard.mainServices')}
-                                            </h3>
-                                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
-                                                <InfoCard 
+                                            
+                                            {/* Section Header - Enhanced */}
+                                            <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                                                    <Briefcase className="text-white" size={22}/>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800">
+                                                        {t('customerDashboard.mainServices')}
+                                                    </h3>
+                                                    <p className="text-xs sm:text-sm text-slate-500 font-medium">{t('customerDashboard.mainServicesSubtitle', 'خدماتنا المتكاملة لتسهيل أعمالك')}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Services Grid - Enhanced Interactive */}
+                                            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
+                                                <div 
                                                     onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('QUOTE_REQUEST')}
-                                                    icon={<FileSpreadsheet size={28}/>}
-                                                    title={t('customerDashboard.quoteRequests')}
-                                                    desc={t('customerDashboard.quoteRequestsDesc')}
-                                                    colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
-                                                />
-                                                <InfoCard 
+                                                    className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-300 hover:-translate-y-1 overflow-hidden"
+                                                    data-testid="card-quote-request"
+                                                >
+                                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                                            <FileSpreadsheet size={24} className="sm:w-7 sm:h-7"/>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-slate-800 text-base sm:text-lg mb-1.5 group-hover:text-blue-700 transition-colors">{t('customerDashboard.quoteRequests')}</h4>
+                                                            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{t('customerDashboard.quoteRequestsDesc')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div 
                                                     onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('IMPORT_CHINA')}
-                                                    icon={<Globe size={28}/>}
-                                                    title={t('customerDashboard.importFromChina')}
-                                                    desc={t('customerDashboard.importFromChinaDesc')}
-                                                    colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
-                                                />
-                                                <InfoCard 
+                                                    className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1 overflow-hidden"
+                                                    data-testid="card-import-china"
+                                                >
+                                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                                                            <Globe size={24} className="sm:w-7 sm:h-7"/>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-slate-800 text-base sm:text-lg mb-1.5 group-hover:text-emerald-700 transition-colors">{t('customerDashboard.importFromChina')}</h4>
+                                                            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{t('customerDashboard.importFromChinaDesc')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div 
                                                     onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('ORDERS')}
-                                                    icon={<Package size={28}/>}
-                                                    title={t('customerDashboard.wholesaleOrders')}
-                                                    desc={t('customerDashboard.wholesaleOrdersDesc')}
-                                                    colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
-                                                />
-                                                <InfoCard 
+                                                    className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-amber-300 hover:-translate-y-1 overflow-hidden"
+                                                    data-testid="card-orders"
+                                                >
+                                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
+                                                            <Package size={24} className="sm:w-7 sm:h-7"/>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-slate-800 text-base sm:text-lg mb-1.5 group-hover:text-amber-700 transition-colors">{t('customerDashboard.wholesaleOrders')}</h4>
+                                                            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{t('customerDashboard.wholesaleOrdersDesc')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div 
                                                     onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('ORGANIZATION')}
-                                                    icon={<Users size={28}/>}
-                                                    title={t('customerDashboard.staffBranches')}
-                                                    desc={t('customerDashboard.staffBranchesDesc')}
-                                                    colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
-                                                />
+                                                    className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-purple-300 hover:-translate-y-1 overflow-hidden"
+                                                    data-testid="card-organization"
+                                                >
+                                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                                                            <Users size={24} className="sm:w-7 sm:h-7"/>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-slate-800 text-base sm:text-lg mb-1.5 group-hover:text-purple-700 transition-colors">{t('customerDashboard.staffBranches')}</h4>
+                                                            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{t('customerDashboard.staffBranchesDesc')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </section>
                                         )}
 
-                                        {/* Section: How it Works (controlled by admin settings) */}
+                                        {/* Section: How it Works - Premium Design */}
                                         {isSectionVisible('howItWorks') && (
-                                        <section className={`bg-white rounded-3xl border border-slate-200 p-8 shadow-sm relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                        <section className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl relative overflow-hidden ${isGuest ? 'select-none' : ''}`}>
+                                            {/* Background Pattern */}
+                                            <div className="absolute inset-0 opacity-10">
+                                                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+                                                <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-500 rounded-full -ml-36 -mb-36 blur-3xl"></div>
+                                            </div>
+                                            
                                             {showBlurOverlay && (
-                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-3xl">
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-3xl">
                                                     <button 
                                                         onClick={() => setShowGuestPrompt(true)}
-                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        className="flex flex-col items-center gap-4 p-8 bg-white rounded-2xl shadow-2xl border border-brand-100 hover:shadow-3xl transition-all transform hover:scale-105"
                                                         data-testid="button-guest-howitworks-cta"
                                                     >
-                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
-                                                            <Lock size={24} className="text-brand-600" />
+                                                        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-lg">
+                                                            <Lock size={28} className="text-white" />
                                                         </div>
-                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="font-bold text-slate-800 text-lg">{t('guestMode.restrictedTitle')}</span>
                                                         <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
                                                     </button>
                                                 </div>
                                             )}
-                                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-8">
-                                                <TrendingUp className="text-brand-600" size={24}/>
-                                                {t('customerDashboard.howItWorks')}
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+                                            
+                                            {/* Section Header */}
+                                            <div className="relative z-10 flex items-center gap-3 mb-8 sm:mb-10">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-600/30">
+                                                    <TrendingUp className="text-white" size={22}/>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg sm:text-xl font-bold text-white">
+                                                        {t('customerDashboard.howItWorks')}
+                                                    </h3>
+                                                    <p className="text-xs sm:text-sm text-slate-400 font-medium">{t('customerDashboard.howItWorksSubtitle', 'خطوات بسيطة للبدء معنا')}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className={`relative z-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 ${isGuest ? getBlurClass() : ''}`}>
                                                 {/* Connecting Line (Desktop) */}
-                                                <div className="hidden md:block absolute top-12 left-10 right-10 h-1 bg-slate-100 -z-0"></div>
+                                                <div className="hidden lg:block absolute top-16 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-brand-600/50 via-brand-500/50 to-brand-600/50"></div>
                                                 
-                                                <div className="relative z-10 flex flex-col items-center text-center">
-                                                    <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
-                                                        <Users size={32} />
+                                                {[
+                                                    { icon: <Users size={28} />, step: 1, title: t('customerDashboard.step1Title'), desc: t('customerDashboard.step1Desc'), color: 'from-blue-500 to-blue-600' },
+                                                    { icon: <ShieldCheck size={28} />, step: 2, title: t('customerDashboard.step2Title'), desc: t('customerDashboard.step2Desc'), color: 'from-emerald-500 to-emerald-600' },
+                                                    { icon: <Search size={28} />, step: 3, title: t('customerDashboard.step3Title'), desc: t('customerDashboard.step3Desc'), color: 'from-amber-500 to-orange-500' },
+                                                    { icon: <Truck size={28} />, step: 4, title: t('customerDashboard.step4Title'), desc: t('customerDashboard.step4Desc'), color: 'from-purple-500 to-purple-600' }
+                                                ].map((item, index) => (
+                                                    <div key={index} className="relative z-10 flex flex-col items-center text-center group">
+                                                        <div className={`w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center text-white mb-4 shadow-lg transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                                                            {item.icon}
+                                                            <span className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 bg-white text-slate-800 rounded-full flex items-center justify-center text-xs sm:text-sm font-black shadow-md">
+                                                                {item.step}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="font-bold text-white text-sm sm:text-base mb-1.5 sm:mb-2">{item.title}</h4>
+                                                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{item.desc}</p>
                                                     </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">1. {t('customerDashboard.step1Title')}</h4>
-                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step1Desc')}</p>
-                                                </div>
-
-                                                <div className="relative z-10 flex flex-col items-center text-center">
-                                                    <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
-                                                        <ShieldCheck size={32} />
-                                                    </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">2. {t('customerDashboard.step2Title')}</h4>
-                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step2Desc')}</p>
-                                                </div>
-
-                                                <div className="relative z-10 flex flex-col items-center text-center">
-                                                    <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
-                                                        <Search size={32} />
-                                                    </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">3. {t('customerDashboard.step3Title')}</h4>
-                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step3Desc')}</p>
-                                                </div>
-
-                                                <div className="relative z-10 flex flex-col items-center text-center">
-                                                    <div className="w-24 h-24 bg-white border-4 border-slate-100 rounded-full flex items-center justify-center text-brand-600 mb-4 shadow-sm">
-                                                        <Truck size={32} />
-                                                    </div>
-                                                    <h4 className="font-bold text-slate-800 mb-2">4. {t('customerDashboard.step4Title')}</h4>
-                                                    <p className="text-sm text-slate-500">{t('customerDashboard.step4Desc')}</p>
-                                                </div>
+                                                ))}
                                             </div>
                                         </section>
                                         )}
                                         
-                                        {/* Section: Why Sini Car (controlled by admin settings) */}
+                                        {/* Section: Why Sini Car - Premium Features */}
                                         {isSectionVisible('whySiniCar') && (
                                         <section className={`relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
                                             {showBlurOverlay && (
-                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-3xl">
                                                     <button 
                                                         onClick={() => setShowGuestPrompt(true)}
-                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        className="flex flex-col items-center gap-4 p-8 bg-white rounded-2xl shadow-2xl border border-brand-100 hover:shadow-3xl transition-all transform hover:scale-105"
                                                         data-testid="button-guest-whysinicar-cta"
                                                     >
-                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
-                                                            <Lock size={24} className="text-brand-600" />
+                                                        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-lg">
+                                                            <Lock size={28} className="text-white" />
                                                         </div>
-                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="font-bold text-slate-800 text-lg">{t('guestMode.restrictedTitle')}</span>
                                                         <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
                                                     </button>
                                                 </div>
                                             )}
-                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
-                                                <CheckCircle className="text-brand-600" size={24}/>
-                                                {settings?.whySiniCarTitle || t('customerDashboard.whySiniCar')}
-                                            </h3>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            
+                                            {/* Section Header - Enhanced */}
+                                            <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-200">
+                                                    <CheckCircle className="text-white" size={22}/>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800">
+                                                        {settings?.whySiniCarTitle || t('customerDashboard.whySiniCar')}
+                                                    </h3>
+                                                    <p className="text-xs sm:text-sm text-slate-500 font-medium">{t('customerDashboard.whySiniCarSubtitle', 'مميزات تجعلنا الخيار الأول')}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Features Grid - Premium Cards */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                                                 {(settings?.whySiniCarFeatures || [
-                                                    { id: '1', title: t('customerDashboard.expertiseTitle'), description: t('customerDashboard.expertiseDesc'), icon: 'box', iconColor: 'text-cyan-400' },
-                                                    { id: '2', title: t('customerDashboard.techTitle'), description: t('customerDashboard.techDesc'), icon: 'chart', iconColor: 'text-green-400' },
-                                                    { id: '3', title: t('customerDashboard.globalTitle'), description: t('customerDashboard.globalDesc'), icon: 'anchor', iconColor: 'text-amber-400' },
-                                                    { id: '4', title: t('customerDashboard.supportTitle'), description: t('customerDashboard.supportDesc'), icon: 'headphones', iconColor: 'text-purple-400' }
-                                                ]).map((feature) => (
-                                                    <div key={feature.id} className="bg-slate-800 text-white p-6 rounded-2xl shadow-md">
-                                                        <div className={`mb-4 ${feature.iconColor}`}>
-                                                            {feature.icon === 'box' && <Box size={32} />}
-                                                            {feature.icon === 'chart' && <BarChart3 size={32} />}
-                                                            {feature.icon === 'anchor' && <Anchor size={32} />}
-                                                            {feature.icon === 'headphones' && <Headphones size={32} />}
-                                                            {feature.icon === 'truck' && <Truck size={32} />}
-                                                            {feature.icon === 'shield' && <ShieldCheck size={32} />}
-                                                            {feature.icon === 'globe' && <Globe size={32} />}
-                                                            {feature.icon === 'star' && <TrendingUp size={32} />}
-                                                            {feature.icon === 'clock' && <Clock size={32} />}
-                                                            {feature.icon === 'award' && <Check size={32} />}
+                                                    { id: '1', title: t('customerDashboard.expertiseTitle'), description: t('customerDashboard.expertiseDesc'), icon: 'box', iconColor: 'text-cyan-400', bgColor: 'from-cyan-500 to-cyan-600' },
+                                                    { id: '2', title: t('customerDashboard.techTitle'), description: t('customerDashboard.techDesc'), icon: 'chart', iconColor: 'text-emerald-400', bgColor: 'from-emerald-500 to-emerald-600' },
+                                                    { id: '3', title: t('customerDashboard.globalTitle'), description: t('customerDashboard.globalDesc'), icon: 'anchor', iconColor: 'text-amber-400', bgColor: 'from-amber-500 to-orange-500' },
+                                                    { id: '4', title: t('customerDashboard.supportTitle'), description: t('customerDashboard.supportDesc'), icon: 'headphones', iconColor: 'text-purple-400', bgColor: 'from-purple-500 to-purple-600' }
+                                                ]).map((feature, index) => (
+                                                    <div key={feature.id} className="group relative bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                                                        {/* Decorative gradient */}
+                                                        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${feature.bgColor || 'from-brand-500 to-brand-600'} opacity-20 rounded-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-150`}></div>
+                                                        
+                                                        <div className="relative z-10">
+                                                            <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${feature.bgColor || 'from-brand-500 to-brand-600'} rounded-xl flex items-center justify-center mb-4 shadow-lg transform transition-transform duration-300 group-hover:scale-110`}>
+                                                                {feature.icon === 'box' && <Box size={24} className="text-white" />}
+                                                                {feature.icon === 'chart' && <BarChart3 size={24} className="text-white" />}
+                                                                {feature.icon === 'anchor' && <Anchor size={24} className="text-white" />}
+                                                                {feature.icon === 'headphones' && <Headphones size={24} className="text-white" />}
+                                                                {feature.icon === 'truck' && <Truck size={24} className="text-white" />}
+                                                                {feature.icon === 'shield' && <ShieldCheck size={24} className="text-white" />}
+                                                                {feature.icon === 'globe' && <Globe size={24} className="text-white" />}
+                                                                {feature.icon === 'star' && <TrendingUp size={24} className="text-white" />}
+                                                                {feature.icon === 'clock' && <Clock size={24} className="text-white" />}
+                                                                {feature.icon === 'award' && <Check size={24} className="text-white" />}
+                                                            </div>
+                                                            <h4 className="font-bold text-base sm:text-lg mb-2 text-white">{feature.title}</h4>
+                                                            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{feature.description}</p>
                                                         </div>
-                                                        <h4 className="font-bold mb-2">{feature.title}</h4>
-                                                        <p className="text-xs text-slate-300">{feature.description}</p>
                                                     </div>
                                                 ))}
                                             </div>
