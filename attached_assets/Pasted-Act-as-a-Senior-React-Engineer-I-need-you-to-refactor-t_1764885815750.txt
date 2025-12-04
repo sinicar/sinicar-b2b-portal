@@ -1,0 +1,38 @@
+Act as a Senior React Engineer. I need you to refactor this project to be production-ready based on a professional architecture. Please execute the following tasks step-by-step:
+
+1. **Restructure to `src/` Directory:**
+   - Create a `src` folder.
+   - Move the following files and folders INSIDE `src/`:
+     - `components/`
+     - `services/`
+     - `utils/`
+     - `locales/`
+     - `types.ts`
+     - `App.tsx`
+     - `index.tsx` (or `main.tsx`)
+     - `index.css` (if it exists)
+   - Ensure `vite.config.ts`, `tsconfig.json`, `package.json`, `index.html`, and `public/` remain in the ROOT directory.
+
+2. **Fix Tailwind CSS (Remove CDN):**
+   - The project currently uses Tailwind via CDN in `index.html`. This is bad for production.
+   - Install tailwindcss, postcss, and autoprefixer as dev dependencies (`npm install -D tailwindcss postcss autoprefixer`).
+   - Initialize tailwind (`npx tailwindcss init -p`).
+   - Configure `tailwind.config.js` to scan all files in `./src/**/*.{js,ts,jsx,tsx}`.
+   - Create a new file `src/index.css` and add the standard Tailwind directives (@tailwind base; @tailwind components; @tailwind utilities;).
+   - Import this `src/index.css` inside your `src/index.tsx` (or main entry file).
+   - **Crucial:** Remove the Tailwind CDN script tag from `index.html`.
+
+3. **Cleanup & Optimization:**
+   - Delete the `attached_assets` folder and any `.zip` files found in the root (like `sini-car-project.zip`) to reduce project size.
+   - Ensure `node_modules` is not included in the source control if applicable.
+
+4. **Update Configuration & Paths:**
+   - Update `vite.config.ts` to point the root or entry correctly to `src/index.tsx`.
+   - Update `index.html` script source to point to `/src/index.tsx`.
+   - specific: Ensure `@` alias in vite.config.ts points to `path.resolve(__dirname, './src')`.
+   - **Fix Imports:** Scan all files in `src/` and update their import paths to reflect the new structure (fix relative paths like `../../` if broken).
+
+5. **Validation:**
+   - Run a build check (`npm run build`) to ensure there are no missing files or path errors after the move.
+
+Start the refactoring now.
