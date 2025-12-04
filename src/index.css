@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Tajawal', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-display: 'Tajawal', sans-serif;
+  
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #0f172a;
+  
+  --color-action-400: #fb923c;
+  --color-action-500: #f97316;
+  --color-action-600: #ea580c;
+  
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 0 0 1px rgba(37,99,235,0.1), 0 10px 30px -5px rgba(0,0,0,0.08);
+  
+  --animate-fade-in: fade-in 0.3s ease-out forwards;
+  --animate-slide-up: slide-up 0.3s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-800 font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-slate-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:transform active:scale-95 text-sm md:text-base;
+  }
+  
+  .btn-secondary {
+    @apply bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-700 font-bold py-2.5 px-6 rounded-lg transition-all duration-200 text-sm md:text-base;
+  }
+
+  .btn-action {
+    @apply bg-action-500 hover:bg-action-600 text-white font-bold py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-card border border-slate-100;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+@layer utilities {
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-slide-up {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-sheet {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    max-height: 80vh !important;
+    border-radius: 1.5rem 1.5rem 0 0 !important;
+  }
+  
+  .desktop-dropdown {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-sheet {
+    display: none !important;
+  }
+  
+  .desktop-dropdown {
+    display: flex !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    margin-top: 0.5rem !important;
+    border-radius: 1rem !important;
+    max-height: 24rem !important;
+  }
+}
