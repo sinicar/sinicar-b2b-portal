@@ -1239,7 +1239,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         </p>
                                         
                                         {/* Prominent Search Bar - Fixed for Mobile */}
-                                        <div className="relative w-full max-w-2xl mx-auto mt-4 sm:mt-6 md:mt-10 z-20">
+                                        <div className="relative w-full max-w-2xl mx-auto mt-4 sm:mt-6 md:mt-10 z-[200]">
                                             <div className="flex justify-center md:justify-end mb-3">
                                                 <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 md:px-4 py-1 text-[10px] md:text-xs font-bold text-emerald-300 border border-emerald-500/40 backdrop-blur-sm shadow-sm">
                                                     <CheckCircle size={10} className="md:w-3 md:h-3" />
