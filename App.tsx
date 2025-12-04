@@ -6,7 +6,7 @@ import { Register } from './components/Register';
 import { Dashboard } from './components/Dashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MockApi } from './services/mockApi';
-import { User, BusinessProfile } from './types';
+import { User, BusinessProfile, SiteSettings } from './types';
 import { Lock, User as UserIcon, ArrowRight, ShieldCheck, Box, Server, Activity, Database, CheckCircle2, Globe, Zap, Package, Percent, Truck, Phone } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './services/LanguageContext';
 import { ToastProvider, useToast } from './services/ToastContext';
@@ -49,11 +49,17 @@ function AppContent() {
   const [identifier, setIdentifier] = useState(''); // ClientId or Phone
   const [secret, setSecret] = useState(''); // Password or Activation Code
   const [rememberMe, setRememberMe] = useState(false); // Persistent login
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null); // Site settings for guest mode
 
   const { t } = useTranslation();
   const { i18n } = useTranslation();
   const dir = getDirection(i18n.language);
   const { addToast } = useToast();
+
+  // Load site settings for guest mode check
+  useEffect(() => {
+    MockApi.getSettings().then(setSiteSettings);
+  }, []);
 
   // Session Restore (Check both current session and persistent session)
   useEffect(() => {
@@ -219,6 +225,26 @@ function AppContent() {
     setShowIntro(false);
     setIsLoginProcessing(false);
     addToast(t('logout'), 'info');
+  };
+
+  // Guest Mode Login Handler
+  const handleGuestLogin = () => {
+    // Create a guest user with restricted permissions
+    const guestUser: User = {
+      id: 'guest_' + Date.now(),
+      clientId: 'GUEST',
+      name: t('login.guest'),
+      email: '',
+      phone: '',
+      role: 'CUSTOMER_OWNER' as const,
+      isActive: true,
+      password: '',
+      isGuest: true, // Special flag for guest users
+    };
+    
+    setCurrentUser(guestUser);
+    setCurrentProfile(null);
+    addToast(t('login.guestWelcome'), 'info');
   };
 
   // --- RENDER HELPERS ---
@@ -525,6 +551,18 @@ function AppContent() {
                               data-testid="button-open-account-request"
                           >
                               {t('login.openNewAccount')}
+                          </button>
+                      )}
+                      
+                      {/* Guest Login Button - Only shown when enabled in settings */}
+                      {siteSettings?.guestModeEnabled && (
+                          <button 
+                              onClick={handleGuestLogin}
+                              className="mt-4 flex items-center justify-center gap-2 px-6 py-3 bg-slate-800/50 border border-slate-600 text-slate-300 rounded-lg font-bold hover:bg-slate-700/50 hover:border-cyan-500/50 hover:text-white transition-all group"
+                              data-testid="button-guest-login"
+                          >
+                              <Globe size={18} className="group-hover:text-cyan-400 transition-colors" />
+                              <span>{t('login.enterAsGuest')}</span>
                           </button>
                       )}
                   </div>

@@ -325,6 +325,31 @@ export const AdminSettings: React.FC = () => {
                              </div>
                         </div>
 
+                        {/* Guest Mode Settings */}
+                        <div className="bg-cyan-50 p-6 rounded-xl border border-cyan-100 mt-8">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-cyan-100 rounded-full text-cyan-600">
+                                        <Users />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-cyan-900 text-lg">{t('adminSettings.guestMode')}</h4>
+                                        <p className="text-cyan-700 text-sm">{t('adminSettings.guestModeDesc')}</p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={settings.guestModeEnabled ?? false} 
+                                        onChange={e => setSettings({...settings, guestModeEnabled: e.target.checked})}
+                                        className="sr-only peer" 
+                                        data-testid="toggle-guest-mode"
+                                    />
+                                    <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] peer-checked:after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-cyan-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
                         <div className="bg-red-50 p-6 rounded-xl border border-red-100 mt-8">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">

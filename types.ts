@@ -188,6 +188,9 @@ export interface User {
   
   // --- Activity Tracking ---
   lastActiveAt?: string; // ISO timestamp of last heartbeat (for online status)
+  
+  // --- Guest Mode ---
+  isGuest?: boolean; // Flag for guest users with restricted access
 }
 
 // --- Notifications System (New) ---
@@ -717,6 +720,9 @@ export interface SiteSettings {
   // --- Why Sini Car Section ---
   whySiniCarTitle?: string;         // عنوان القسم
   whySiniCarFeatures?: FeatureCard[]; // بطاقات المميزات
+  
+  // --- Guest Mode Settings ---
+  guestModeEnabled?: boolean;       // تفعيل/إيقاف الدخول كضيف
 }
 
 // Feature Card for "Why Sini Car" section
