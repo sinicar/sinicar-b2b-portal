@@ -723,6 +723,31 @@ export interface SiteSettings {
   
   // --- Guest Mode Settings ---
   guestModeEnabled?: boolean;       // تفعيل/إيقاف الدخول كضيف
+  
+  // --- Guest Visibility Controls ---
+  guestSettings?: GuestModeSettings;
+}
+
+// Guest Mode Visibility Settings - Controls what guests can see/access
+export interface GuestModeSettings {
+  // What sections are visible (but blurred) on home page
+  showBusinessTypes?: boolean;      // قسم "من نخدم" (أنواع الأعمال)
+  showMainServices?: boolean;       // قسم الخدمات الرئيسية
+  showHowItWorks?: boolean;         // قسم "كيف تعمل المنظومة"
+  showWhySiniCar?: boolean;         // قسم "لماذا صيني كار"
+  showCart?: boolean;               // عربة التسوق الجانبية
+  showMarketingCards?: boolean;     // بطاقات التسويق الجانبية
+  
+  // Blur settings
+  blurIntensity?: 'light' | 'medium' | 'heavy';  // شدة التشويش
+  showBlurOverlay?: boolean;        // إظهار overlay فوق المحتوى المشوش
+  
+  // Pages accessible to guests (empty = none except HOME)
+  allowedPages?: string[];          // الصفحات المسموح الوصول إليها
+  
+  // Search settings
+  allowSearch?: boolean;            // السماح بالبحث (نتائج مشوشة)
+  showSearchResults?: boolean;      // إظهار نتائج البحث (مشوشة)
 }
 
 // Feature Card for "Why Sini Car" section

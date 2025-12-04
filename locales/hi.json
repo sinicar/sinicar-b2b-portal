@@ -106,7 +106,9 @@
     "loginButton": "लॉगिन",
     "requestAccountButton": "नया खाता अनुरोध करें",
     "browseOnly": "ब्राउज़िंग जारी रखें",
-    "blurredResultsNote": "विवरण और कीमतें देखने के लिए पंजीकरण करें"
+    "blurredResultsNote": "विवरण और कीमतें देखने के लिए पंजीकरण करें",
+    "loginToAccess": "पूर्ण पहुंच के लिए लॉगिन करें",
+    "searchDisabled": "उत्पाद खोजने के लिए लॉगिन करें"
   },
   "register": {
     "title": "नया खाता अनुरोध",
@@ -921,7 +923,33 @@
       "importRequestStatus": "आयात अनुरोध स्थितियाँ",
       "customerStatus": "ग्राहक स्थितियाँ",
       "staffStatus": "स्टाफ स्थितियाँ"
-    }
+    },
+    "guestMode": "अतिथि मोड",
+    "guestModeSettings": "अतिथि मोड सेटिंग्स",
+    "guestModeSettingsDesc": "साइट ब्राउज़ करते समय अपंजीकृत आगंतुकों को क्या दिखाई देता है इसे नियंत्रित करें। आप विभिन्न अनुभागों को सक्षम/अक्षम कर सकते हैं और ब्लर तीव्रता समायोजित कर सकते हैं।",
+    "guestBrowsingEnabled": "अतिथि ब्राउज़िंग सक्षम करें",
+    "guestBrowsingEnabledDesc": "आगंतुकों को बिना लॉगिन के साइट ब्राउज़ करने की अनुमति दें",
+    "visibleSections": "दृश्यमान अनुभाग (धुंधले के साथ)",
+    "visibleSectionsDesc": "धुंधली सामग्री के साथ अतिथियों को दिखाई देने वाले अनुभाग चुनें",
+    "showBusinessTypes": "\"हम किसकी सेवा करते हैं\" अनुभाग",
+    "showMainServices": "मुख्य सेवाएँ अनुभाग",
+    "showHowItWorks": "\"यह कैसे काम करता है\" अनुभाग",
+    "showWhySiniCar": "\"सिनी कार क्यों\" अनुभाग",
+    "showCart": "साइड शॉपिंग कार्ट",
+    "showMarketingCards": "साइड मार्केटिंग कार्ड",
+    "blurSettings": "ब्लर सेटिंग्स",
+    "blurIntensity": "ब्लर तीव्रता",
+    "blurLight": "हल्का",
+    "blurMedium": "मध्यम",
+    "blurHeavy": "भारी",
+    "showBlurOverlay": "धुंधली सामग्री पर ओवरले दिखाएं",
+    "showBlurOverlayDesc": "धुंधली सामग्री पर \"लॉगिन\" बटन दिखाता है",
+    "searchSettings": "अतिथि खोज सेटिंग्स",
+    "allowSearch": "खोज की अनुमति दें",
+    "allowSearchDesc": "अतिथि खोज का उपयोग कर सकते हैं (परिणाम धुंधले हैं)",
+    "showSearchResults": "खोज परिणाम दिखाएं",
+    "showSearchResultsDesc": "धुंधले विवरण के साथ खोज परिणाम प्रदर्शित करें",
+    "guestSettingsSaved": "अतिथि मोड सेटिंग्स सफलतापूर्वक सहेजी गईं"
   },
   "adminOrders": {
     "title": "ग्राहक ऑर्डर प्रबंधन",

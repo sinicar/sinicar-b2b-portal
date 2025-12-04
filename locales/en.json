@@ -106,7 +106,9 @@
     "loginButton": "Login",
     "requestAccountButton": "Request New Account",
     "browseOnly": "Continue Browsing",
-    "blurredResultsNote": "Register to view details and prices"
+    "blurredResultsNote": "Register to view details and prices",
+    "loginToAccess": "Login for full access",
+    "searchDisabled": "Login to search products"
   },
   "register": {
     "title": "New Account Request",
@@ -921,7 +923,33 @@
       "importRequestStatus": "Import Request Statuses",
       "customerStatus": "Customer Statuses",
       "staffStatus": "Staff Statuses"
-    }
+    },
+    "guestMode": "Guest Mode",
+    "guestModeSettings": "Guest Mode Settings",
+    "guestModeSettingsDesc": "Control what unregistered visitors see when browsing the site. You can enable/disable different sections and adjust blur intensity.",
+    "guestBrowsingEnabled": "Enable Guest Browsing",
+    "guestBrowsingEnabledDesc": "Allow visitors to browse the site without logging in",
+    "visibleSections": "Visible Sections (with blur)",
+    "visibleSectionsDesc": "Select sections that will be visible to guests with blurred content",
+    "showBusinessTypes": "\"Who We Serve\" Section (Business Types)",
+    "showMainServices": "Main Services Section",
+    "showHowItWorks": "\"How It Works\" Section",
+    "showWhySiniCar": "\"Why Sini Car\" Section",
+    "showCart": "Side Shopping Cart",
+    "showMarketingCards": "Side Marketing Cards",
+    "blurSettings": "Blur Settings",
+    "blurIntensity": "Blur Intensity",
+    "blurLight": "Light",
+    "blurMedium": "Medium",
+    "blurHeavy": "Heavy",
+    "showBlurOverlay": "Show overlay on blurred content",
+    "showBlurOverlayDesc": "Shows \"Login\" button over blurred content",
+    "searchSettings": "Guest Search Settings",
+    "allowSearch": "Allow Search",
+    "allowSearchDesc": "Guests can use search (results are blurred)",
+    "showSearchResults": "Show Search Results",
+    "showSearchResultsDesc": "Display search results with blurred details",
+    "guestSettingsSaved": "Guest mode settings saved successfully"
   },
   "adminOrders": {
     "title": "Customer Orders Management",

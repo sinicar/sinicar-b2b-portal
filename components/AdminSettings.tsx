@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Banner, SiteSettings, StatusLabelsConfig } from '../types';
+import { Banner, SiteSettings, StatusLabelsConfig, GuestModeSettings } from '../types';
 import { MockApi } from '../services/mockApi';
-import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award } from 'lucide-react';
+import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award, UserX } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 
 export const AdminSettings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS' | 'FEATURES'>('GENERAL');
+    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS' | 'FEATURES' | 'GUEST_MODE'>('GENERAL');
     const [settings, setSettings] = useState<SiteSettings | null>(null);
     const [banners, setBanners] = useState<Banner[]>([]);
     const [loading, setLoading] = useState(true);
@@ -153,6 +153,7 @@ export const AdminSettings: React.FC = () => {
                         <TabButton id="GENERAL" icon={<Settings size={20} />} label={t('adminSettings.generalSettings')} />
                         <TabButton id="BANNERS" icon={<ImageIcon size={20} />} label={t('adminSettings.bannerManagement')} />
                         <TabButton id="FEATURES" icon={<Check size={20} />} label={t('adminSettings.whySiniCar')} />
+                        <TabButton id="GUEST_MODE" icon={<UserX size={20} />} label={t('adminSettings.guestMode')} />
                         <TabButton id="TEXTS" icon={<Type size={20} />} label={t('adminSettings.textManagement')} />
                         <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label={t('adminSettings.statusLabels')} />
                         <TabButton id="API" icon={<Server size={20} />} label={t('adminSettings.apiIntegration')} />
@@ -1003,6 +1004,278 @@ export const AdminSettings: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'GUEST_MODE' && (
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+                        <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                    <UserX className="text-orange-500" /> {t('adminSettings.guestModeSettings')}
+                                </h2>
+                                <p className="text-sm text-slate-500 mt-1">{t('adminSettings.guestModeSettingsDesc')}</p>
+                            </div>
+                            <button 
+                                onClick={handleSaveGeneral} 
+                                disabled={saving} 
+                                className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2"
+                                data-testid="button-save-guest-settings"
+                            >
+                                <Save size={18} /> {saving ? t('adminSettings.saving') : t('adminSettings.saveChanges')}
+                            </button>
+                        </div>
+
+                        {/* Enable Guest Browsing */}
+                        <div className="bg-orange-50 p-6 rounded-xl border border-orange-200">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><UserX size={20} /></div>
+                                    <div>
+                                        <span className="font-bold text-slate-800">{t('adminSettings.guestBrowsingEnabled')}</span>
+                                        <p className="text-sm text-slate-500">{t('adminSettings.guestBrowsingEnabledDesc')}</p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={settings.guestModeEnabled !== false} 
+                                        onChange={e => setSettings({...settings, guestModeEnabled: e.target.checked})}
+                                        className="sr-only peer" 
+                                        data-testid="checkbox-guest-mode-enabled"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Visible Sections */}
+                        <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <Eye size={18} className="text-slate-600" /> {t('adminSettings.visibleSections')}
+                                </h3>
+                                <p className="text-sm text-slate-500 mt-1">{t('adminSettings.visibleSectionsDesc')}</p>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {/* Show Business Types */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <span className="font-medium text-slate-700">{t('adminSettings.showBusinessTypes')}</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showBusinessTypes !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showBusinessTypes: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-business-types"
+                                    />
+                                </label>
+
+                                {/* Show Main Services */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <span className="font-medium text-slate-700">{t('adminSettings.showMainServices')}</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showMainServices !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showMainServices: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-main-services"
+                                    />
+                                </label>
+
+                                {/* Show How It Works */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <span className="font-medium text-slate-700">{t('adminSettings.showHowItWorks')}</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showHowItWorks !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showHowItWorks: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-how-it-works"
+                                    />
+                                </label>
+
+                                {/* Show Why Sini Car */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <span className="font-medium text-slate-700">{t('adminSettings.showWhySiniCar')}</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showWhySiniCar !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showWhySiniCar: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-why-sini-car"
+                                    />
+                                </label>
+
+                                {/* Show Cart */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <span className="font-medium text-slate-700">{t('adminSettings.showCart')}</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showCart !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showCart: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-cart"
+                                    />
+                                </label>
+
+                                {/* Show Marketing Cards */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <span className="font-medium text-slate-700">{t('adminSettings.showMarketingCards')}</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showMarketingCards !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showMarketingCards: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-marketing-cards"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Blur Settings */}
+                        <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <EyeOff size={18} className="text-slate-600" /> {t('adminSettings.blurSettings')}
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {/* Blur Intensity */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.blurIntensity')}</label>
+                                    <select 
+                                        value={settings.guestSettings?.blurIntensity || 'medium'}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), blurIntensity: e.target.value as 'light' | 'medium' | 'heavy' }
+                                        })}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                        data-testid="select-blur-intensity"
+                                    >
+                                        <option value="light">{t('adminSettings.blurLight')}</option>
+                                        <option value="medium">{t('adminSettings.blurMedium')}</option>
+                                        <option value="heavy">{t('adminSettings.blurHeavy')}</option>
+                                    </select>
+                                </div>
+
+                                {/* Show Blur Overlay */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <div>
+                                        <span className="font-medium text-slate-700">{t('adminSettings.showBlurOverlay')}</span>
+                                        <p className="text-sm text-slate-500">{t('adminSettings.showBlurOverlayDesc')}</p>
+                                    </div>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showBlurOverlay !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showBlurOverlay: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-blur-overlay"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Search Settings */}
+                        <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <Settings size={18} className="text-slate-600" /> {t('adminSettings.searchSettings')}
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {/* Allow Search */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <div>
+                                        <span className="font-medium text-slate-700">{t('adminSettings.allowSearch')}</span>
+                                        <p className="text-sm text-slate-500">{t('adminSettings.allowSearchDesc')}</p>
+                                    </div>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.allowSearch !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), allowSearch: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-allow-search"
+                                    />
+                                </label>
+
+                                {/* Show Search Results */}
+                                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                    <div>
+                                        <span className="font-medium text-slate-700">{t('adminSettings.showSearchResults')}</span>
+                                        <p className="text-sm text-slate-500">{t('adminSettings.showSearchResultsDesc')}</p>
+                                    </div>
+                                    <input 
+                                        type="checkbox"
+                                        checked={settings.guestSettings?.showSearchResults !== false}
+                                        onChange={e => setSettings({
+                                            ...settings, 
+                                            guestSettings: { ...(settings.guestSettings || {}), showSearchResults: e.target.checked }
+                                        })}
+                                        className="w-5 h-5 text-brand-600 rounded"
+                                        data-testid="checkbox-show-search-results"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Preview Box */}
+                        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-6 rounded-xl">
+                            <div className="flex items-center gap-3 mb-3">
+                                <UserX size={24} />
+                                <h4 className="font-bold text-lg">{t('adminSettings.guestMode')}</h4>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div className="bg-white/20 p-3 rounded-lg">
+                                    <p className="opacity-75">{t('adminSettings.visibleSections')}</p>
+                                    <p className="font-bold text-lg">
+                                        {[
+                                            settings.guestSettings?.showBusinessTypes !== false,
+                                            settings.guestSettings?.showMainServices !== false,
+                                            settings.guestSettings?.showHowItWorks !== false,
+                                            settings.guestSettings?.showWhySiniCar !== false,
+                                            settings.guestSettings?.showCart !== false,
+                                            settings.guestSettings?.showMarketingCards !== false
+                                        ].filter(Boolean).length} / 6
+                                    </p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-lg">
+                                    <p className="opacity-75">{t('adminSettings.blurIntensity')}</p>
+                                    <p className="font-bold text-lg capitalize">{settings.guestSettings?.blurIntensity || 'medium'}</p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-lg">
+                                    <p className="opacity-75">{t('adminSettings.allowSearch')}</p>
+                                    <p className="font-bold text-lg">{settings.guestSettings?.allowSearch !== false ? '✓' : '✗'}</p>
+                                </div>
+                                <div className="bg-white/20 p-3 rounded-lg">
+                                    <p className="opacity-75">{t('adminSettings.showBlurOverlay')}</p>
+                                    <p className="font-bold text-lg">{settings.guestSettings?.showBlurOverlay !== false ? '✓' : '✗'}</p>
+                                </div>
                             </div>
                         </div>
                     </div>

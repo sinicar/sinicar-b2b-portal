@@ -153,7 +153,22 @@ const DEFAULT_SETTINGS: SiteSettings = {
       'BLOCKED': { label: 'محظور', color: '#ef4444', bgColor: '#fee2e2', isSystem: true, sortOrder: 3 }
     }
   },
-  guestModeEnabled: true
+  guestModeEnabled: true,
+  
+  // Guest Mode Visibility Settings - Default Configuration
+  guestSettings: {
+    showBusinessTypes: true,      // قسم "من نخدم" (مشوش)
+    showMainServices: true,       // قسم الخدمات الرئيسية (مشوش)
+    showHowItWorks: true,         // قسم "كيف تعمل المنظومة" (مشوش)
+    showWhySiniCar: true,         // قسم "لماذا صيني كار" (مشوش)
+    showCart: false,              // عربة التسوق - مخفية
+    showMarketingCards: true,     // بطاقات التسويق الجانبية (مشوشة)
+    blurIntensity: 'medium',      // شدة التشويش
+    showBlurOverlay: true,        // إظهار overlay فوق المحتوى المشوش
+    allowedPages: [],             // الصفحات المسموحة (فارغ = الرئيسية فقط)
+    allowSearch: true,            // السماح بالبحث
+    showSearchResults: true       // إظهار نتائج البحث (مشوشة)
+  }
 };
 
 const INITIAL_PRODUCTS: Product[] = [

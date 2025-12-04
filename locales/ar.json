@@ -106,7 +106,9 @@
     "loginButton": "تسجيل الدخول",
     "requestAccountButton": "طلب فتح حساب جديد",
     "browseOnly": "متابعة التصفح",
-    "blurredResultsNote": "سجّل لعرض التفاصيل والأسعار"
+    "blurredResultsNote": "سجّل لعرض التفاصيل والأسعار",
+    "loginToAccess": "سجّل دخولك للوصول الكامل",
+    "searchDisabled": "سجّل دخولك للبحث في المنتجات"
   },
   "register": {
     "title": "طلب فتح حساب جديد",
@@ -921,7 +923,33 @@
       "importRequestStatus": "حالات طلبات الاستيراد",
       "customerStatus": "حالات العملاء",
       "staffStatus": "حالات الموظفين"
-    }
+    },
+    "guestMode": "وضع الضيف",
+    "guestModeSettings": "إعدادات وضع الضيف",
+    "guestModeSettingsDesc": "تحكم في ما يراه الزوار غير المسجلين عند تصفح الموقع. يمكنك تفعيل/إيقاف الأقسام المختلفة وضبط مستوى التشويش.",
+    "guestBrowsingEnabled": "تفعيل التصفح كضيف",
+    "guestBrowsingEnabledDesc": "السماح للزوار بتصفح الموقع دون تسجيل دخول",
+    "visibleSections": "الأقسام المرئية (مع تشويش)",
+    "visibleSectionsDesc": "حدد الأقسام التي ستظهر للضيوف مع تشويش المحتوى",
+    "showBusinessTypes": "قسم \"من نخدم\" (أنواع الأعمال)",
+    "showMainServices": "قسم الخدمات الرئيسية",
+    "showHowItWorks": "قسم \"كيف تعمل المنظومة\"",
+    "showWhySiniCar": "قسم \"لماذا صيني كار\"",
+    "showCart": "عربة التسوق الجانبية",
+    "showMarketingCards": "بطاقات التسويق الجانبية",
+    "blurSettings": "إعدادات التشويش",
+    "blurIntensity": "شدة التشويش",
+    "blurLight": "خفيف",
+    "blurMedium": "متوسط",
+    "blurHeavy": "قوي",
+    "showBlurOverlay": "إظهار طبقة فوق المحتوى المشوش",
+    "showBlurOverlayDesc": "يظهر زر \"سجّل دخولك\" فوق المحتوى المشوش",
+    "searchSettings": "إعدادات البحث للضيوف",
+    "allowSearch": "السماح بالبحث",
+    "allowSearchDesc": "يمكن للضيوف استخدام البحث (النتائج مشوشة)",
+    "showSearchResults": "إظهار نتائج البحث",
+    "showSearchResultsDesc": "عرض نتائج البحث مع تشويش التفاصيل",
+    "guestSettingsSaved": "تم حفظ إعدادات وضع الضيف بنجاح"
   },
   "adminOrders": {
     "title": "إدارة طلبات العملاء",

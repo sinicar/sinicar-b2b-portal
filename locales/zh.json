@@ -106,7 +106,9 @@
     "loginButton": "登录",
     "requestAccountButton": "申请新账户",
     "browseOnly": "继续浏览",
-    "blurredResultsNote": "注册查看详情和价格"
+    "blurredResultsNote": "注册查看详情和价格",
+    "loginToAccess": "登录获取完整访问权限",
+    "searchDisabled": "登录以搜索产品"
   },
   "register": {
     "title": "新账户申请",
@@ -921,7 +923,33 @@
       "importRequestStatus": "进口请求状态",
       "customerStatus": "客户状态",
       "staffStatus": "员工状态"
-    }
+    },
+    "guestMode": "访客模式",
+    "guestModeSettings": "访客模式设置",
+    "guestModeSettingsDesc": "控制未注册访客浏览网站时看到的内容。您可以启用/禁用不同的部分并调整模糊强度。",
+    "guestBrowsingEnabled": "启用访客浏览",
+    "guestBrowsingEnabledDesc": "允许访客无需登录即可浏览网站",
+    "visibleSections": "可见部分（带模糊）",
+    "visibleSectionsDesc": "选择将向访客显示的模糊内容部分",
+    "showBusinessTypes": "\"我们服务谁\"部分（业务类型）",
+    "showMainServices": "主要服务部分",
+    "showHowItWorks": "\"如何运作\"部分",
+    "showWhySiniCar": "\"为什么选择新尼汽车\"部分",
+    "showCart": "侧边购物车",
+    "showMarketingCards": "侧边营销卡片",
+    "blurSettings": "模糊设置",
+    "blurIntensity": "模糊强度",
+    "blurLight": "轻度",
+    "blurMedium": "中度",
+    "blurHeavy": "重度",
+    "showBlurOverlay": "在模糊内容上显示覆盖层",
+    "showBlurOverlayDesc": "在模糊内容上显示\"登录\"按钮",
+    "searchSettings": "访客搜索设置",
+    "allowSearch": "允许搜索",
+    "allowSearchDesc": "访客可以使用搜索（结果模糊）",
+    "showSearchResults": "显示搜索结果",
+    "showSearchResultsDesc": "显示带有模糊详情的搜索结果",
+    "guestSettingsSaved": "访客模式设置保存成功"
   },
   "adminOrders": {
     "title": "客户订单管理",

@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react';
-import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType } from '../types';
+import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType, GuestModeSettings } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
   LayoutDashboard, ShoppingCart, Users, User as UserIcon, Package, LogOut, Search, 
@@ -314,7 +314,7 @@ const CartIconButton = memo(({
 });
 
 // --- Extract Sidebar and Header for better memoization ---
-const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL }: any) => {
+const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick }: any) => {
     // RTL: sidebar on right, slides from right. LTR: sidebar on left, slides from left
     const sidebarPosition = isRTL ? 'right-0' : 'left-0';
     const sidebarTransform = isRTL 
@@ -376,31 +376,31 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                 <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">{t('sidebar.mainMenu')}</p>
                 <SidebarItem icon={<LayoutDashboard size={20} />} label={tDynamic('sidebar.home', 'الرئيسية')} active={view === 'HOME'} onClick={() => onViewChange('HOME')} />
                 
-                {/* Orders Item: Checks for hasUnreadOrders flag */}
+                {/* Orders Item: Checks for hasUnreadOrders flag - Guest check */}
                 <SidebarItem 
                     icon={<Package size={20} />} 
                     label={tDynamic('sidebar.orders', 'سجل الطلبات')} 
                     active={view === 'ORDERS'} 
-                    onClick={() => onViewChange('ORDERS')} 
+                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORDERS')} 
                     badge={user.hasUnreadOrders ? true : undefined} 
                 />
                 
-                {/* Quotes Item: Checks for hasUnreadQuotes flag */}
+                {/* Quotes Item: Checks for hasUnreadQuotes flag - Guest check */}
                 <SidebarItem 
                     icon={<Search size={20} />} 
                     label={tDynamic('sidebar.quotes', 'طلبات التسعير')} 
                     active={view === 'QUOTE_REQUEST'} 
-                    onClick={() => onViewChange('QUOTE_REQUEST')} 
+                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('QUOTE_REQUEST')} 
                     badge={user.hasUnreadQuotes ? true : undefined}
                 />
-                <SidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => onViewChange('IMPORT_CHINA')} />
-                <SidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => onViewChange('HISTORY')} />
+                <SidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('IMPORT_CHINA')} />
+                <SidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} />
                 
                 <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.management')}</p>
-                <SidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => onViewChange('ORGANIZATION')} />
+                <SidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORGANIZATION')} />
                 
                 <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.supportSection')}</p>
-                <SidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => onViewChange('ABOUT')} />
+                <SidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ABOUT')} />
             </nav>
 
             <div className="p-4 border-t border-slate-800">
@@ -532,6 +532,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Guest Mode State - Show prompt when guest tries restricted action
     const [showGuestPrompt, setShowGuestPrompt] = useState(false);
     const isGuest = user.isGuest === true;
+    
+    // Guest Mode Settings Helper Functions
+    const guestSettings = settings?.guestSettings;
+    
+    // Get blur class based on admin settings
+    const getBlurClass = () => {
+        if (!isGuest) return '';
+        const intensity = guestSettings?.blurIntensity || 'medium';
+        switch (intensity) {
+            case 'light': return 'blur-sm'; // 4px
+            case 'medium': return 'blur-md'; // 12px
+            case 'heavy': return 'blur-lg'; // 16px
+            default: return 'blur-md';
+        }
+    };
+    
+    // Check if section should be visible (even if blurred)
+    const isSectionVisible = (section: 'businessTypes' | 'mainServices' | 'howItWorks' | 'whySiniCar' | 'cart' | 'marketingCards') => {
+        if (!isGuest) return true;
+        const settingsMap = {
+            businessTypes: guestSettings?.showBusinessTypes,
+            mainServices: guestSettings?.showMainServices,
+            howItWorks: guestSettings?.showHowItWorks,
+            whySiniCar: guestSettings?.showWhySiniCar,
+            cart: guestSettings?.showCart,
+            marketingCards: guestSettings?.showMarketingCards
+        };
+        return settingsMap[section] !== false; // Default to true if undefined
+    };
+    
+    // Check if blur overlay should be shown
+    const showBlurOverlay = isGuest && guestSettings?.showBlurOverlay !== false;
 
     const { t, tDynamic, dir } = useLanguage();
     const { addToast } = useToast();
@@ -1009,6 +1041,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 tDynamic={tDynamic}
                 remainingCredits={remainingCredits}
                 isRTL={dir === 'rtl'}
+                isGuest={isGuest}
+                guestSettings={settings?.guestSettings}
+                onGuestPageClick={() => setShowGuestPrompt(true)}
             />
 
             {/* Main Content Area */}
@@ -1067,6 +1102,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 </div>
                                             </div>
                                             
+                                            {/* Search is disabled for guests if allowSearch = false */}
+                                            {isGuest && guestSettings?.allowSearch === false ? (
+                                                <button
+                                                    onClick={() => setShowGuestPrompt(true)}
+                                                    className="w-full h-14 md:h-16 px-6 bg-white/90 text-slate-500 rounded-full shadow-2xl shadow-slate-900/30 flex items-center justify-center gap-3 cursor-pointer hover:bg-white transition-colors"
+                                                    data-testid="button-guest-search-disabled"
+                                                >
+                                                    <Lock size={20} className="text-brand-600" />
+                                                    <span className="font-bold">{t('guestMode.searchDisabled')}</span>
+                                                </button>
+                                            ) : (
                                             <form onSubmit={handleSearchSubmit} className="relative group">
                                                 <input 
                                                     type="text" 
@@ -1082,6 +1128,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     <Search size={22} />
                                                 </button>
                                             </form>
+                                            )}
                                             
                                             {/* Search Dropdown Results */}
                                             {showSearchDropdown && (
@@ -1129,8 +1176,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                             </div>
                                                         ) : searchResults.length > 0 ? (
                                                             <div className="relative">
-                                                                {/* Guest Blur Overlay */}
-                                                                {isGuest && (
+                                                                {/* Guest Blur Overlay - controlled by admin settings */}
+                                                                {isGuest && guestSettings?.showSearchResults !== false && showBlurOverlay && (
                                                                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-xl">
                                                                         <div className="text-center p-6">
                                                                             <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1149,7 +1196,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                         </div>
                                                                     </div>
                                                                 )}
-                                                                <div className={`divide-y divide-slate-100 ${isGuest ? 'blur-sm pointer-events-none select-none' : ''}`}>
+                                                                <div className={`divide-y divide-slate-100 ${isGuest && guestSettings?.showSearchResults !== false ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
                                                                 {searchResults.map(product => {
                                                                     const isRevealed = revealedSearchIds.has(product.id) || MockApi.hasRecentPriceView(user.id, product.id);
                                                                     const qty = product.qtyTotal ?? product.stock ?? 0;
@@ -1237,13 +1284,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                     {/* Left Content: Corporate Info Sections (Instead of Products) */}
                                     <div className="xl:col-span-3 space-y-12">
                                         
-                                        {/* Section: Who We Serve */}
-                                        <section>
+                                        {/* Section: Who We Serve - Blurred for Guest (controlled by admin settings) */}
+                                        {isSectionVisible('businessTypes') && (
+                                        <section className="relative">
+                                            {showBlurOverlay && (
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                    <button 
+                                                        onClick={() => setShowGuestPrompt(true)}
+                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        data-testid="button-guest-section-cta"
+                                                    >
+                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
+                                                            <Lock size={24} className="text-brand-600" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <Users className="text-brand-600" size={24}/>
                                                 {t('customerDashboard.whoWeServe')}
                                             </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
                                                 <InfoCard 
                                                     icon={<Building2 size={24}/>}
                                                     title={t('customerDashboard.partsStores')}
@@ -1270,37 +1333,54 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 />
                                             </div>
                                         </section>
+                                        )}
 
-                                        {/* Section: Key Services */}
-                                        <section>
+                                        {/* Section: Key Services - Blurred for Guest (controlled by admin settings) */}
+                                        {isSectionVisible('mainServices') && (
+                                        <section className="relative">
+                                            {showBlurOverlay && (
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                    <button 
+                                                        onClick={() => setShowGuestPrompt(true)}
+                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        data-testid="button-guest-services-cta"
+                                                    >
+                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
+                                                            <Lock size={24} className="text-brand-600" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <Briefcase className="text-brand-600" size={24}/>
                                                 {t('customerDashboard.mainServices')}
                                             </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
                                                 <InfoCard 
-                                                    onClick={() => handleSetView('QUOTE_REQUEST')}
+                                                    onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('QUOTE_REQUEST')}
                                                     icon={<FileSpreadsheet size={28}/>}
                                                     title={t('customerDashboard.quoteRequests')}
                                                     desc={t('customerDashboard.quoteRequestsDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                                 <InfoCard 
-                                                    onClick={() => handleSetView('IMPORT_CHINA')}
+                                                    onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('IMPORT_CHINA')}
                                                     icon={<Globe size={28}/>}
                                                     title={t('customerDashboard.importFromChina')}
                                                     desc={t('customerDashboard.importFromChinaDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                                 <InfoCard 
-                                                    onClick={() => handleSetView('ORDERS')}
+                                                    onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('ORDERS')}
                                                     icon={<Package size={28}/>}
                                                     title={t('customerDashboard.wholesaleOrders')}
                                                     desc={t('customerDashboard.wholesaleOrdersDesc')}
                                                     colorClass="bg-slate-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors"
                                                 />
                                                 <InfoCard 
-                                                    onClick={() => handleSetView('ORGANIZATION')}
+                                                    onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('ORGANIZATION')}
                                                     icon={<Users size={28}/>}
                                                     title={t('customerDashboard.staffBranches')}
                                                     desc={t('customerDashboard.staffBranchesDesc')}
@@ -1308,9 +1388,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 />
                                             </div>
                                         </section>
+                                        )}
 
-                                        {/* Section: How it Works */}
-                                        <section className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                                        {/* Section: How it Works (controlled by admin settings) */}
+                                        {isSectionVisible('howItWorks') && (
+                                        <section className={`bg-white rounded-3xl border border-slate-200 p-8 shadow-sm relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                            {showBlurOverlay && (
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-3xl">
+                                                    <button 
+                                                        onClick={() => setShowGuestPrompt(true)}
+                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        data-testid="button-guest-howitworks-cta"
+                                                    >
+                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
+                                                            <Lock size={24} className="text-brand-600" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-8">
                                                 <TrendingUp className="text-brand-600" size={24}/>
                                                 {t('customerDashboard.howItWorks')}
@@ -1352,9 +1449,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 </div>
                                             </div>
                                         </section>
+                                        )}
                                         
-                                        {/* Section: Why Sini Car */}
-                                        <section>
+                                        {/* Section: Why Sini Car (controlled by admin settings) */}
+                                        {isSectionVisible('whySiniCar') && (
+                                        <section className={`relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                            {showBlurOverlay && (
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                    <button 
+                                                        onClick={() => setShowGuestPrompt(true)}
+                                                        className="flex flex-col items-center gap-3 p-6 bg-white/90 rounded-2xl shadow-xl border border-brand-100 hover:shadow-2xl transition-all"
+                                                        data-testid="button-guest-whysinicar-cta"
+                                                    >
+                                                        <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center">
+                                                            <Lock size={24} className="text-brand-600" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-800">{t('guestMode.restrictedTitle')}</span>
+                                                        <span className="text-sm text-slate-500">{t('guestMode.loginToAccess')}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 px-1 mb-6">
                                                 <CheckCircle className="text-brand-600" size={24}/>
                                                 {settings?.whySiniCarTitle || t('customerDashboard.whySiniCar')}
@@ -1385,12 +1499,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 ))}
                                             </div>
                                         </section>
+                                        )}
 
                                     </div>
 
-                                    {/* Right Content: Compact Cart */}
+                                    {/* Right Content: Compact Cart (controlled by admin settings) */}
                                     <div className="xl:col-span-1 space-y-6 sticky top-6">
-                                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                                        {isSectionVisible('cart') && (
+                                        <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                            {showBlurOverlay && (
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                    <button 
+                                                        onClick={() => setShowGuestPrompt(true)}
+                                                        className="flex flex-col items-center gap-2 p-4 bg-white/90 rounded-xl shadow-lg border border-brand-100 hover:shadow-xl transition-all"
+                                                        data-testid="button-guest-cart-cta"
+                                                    >
+                                                        <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center">
+                                                            <Lock size={20} className="text-brand-600" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-800 text-sm">{t('guestMode.restrictedTitle')}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                             <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                                                 <h3 className="font-bold text-slate-800 text-sm md:text-base flex items-center gap-2">
                                                     <ShoppingCart className="text-brand-600" size={20} />
@@ -1440,9 +1570,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 </div>
                                             )}
                                         </div>
+                                        )}
 
-                                        {/* Quick Info Cards */}
-                                        <div className="space-y-4">
+                                        {/* Quick Info Cards (controlled by admin settings) */}
+                                        {isSectionVisible('marketingCards') && (
+                                        <div className={`space-y-4 relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                            {showBlurOverlay && (
+                                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
+                                                    <button 
+                                                        onClick={() => setShowGuestPrompt(true)}
+                                                        className="flex flex-col items-center gap-2 p-4 bg-white/90 rounded-xl shadow-lg border border-brand-100 hover:shadow-xl transition-all"
+                                                        data-testid="button-guest-marketing-cta"
+                                                    >
+                                                        <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center">
+                                                            <Lock size={20} className="text-brand-600" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-800 text-sm">{t('guestMode.restrictedTitle')}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                             <MarketingCard 
                                                 icon={<Truck className="text-blue-600" size={24}/>}
                                                 title={t('customerDashboard.fastShipping')}
@@ -1454,6 +1600,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 desc={t('customerDashboard.techSupportDesc')}
                                             />
                                         </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
