@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Banner, SiteSettings, StatusLabelsConfig, GuestModeSettings } from '../types';
+import { Banner, SiteSettings, StatusLabelsConfig, GuestModeSettings, NotificationTemplate, NotificationSettings, DocumentTemplate, PrintSettings } from '../types';
 import { MockApi } from '../services/mockApi';
-import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award, UserX } from 'lucide-react';
+import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award, UserX, Bell, Printer, Layout, Copy, Move, AlignLeft, AlignCenter, AlignRight, Volume2, MessageSquare, AlertCircle, Info, CheckCircle2, XCircle, Sparkles, Zap, Mail, Smartphone } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 
 export const AdminSettings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS' | 'FEATURES' | 'GUEST_MODE'>('GENERAL');
+    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS' | 'FEATURES' | 'GUEST_MODE' | 'NOTIFICATIONS' | 'PRINT_TEMPLATES'>('GENERAL');
     const [settings, setSettings] = useState<SiteSettings | null>(null);
     const [banners, setBanners] = useState<Banner[]>([]);
     const [loading, setLoading] = useState(true);
@@ -137,6 +137,7 @@ export const AdminSettings: React.FC = () => {
         <button 
             onClick={() => setActiveTab(id as any)}
             className={`flex items-center gap-3 w-full p-4 rounded-xl transition-all mb-2 font-bold ${activeTab === id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-transparent hover:border-slate-200'}`}
+            data-testid={`tab-${id.toLowerCase()}`}
         >
             {icon}
             <span>{label}</span>
@@ -154,6 +155,8 @@ export const AdminSettings: React.FC = () => {
                         <TabButton id="BANNERS" icon={<ImageIcon size={20} />} label={t('adminSettings.bannerManagement')} />
                         <TabButton id="FEATURES" icon={<Check size={20} />} label={t('adminSettings.whySiniCar')} />
                         <TabButton id="GUEST_MODE" icon={<UserX size={20} />} label={t('adminSettings.guestMode')} />
+                        <TabButton id="NOTIFICATIONS" icon={<Bell size={20} />} label={t('adminSettings.notifications', 'إدارة الإشعارات')} />
+                        <TabButton id="PRINT_TEMPLATES" icon={<Printer size={20} />} label={t('adminSettings.printTemplates', 'قوالب الطباعة')} />
                         <TabButton id="TEXTS" icon={<Type size={20} />} label={t('adminSettings.textManagement')} />
                         <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label={t('adminSettings.statusLabels')} />
                         <TabButton id="API" icon={<Server size={20} />} label={t('adminSettings.apiIntegration')} />
@@ -1345,6 +1348,10 @@ export const AdminSettings: React.FC = () => {
                         saving={saving}
                     />
                 )}
+
+                {activeTab === 'NOTIFICATIONS' && <NotificationManagement t={t} />}
+
+                {activeTab === 'PRINT_TEMPLATES' && <PrintTemplatesDesigner t={t} />}
             </div>
         </div>
     );
@@ -1818,4 +1825,729 @@ const StatusLabelsManager: React.FC<StatusLabelsManagerProps> = ({ settings, onU
             </div>
         </div>
     );
+};
+
+const NotificationManagement: React.FC<{t: (key: string, fallback?: string) => string}> = ({ t }) => {
+    const [notifications, setNotifications] = useState<NotificationTemplate[]>([
+        { id: 'ORDER_CONFIRMED', name: 'تأكيد الطلب', nameEn: 'Order Confirmed', type: 'success', icon: 'CheckCircle2', 
+          channels: ['toast', 'email'], enabled: true,
+          message: { ar: 'تم تأكيد طلبك بنجاح', en: 'Your order has been confirmed', hi: 'आपका ऑर्डर कन्फर्म हो गया है', zh: '您的订单已确认' },
+          style: { bgColor: '#10b981', textColor: '#ffffff', borderColor: '#059669' } },
+        { id: 'ORDER_SHIPPED', name: 'شحن الطلب', nameEn: 'Order Shipped', type: 'info', icon: 'Truck',
+          channels: ['toast', 'email', 'sms'], enabled: true,
+          message: { ar: 'تم شحن طلبك', en: 'Your order has been shipped', hi: 'आपका ऑर्डर शिप हो गया है', zh: '您的订单已发货' },
+          style: { bgColor: '#3b82f6', textColor: '#ffffff', borderColor: '#2563eb' } },
+        { id: 'PAYMENT_SUCCESS', name: 'نجاح الدفع', nameEn: 'Payment Success', type: 'success', icon: 'DollarSign',
+          channels: ['toast', 'email'], enabled: true,
+          message: { ar: 'تم استلام الدفعة بنجاح', en: 'Payment received successfully', hi: 'भुगतान सफलतापूर्वक प्राप्त हुआ', zh: '付款成功收到' },
+          style: { bgColor: '#059669', textColor: '#ffffff', borderColor: '#047857' } },
+        { id: 'LOW_STOCK', name: 'المخزون منخفض', nameEn: 'Low Stock Alert', type: 'warning', icon: 'AlertCircle',
+          channels: ['toast', 'modal'], enabled: true,
+          message: { ar: 'تنبيه: مخزون منخفض للمنتج', en: 'Alert: Low stock for product', hi: 'चेतावनी: कम स्टॉक', zh: '警告：库存不足' },
+          style: { bgColor: '#f59e0b', textColor: '#ffffff', borderColor: '#d97706' } },
+        { id: 'ACCOUNT_APPROVED', name: 'الموافقة على الحساب', nameEn: 'Account Approved', type: 'success', icon: 'UserCheck',
+          channels: ['toast', 'email', 'sms'], enabled: true,
+          message: { ar: 'تمت الموافقة على حسابك', en: 'Your account has been approved', hi: 'आपका खाता स्वीकृत हो गया', zh: '您的账户已批准' },
+          style: { bgColor: '#22c55e', textColor: '#ffffff', borderColor: '#16a34a' } },
+        { id: 'NEW_MESSAGE', name: 'رسالة جديدة', nameEn: 'New Message', type: 'info', icon: 'MessageSquare',
+          channels: ['toast', 'banner'], enabled: true,
+          message: { ar: 'لديك رسالة جديدة', en: 'You have a new message', hi: 'आपके पास एक नया संदेश है', zh: '您有新消息' },
+          style: { bgColor: '#6366f1', textColor: '#ffffff', borderColor: '#4f46e5' } },
+        { id: 'ERROR_GENERAL', name: 'خطأ عام', nameEn: 'General Error', type: 'error', icon: 'XCircle',
+          channels: ['toast', 'modal'], enabled: true,
+          message: { ar: 'حدث خطأ، يرجى المحاولة مرة أخرى', en: 'An error occurred, please try again', hi: 'एक त्रुटि हुई, कृपया पुनः प्रयास करें', zh: '发生错误，请重试' },
+          style: { bgColor: '#ef4444', textColor: '#ffffff', borderColor: '#dc2626' } },
+    ]);
+    const [editingNotification, setEditingNotification] = useState<string | null>(null);
+
+    const notificationTypes = [
+        { value: 'success', label: t('adminSettings.notifSuccess', 'نجاح'), icon: <CheckCircle2 size={16} className="text-green-500" /> },
+        { value: 'error', label: t('adminSettings.notifError', 'خطأ'), icon: <XCircle size={16} className="text-red-500" /> },
+        { value: 'warning', label: t('adminSettings.notifWarning', 'تحذير'), icon: <AlertCircle size={16} className="text-amber-500" /> },
+        { value: 'info', label: t('adminSettings.notifInfo', 'معلومات'), icon: <Info size={16} className="text-blue-500" /> },
+    ];
+
+    const channelOptions = [
+        { value: 'toast', label: t('adminSettings.channelToast', 'إشعار منبثق'), icon: <MessageSquare size={14} /> },
+        { value: 'modal', label: t('adminSettings.channelModal', 'نافذة منبثقة'), icon: <Layout size={14} /> },
+        { value: 'banner', label: t('adminSettings.channelBanner', 'شريط علوي'), icon: <Megaphone size={14} /> },
+        { value: 'email', label: t('adminSettings.channelEmail', 'بريد إلكتروني'), icon: <Mail size={14} /> },
+        { value: 'sms', label: t('adminSettings.channelSMS', 'رسالة نصية'), icon: <Smartphone size={14} /> },
+    ];
+
+    const updateNotification = (id: string, updates: Partial<NotificationTemplate>) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+    };
+
+    const toggleChannel = (id: string, channel: string) => {
+        const notif = notifications.find(n => n.id === id);
+        if (!notif) return;
+        const channels = notif.channels.includes(channel as any)
+            ? notif.channels.filter(c => c !== channel)
+            : [...notif.channels, channel as any];
+        updateNotification(id, { channels });
+    };
+
+    return (
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <Bell className="text-brand-600" /> {t('adminSettings.notificationManagement', 'إدارة الإشعارات')}
+                    </h2>
+                    <button className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 flex items-center gap-2">
+                        <Plus size={18} /> {t('adminSettings.addNotification', 'إضافة إشعار')}
+                    </button>
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                    <div className="flex items-start gap-3">
+                        <Sparkles className="text-blue-500 mt-0.5" size={20} />
+                        <div>
+                            <p className="font-bold text-blue-800">{t('adminSettings.notifSystemDesc', 'نظام إشعارات متكامل')}</p>
+                            <p className="text-sm text-blue-600">{t('adminSettings.notifSystemDescDetail', 'تحكم كامل في جميع إشعارات النظام: النص، الألوان، القنوات، والتصميم')}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {notifications.map(notif => (
+                        <div 
+                            key={notif.id}
+                            className={`p-4 rounded-xl border-2 transition-all ${editingNotification === notif.id ? 'border-brand-500 bg-brand-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                        >
+                            {editingNotification === notif.id ? (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-bold text-slate-800">{t('adminSettings.editNotification', 'تعديل الإشعار')}</h4>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setPreviewNotification(notif)} className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200">
+                                                <Eye size={16} />
+                                            </button>
+                                            <button onClick={() => setEditingNotification(null)} className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200">
+                                                <Check size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifNameAr', 'الاسم بالعربية')}</label>
+                                            <input 
+                                                type="text" value={notif.name}
+                                                onChange={e => updateNotification(notif.id, { name: e.target.value })}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifNameEn', 'الاسم بالإنجليزية')}</label>
+                                            <input 
+                                                type="text" value={notif.nameEn}
+                                                onChange={e => updateNotification(notif.id, { nameEn: e.target.value })}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" dir="ltr"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifType', 'نوع الإشعار')}</label>
+                                            <div className="flex gap-2 flex-wrap">
+                                                {notificationTypes.map(type => (
+                                                    <button 
+                                                        key={type.value}
+                                                        onClick={() => updateNotification(notif.id, { type: type.value as any })}
+                                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${notif.type === type.value ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}
+                                                    >
+                                                        {type.icon} {type.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifChannels', 'قنوات الإرسال')}</label>
+                                            <div className="flex gap-2 flex-wrap">
+                                                {channelOptions.map(ch => (
+                                                    <button 
+                                                        key={ch.value}
+                                                        onClick={() => toggleChannel(notif.id, ch.value)}
+                                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${notif.channels.includes(ch.value as any) ? 'border-green-500 bg-green-50' : 'border-slate-200'}`}
+                                                    >
+                                                        {ch.icon} {ch.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifMsgAr', 'النص العربي')}</label>
+                                            <input type="text" value={notif.message.ar}
+                                                onChange={e => updateNotification(notif.id, { message: { ...notif.message, ar: e.target.value } })}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifMsgEn', 'النص الإنجليزي')}</label>
+                                            <input type="text" value={notif.message.en} dir="ltr"
+                                                onChange={e => updateNotification(notif.id, { message: { ...notif.message, en: e.target.value } })}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifMsgHi', 'النص الهندي')}</label>
+                                            <input type="text" value={notif.message.hi} dir="ltr"
+                                                onChange={e => updateNotification(notif.id, { message: { ...notif.message, hi: e.target.value } })}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifMsgZh', 'النص الصيني')}</label>
+                                            <input type="text" value={notif.message.zh} dir="ltr"
+                                                onChange={e => updateNotification(notif.id, { message: { ...notif.message, zh: e.target.value } })}
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifBgColor', 'لون الخلفية')}</label>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={notif.style.bgColor}
+                                                    onChange={e => updateNotification(notif.id, { style: { ...notif.style, bgColor: e.target.value } })}
+                                                    className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
+                                                />
+                                                <input type="text" value={notif.style.bgColor}
+                                                    onChange={e => updateNotification(notif.id, { style: { ...notif.style, bgColor: e.target.value } })}
+                                                    className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono" dir="ltr"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifTextColor', 'لون النص')}</label>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={notif.style.textColor}
+                                                    onChange={e => updateNotification(notif.id, { style: { ...notif.style, textColor: e.target.value } })}
+                                                    className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
+                                                />
+                                                <input type="text" value={notif.style.textColor}
+                                                    onChange={e => updateNotification(notif.id, { style: { ...notif.style, textColor: e.target.value } })}
+                                                    className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono" dir="ltr"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{t('adminSettings.notifBorderColor', 'لون الحدود')}</label>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={notif.style.borderColor}
+                                                    onChange={e => updateNotification(notif.id, { style: { ...notif.style, borderColor: e.target.value } })}
+                                                    className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
+                                                />
+                                                <input type="text" value={notif.style.borderColor}
+                                                    onChange={e => updateNotification(notif.id, { style: { ...notif.style, borderColor: e.target.value } })}
+                                                    className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono" dir="ltr"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-50 p-4 rounded-xl">
+                                        <label className="block text-sm font-bold text-slate-700 mb-3">{t('adminSettings.notifPreview', 'معاينة الإشعار')}</label>
+                                        <div 
+                                            className="p-4 rounded-xl flex items-center gap-3 shadow-lg"
+                                            style={{ backgroundColor: notif.style.bgColor, color: notif.style.textColor, borderLeft: `4px solid ${notif.style.borderColor}` }}
+                                        >
+                                            {notif.type === 'success' && <CheckCircle2 size={24} />}
+                                            {notif.type === 'error' && <XCircle size={24} />}
+                                            {notif.type === 'warning' && <AlertCircle size={24} />}
+                                            {notif.type === 'info' && <Info size={24} />}
+                                            <span className="font-bold">{notif.message.ar}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div 
+                                            className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                            style={{ backgroundColor: notif.style.bgColor, color: notif.style.textColor }}
+                                        >
+                                            {notif.type === 'success' && <CheckCircle2 size={20} />}
+                                            {notif.type === 'error' && <XCircle size={20} />}
+                                            {notif.type === 'warning' && <AlertCircle size={20} />}
+                                            {notif.type === 'info' && <Info size={20} />}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-800">{notif.name}</h4>
+                                            <p className="text-sm text-slate-500">{notif.nameEn}</p>
+                                        </div>
+                                        <div className="flex gap-1 flex-wrap">
+                                            {notif.channels.map(ch => (
+                                                <span key={ch} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-bold">
+                                                    {ch}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => updateNotification(notif.id, { enabled: !notif.enabled })}
+                                            className={`p-2 rounded-lg transition-colors ${notif.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}
+                                        >
+                                            {notif.enabled ? <Volume2 size={16} /> : <EyeOff size={16} />}
+                                        </button>
+                                        <button 
+                                            onClick={() => setEditingNotification(notif.id)}
+                                            className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+                                        >
+                                            <Pencil size={16} />
+                                        </button>
+                                        <button className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+};
+
+const PrintTemplatesDesigner: React.FC<{t: (key: string, fallback?: string) => string}> = ({ t }) => {
+        const [templates, setTemplates] = useState<DocumentTemplate[]>([
+            { id: 'INVOICE', name: 'فاتورة', nameEn: 'Invoice', type: 'invoice', isDefault: true,
+              pageSize: 'A4', orientation: 'portrait', margins: { top: 20, right: 20, bottom: 20, left: 20 },
+              header: { enabled: true, height: 80, showLogo: true, logoPosition: 'right', showCompanyInfo: true },
+              footer: { enabled: true, height: 40, showPageNumbers: true, customText: 'شكراً لتعاملكم معنا' },
+              columns: ['productName', 'sku', 'quantity', 'unitPrice', 'total'],
+              fonts: { heading: 'Cairo', body: 'Cairo', size: { heading: 16, body: 12 } },
+              colors: { primary: '#1e3a5f', secondary: '#f59e0b', text: '#1f2937', border: '#e5e7eb' } },
+            { id: 'QUOTE', name: 'عرض سعر', nameEn: 'Quotation', type: 'quote', isDefault: false,
+              pageSize: 'A4', orientation: 'portrait', margins: { top: 25, right: 25, bottom: 25, left: 25 },
+              header: { enabled: true, height: 100, showLogo: true, logoPosition: 'center', showCompanyInfo: true },
+              footer: { enabled: true, height: 50, showPageNumbers: true, customText: 'عرض السعر ساري لمدة 7 أيام' },
+              columns: ['productName', 'sku', 'quantity', 'unitPrice', 'discount', 'total'],
+              fonts: { heading: 'Cairo', body: 'Cairo', size: { heading: 18, body: 11 } },
+              colors: { primary: '#059669', secondary: '#fbbf24', text: '#374151', border: '#d1d5db' } },
+            { id: 'PACKING_LIST', name: 'قائمة التعبئة', nameEn: 'Packing List', type: 'packing', isDefault: false,
+              pageSize: 'A4', orientation: 'portrait', margins: { top: 15, right: 15, bottom: 15, left: 15 },
+              header: { enabled: true, height: 60, showLogo: true, logoPosition: 'left', showCompanyInfo: false },
+              footer: { enabled: false, height: 0, showPageNumbers: false, customText: '' },
+              columns: ['productName', 'sku', 'quantity', 'location', 'notes'],
+              fonts: { heading: 'Cairo', body: 'Cairo', size: { heading: 14, body: 10 } },
+              colors: { primary: '#7c3aed', secondary: '#a78bfa', text: '#4b5563', border: '#e5e7eb' } },
+            { id: 'DELIVERY_NOTE', name: 'إذن تسليم', nameEn: 'Delivery Note', type: 'delivery', isDefault: false,
+              pageSize: 'A4', orientation: 'portrait', margins: { top: 20, right: 20, bottom: 20, left: 20 },
+              header: { enabled: true, height: 70, showLogo: true, logoPosition: 'right', showCompanyInfo: true },
+              footer: { enabled: true, height: 60, showPageNumbers: false, customText: 'توقيع المستلم: ____________' },
+              columns: ['productName', 'quantity', 'notes'],
+              fonts: { heading: 'Cairo', body: 'Cairo', size: { heading: 15, body: 11 } },
+              colors: { primary: '#0891b2', secondary: '#06b6d4', text: '#1f2937', border: '#cbd5e1' } },
+        ]);
+        const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
+        const [previewTemplate, setPreviewTemplate] = useState<DocumentTemplate | null>(null);
+
+        const pageSizes = [
+            { value: 'A4', label: 'A4 (210 × 297 mm)' },
+            { value: 'A5', label: 'A5 (148 × 210 mm)' },
+            { value: 'Letter', label: 'Letter (8.5 × 11 in)' },
+            { value: 'Legal', label: 'Legal (8.5 × 14 in)' },
+        ];
+
+        const availableColumns = [
+            { value: 'productName', label: t('adminSettings.colProductName', 'اسم المنتج') },
+            { value: 'sku', label: t('adminSettings.colSku', 'رمز المنتج') },
+            { value: 'quantity', label: t('adminSettings.colQuantity', 'الكمية') },
+            { value: 'unitPrice', label: t('adminSettings.colUnitPrice', 'سعر الوحدة') },
+            { value: 'discount', label: t('adminSettings.colDiscount', 'الخصم') },
+            { value: 'total', label: t('adminSettings.colTotal', 'الإجمالي') },
+            { value: 'location', label: t('adminSettings.colLocation', 'الموقع') },
+            { value: 'notes', label: t('adminSettings.colNotes', 'ملاحظات') },
+        ];
+
+        const updateTemplate = (id: string, updates: Partial<DocumentTemplate>) => {
+            setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+        };
+
+        const toggleColumn = (id: string, column: string) => {
+            const tmpl = templates.find(t => t.id === id);
+            if (!tmpl) return;
+            const columns = tmpl.columns.includes(column)
+                ? tmpl.columns.filter(c => c !== column)
+                : [...tmpl.columns, column];
+            updateTemplate(id, { columns });
+        };
+
+        return (
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <Printer className="text-brand-600" /> {t('adminSettings.printTemplateDesigner', 'مصمم قوالب الطباعة')}
+                    </h2>
+                    <button className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 flex items-center gap-2">
+                        <Plus size={18} /> {t('adminSettings.addTemplate', 'إضافة قالب')}
+                    </button>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
+                    <div className="flex items-start gap-3">
+                        <Layout className="text-purple-500 mt-0.5" size={20} />
+                        <div>
+                            <p className="font-bold text-purple-800">{t('adminSettings.templateDesignerDesc', 'مصمم قوالب احترافي')}</p>
+                            <p className="text-sm text-purple-600">{t('adminSettings.templateDesignerDescDetail', 'تحكم كامل في الشعار، الحقول، الهوامش، الألوان، والتخطيط لجميع مستندات الطباعة')}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {templates.map(tmpl => (
+                        <div 
+                            key={tmpl.id}
+                            className={`p-4 rounded-xl border-2 transition-all ${editingTemplate === tmpl.id ? 'border-brand-500 bg-brand-50 md:col-span-2' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                        >
+                            {editingTemplate === tmpl.id ? (
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-bold text-slate-800 text-lg">{t('adminSettings.editTemplate', 'تعديل القالب')}: {tmpl.name}</h4>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setPreviewTemplate(tmpl)} className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 flex items-center gap-2">
+                                                <Eye size={16} /> {t('adminSettings.preview', 'معاينة')}
+                                            </button>
+                                            <button onClick={() => setEditingTemplate(null)} className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200">
+                                                <Check size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="space-y-4">
+                                            <h5 className="font-bold text-slate-700 flex items-center gap-2"><Settings size={16} /> {t('adminSettings.pageSettings', 'إعدادات الصفحة')}</h5>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-2">{t('adminSettings.pageSize', 'حجم الصفحة')}</label>
+                                                <select 
+                                                    value={tmpl.pageSize}
+                                                    onChange={e => updateTemplate(tmpl.id, { pageSize: e.target.value as any })}
+                                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                                >
+                                                    {pageSizes.map(ps => <option key={ps.value} value={ps.value}>{ps.label}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-2">{t('adminSettings.orientation', 'الاتجاه')}</label>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => updateTemplate(tmpl.id, { orientation: 'portrait' })}
+                                                        className={`flex-1 p-3 rounded-lg border-2 transition-all ${tmpl.orientation === 'portrait' ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}
+                                                    >
+                                                        <div className="w-6 h-8 border-2 border-current mx-auto mb-1"></div>
+                                                        <span className="text-xs">{t('adminSettings.portrait', 'عمودي')}</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => updateTemplate(tmpl.id, { orientation: 'landscape' })}
+                                                        className={`flex-1 p-3 rounded-lg border-2 transition-all ${tmpl.orientation === 'landscape' ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}
+                                                    >
+                                                        <div className="w-8 h-6 border-2 border-current mx-auto mb-1"></div>
+                                                        <span className="text-xs">{t('adminSettings.landscape', 'أفقي')}</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-2">{t('adminSettings.margins', 'الهوامش (mm)')}</label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">{t('adminSettings.top', 'أعلى')}</label>
+                                                        <input type="number" value={tmpl.margins.top}
+                                                            onChange={e => updateTemplate(tmpl.id, { margins: { ...tmpl.margins, top: Number(e.target.value) } })}
+                                                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">{t('adminSettings.bottom', 'أسفل')}</label>
+                                                        <input type="number" value={tmpl.margins.bottom}
+                                                            onChange={e => updateTemplate(tmpl.id, { margins: { ...tmpl.margins, bottom: Number(e.target.value) } })}
+                                                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">{t('adminSettings.right', 'يمين')}</label>
+                                                        <input type="number" value={tmpl.margins.right}
+                                                            onChange={e => updateTemplate(tmpl.id, { margins: { ...tmpl.margins, right: Number(e.target.value) } })}
+                                                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">{t('adminSettings.left', 'يسار')}</label>
+                                                        <input type="number" value={tmpl.margins.left}
+                                                            onChange={e => updateTemplate(tmpl.id, { margins: { ...tmpl.margins, left: Number(e.target.value) } })}
+                                                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h5 className="font-bold text-slate-700 flex items-center gap-2"><Layout size={16} /> {t('adminSettings.headerFooter', 'الرأس والتذييل')}</h5>
+                                            <div className="p-3 bg-slate-50 rounded-xl space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-sm">{t('adminSettings.header', 'الرأس')}</span>
+                                                    <button 
+                                                        onClick={() => updateTemplate(tmpl.id, { header: { ...tmpl.header, enabled: !tmpl.header.enabled } })}
+                                                        className={`p-2 rounded-lg ${tmpl.header.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'}`}
+                                                    >
+                                                        {tmpl.header.enabled ? <Check size={14} /> : <X size={14} />}
+                                                    </button>
+                                                </div>
+                                                {tmpl.header.enabled && (
+                                                    <>
+                                                        <div className="flex items-center gap-2">
+                                                            <input type="checkbox" checked={tmpl.header.showLogo}
+                                                                onChange={e => updateTemplate(tmpl.id, { header: { ...tmpl.header, showLogo: e.target.checked } })}
+                                                                className="rounded"
+                                                            />
+                                                            <span className="text-sm">{t('adminSettings.showLogo', 'إظهار الشعار')}</span>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-slate-500">{t('adminSettings.logoPosition', 'موقع الشعار')}</label>
+                                                            <div className="flex gap-1">
+                                                                {['left', 'center', 'right'].map(pos => (
+                                                                    <button key={pos}
+                                                                        onClick={() => updateTemplate(tmpl.id, { header: { ...tmpl.header, logoPosition: pos as any } })}
+                                                                        className={`flex-1 p-2 rounded border ${tmpl.header.logoPosition === pos ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}
+                                                                    >
+                                                                        {pos === 'left' && <AlignLeft size={14} className="mx-auto" />}
+                                                                        {pos === 'center' && <AlignCenter size={14} className="mx-auto" />}
+                                                                        {pos === 'right' && <AlignRight size={14} className="mx-auto" />}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <input type="checkbox" checked={tmpl.header.showCompanyInfo}
+                                                                onChange={e => updateTemplate(tmpl.id, { header: { ...tmpl.header, showCompanyInfo: e.target.checked } })}
+                                                                className="rounded"
+                                                            />
+                                                            <span className="text-sm">{t('adminSettings.showCompanyInfo', 'معلومات الشركة')}</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="p-3 bg-slate-50 rounded-xl space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-sm">{t('adminSettings.footer', 'التذييل')}</span>
+                                                    <button 
+                                                        onClick={() => updateTemplate(tmpl.id, { footer: { ...tmpl.footer, enabled: !tmpl.footer.enabled } })}
+                                                        className={`p-2 rounded-lg ${tmpl.footer.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'}`}
+                                                    >
+                                                        {tmpl.footer.enabled ? <Check size={14} /> : <X size={14} />}
+                                                    </button>
+                                                </div>
+                                                {tmpl.footer.enabled && (
+                                                    <>
+                                                        <div className="flex items-center gap-2">
+                                                            <input type="checkbox" checked={tmpl.footer.showPageNumbers}
+                                                                onChange={e => updateTemplate(tmpl.id, { footer: { ...tmpl.footer, showPageNumbers: e.target.checked } })}
+                                                                className="rounded"
+                                                            />
+                                                            <span className="text-sm">{t('adminSettings.showPageNumbers', 'أرقام الصفحات')}</span>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-slate-500">{t('adminSettings.customText', 'نص مخصص')}</label>
+                                                            <input type="text" value={tmpl.footer.customText}
+                                                                onChange={e => updateTemplate(tmpl.id, { footer: { ...tmpl.footer, customText: e.target.value } })}
+                                                                className="w-full p-2 bg-white border border-slate-200 rounded-lg"
+                                                            />
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h5 className="font-bold text-slate-700 flex items-center gap-2"><Palette size={16} /> {t('adminSettings.colorsAndFonts', 'الألوان والخطوط')}</h5>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="text-xs text-slate-500">{t('adminSettings.primaryColor', 'اللون الرئيسي')}</label>
+                                                    <div className="flex items-center gap-1">
+                                                        <input type="color" value={tmpl.colors.primary}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, primary: e.target.value } })}
+                                                            className="w-8 h-8 rounded cursor-pointer"
+                                                        />
+                                                        <input type="text" value={tmpl.colors.primary}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, primary: e.target.value } })}
+                                                            className="flex-1 p-1 text-xs bg-slate-50 border border-slate-200 rounded font-mono" dir="ltr"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-slate-500">{t('adminSettings.secondaryColor', 'اللون الثانوي')}</label>
+                                                    <div className="flex items-center gap-1">
+                                                        <input type="color" value={tmpl.colors.secondary}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, secondary: e.target.value } })}
+                                                            className="w-8 h-8 rounded cursor-pointer"
+                                                        />
+                                                        <input type="text" value={tmpl.colors.secondary}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, secondary: e.target.value } })}
+                                                            className="flex-1 p-1 text-xs bg-slate-50 border border-slate-200 rounded font-mono" dir="ltr"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-slate-500">{t('adminSettings.textColor', 'لون النص')}</label>
+                                                    <div className="flex items-center gap-1">
+                                                        <input type="color" value={tmpl.colors.text}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, text: e.target.value } })}
+                                                            className="w-8 h-8 rounded cursor-pointer"
+                                                        />
+                                                        <input type="text" value={tmpl.colors.text}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, text: e.target.value } })}
+                                                            className="flex-1 p-1 text-xs bg-slate-50 border border-slate-200 rounded font-mono" dir="ltr"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-slate-500">{t('adminSettings.borderColor', 'لون الحدود')}</label>
+                                                    <div className="flex items-center gap-1">
+                                                        <input type="color" value={tmpl.colors.border}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, border: e.target.value } })}
+                                                            className="w-8 h-8 rounded cursor-pointer"
+                                                        />
+                                                        <input type="text" value={tmpl.colors.border}
+                                                            onChange={e => updateTemplate(tmpl.id, { colors: { ...tmpl.colors, border: e.target.value } })}
+                                                            className="flex-1 p-1 text-xs bg-slate-50 border border-slate-200 rounded font-mono" dir="ltr"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-500">{t('adminSettings.fontSizes', 'أحجام الخطوط')}</label>
+                                                <div className="flex gap-2">
+                                                    <div className="flex-1">
+                                                        <span className="text-[10px] text-slate-400">{t('adminSettings.headings', 'العناوين')}</span>
+                                                        <input type="number" value={tmpl.fonts.size.heading}
+                                                            onChange={e => updateTemplate(tmpl.id, { fonts: { ...tmpl.fonts, size: { ...tmpl.fonts.size, heading: Number(e.target.value) } } })}
+                                                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <span className="text-[10px] text-slate-400">{t('adminSettings.bodyText', 'النص')}</span>
+                                                        <input type="number" value={tmpl.fonts.size.body}
+                                                            onChange={e => updateTemplate(tmpl.id, { fonts: { ...tmpl.fonts, size: { ...tmpl.fonts.size, body: Number(e.target.value) } } })}
+                                                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><FileText size={16} /> {t('adminSettings.tableColumns', 'أعمدة الجدول')}</h5>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {availableColumns.map(col => (
+                                                <button key={col.value}
+                                                    onClick={() => toggleColumn(tmpl.id, col.value)}
+                                                    className={`px-3 py-2 rounded-lg border-2 transition-all ${tmpl.columns.includes(col.value) ? 'border-brand-500 bg-brand-50' : 'border-slate-200'}`}
+                                                >
+                                                    {col.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-100 p-4 rounded-xl">
+                                        <h5 className="font-bold text-slate-700 mb-3">{t('adminSettings.templatePreview', 'معاينة القالب')}</h5>
+                                        <div 
+                                            className="bg-white border-2 rounded-lg mx-auto overflow-hidden"
+                                            style={{ 
+                                                width: tmpl.orientation === 'portrait' ? '200px' : '280px',
+                                                height: tmpl.orientation === 'portrait' ? '280px' : '200px',
+                                                borderColor: tmpl.colors.border
+                                            }}
+                                        >
+                                            {tmpl.header.enabled && (
+                                                <div className="p-2 border-b" style={{ borderColor: tmpl.colors.border, backgroundColor: tmpl.colors.primary + '10' }}>
+                                                    <div className={`flex items-center ${tmpl.header.logoPosition === 'center' ? 'justify-center' : tmpl.header.logoPosition === 'right' ? 'justify-end' : 'justify-start'}`}>
+                                                        {tmpl.header.showLogo && <div className="w-6 h-6 bg-slate-300 rounded"></div>}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="p-2 flex-1">
+                                                <div className="h-2 bg-slate-200 rounded w-3/4 mb-1"></div>
+                                                <div className="h-1.5 bg-slate-100 rounded w-1/2 mb-2"></div>
+                                                <div className="border rounded" style={{ borderColor: tmpl.colors.border }}>
+                                                    <div className="h-1.5 rounded-t" style={{ backgroundColor: tmpl.colors.primary }}></div>
+                                                    {[1, 2, 3].map(i => (
+                                                        <div key={i} className="h-1.5 border-t flex gap-1 px-1" style={{ borderColor: tmpl.colors.border }}>
+                                                            {tmpl.columns.slice(0, 4).map((_, j) => (
+                                                                <div key={j} className="flex-1 bg-slate-100 rounded-sm m-0.5"></div>
+                                                            ))}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {tmpl.footer.enabled && (
+                                                <div className="p-1 border-t text-center" style={{ borderColor: tmpl.colors.border }}>
+                                                    <div className="h-1 bg-slate-200 rounded w-1/3 mx-auto"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div 
+                                            className="w-14 h-14 rounded-xl flex items-center justify-center"
+                                            style={{ backgroundColor: tmpl.colors.primary + '15' }}
+                                        >
+                                            <FileText size={24} style={{ color: tmpl.colors.primary }} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-800">{tmpl.name}</h4>
+                                            <p className="text-sm text-slate-500">{tmpl.nameEn} • {tmpl.pageSize}</p>
+                                        </div>
+                                        {tmpl.isDefault && (
+                                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold">
+                                                {t('adminSettings.default', 'افتراضي')}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => setEditingTemplate(tmpl.id)}
+                                            className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+                                        >
+                                            <Pencil size={16} />
+                                        </button>
+                                        <button className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200">
+                                            <Copy size={16} />
+                                        </button>
+                                        {!tmpl.isDefault && (
+                                            <button className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-purple-800 text-sm">
+                        <div className="flex items-center gap-2 font-bold mb-2"><Printer size={16} /> {t('adminSettings.printTip', 'نصيحة الطباعة')}</div>
+                        {t('adminSettings.printTipDesc', 'استخدم معاينة الطباعة للتأكد من أن المستند يظهر بالشكل المطلوب قبل الطباعة الفعلية')}
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-green-800 text-sm">
+                        <div className="flex items-center gap-2 font-bold mb-2"><Zap size={16} /> {t('adminSettings.pdfExport', 'تصدير PDF')}</div>
+                        {t('adminSettings.pdfExportDesc', 'جميع القوالب تدعم التصدير المباشر إلى ملفات PDF عالية الجودة')}
+                    </div>
+                </div>
+            </div>
+        );
 };

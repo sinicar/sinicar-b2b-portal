@@ -313,100 +313,183 @@ const CartIconButton = memo(({
     );
 });
 
+// --- Collapsible Sidebar Item Component ---
+interface CollapsibleSidebarItemProps {
+    icon: React.ReactNode;
+    label: string;
+    active: boolean;
+    onClick: () => void;
+    badge?: number | string | boolean;
+    collapsed: boolean;
+}
+
+const CollapsibleSidebarItem = memo(({ icon, label, active, onClick, badge, collapsed }: CollapsibleSidebarItemProps) => (
+    <button 
+        onClick={onClick} 
+        className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3 rounded-xl mb-1.5 transition-all group relative ${
+            active 
+            ? 'bg-brand-800 text-white font-bold shadow-md' 
+            : 'text-brand-100 hover:bg-brand-800/50 hover:text-white font-medium'
+        }`}
+        title={collapsed ? label : undefined}
+    >
+        <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+            <span className="shrink-0">{icon}</span>
+            {!collapsed && <span className="text-sm md:text-[15px] truncate">{label}</span>}
+        </div>
+        {badge && !collapsed && (
+            <span className="bg-action-500 text-white text-xs font-bold px-2 py-0.5 rounded-full flex items-center justify-center min-w-[20px]">
+                {badge === true ? '!' : badge}
+            </span>
+        )}
+        {badge && collapsed && (
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-action-500 rounded-full animate-pulse"></span>
+        )}
+        {collapsed && (
+            <div className="absolute left-full ml-2 px-3 py-2 bg-slate-800 text-white text-sm font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
+                {label}
+                {badge && <span className="mr-2 text-action-400">({badge === true ? '!' : badge})</span>}
+            </div>
+        )}
+    </button>
+));
+
 // --- Extract Sidebar and Header for better memoization ---
-const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick }: any) => {
+const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick, collapsed, setCollapsed }: any) => {
     // RTL: sidebar on right, slides from right. LTR: sidebar on left, slides from left
     const sidebarPosition = isRTL ? 'right-0' : 'left-0';
     const sidebarTransform = isRTL 
         ? (sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0')
         : (sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0');
     
+    const sidebarWidth = collapsed ? 'w-20' : 'w-72';
+    
     return (
-        <aside className={`fixed lg:static inset-y-0 ${sidebarPosition} w-72 bg-slate-900 text-white transform transition-transform duration-300 z-50 flex flex-col shadow-2xl lg:shadow-none ${sidebarTransform}`}>
+        <aside className={`fixed lg:static inset-y-0 ${sidebarPosition} ${sidebarWidth} bg-slate-900 text-white transform transition-all duration-300 z-50 flex flex-col shadow-2xl lg:shadow-none ${sidebarTransform}`}>
             {/* Logo Area */}
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className={`p-4 ${collapsed ? 'px-3' : 'p-6'} border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+                {!collapsed ? (
+                    <>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-900/20">
+                                <Box size={24} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h1 className="font-display font-black text-xl tracking-wide text-white">{t('siteName')}</h1>
+                                <p className="text-[11px] text-slate-400 font-bold tracking-wider uppercase">Wholesale V2.5</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setSidebarOpen(false)} 
+                            className="lg:hidden text-slate-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-testid="button-close-sidebar"
+                            aria-label="Close sidebar"
+                        >
+                            <X size={24} />
+                        </button>
+                    </>
+                ) : (
                     <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-900/20">
                         <Box size={24} strokeWidth={2.5} />
                     </div>
-                    <div>
-                        <h1 className="font-display font-black text-xl tracking-wide text-white">{t('siteName')}</h1>
-                        <p className="text-[11px] text-slate-400 font-bold tracking-wider uppercase">Wholesale V2.5</p>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => setSidebarOpen(false)} 
-                    className="lg:hidden text-slate-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-slate-800 transition-colors"
-                    data-testid="button-close-sidebar"
-                    aria-label="Close sidebar"
-                >
-                    <X size={24} />
-                </button>
+                )}
             </div>
 
+            {/* Toggle Collapse Button - Desktop Only */}
+            <button 
+                onClick={() => setCollapsed(!collapsed)}
+                className={`hidden lg:flex absolute ${isRTL ? '-left-3' : '-right-3'} top-20 w-6 h-6 bg-slate-700 hover:bg-brand-600 text-white rounded-full items-center justify-center transition-colors shadow-lg z-50`}
+                data-testid="button-toggle-sidebar"
+                title={collapsed ? t('sidebar.expand', 'توسيع') : t('sidebar.collapse', 'طي')}
+            >
+                {collapsed ? (isRTL ? <X size={14} /> : <Menu size={14} />) : (isRTL ? <Menu size={14} /> : <X size={14} />)}
+            </button>
+
             {/* User Info Card */}
-            <div className="p-4">
-                <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700/50">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-11 h-11 rounded-xl bg-brand-600/20 flex items-center justify-center text-brand-400 border border-brand-500/30 shrink-0">
-                            <UserIcon size={20} strokeWidth={2} />
+            {!collapsed ? (
+                <div className="p-4">
+                    <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700/50">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-11 h-11 rounded-xl bg-brand-600/20 flex items-center justify-center text-brand-400 border border-brand-500/30 shrink-0">
+                                <UserIcon size={20} strokeWidth={2} />
+                            </div>
+                            <div className="overflow-hidden flex-1">
+                                <p className="font-bold text-[15px] truncate text-slate-100">{user.name}</p>
+                                <p className="text-xs text-slate-400 truncate font-mono mt-0.5">{user.clientId}</p>
+                            </div>
                         </div>
-                        <div className="overflow-hidden flex-1">
-                            <p className="font-bold text-[15px] truncate text-slate-100">{user.name}</p>
-                            <p className="text-xs text-slate-400 truncate font-mono mt-0.5">{user.clientId}</p>
+                        {profile && (
+                            <div className="text-xs text-slate-300 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 mb-3">
+                                <p className="truncate font-bold mb-0.5">{profile.companyName}</p>
+                                <p className="text-[10px] text-brand-400">{profile.city}</p>
+                            </div>
+                        )}
+                        <div className="bg-brand-900/50 border border-brand-500/30 rounded-lg p-3 text-center">
+                            <p className="text-[10px] text-brand-200 uppercase font-bold mb-1">{t('sidebar.searchCredits')}</p>
+                            <p className="text-xl font-mono font-bold text-white">
+                                {user.searchLimit === 0 ? t('sidebar.unlimitedSearch') : remainingCredits}
+                            </p>
                         </div>
                     </div>
-                    {profile && (
-                        <div className="text-xs text-slate-300 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 mb-3">
-                            <p className="truncate font-bold mb-0.5">{profile.companyName}</p>
-                            <p className="text-[10px] text-brand-400">{profile.city}</p>
-                        </div>
-                    )}
-                    <div className="bg-brand-900/50 border border-brand-500/30 rounded-lg p-3 text-center">
-                        <p className="text-[10px] text-brand-200 uppercase font-bold mb-1">{t('sidebar.searchCredits')}</p>
-                        <p className="text-xl font-mono font-bold text-white">
-                            {user.searchLimit === 0 ? t('sidebar.unlimitedSearch') : remainingCredits}
+                </div>
+            ) : (
+                <div className="p-2 flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-xl bg-brand-600/20 flex items-center justify-center text-brand-400 border border-brand-500/30 mb-2">
+                        <UserIcon size={20} strokeWidth={2} />
+                    </div>
+                    <div className="bg-brand-900/50 border border-brand-500/30 rounded-lg p-2 text-center w-full">
+                        <p className="text-lg font-mono font-bold text-white">
+                            {user.searchLimit === 0 ? '∞' : remainingCredits}
                         </p>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto px-4 space-y-1 custom-scrollbar">
-                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">{t('sidebar.mainMenu')}</p>
-                <SidebarItem icon={<LayoutDashboard size={20} />} label={tDynamic('sidebar.home', 'الرئيسية')} active={view === 'HOME'} onClick={() => onViewChange('HOME')} />
+            <nav className={`flex-1 overflow-y-auto ${collapsed ? 'px-2' : 'px-4'} space-y-1 custom-scrollbar`}>
+                {!collapsed && <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">{t('sidebar.mainMenu')}</p>}
+                <CollapsibleSidebarItem icon={<LayoutDashboard size={20} />} label={tDynamic('sidebar.home', 'الرئيسية')} active={view === 'HOME'} onClick={() => onViewChange('HOME')} collapsed={collapsed} />
                 
-                {/* Orders Item: Checks for hasUnreadOrders flag - Guest check */}
-                <SidebarItem 
+                <CollapsibleSidebarItem 
                     icon={<Package size={20} />} 
                     label={tDynamic('sidebar.orders', 'سجل الطلبات')} 
                     active={view === 'ORDERS'} 
                     onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORDERS')} 
-                    badge={user.hasUnreadOrders ? true : undefined} 
+                    badge={user.hasUnreadOrders ? true : undefined}
+                    collapsed={collapsed}
                 />
                 
-                {/* Quotes Item: Checks for hasUnreadQuotes flag - Guest check */}
-                <SidebarItem 
+                <CollapsibleSidebarItem 
                     icon={<Search size={20} />} 
                     label={tDynamic('sidebar.quotes', 'طلبات التسعير')} 
                     active={view === 'QUOTE_REQUEST'} 
                     onClick={() => isGuest ? onGuestPageClick() : onViewChange('QUOTE_REQUEST')} 
                     badge={user.hasUnreadQuotes ? true : undefined}
+                    collapsed={collapsed}
                 />
-                <SidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('IMPORT_CHINA')} />
-                <SidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} />
+                <CollapsibleSidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('IMPORT_CHINA')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
                 
-                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.management')}</p>
-                <SidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORGANIZATION')} />
+                {!collapsed && <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.management')}</p>}
+                <CollapsibleSidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORGANIZATION')} collapsed={collapsed} />
                 
-                <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.supportSection')}</p>
-                <SidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ABOUT')} />
+                {!collapsed && <p className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-6">{t('sidebar.supportSection')}</p>}
+                <CollapsibleSidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ABOUT')} collapsed={collapsed} />
             </nav>
 
-            <div className="p-4 border-t border-slate-800">
-                <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors">
+            <div className={`${collapsed ? 'p-2' : 'p-4'} border-t border-slate-800`}>
+                <button 
+                    onClick={onLogout} 
+                    className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-xl text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors group relative`}
+                    title={collapsed ? t('logout') : undefined}
+                >
                     <LogOut size={20} />
-                    <span className="text-sm font-bold">{t('logout')}</span>
+                    {!collapsed && <span className="text-sm font-bold">{t('logout')}</span>}
+                    {collapsed && (
+                        <div className="absolute left-full ml-2 px-3 py-2 bg-slate-800 text-white text-sm font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
+                            {t('logout')}
+                        </div>
+                    )}
                 </button>
             </div>
         </aside>
@@ -502,6 +585,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     // Sidebar Mobile
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Collapsible Sidebar State with localStorage persistence
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sinicar_sidebar_collapsed');
+        return saved === 'true';
+    });
+    
+    // Save sidebar preference to localStorage
+    const handleSetSidebarCollapsed = useCallback((collapsed: boolean) => {
+        setSidebarCollapsed(collapsed);
+        localStorage.setItem('sinicar_sidebar_collapsed', String(collapsed));
+    }, []);
 
     // Duplicate Item Confirmation State
     const [duplicateConfirmation, setDuplicateConfirmation] = useState<{product: Product, quantity: number} | null>(null);
@@ -1044,6 +1139,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 isGuest={isGuest}
                 guestSettings={settings?.guestSettings}
                 onGuestPageClick={() => setShowGuestPrompt(true)}
+                collapsed={sidebarCollapsed}
+                setCollapsed={handleSetSidebarCollapsed}
             />
 
             {/* Main Content Area */}
@@ -1093,12 +1190,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             {t('customerDashboard.heroSubtitle')}
                                         </p>
                                         
-                                        {/* Prominent Search Bar */}
-                                        <div className="relative max-w-2xl mx-auto mt-10 z-20">
+                                        {/* Prominent Search Bar - Fixed for Mobile */}
+                                        <div className="relative w-full max-w-2xl mx-auto mt-6 md:mt-10 z-20 px-2 sm:px-0">
                                             <div className="flex justify-center md:justify-end mb-3">
-                                                <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-4 py-1 text-xs font-bold text-emerald-300 border border-emerald-500/40 backdrop-blur-sm shadow-sm">
-                                                    <CheckCircle size={12} />
-                                                    {t('customerDashboard.searchTip')}
+                                                <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 md:px-4 py-1 text-[10px] md:text-xs font-bold text-emerald-300 border border-emerald-500/40 backdrop-blur-sm shadow-sm">
+                                                    <CheckCircle size={10} className="md:w-3 md:h-3" />
+                                                    <span className="truncate max-w-[200px] md:max-w-none">{t('customerDashboard.searchTip')}</span>
                                                 </div>
                                             </div>
                                             
@@ -1106,26 +1203,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             {isGuest && guestSettings?.allowSearch === false ? (
                                                 <button
                                                     onClick={() => setShowGuestPrompt(true)}
-                                                    className="w-full h-14 md:h-16 px-6 bg-white/90 text-slate-500 rounded-full shadow-2xl shadow-slate-900/30 flex items-center justify-center gap-3 cursor-pointer hover:bg-white transition-colors"
+                                                    className="w-full h-12 md:h-16 px-4 md:px-6 bg-white/90 text-slate-500 rounded-full shadow-2xl shadow-slate-900/30 flex items-center justify-center gap-2 md:gap-3 cursor-pointer hover:bg-white transition-colors"
                                                     data-testid="button-guest-search-disabled"
                                                 >
-                                                    <Lock size={20} className="text-brand-600" />
-                                                    <span className="font-bold">{t('guestMode.searchDisabled')}</span>
+                                                    <Lock size={18} className="text-brand-600 shrink-0" />
+                                                    <span className="font-bold text-sm md:text-base truncate">{t('guestMode.searchDisabled')}</span>
                                                 </button>
                                             ) : (
-                                            <form onSubmit={handleSearchSubmit} className="relative group">
+                                            <form onSubmit={handleSearchSubmit} className="relative group w-full">
                                                 <input 
                                                     type="text" 
-                                                    className="w-full h-14 md:h-16 pr-16 pl-6 bg-white text-slate-900 rounded-full shadow-2xl shadow-slate-900/30 focus:ring-4 focus:ring-brand-500/30 border-0 text-base md:text-lg font-bold placeholder:text-slate-400 transition-all outline-none"
+                                                    className="w-full h-12 md:h-16 pr-14 md:pr-16 pl-4 md:pl-6 bg-white text-slate-900 rounded-full shadow-2xl shadow-slate-900/30 focus:ring-4 focus:ring-brand-500/30 border-0 text-sm md:text-lg font-bold placeholder:text-slate-400 transition-all outline-none"
                                                     placeholder={t('customerDashboard.searchPlaceholder')}
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
+                                                    data-testid="input-hero-search"
                                                 />
                                                 <button 
                                                     type="submit"
-                                                    className="absolute right-2 top-2 bottom-2 w-12 h-10 md:h-12 md:w-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+                                                    className="absolute right-1.5 md:right-2 top-1.5 md:top-2 bottom-1.5 md:bottom-2 w-10 md:w-14 h-9 md:h-12 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+                                                    data-testid="button-hero-search"
                                                 >
-                                                    <Search size={22} />
+                                                    <Search size={18} className="md:w-[22px] md:h-[22px]" />
                                                 </button>
                                             </form>
                                             )}

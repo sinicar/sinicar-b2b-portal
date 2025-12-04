@@ -1002,3 +1002,211 @@ export const STATUS_DOMAIN_LABELS: Record<StatusDomain, string> = {
   customerStatus: 'حالات العملاء',
   staffStatus: 'حالات الموظفين'
 };
+
+// --- Notification Management System Types ---
+
+export type NotificationChannel = 'toast' | 'popup' | 'banner' | 'bell' | 'email' | 'sms';
+
+export type NotificationCategory =
+  | 'order'
+  | 'quote'
+  | 'account'
+  | 'import'
+  | 'search'
+  | 'system'
+  | 'marketing'
+  | 'alert';
+
+export interface NotificationStyle {
+  backgroundColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  iconColor?: string;
+  icon?: string;
+  animation?: 'slide' | 'fade' | 'bounce' | 'none';
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  duration?: number;
+  showProgress?: boolean;
+  showCloseButton?: boolean;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  key: string;
+  name: string;
+  category: NotificationCategory;
+  channel: NotificationChannel;
+  isActive: boolean;
+  
+  // Localized content
+  content: {
+    ar: { title: string; message: string };
+    en: { title: string; message: string };
+    hi: { title: string; message: string };
+    zh: { title: string; message: string };
+  };
+  
+  // Styling
+  style: NotificationStyle;
+  
+  // Metadata
+  isSystem?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface NotificationSettings {
+  globalEnabled: boolean;
+  defaultDuration: number;
+  defaultPosition: NotificationStyle['position'];
+  maxVisible: number;
+  soundEnabled: boolean;
+  templates: NotificationTemplate[];
+}
+
+// --- PDF/Print Template Designer Types ---
+
+export type DocumentTemplateType = 
+  | 'invoice'
+  | 'order'
+  | 'quote'
+  | 'receipt'
+  | 'delivery_note'
+  | 'packing_list'
+  | 'price_list'
+  | 'report';
+
+export type PageSize = 'A4' | 'A5' | 'Letter' | 'Legal';
+export type PageOrientation = 'portrait' | 'landscape';
+
+export interface TemplateMargins {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface TemplateHeaderFooter {
+  enabled: boolean;
+  height: number;
+  showLogo: boolean;
+  logoPosition?: 'left' | 'center' | 'right';
+  logoSize?: number;
+  showCompanyName: boolean;
+  showDate: boolean;
+  showPageNumber: boolean;
+  customText?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  borderBottom?: boolean;
+  borderTop?: boolean;
+}
+
+export interface TemplateField {
+  id: string;
+  key: string;
+  label: string;
+  labelAr: string;
+  type: 'text' | 'number' | 'date' | 'currency' | 'image' | 'qrcode' | 'barcode';
+  enabled: boolean;
+  required: boolean;
+  width?: number;
+  alignment?: 'left' | 'center' | 'right';
+  fontSize?: number;
+  fontWeight?: 'normal' | 'bold';
+  order: number;
+}
+
+export interface TemplateTableColumn {
+  id: string;
+  key: string;
+  header: string;
+  headerAr: string;
+  width: number;
+  alignment: 'left' | 'center' | 'right';
+  enabled: boolean;
+  order: number;
+}
+
+export interface TemplateSection {
+  id: string;
+  name: string;
+  type: 'header' | 'info' | 'table' | 'summary' | 'footer' | 'custom';
+  enabled: boolean;
+  order: number;
+  fields?: TemplateField[];
+  tableColumns?: TemplateTableColumn[];
+  customContent?: string;
+  backgroundColor?: string;
+  padding?: number;
+  borderRadius?: number;
+}
+
+export interface DocumentTemplate {
+  id: string;
+  name: string;
+  nameAr: string;
+  type: DocumentTemplateType;
+  isDefault: boolean;
+  isActive: boolean;
+  
+  // Page Settings
+  pageSize: PageSize;
+  orientation: PageOrientation;
+  margins: TemplateMargins;
+  
+  // Branding
+  logoUrl?: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  fontSize: number;
+  
+  // Header & Footer
+  header: TemplateHeaderFooter;
+  footer: TemplateHeaderFooter;
+  
+  // Sections
+  sections: TemplateSection[];
+  
+  // Watermark
+  watermark?: {
+    enabled: boolean;
+    text?: string;
+    imageUrl?: string;
+    opacity: number;
+    position: 'center' | 'diagonal';
+  };
+  
+  // Localization
+  defaultLanguage: 'ar' | 'en';
+  showBilingual: boolean;
+  
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PrintSettings {
+  templates: DocumentTemplate[];
+  companyInfo: {
+    name: string;
+    nameEn?: string;
+    address: string;
+    phone: string;
+    email: string;
+    website?: string;
+    taxNumber?: string;
+    crNumber?: string;
+    logoUrl?: string;
+  };
+  defaultTemplate: Record<DocumentTemplateType, string>;
+}
+
+// --- Sidebar Preferences Types ---
+
+export interface SidebarPreferences {
+  collapsed: boolean;
+  width: number;
+  mobileAutoClose: boolean;
+}
