@@ -258,5 +258,21 @@ Preferred communication style: Simple, everyday language.
 - Multiple items animate based on quantity (max 5 for performance)
 - Smooth cubic-bezier easing with scale and opacity transitions
 
+**Marketing Center** (Dec 2025):
+- Full-featured campaign management system for B2B customer engagement
+- Campaign types: BANNER (top banner), POPUP (modal overlay), BELL (notification bell integration)
+- Targeting: By customer type (PARTS_SHOP, RENTAL, INSURANCE, GENERAL, etc.)
+- Admin features: Create/edit/delete campaigns, status management (ACTIVE/DRAFT/EXPIRED/SCHEDULED)
+- Input validation: URL validation for CTA links, date range validation, priority bounds (1-100)
+- Campaign display:
+  - BANNER: Gradient banner at top of dashboard with navigation arrows, dismiss button
+  - POPUP: Modal overlay with optional background image, CTA button
+  - BELL: Integrated with NotificationBell component, pink gradient styling, "عرض" badge
+- Dismissal persistence: Dismissed campaigns stored in user profile (dismissedCampaignIds)
+- Read state persistence: BELL campaign read status stored in localStorage per user
+- Priority-based sorting: Higher priority campaigns displayed first
+- Date-range support: Campaigns with startsAt/expiresAt for scheduling
+- Skippable flag: Controls whether users can dismiss the campaign
+
 **Known Enhancement Opportunities**:
 - Status labels configuration in AdminSettings stores data but components still use hardcoded STATUS_COLORS maps - future enhancement to propagate configurable labels to all badge renderers
