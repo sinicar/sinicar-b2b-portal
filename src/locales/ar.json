@@ -704,6 +704,9 @@
     "systemSettings": "إعدادات النظام",
     "marketingCenter": "مركز التسويق",
     "pricingCenter": "مركز التسعيرات",
+    "traderTools": "أدوات التاجر",
+    "supplierMarketplace": "سوق الموردين",
+    "marketers": "المسوقين",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -720,7 +723,10 @@
       "users": "إدارة المستخدمين",
       "products": "إدارة المنتجات",
       "marketing": "مركز التسويق",
-      "pricing": "مركز التسعيرات"
+      "pricing": "مركز التسعيرات",
+      "traderTools": "إدارة أدوات التاجر",
+      "supplierMarketplace": "إعدادات سوق الموردين",
+      "marketers": "إدارة المسوقين"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",

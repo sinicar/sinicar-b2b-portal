@@ -1,0 +1,596 @@
+You are an expert React + TypeScript + Vite + Tailwind developer working inside an existing “SINI CAR – B2B Wholesale Customer Portal” project.
+
+IMPORTANT GLOBAL RULES (DO NOT BREAK):
+- Do NOT delete, rename, or move any existing files.
+- Do NOT rewrite the project from scratch.
+- Do NOT break or change existing business logic unrelated to the new features.
+- Do NOT remove or change existing Arabic/English texts, except when adding NEW UI labels or tool names.
+- Do NOT switch from the current mock/localStorage data layer to a real backend. Continue using the existing mockApi/localStorage pattern.
+- All new behavior (tools, suppliers, marketers, etc.) must be fully configurable via the admin UI, WITHOUT requiring code changes.
+
+VERY IMPORTANT:
+- Carefully read and understand the existing project structure, types, services, and settings before writing any code.
+- Implement ALL the features described below, point by point, in detail. Do NOT skip any section.
+- In addition to my specification, you MUST also:
+  - Propose and implement your own reasonable ideas and improvements for these features (as long as they are config-driven, do not break anything, and fit the existing architecture and design).
+  - For every “extra” idea you implement, keep it optional and controllable from the admin UI.
+
+============================================================
+STEP 0 – UNDERSTAND THE EXISTING PROJECT (READ-ONLY)
+============================================================
+
+Before writing any new code, scan and understand:
+
+1) Types / models file:
+   - Example: types.ts (or similar where global interfaces are defined).
+
+2) Services:
+   - services/mockApi.ts (localStorage-based data layer).
+   - services/realApi.ts, services/httpClient.ts, services/apiConfig.ts, services/serviceFactory.ts (for context only; do NOT enable real API).
+
+3) Admin UI / settings:
+   - Admin dashboard and other admin pages (orders, products, customers, settings).
+   - Admin settings / security / API / text manager pages.
+
+4) Customer UI:
+   - Customer dashboard.
+   - Customer tools/actions related to products, quotes, imports, etc.
+
+Do NOT modify anything in this step. Just understand where to plug in.
+
+============================================================
+STEP 1 – DEFINE CORE TYPES FOR TOOLS, SUPPLIERS, AND MARKETERS
+============================================================
+
+Open the central types file (e.g. types.ts) and ADD the following new types (or equivalent) in a clean, organized way.
+
+1) Trader tools configuration and usage logging:
+
+// Global configuration per tool (PDF->Excel, VIN extractor, price comparison)
+export type ToolKey = 'PDF_TO_EXCEL' | 'VIN_EXTRACTOR' | 'PRICE_COMPARISON';
+
+export interface ToolConfig {
+  toolKey: ToolKey;
+  enabled: boolean;                 // global on/off
+  allowedCustomerTypes: string[];   // which customer types are allowed
+  blockedCustomerIds: string[];     // customers who are explicitly blocked from this tool
+  allowedPlans?: string[];          // optional: pricing plans later
+  maxFilesPerDay?: number;
+  maxFilesPerMonth?: number;
+  logUsageForAnalytics: boolean;    // whether to log usage
+  showInDashboardShortcuts: boolean;// show shortcut on customer dashboard
+}
+
+export interface CustomerToolsOverride {
+  customerId: string;
+  useGlobalDefaults: boolean;
+  forcedEnabledTools?: ToolKey[];   // tools forced ON for this customer
+  forcedDisabledTools?: ToolKey[];  // tools forced OFF for this customer
+}
+
+// PDF -> Excel parsed data
+export interface SupplierPriceRecordRow {
+  partNumber: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  extra?: Record<string, string>;
+}
+
+export interface SupplierPriceRecord {
+  id: string;
+  ownerCustomerId: string;
+  supplierName?: string;
+  fileLabel: string;                  // name given by the customer
+  originalFileUrl?: string;           // placeholder for future storage
+  parsedAt: string;
+  rows: SupplierPriceRecordRow[];
+}
+
+// VIN extraction
+export interface VinExtractionRecord {
+  id: string;
+  ownerCustomerId: string;
+  uploadedAt: string;
+  fileUrl?: string;                   // placeholder for image URL (future backend)
+  vin: string;
+  carMake?: string;
+  carModel?: string;
+  modelYear?: string;
+  plateNumber?: string;
+  notes?: string;
+}
+
+// Price comparison sessions
+export interface PriceComparisonResultRow {
+  partNumber: string;
+  description?: string;
+  priceA?: number;
+  priceB?: number;
+  bestSource?: 'A' | 'B' | 'EQUAL';
+  priceDiff?: number;
+}
+
+export interface PriceComparisonSession {
+  id: string;
+  ownerCustomerId: string;
+  createdAt: string;
+  fileA: {
+    label: string;
+    sourceType: 'PDF' | 'EXCEL';
+    originalFileUrl?: string;
+  };
+  fileB: {
+    label: string;
+    sourceType: 'PDF' | 'EXCEL';
+    originalFileUrl?: string;
+  };
+  resultRows: PriceComparisonResultRow[];
+}
+
+2) Supplier catalog for external suppliers exposing their products:
+
+export interface SupplierCatalogItem {
+  id: string;
+  supplierId: string;      // link to a "supplier customer" or dedicated supplier entity
+  partNumber: string;
+  oemNumber?: string;
+  brand?: string;
+  description?: string;
+  quantityAvailable?: number;
+  purchasePrice?: number;           // price you pay to supplier
+  sellingSuggestionPrice?: number;  // optional suggestion
+  lastUpdatedAt: string;
+  isActive: boolean;
+}
+
+// Optional: supplier priority / ranking for selection logic
+export interface SupplierPriorityConfig {
+  supplierId: string;
+  priority: number;     // lower number = higher priority
+  enabled: boolean;
+}
+
+export type SupplierSelectionMode = 'SINI_FIRST_THEN_SUPPLIERS' | 'SUPPLIERS_ONLY_WHEN_OUT_OF_STOCK' | 'RANDOM_SUPPLIER_WHEN_OUT_OF_STOCK';
+
+export interface SupplierMarketplaceSettings {
+  enabled: boolean;
+  selectionMode: SupplierSelectionMode;
+  hideRealSupplierFromCustomer: boolean; // always show SINI CAR as seller to customer
+  supplierPriorities: SupplierPriorityConfig[];
+}
+
+3) Marketers / affiliates:
+
+export type CommissionType = 'PERCENT' | 'FIXED';
+
+export interface Marketer {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  referralCode: string;  // e.g. "MSK123"
+  referralUrl: string;   // baseUrl + ?ref=code
+  commissionType: CommissionType;
+  commissionValue: number;
+  active: boolean;
+  createdAt: string;
+  notes?: string;
+}
+
+export interface CustomerReferral {
+  customerId: string;
+  marketerId: string;
+  referredAt: string;
+  attributionExpiresAt: string; // after this date, no more commissions
+}
+
+export type CommissionStatus = 'PENDING' | 'APPROVED' | 'PAID';
+
+export interface MarketerCommissionEntry {
+  id: string;
+  marketerId: string;
+  customerId: string;
+  orderId: string;
+  orderTotal: number;
+  commissionAmount: number;
+  status: CommissionStatus;
+  calculatedAt: string;
+}
+
+// Global configuration for marketer system
+export interface MarketerSettings {
+  enabled: boolean;
+  attributionWindowDays: number;  // how many days the customer is tied to the marketer
+  defaultCommissionType: CommissionType;
+  defaultCommissionValue: number;
+  multiAttributionMode: 'SINGLE' | 'LAST_CLICK' | 'FIRST_CLICK';
+  marketerCanViewCustomerNames: boolean;
+  marketerCanViewOrderTotals: boolean;
+}
+
+4) Extend existing customer/business profile type to include optional info:
+
+- A flag identifying if a customer can act as a supplier (for supplier catalog).
+- A link to their pricing/profile if needed (you can reuse existing fields).
+
+Keep all new fields OPTIONAL so existing data does not break.
+
+Also, if you think of additional meta fields that help (tags, notes, segments, etc.), you may add them as optional properties, but keep them generic and config-driven.
+
+============================================================
+STEP 2 – EXTEND mockApi FOR STORAGE OF TOOLS, SUPPLIERS, MARKETERS
+============================================================
+
+Open services/mockApi.ts and:
+
+1) Add new STORAGE KEYS:
+
+- TOOL_CONFIGS: 'sini_tool_configs'
+- CUSTOMER_TOOLS_OVERRIDES: 'sini_customer_tools_overrides'
+- SUPPLIER_PRICE_RECORDS: 'sini_supplier_price_records'
+- VIN_EXTRACTIONS: 'sini_vin_extractions'
+- PRICE_COMPARISON_SESSIONS: 'sini_price_comparison_sessions'
+- SUPPLIER_CATALOG_ITEMS: 'sini_supplier_catalog_items'
+- SUPPLIER_MARKETPLACE_SETTINGS: 'sini_supplier_marketplace_settings'
+- MARKETERS: 'sini_marketers'
+- CUSTOMER_REFERRALS: 'sini_customer_referrals'
+- MARKETER_COMMISSIONS: 'sini_marketer_commissions'
+- MARKETER_SETTINGS: 'sini_marketer_settings'
+
+Use the same pattern as existing STORAGE_KEYS, and use any existing safe parsing helper (like safeParse) to avoid JSON parse crashes.
+
+2) Implement CRUD-like functions for each storage area, for example:
+
+- getToolConfigs(): Promise<ToolConfig[]>
+- saveToolConfigs(configs: ToolConfig[]): Promise<void>
+
+- getCustomerToolsOverride(customerId: string): Promise<CustomerToolsOverride | null>
+- saveCustomerToolsOverride(override: CustomerToolsOverride): Promise<void>
+
+- getSupplierPriceRecords(ownerCustomerId?: string): Promise<SupplierPriceRecord[]>
+- saveSupplierPriceRecord(record: SupplierPriceRecord): Promise<void>
+
+- getVinExtractionRecords(ownerCustomerId?: string): Promise<VinExtractionRecord[]>
+- saveVinExtractionRecord(record: VinExtractionRecord): Promise<void>
+
+- getPriceComparisonSessions(ownerCustomerId?: string): Promise<PriceComparisonSession[]>
+- savePriceComparisonSession(session: PriceComparisonSession): Promise<void>
+
+- getSupplierCatalogItems(): Promise<SupplierCatalogItem[]>
+- saveSupplierCatalogItems(items: SupplierCatalogItem[]): Promise<void>
+
+- getSupplierMarketplaceSettings(): Promise<SupplierMarketplaceSettings>
+- saveSupplierMarketplaceSettings(settings: SupplierMarketplaceSettings): Promise<void>
+
+- getMarketers(): Promise<Marketer[]>
+- saveMarketers(marketers: Marketer[]): Promise<void>
+
+- getCustomerReferralsByCustomerId(customerId: string): Promise<CustomerReferral[]>
+- addCustomerReferral(referral: CustomerReferral): Promise<void>
+
+- getMarketerCommissionsByMarketerId(marketerId: string): Promise<MarketerCommissionEntry[]>
+- addMarketerCommissionEntry(entry: MarketerCommissionEntry): Promise<void>
+- updateMarketerCommissionStatus(id: string, status: CommissionStatus): Promise<void>
+
+- getMarketerSettings(): Promise<MarketerSettings>
+- saveMarketerSettings(settings: MarketerSettings): Promise<void>
+
+3) Initialize sensible DEFAULTS for each:
+
+- If no ToolConfig exists, initialize ToolConfig entries for:
+  - PDF_TO_EXCEL
+  - VIN_EXTRACTOR
+  - PRICE_COMPARISON
+  With enabled = true and broad allowedCustomerTypes.
+
+- For SupplierMarketplaceSettings:
+  - enabled: false
+  - selectionMode: 'SINI_FIRST_THEN_SUPPLIERS'
+  - hideRealSupplierFromCustomer: true
+  - supplierPriorities: []
+
+- For MarketerSettings:
+  - enabled: false
+  - attributionWindowDays: 90
+  - defaultCommissionType: 'PERCENT'
+  - defaultCommissionValue: 2 (for example)
+  - multiAttributionMode: 'SINGLE'
+  - marketerCanViewCustomerNames: false
+  - marketerCanViewOrderTotals: false
+
+Make sure all these functions and defaults follow the same style as the rest of mockApi.
+
+============================================================
+STEP 3 – TOOL ACCESS LOGIC: WHO CAN USE WHICH TOOL?
+============================================================
+
+Implement a small helper/service (e.g. services/toolsAccess.ts) that centralizes logic:
+
+- canUseTool(customerId: string, toolKey: ToolKey): Promise<boolean>
+- getEffectiveToolConfigForCustomer(customerId: string, toolKey: ToolKey): Promise<ToolConfig | null>
+
+Logic should:
+
+1) Load global ToolConfig for this tool.
+2) Load any CustomerToolsOverride for this customer.
+3) Decide:
+   - If tool globally disabled → no access.
+   - If customerId is in blockedCustomerIds → no access.
+   - If override exists and forcedDisabledTools includes this tool → no access.
+   - If override exists and forcedEnabledTools includes this tool → allow access, regardless of global allowedCustomerTypes.
+   - Otherwise check:
+     - Does customerType appear in allowedCustomerTypes?
+
+Return true/false for access, and the effective ToolConfig.
+
+This must be used in the UI before rendering tool pages.
+
+============================================================
+STEP 4 – ADMIN: TRADER TOOLS SETTINGS PAGE
+============================================================
+
+Create a new admin page, for example:
+
+- components/AdminTraderToolsSettings.tsx
+
+This page lets the admin manage ToolConfig entries visually:
+
+For each toolKey (PDF_TO_EXCEL, VIN_EXTRACTOR, PRICE_COMPARISON):
+
+- Toggle [enabled / disabled]
+- Multi-select of allowedCustomerTypes (use existing customerType enumeration from types.ts)
+- Field for blockedCustomerIds:
+  - Provide a search/autocomplete over customers so the admin can select customers to block.
+- maxFilesPerDay, maxFilesPerMonth numeric inputs
+- Checkbox: logUsageForAnalytics
+- Checkbox: showInDashboardShortcuts
+
+Display as cards with Arabic labels and descriptions, consistent with existing admin UI.
+
+Then wire this page:
+
+- Add a route: /admin/trader-tools-settings
+- Add a menu entry in the admin sidebar: "إعدادات أدوات التجار"
+- Respect existing permissions (only admin/owner).
+
+============================================================
+STEP 5 – PER-CUSTOMER TOOLS OVERRIDES (IN CUSTOMER PROFILE)
+============================================================
+
+Inside the Admin Customer Detail page (where a single customer’s details are shown), add a new tab or section:
+
+- "الأدوات والخدمات – Services & Tools"
+
+This section shows:
+
+- A switch: (●) Use global tool defaults / (○) Use custom tools configuration for this customer.
+- If custom:
+  - For each ToolKey:
+    - Checkbox: "السماح باستخدام الأداة" (on/off)
+  - Save via saveCustomerToolsOverride.
+
+Ensure that when per-customer override is active, it takes precedence over global tool settings according to the logic in Step 3.
+
+============================================================
+STEP 6 – TRADER TOOLS HUB PAGE (CUSTOMER SIDE)
+============================================================
+
+Create a new customer-facing page, e.g.:
+
+- components/TraderToolsHub.tsx
+
+This page will be accessible from the customer dashboard, with a label like: "أدوات مساعدة التجار".
+
+It should show a grid of Tool Cards, one for each enabled tool that the customer can access:
+
+- PDF → Excel
+- VIN Extractor
+- Price Comparison
+
+Each card:
+
+- Icon + title + short description (Arabic).
+- Button: "فتح الأداة".
+
+Before showing each card, call canUseTool(customerId, toolKey). If false, hide the card (or optionally show disabled with a message like “غير متاح لحسابك”).
+
+Add navigation to this page from the customer dashboard menu/sidebar.
+
+============================================================
+STEP 7 – TOOL UI SHELLS (WITHOUT REAL AI BACKENDS)
+============================================================
+
+For now, focus on building the UI, configurations, and data storage. You are NOT required to implement real PDF/VIN AI parsing; you can simulate that part or leave placeholder logic.
+
+1) PDF → Excel Tool Page:
+
+- New component, e.g. components/tools/PdfToExcelTool.tsx
+- Inputs:
+  - File upload
+  - Text input: "اسم الملف أو المورد" (fileLabel)
+- When the user submits:
+  - For now, simulate parsing:
+    - Create a dummy SupplierPriceRecord with a couple of rows, OR
+    - If you can reuse any existing xlsx logic in project, feel free.
+  - Save the SupplierPriceRecord via mockApi.
+- Show a table of parsed rows to the user.
+- Show a button to "حفظ في سجلاتي" (even if saving is already done by default).
+- Show a history section listing previous SupplierPriceRecords for this customer.
+
+2) VIN Extractor Tool Page:
+
+- New component, e.g. components/tools/VinExtractorTool.tsx
+- Inputs:
+  - File upload (image)
+  - Optional notes
+- For now, simulate extraction:
+  - Provide a text field where the user can manually input the VIN.
+  - Optionally generate dummy make/model/year for demo.
+- Save a VinExtractionRecord via mockApi.
+- Show the VIN in a box with "نسخ" button.
+- Show a history of previously extracted VINs for this customer.
+
+3) Price Comparison Tool Page:
+
+- New component, e.g. components/tools/PriceComparisonTool.tsx
+- Inputs:
+  - File A upload + label
+  - File B upload + label
+- For now, simulate parsing:
+  - Generate a small table of PriceComparisonResultRow with mock data, OR reuse xlsx logic if present.
+- Save a PriceComparisonSession via mockApi.
+- Show:
+  - Table: partNumber, priceA, priceB, bestSource, priceDiff.
+  - Button: "تصدير النتيجة إلى Excel" (optional stub).
+- History list of past comparison sessions for this customer.
+
+Make sure all three tools respect ToolConfig and CustomerToolsOverride access logic.
+
+============================================================
+STEP 8 – SUPPLIER CATALOG: “عرض أصنافك في سيني كار”
+============================================================
+
+Goal: allow external suppliers to upload their catalog so that SINI CAR can show their items when SINI stock is not available, while the customer still sees SINI CAR as the seller.
+
+1) Supplier Catalog Management (Supplier Side):
+
+- Create a new page for customers who can act as suppliers:
+  - e.g. components/SupplierCatalogPage.tsx
+  - Label: "اعرض أصنافك في سيني كار"
+- Access control:
+  - Only customers marked as suppliers (you can use an existing customerType or add an optional flag in their profile).
+- UI:
+  - Explanation text: how the catalog works.
+  - File upload for Excel.
+  - Optionally manual add/edit table:
+    - partNumber, description, brand, quantityAvailable, purchasePrice.
+  - On save:
+    - Convert into SupplierCatalogItem[] and store via mockApi.saveSupplierCatalogItems (filtered by supplierId).
+
+2) Supplier Marketplace Settings (Admin):
+
+- Use SupplierMarketplaceSettings type.
+- Create an admin page: components/AdminSupplierMarketplaceSettings.tsx
+- Settings include:
+  - [ ] enable/disable marketplace
+  - selectionMode:
+    - SINI_FIRST_THEN_SUPPLIERS
+    - SUPPLIERS_ONLY_WHEN_OUT_OF_STOCK
+    - RANDOM_SUPPLIER_WHEN_OUT_OF_STOCK
+  - hideRealSupplierFromCustomer (checkbox)
+  - Supplier priorities table:
+    - supplierId
+    - priority (number)
+    - enabled (toggle)
+- Add this page to admin routes and sidebar as "إعدادات منصة الموردين".
+
+3) Integrate supplier catalog into product search:
+
+Wherever the customer searches for products (e.g., in product listing, quote creation):
+
+- Keep the existing logic that looks in SINI CAR’s own inventory/products first.
+- If no match or zero quantity in SINI stock:
+  - If SupplierMarketplaceSettings.enabled:
+    - Query SupplierCatalogItems for matching partNumber(s).
+    - Select supplier according to selectionMode and supplierPriorities.
+    - Show the item to the customer as if it’s from SINI CAR (no supplier name).
+- Add internal flags so that, in admin views of orders, you can see from which supplier the item will be sourced (without exposing this to the customer).
+
+This integration must NOT break existing product search; it should only augment it when SINI stock is missing.
+
+============================================================
+STEP 9 – MARKETER / AFFILIATE SYSTEM
+============================================================
+
+Goal: create a marketer (affiliate) system that generates tracking links and commissions.
+
+1) Marketer Admin Page:
+
+- Create new page: components/AdminMarketersPage.tsx
+- Features:
+  - List all Marketers:
+    - name, phone, referralCode, active, number of referred customers, total referred sales, total commissions.
+  - “Add Marketer” form:
+    - name, phone, email, commissionType, commissionValue, notes.
+    - On save:
+      - Generate referralCode (e.g., based on name + random).
+      - Generate referralUrl using the base application URL + ?ref=referralCode.
+  - Ability to edit and deactivate/activate a marketer.
+
+2) Marketer Settings Page:
+
+- Use MarketerSettings type.
+- New admin page: components/AdminMarketerSettings.tsx
+- Settings:
+  - enabled (on/off)
+  - attributionWindowDays (e.g. 90)
+  - defaultCommissionType (PERCENT/FIXED)
+  - defaultCommissionValue
+  - multiAttributionMode (SINGLE / LAST_CLICK / FIRST_CLICK)
+  - marketerCanViewCustomerNames (bool)
+  - marketerCanViewOrderTotals (bool)
+
+3) Referral Handling on Customer Registration:
+
+- In the registration flow (where new customers sign up), detect if URL has a query param like ?ref=REFCODE.
+- If MarketerSettings.enabled and ref is valid:
+  - Find the Marketer by referralCode.
+  - Create a CustomerReferral entry:
+    - customerId (after registration)
+    - marketerId
+    - referredAt = now
+    - attributionExpiresAt = now + attributionWindowDays
+- Store this in mockApi.
+
+4) Commission Calculation on Orders:
+
+- Identify where orders are created or their status changes to “paid” or equivalent.
+- When an order is successfully completed:
+  - Check if the customer has any active CustomerReferral within attribution window.
+  - Based on MarketerSettings.multiAttributionMode:
+    - SINGLE: only first referral counts.
+    - LAST_CLICK: last referral counts.
+    - FIRST_CLICK: first referral counts.
+  - Get the applicable Marketer and commission settings:
+    - either marketer-specific commissionType/value, or MarketerSettings defaults.
+  - Calculate commissionAmount:
+    - If PERCENT: orderTotal * (commissionValue / 100).
+    - If FIXED: fixed amount per order.
+  - Create MarketerCommissionEntry and save in mockApi.
+
+5) Marketer View (Optional):
+
+If the app already has a user/role system, optionally add a simple marketer dashboard later. For now, at least provide all marketer-related reporting in admin pages:
+
+- In AdminMarketersPage, add detail view:
+  - List referred customers (if allowed by settings).
+  - List commission entries with status (PENDING/APPROVED/PAID).
+  - Totals per marketer.
+
+============================================================
+STEP 10 – INTEGRATION, SAFETY, AND UX POLISH
+============================================================
+
+1) Integration:
+   - Ensure trader tools hub, supplier marketplace, and marketer system are all integrated into existing navigation and dashboards.
+   - Use existing design language (Tailwind classes, fonts, spacing, cards, icons).
+
+2) Safety:
+   - Use safe parsing for all new localStorage reads.
+   - Provide default empty arrays / default settings when no data exists.
+   - Validate numeric inputs in admin forms.
+
+3) UX and your own ideas:
+   - You MUST add your own reasonable improvements, such as:
+     - Small badges showing usage counts for tools.
+     - Simple charts for tool usage or marketer performance in admin.
+     - Helper tooltips explaining how supplier marketplace priority works.
+   - All extra features must be optional and controlled by settings where appropriate.
+
+4) Build check:
+   - At the end, ensure TypeScript passes and Vite build succeeds:
+     - npm install (if needed)
+     - npm run build
+
+Apply ALL of these steps carefully and in order. Do NOT skip any part of this specification. If something is unclear, choose the simplest consistent approach that fits the existing coding style and architecture of the project.

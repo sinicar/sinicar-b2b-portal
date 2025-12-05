@@ -281,6 +281,23 @@ export interface BusinessProfile {
   
   // Marketing Campaigns - dismissed campaign IDs
   dismissedCampaignIds?: string[];
+  
+  // Supplier Marketplace - Customer can act as supplier
+  canActAsSupplier?: boolean;
+  supplierProfileId?: string;
+  supplierApprovedAt?: string;
+  supplierApprovedBy?: string;
+  
+  // Marketer Referral - if customer was referred
+  referredByMarketerId?: string;
+  referredAt?: string;
+  
+  // Trader Tools - customer-specific tool access
+  toolsOverrideId?: string;
+  
+  // Customer Segments/Tags - for segmentation and marketing
+  segments?: string[];
+  tags?: string[];
 }
 
 export interface Product {
@@ -1475,4 +1492,368 @@ export interface PricingAuditLogEntry {
   changedBy: string;
   changedAt: string;
   reason?: string;
+}
+
+// ============================================================
+// TRADER TOOLS SYSTEM TYPES
+// ============================================================
+
+export type ToolKey = 'PDF_TO_EXCEL' | 'VIN_EXTRACTOR' | 'PRICE_COMPARISON';
+
+export interface ToolConfig {
+  toolKey: ToolKey;
+  enabled: boolean;
+  allowedCustomerTypes: string[];
+  blockedCustomerIds: string[];
+  allowedPlans?: string[];
+  maxFilesPerDay?: number;
+  maxFilesPerMonth?: number;
+  logUsageForAnalytics: boolean;
+  showInDashboardShortcuts: boolean;
+  toolNameAr: string;
+  toolNameEn: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
+  iconName?: string;
+  sortOrder?: number;
+  maintenanceMode?: boolean;
+  maintenanceMessage?: string;
+}
+
+export interface CustomerToolsOverride {
+  customerId: string;
+  useGlobalDefaults: boolean;
+  forcedEnabledTools?: ToolKey[];
+  forcedDisabledTools?: ToolKey[];
+  customLimits?: {
+    toolKey: ToolKey;
+    maxFilesPerDay?: number;
+    maxFilesPerMonth?: number;
+  }[];
+  notes?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface ToolUsageRecord {
+  id: string;
+  customerId: string;
+  toolKey: ToolKey;
+  usedAt: string;
+  filesProcessed: number;
+  success: boolean;
+  errorMessage?: string;
+  processingTimeMs?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface SupplierPriceRecordRow {
+  partNumber: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  quantity?: number;
+  brand?: string;
+  extra?: Record<string, string>;
+}
+
+export interface SupplierPriceRecord {
+  id: string;
+  ownerCustomerId: string;
+  supplierName?: string;
+  fileLabel: string;
+  originalFileUrl?: string;
+  originalFileName?: string;
+  parsedAt: string;
+  rows: SupplierPriceRecordRow[];
+  totalRows?: number;
+  parseErrors?: string[];
+  notes?: string;
+  isFavorite?: boolean;
+  tags?: string[];
+}
+
+export interface VinExtractionRecord {
+  id: string;
+  ownerCustomerId: string;
+  uploadedAt: string;
+  fileUrl?: string;
+  fileName?: string;
+  vin: string;
+  carMake?: string;
+  carModel?: string;
+  modelYear?: string;
+  plateNumber?: string;
+  engineType?: string;
+  transmissionType?: string;
+  countryOfOrigin?: string;
+  notes?: string;
+  extractionMethod?: 'MANUAL' | 'OCR' | 'API';
+  confidence?: number;
+  isFavorite?: boolean;
+  linkedOrderIds?: string[];
+}
+
+export interface PriceComparisonResultRow {
+  partNumber: string;
+  description?: string;
+  priceA?: number;
+  priceB?: number;
+  bestSource?: 'A' | 'B' | 'EQUAL';
+  priceDiff?: number;
+  priceDiffPercent?: number;
+  notes?: string;
+}
+
+export interface PriceComparisonSession {
+  id: string;
+  ownerCustomerId: string;
+  createdAt: string;
+  sessionName?: string;
+  fileA: {
+    label: string;
+    sourceType: 'PDF' | 'EXCEL' | 'SUPPLIER_RECORD';
+    originalFileUrl?: string;
+    supplierRecordId?: string;
+  };
+  fileB: {
+    label: string;
+    sourceType: 'PDF' | 'EXCEL' | 'SUPPLIER_RECORD';
+    originalFileUrl?: string;
+    supplierRecordId?: string;
+  };
+  resultRows: PriceComparisonResultRow[];
+  summary?: {
+    totalItems: number;
+    matchedItems: number;
+    aIsCheaper: number;
+    bIsCheaper: number;
+    equalPrices: number;
+    avgDiff?: number;
+    totalSavings?: number;
+  };
+  notes?: string;
+  isFavorite?: boolean;
+}
+
+// ============================================================
+// SUPPLIER MARKETPLACE SYSTEM TYPES
+// ============================================================
+
+export interface SupplierCatalogItem {
+  id: string;
+  supplierId: string;
+  partNumber: string;
+  oemNumber?: string;
+  brand?: string;
+  description?: string;
+  descriptionAr?: string;
+  quantityAvailable?: number;
+  purchasePrice?: number;
+  sellingSuggestionPrice?: number;
+  currency?: string;
+  minOrderQty?: number;
+  leadTimeDays?: number;
+  warranty?: string;
+  lastUpdatedAt: string;
+  isActive: boolean;
+  qualityGrade?: 'OEM' | 'AFTERMARKET' | 'REFURBISHED' | 'GENERIC';
+  imageUrl?: string;
+  categoryId?: string;
+  tags?: string[];
+}
+
+export interface SupplierPriorityConfig {
+  supplierId: string;
+  supplierName?: string;
+  priority: number;
+  enabled: boolean;
+  preferredForCategories?: string[];
+  preferredForBrands?: string[];
+  minProfitMargin?: number;
+  maxLeadTimeDays?: number;
+  notes?: string;
+}
+
+export type SupplierSelectionMode = 
+  | 'SINI_FIRST_THEN_SUPPLIERS' 
+  | 'SUPPLIERS_ONLY_WHEN_OUT_OF_STOCK' 
+  | 'RANDOM_SUPPLIER_WHEN_OUT_OF_STOCK'
+  | 'LOWEST_PRICE_FIRST'
+  | 'HIGHEST_PRIORITY_FIRST';
+
+export interface SupplierMarketplaceSettings {
+  enabled: boolean;
+  selectionMode: SupplierSelectionMode;
+  hideRealSupplierFromCustomer: boolean;
+  supplierPriorities: SupplierPriorityConfig[];
+  defaultMarkupPercent?: number;
+  minProfitMargin?: number;
+  maxLeadTimeDays?: number;
+  autoApproveSupplierItems?: boolean;
+  requireApprovalForPriceAbove?: number;
+  showSupplierStockLevel?: boolean;
+  enableSupplierRating?: boolean;
+  notifyAdminOnNewSupplierItem?: boolean;
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+}
+
+export interface SupplierProfile {
+  supplierId: string;
+  companyName: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  taxNumber?: string;
+  rating?: number;
+  totalItemsListed?: number;
+  totalSalesAmount?: number;
+  totalOrdersHandled?: number;
+  avgLeadTime?: number;
+  avgRating?: number;
+  isVerified?: boolean;
+  verifiedAt?: string;
+  joinedAt?: string;
+  lastActiveAt?: string;
+  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'INACTIVE';
+  internalNotes?: string;
+}
+
+// ============================================================
+// MARKETER / AFFILIATE SYSTEM TYPES
+// ============================================================
+
+export type CommissionType = 'PERCENT' | 'FIXED';
+export type CommissionStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'CANCELLED';
+export type MarketerStatus = 'ACTIVE' | 'SUSPENDED' | 'BLOCKED' | 'PENDING';
+
+export interface Marketer {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  referralCode: string;
+  referralUrl: string;
+  commissionType: CommissionType;
+  commissionValue: number;
+  active: boolean;
+  status?: MarketerStatus;
+  createdAt: string;
+  notes?: string;
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    iban?: string;
+    holderName?: string;
+  };
+  address?: string;
+  nationalId?: string;
+  profileImageUrl?: string;
+  totalReferrals?: number;
+  totalEarnings?: number;
+  pendingEarnings?: number;
+  paidEarnings?: number;
+  lastPaymentDate?: string;
+  paymentMethod?: 'BANK_TRANSFER' | 'CASH' | 'WALLET';
+  minPayoutAmount?: number;
+  customCommissionTiers?: {
+    minOrders: number;
+    commissionType: CommissionType;
+    commissionValue: number;
+  }[];
+}
+
+export interface CustomerReferral {
+  customerId: string;
+  marketerId: string;
+  referredAt: string;
+  attributionExpiresAt: string;
+  registrationIp?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  landingPage?: string;
+  firstOrderId?: string;
+  firstOrderDate?: string;
+  totalOrdersCount?: number;
+  totalOrdersValue?: number;
+  isActive: boolean;
+}
+
+export interface MarketerCommissionEntry {
+  id: string;
+  marketerId: string;
+  customerId: string;
+  orderId: string;
+  orderTotal: number;
+  commissionAmount: number;
+  commissionType: CommissionType;
+  commissionRate: number;
+  status: CommissionStatus;
+  calculatedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  paidAt?: string;
+  paidBy?: string;
+  paymentReference?: string;
+  notes?: string;
+}
+
+export type MultiAttributionMode = 'SINGLE' | 'LAST_CLICK' | 'FIRST_CLICK' | 'LINEAR';
+
+export interface MarketerSettings {
+  enabled: boolean;
+  attributionWindowDays: number;
+  defaultCommissionType: CommissionType;
+  defaultCommissionValue: number;
+  multiAttributionMode: MultiAttributionMode;
+  marketerCanViewCustomerNames: boolean;
+  marketerCanViewOrderTotals: boolean;
+  marketerCanViewOrderDetails?: boolean;
+  marketerCanExportData?: boolean;
+  autoApproveCommissions: boolean;
+  autoApproveThreshold?: number;
+  minPayoutAmount?: number;
+  paymentCycleDays?: number;
+  enableTierCommissions?: boolean;
+  tierCommissions?: {
+    minTotalSales: number;
+    commissionType: CommissionType;
+    commissionValue: number;
+  }[];
+  enableCategoryCommissions?: boolean;
+  categoryCommissions?: {
+    categoryId: string;
+    commissionType: CommissionType;
+    commissionValue: number;
+  }[];
+  referralLinkDomain?: string;
+  referralLinkPrefix?: string;
+  showReferralBanner?: boolean;
+  referralBannerText?: string;
+  notifyMarketerOnReferral?: boolean;
+  notifyMarketerOnCommission?: boolean;
+  notifyAdminOnNewMarketer?: boolean;
+  requireMarketerApproval?: boolean;
+  allowSelfRegistration?: boolean;
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+}
+
+export interface MarketerPerformanceStats {
+  marketerId: string;
+  period: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'ALL_TIME';
+  periodStart?: string;
+  periodEnd?: string;
+  totalReferrals: number;
+  activeReferrals: number;
+  totalOrders: number;
+  totalSalesAmount: number;
+  totalCommissions: number;
+  pendingCommissions: number;
+  paidCommissions: number;
+  conversionRate?: number;
+  avgOrderValue?: number;
 }

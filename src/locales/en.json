@@ -700,6 +700,9 @@
     "systemSettings": "System Settings",
     "marketingCenter": "Marketing Center",
     "pricingCenter": "Pricing Center",
+    "traderTools": "Trader Tools",
+    "supplierMarketplace": "Supplier Marketplace",
+    "marketers": "Marketers",
     "connected": "System Connected",
     "slowConnection": "Slow Connection",
     "disconnected": "Disconnected",
@@ -716,7 +719,10 @@
       "users": "User Management",
       "products": "Products Management",
       "marketing": "Marketing Center",
-      "pricing": "Pricing Center"
+      "pricing": "Pricing Center",
+      "traderTools": "Trader Tools Management",
+      "supplierMarketplace": "Supplier Marketplace Settings",
+      "marketers": "Marketers Management"
     },
     "stats": {
       "totalRevenue": "Total Revenue",

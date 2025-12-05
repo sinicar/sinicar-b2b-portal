@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -332,7 +332,23 @@ const STORAGE_KEYS = {
   PRODUCT_PRICE_MATRIX: 'sini_price_matrix',
   GLOBAL_PRICING_SETTINGS: 'sini_global_pricing_settings',
   CUSTOMER_PRICING_PROFILES: 'sini_customer_pricing_profiles',
-  PRICING_AUDIT_LOG: 'sini_pricing_audit_log'
+  PRICING_AUDIT_LOG: 'sini_pricing_audit_log',
+  // Trader Tools
+  TOOL_CONFIGS: 'sini_tool_configs',
+  CUSTOMER_TOOLS_OVERRIDES: 'sini_customer_tools_overrides',
+  TOOL_USAGE_RECORDS: 'sini_tool_usage_records',
+  SUPPLIER_PRICE_RECORDS: 'sini_supplier_price_records',
+  VIN_EXTRACTIONS: 'sini_vin_extractions',
+  PRICE_COMPARISON_SESSIONS: 'sini_price_comparison_sessions',
+  // Supplier Marketplace
+  SUPPLIER_CATALOG_ITEMS: 'sini_supplier_catalog_items',
+  SUPPLIER_MARKETPLACE_SETTINGS: 'sini_supplier_marketplace_settings',
+  SUPPLIER_PROFILES: 'sini_supplier_profiles',
+  // Marketer/Affiliate System
+  MARKETERS: 'sini_marketers',
+  CUSTOMER_REFERRALS: 'sini_customer_referrals',
+  MARKETER_COMMISSIONS: 'sini_marketer_commissions',
+  MARKETER_SETTINGS: 'sini_marketer_settings'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -3946,6 +3962,742 @@ export const MockApi = {
       } catch (error) {
           console.error('Error exporting price matrix:', error);
           return [];
+      }
+  },
+
+  // ============================================================
+  // TRADER TOOLS SYSTEM
+  // ============================================================
+
+  // Default Tool Configs
+  getDefaultToolConfigs(): ToolConfig[] {
+      return [
+          {
+              toolKey: 'PDF_TO_EXCEL',
+              enabled: true,
+              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'SALES_AGENT', 'FLEET_CUSTOMER'],
+              blockedCustomerIds: [],
+              maxFilesPerDay: 10,
+              maxFilesPerMonth: 100,
+              logUsageForAnalytics: true,
+              showInDashboardShortcuts: true,
+              toolNameAr: 'تحويل PDF إلى Excel',
+              toolNameEn: 'PDF to Excel Converter',
+              descriptionAr: 'تحويل ملفات PDF لقوائم الأسعار إلى جداول Excel قابلة للتعديل',
+              descriptionEn: 'Convert PDF price lists to editable Excel spreadsheets',
+              iconName: 'FileSpreadsheet',
+              sortOrder: 1
+          },
+          {
+              toolKey: 'VIN_EXTRACTOR',
+              enabled: true,
+              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'MAINTENANCE_CENTER'],
+              blockedCustomerIds: [],
+              maxFilesPerDay: 20,
+              maxFilesPerMonth: 200,
+              logUsageForAnalytics: true,
+              showInDashboardShortcuts: true,
+              toolNameAr: 'استخراج رقم الشاصي',
+              toolNameEn: 'VIN Extractor',
+              descriptionAr: 'استخراج رقم الشاصي (VIN) من صور السيارة أو المستندات',
+              descriptionEn: 'Extract VIN numbers from car images or documents',
+              iconName: 'Car',
+              sortOrder: 2
+          },
+          {
+              toolKey: 'PRICE_COMPARISON',
+              enabled: true,
+              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'SALES_AGENT'],
+              blockedCustomerIds: [],
+              maxFilesPerDay: 5,
+              maxFilesPerMonth: 50,
+              logUsageForAnalytics: true,
+              showInDashboardShortcuts: true,
+              toolNameAr: 'مقارنة الأسعار',
+              toolNameEn: 'Price Comparison',
+              descriptionAr: 'مقارنة أسعار الموردين واختيار أفضل العروض',
+              descriptionEn: 'Compare supplier prices and find the best deals',
+              iconName: 'Scale',
+              sortOrder: 3
+          }
+      ];
+  },
+
+  async getToolConfigs(): Promise<ToolConfig[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.TOOL_CONFIGS);
+          if (!stored) {
+              const defaults = this.getDefaultToolConfigs();
+              localStorage.setItem(STORAGE_KEYS.TOOL_CONFIGS, JSON.stringify(defaults));
+              return defaults;
+          }
+          return JSON.parse(stored);
+      } catch (error) {
+          console.error('Error getting tool configs:', error);
+          return this.getDefaultToolConfigs();
+      }
+  },
+
+  async saveToolConfigs(configs: ToolConfig[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.TOOL_CONFIGS, JSON.stringify(configs));
+      } catch (error) {
+          console.error('Error saving tool configs:', error);
+      }
+  },
+
+  async getToolConfig(toolKey: ToolKey): Promise<ToolConfig | null> {
+      const configs = await this.getToolConfigs();
+      return configs.find(c => c.toolKey === toolKey) || null;
+  },
+
+  async updateToolConfig(toolKey: ToolKey, updates: Partial<ToolConfig>): Promise<void> {
+      const configs = await this.getToolConfigs();
+      const index = configs.findIndex(c => c.toolKey === toolKey);
+      if (index !== -1) {
+          configs[index] = { ...configs[index], ...updates };
+          await this.saveToolConfigs(configs);
+      }
+  },
+
+  // Customer Tools Override
+  async getCustomerToolsOverrides(): Promise<CustomerToolsOverride[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMER_TOOLS_OVERRIDES);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting customer tools overrides:', error);
+          return [];
+      }
+  },
+
+  async getCustomerToolsOverride(customerId: string): Promise<CustomerToolsOverride | null> {
+      const overrides = await this.getCustomerToolsOverrides();
+      return overrides.find(o => o.customerId === customerId) || null;
+  },
+
+  async saveCustomerToolsOverride(override: CustomerToolsOverride): Promise<void> {
+      try {
+          const overrides = await this.getCustomerToolsOverrides();
+          const index = overrides.findIndex(o => o.customerId === override.customerId);
+          if (index !== -1) {
+              overrides[index] = { ...override, updatedAt: new Date().toISOString() };
+          } else {
+              overrides.push({ ...override, updatedAt: new Date().toISOString() });
+          }
+          localStorage.setItem(STORAGE_KEYS.CUSTOMER_TOOLS_OVERRIDES, JSON.stringify(overrides));
+      } catch (error) {
+          console.error('Error saving customer tools override:', error);
+      }
+  },
+
+  async deleteCustomerToolsOverride(customerId: string): Promise<void> {
+      try {
+          const overrides = await this.getCustomerToolsOverrides();
+          const filtered = overrides.filter(o => o.customerId !== customerId);
+          localStorage.setItem(STORAGE_KEYS.CUSTOMER_TOOLS_OVERRIDES, JSON.stringify(filtered));
+      } catch (error) {
+          console.error('Error deleting customer tools override:', error);
+      }
+  },
+
+  // Tool Usage Records
+  async getToolUsageRecords(customerId?: string, toolKey?: ToolKey): Promise<ToolUsageRecord[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.TOOL_USAGE_RECORDS);
+          let records: ToolUsageRecord[] = stored ? JSON.parse(stored) : [];
+          if (customerId) records = records.filter(r => r.customerId === customerId);
+          if (toolKey) records = records.filter(r => r.toolKey === toolKey);
+          return records.sort((a, b) => new Date(b.usedAt).getTime() - new Date(a.usedAt).getTime());
+      } catch (error) {
+          console.error('Error getting tool usage records:', error);
+          return [];
+      }
+  },
+
+  async addToolUsageRecord(record: Omit<ToolUsageRecord, 'id'>): Promise<ToolUsageRecord> {
+      try {
+          const records = await this.getToolUsageRecords();
+          const newRecord: ToolUsageRecord = {
+              ...record,
+              id: `TU${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+          };
+          records.unshift(newRecord);
+          if (records.length > 1000) records.length = 1000;
+          localStorage.setItem(STORAGE_KEYS.TOOL_USAGE_RECORDS, JSON.stringify(records));
+          return newRecord;
+      } catch (error) {
+          console.error('Error adding tool usage record:', error);
+          throw error;
+      }
+  },
+
+  async getCustomerToolUsageToday(customerId: string, toolKey: ToolKey): Promise<number> {
+      const today = new Date().toISOString().split('T')[0];
+      const records = await this.getToolUsageRecords(customerId, toolKey);
+      return records.filter(r => r.usedAt.startsWith(today) && r.success).length;
+  },
+
+  async getCustomerToolUsageThisMonth(customerId: string, toolKey: ToolKey): Promise<number> {
+      const thisMonth = new Date().toISOString().slice(0, 7);
+      const records = await this.getToolUsageRecords(customerId, toolKey);
+      return records.filter(r => r.usedAt.startsWith(thisMonth) && r.success).length;
+  },
+
+  // Supplier Price Records (PDF to Excel results)
+  async getSupplierPriceRecords(ownerCustomerId?: string): Promise<SupplierPriceRecord[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.SUPPLIER_PRICE_RECORDS);
+          let records: SupplierPriceRecord[] = stored ? JSON.parse(stored) : [];
+          if (ownerCustomerId) records = records.filter(r => r.ownerCustomerId === ownerCustomerId);
+          return records.sort((a, b) => new Date(b.parsedAt).getTime() - new Date(a.parsedAt).getTime());
+      } catch (error) {
+          console.error('Error getting supplier price records:', error);
+          return [];
+      }
+  },
+
+  async saveSupplierPriceRecord(record: SupplierPriceRecord): Promise<void> {
+      try {
+          const records = await this.getSupplierPriceRecords();
+          const index = records.findIndex(r => r.id === record.id);
+          if (index !== -1) {
+              records[index] = record;
+          } else {
+              records.unshift(record);
+          }
+          localStorage.setItem(STORAGE_KEYS.SUPPLIER_PRICE_RECORDS, JSON.stringify(records));
+      } catch (error) {
+          console.error('Error saving supplier price record:', error);
+      }
+  },
+
+  async deleteSupplierPriceRecord(id: string): Promise<void> {
+      try {
+          const records = await this.getSupplierPriceRecords();
+          const filtered = records.filter(r => r.id !== id);
+          localStorage.setItem(STORAGE_KEYS.SUPPLIER_PRICE_RECORDS, JSON.stringify(filtered));
+      } catch (error) {
+          console.error('Error deleting supplier price record:', error);
+      }
+  },
+
+  // VIN Extraction Records
+  async getVinExtractionRecords(ownerCustomerId?: string): Promise<VinExtractionRecord[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.VIN_EXTRACTIONS);
+          let records: VinExtractionRecord[] = stored ? JSON.parse(stored) : [];
+          if (ownerCustomerId) records = records.filter(r => r.ownerCustomerId === ownerCustomerId);
+          return records.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+      } catch (error) {
+          console.error('Error getting VIN extraction records:', error);
+          return [];
+      }
+  },
+
+  async saveVinExtractionRecord(record: VinExtractionRecord): Promise<void> {
+      try {
+          const records = await this.getVinExtractionRecords();
+          const index = records.findIndex(r => r.id === record.id);
+          if (index !== -1) {
+              records[index] = record;
+          } else {
+              records.unshift(record);
+          }
+          localStorage.setItem(STORAGE_KEYS.VIN_EXTRACTIONS, JSON.stringify(records));
+      } catch (error) {
+          console.error('Error saving VIN extraction record:', error);
+      }
+  },
+
+  async deleteVinExtractionRecord(id: string): Promise<void> {
+      try {
+          const records = await this.getVinExtractionRecords();
+          const filtered = records.filter(r => r.id !== id);
+          localStorage.setItem(STORAGE_KEYS.VIN_EXTRACTIONS, JSON.stringify(filtered));
+      } catch (error) {
+          console.error('Error deleting VIN extraction record:', error);
+      }
+  },
+
+  // Price Comparison Sessions
+  async getPriceComparisonSessions(ownerCustomerId?: string): Promise<PriceComparisonSession[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.PRICE_COMPARISON_SESSIONS);
+          let sessions: PriceComparisonSession[] = stored ? JSON.parse(stored) : [];
+          if (ownerCustomerId) sessions = sessions.filter(s => s.ownerCustomerId === ownerCustomerId);
+          return sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      } catch (error) {
+          console.error('Error getting price comparison sessions:', error);
+          return [];
+      }
+  },
+
+  async savePriceComparisonSession(session: PriceComparisonSession): Promise<void> {
+      try {
+          const sessions = await this.getPriceComparisonSessions();
+          const index = sessions.findIndex(s => s.id === session.id);
+          if (index !== -1) {
+              sessions[index] = session;
+          } else {
+              sessions.unshift(session);
+          }
+          localStorage.setItem(STORAGE_KEYS.PRICE_COMPARISON_SESSIONS, JSON.stringify(sessions));
+      } catch (error) {
+          console.error('Error saving price comparison session:', error);
+      }
+  },
+
+  async deletePriceComparisonSession(id: string): Promise<void> {
+      try {
+          const sessions = await this.getPriceComparisonSessions();
+          const filtered = sessions.filter(s => s.id !== id);
+          localStorage.setItem(STORAGE_KEYS.PRICE_COMPARISON_SESSIONS, JSON.stringify(filtered));
+      } catch (error) {
+          console.error('Error deleting price comparison session:', error);
+      }
+  },
+
+  // ============================================================
+  // SUPPLIER MARKETPLACE SYSTEM
+  // ============================================================
+
+  getDefaultSupplierMarketplaceSettings(): SupplierMarketplaceSettings {
+      return {
+          enabled: false,
+          selectionMode: 'SINI_FIRST_THEN_SUPPLIERS',
+          hideRealSupplierFromCustomer: true,
+          supplierPriorities: [],
+          defaultMarkupPercent: 15,
+          minProfitMargin: 5,
+          maxLeadTimeDays: 14,
+          autoApproveSupplierItems: false,
+          showSupplierStockLevel: false,
+          enableSupplierRating: false,
+          notifyAdminOnNewSupplierItem: true
+      };
+  },
+
+  async getSupplierMarketplaceSettings(): Promise<SupplierMarketplaceSettings> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.SUPPLIER_MARKETPLACE_SETTINGS);
+          if (!stored) {
+              const defaults = this.getDefaultSupplierMarketplaceSettings();
+              localStorage.setItem(STORAGE_KEYS.SUPPLIER_MARKETPLACE_SETTINGS, JSON.stringify(defaults));
+              return defaults;
+          }
+          return JSON.parse(stored);
+      } catch (error) {
+          console.error('Error getting supplier marketplace settings:', error);
+          return this.getDefaultSupplierMarketplaceSettings();
+      }
+  },
+
+  async saveSupplierMarketplaceSettings(settings: SupplierMarketplaceSettings): Promise<void> {
+      try {
+          settings.lastModifiedAt = new Date().toISOString();
+          localStorage.setItem(STORAGE_KEYS.SUPPLIER_MARKETPLACE_SETTINGS, JSON.stringify(settings));
+      } catch (error) {
+          console.error('Error saving supplier marketplace settings:', error);
+      }
+  },
+
+  // Supplier Catalog Items
+  async getSupplierCatalogItems(supplierId?: string): Promise<SupplierCatalogItem[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.SUPPLIER_CATALOG_ITEMS);
+          let items: SupplierCatalogItem[] = stored ? JSON.parse(stored) : [];
+          if (supplierId) items = items.filter(i => i.supplierId === supplierId);
+          return items;
+      } catch (error) {
+          console.error('Error getting supplier catalog items:', error);
+          return [];
+      }
+  },
+
+  async saveSupplierCatalogItems(items: SupplierCatalogItem[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.SUPPLIER_CATALOG_ITEMS, JSON.stringify(items));
+      } catch (error) {
+          console.error('Error saving supplier catalog items:', error);
+      }
+  },
+
+  async addSupplierCatalogItem(item: Omit<SupplierCatalogItem, 'id' | 'lastUpdatedAt'>): Promise<SupplierCatalogItem> {
+      try {
+          const items = await this.getSupplierCatalogItems();
+          const newItem: SupplierCatalogItem = {
+              ...item,
+              id: `SCI${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+              lastUpdatedAt: new Date().toISOString(),
+              isActive: item.isActive ?? true
+          };
+          items.push(newItem);
+          await this.saveSupplierCatalogItems(items);
+          return newItem;
+      } catch (error) {
+          console.error('Error adding supplier catalog item:', error);
+          throw error;
+      }
+  },
+
+  async updateSupplierCatalogItem(id: string, updates: Partial<SupplierCatalogItem>): Promise<void> {
+      try {
+          const items = await this.getSupplierCatalogItems();
+          const index = items.findIndex(i => i.id === id);
+          if (index !== -1) {
+              items[index] = { ...items[index], ...updates, lastUpdatedAt: new Date().toISOString() };
+              await this.saveSupplierCatalogItems(items);
+          }
+      } catch (error) {
+          console.error('Error updating supplier catalog item:', error);
+      }
+  },
+
+  async deleteSupplierCatalogItem(id: string): Promise<void> {
+      try {
+          const items = await this.getSupplierCatalogItems();
+          const filtered = items.filter(i => i.id !== id);
+          await this.saveSupplierCatalogItems(filtered);
+      } catch (error) {
+          console.error('Error deleting supplier catalog item:', error);
+      }
+  },
+
+  async searchSupplierCatalog(partNumber: string): Promise<SupplierCatalogItem[]> {
+      const items = await this.getSupplierCatalogItems();
+      const normalizedSearch = partNumber.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      return items.filter(item => {
+          if (!item.isActive) return false;
+          const normalizedPart = item.partNumber.toUpperCase().replace(/[^A-Z0-9]/g, '');
+          const normalizedOem = (item.oemNumber || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+          return normalizedPart.includes(normalizedSearch) || normalizedOem.includes(normalizedSearch);
+      });
+  },
+
+  // Supplier Profiles
+  async getSupplierProfiles(): Promise<SupplierProfile[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.SUPPLIER_PROFILES);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting supplier profiles:', error);
+          return [];
+      }
+  },
+
+  async getSupplierProfile(supplierId: string): Promise<SupplierProfile | null> {
+      const profiles = await this.getSupplierProfiles();
+      return profiles.find(p => p.supplierId === supplierId) || null;
+  },
+
+  async saveSupplierProfile(profile: SupplierProfile): Promise<void> {
+      try {
+          const profiles = await this.getSupplierProfiles();
+          const index = profiles.findIndex(p => p.supplierId === profile.supplierId);
+          if (index !== -1) {
+              profiles[index] = profile;
+          } else {
+              profiles.push(profile);
+          }
+          localStorage.setItem(STORAGE_KEYS.SUPPLIER_PROFILES, JSON.stringify(profiles));
+      } catch (error) {
+          console.error('Error saving supplier profile:', error);
+      }
+  },
+
+  // ============================================================
+  // MARKETER / AFFILIATE SYSTEM
+  // ============================================================
+
+  getDefaultMarketerSettings(): MarketerSettings {
+      return {
+          enabled: false,
+          attributionWindowDays: 90,
+          defaultCommissionType: 'PERCENT',
+          defaultCommissionValue: 2,
+          multiAttributionMode: 'SINGLE',
+          marketerCanViewCustomerNames: false,
+          marketerCanViewOrderTotals: false,
+          marketerCanViewOrderDetails: false,
+          marketerCanExportData: false,
+          autoApproveCommissions: false,
+          autoApproveThreshold: 100,
+          minPayoutAmount: 500,
+          paymentCycleDays: 30,
+          enableTierCommissions: false,
+          enableCategoryCommissions: false,
+          showReferralBanner: false,
+          notifyMarketerOnReferral: true,
+          notifyMarketerOnCommission: true,
+          notifyAdminOnNewMarketer: true,
+          requireMarketerApproval: true,
+          allowSelfRegistration: false
+      };
+  },
+
+  async getMarketerSettings(): Promise<MarketerSettings> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.MARKETER_SETTINGS);
+          if (!stored) {
+              const defaults = this.getDefaultMarketerSettings();
+              localStorage.setItem(STORAGE_KEYS.MARKETER_SETTINGS, JSON.stringify(defaults));
+              return defaults;
+          }
+          return JSON.parse(stored);
+      } catch (error) {
+          console.error('Error getting marketer settings:', error);
+          return this.getDefaultMarketerSettings();
+      }
+  },
+
+  async saveMarketerSettings(settings: MarketerSettings): Promise<void> {
+      try {
+          settings.lastModifiedAt = new Date().toISOString();
+          localStorage.setItem(STORAGE_KEYS.MARKETER_SETTINGS, JSON.stringify(settings));
+      } catch (error) {
+          console.error('Error saving marketer settings:', error);
+      }
+  },
+
+  // Marketers
+  async getMarketers(): Promise<Marketer[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.MARKETERS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting marketers:', error);
+          return [];
+      }
+  },
+
+  async saveMarketers(marketers: Marketer[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.MARKETERS, JSON.stringify(marketers));
+      } catch (error) {
+          console.error('Error saving marketers:', error);
+      }
+  },
+
+  async getMarketer(id: string): Promise<Marketer | null> {
+      const marketers = await this.getMarketers();
+      return marketers.find(m => m.id === id) || null;
+  },
+
+  async getMarketerByReferralCode(code: string): Promise<Marketer | null> {
+      const marketers = await this.getMarketers();
+      return marketers.find(m => m.referralCode.toUpperCase() === code.toUpperCase()) || null;
+  },
+
+  async addMarketer(marketer: Omit<Marketer, 'id' | 'createdAt' | 'referralCode' | 'referralUrl'>): Promise<Marketer> {
+      try {
+          const marketers = await this.getMarketers();
+          const referralCode = `${marketer.name.substring(0, 3).toUpperCase()}${Date.now().toString(36).toUpperCase().slice(-4)}`;
+          const baseUrl = window.location.origin;
+          const newMarketer: Marketer = {
+              ...marketer,
+              id: `MKT${Date.now()}`,
+              referralCode,
+              referralUrl: `${baseUrl}/?ref=${referralCode}`,
+              createdAt: new Date().toISOString(),
+              totalReferrals: 0,
+              totalEarnings: 0,
+              pendingEarnings: 0,
+              paidEarnings: 0
+          };
+          marketers.push(newMarketer);
+          await this.saveMarketers(marketers);
+          return newMarketer;
+      } catch (error) {
+          console.error('Error adding marketer:', error);
+          throw error;
+      }
+  },
+
+  async updateMarketer(id: string, updates: Partial<Marketer>): Promise<void> {
+      try {
+          const marketers = await this.getMarketers();
+          const index = marketers.findIndex(m => m.id === id);
+          if (index !== -1) {
+              marketers[index] = { ...marketers[index], ...updates };
+              await this.saveMarketers(marketers);
+          }
+      } catch (error) {
+          console.error('Error updating marketer:', error);
+      }
+  },
+
+  async deleteMarketer(id: string): Promise<void> {
+      try {
+          const marketers = await this.getMarketers();
+          const filtered = marketers.filter(m => m.id !== id);
+          await this.saveMarketers(filtered);
+      } catch (error) {
+          console.error('Error deleting marketer:', error);
+      }
+  },
+
+  // Customer Referrals
+  async getCustomerReferrals(): Promise<CustomerReferral[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMER_REFERRALS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting customer referrals:', error);
+          return [];
+      }
+  },
+
+  async getCustomerReferralsByCustomerId(customerId: string): Promise<CustomerReferral[]> {
+      const referrals = await this.getCustomerReferrals();
+      return referrals.filter(r => r.customerId === customerId);
+  },
+
+  async getCustomerReferralsByMarketerId(marketerId: string): Promise<CustomerReferral[]> {
+      const referrals = await this.getCustomerReferrals();
+      return referrals.filter(r => r.marketerId === marketerId);
+  },
+
+  async addCustomerReferral(referral: CustomerReferral): Promise<void> {
+      try {
+          const referrals = await this.getCustomerReferrals();
+          referrals.push(referral);
+          localStorage.setItem(STORAGE_KEYS.CUSTOMER_REFERRALS, JSON.stringify(referrals));
+          
+          // Update marketer stats
+          const marketers = await this.getMarketers();
+          const marketerIndex = marketers.findIndex(m => m.id === referral.marketerId);
+          if (marketerIndex !== -1) {
+              marketers[marketerIndex].totalReferrals = (marketers[marketerIndex].totalReferrals || 0) + 1;
+              await this.saveMarketers(marketers);
+          }
+      } catch (error) {
+          console.error('Error adding customer referral:', error);
+      }
+  },
+
+  async getActiveReferralForCustomer(customerId: string): Promise<CustomerReferral | null> {
+      const referrals = await this.getCustomerReferralsByCustomerId(customerId);
+      const now = new Date();
+      return referrals.find(r => r.isActive && new Date(r.attributionExpiresAt) > now) || null;
+  },
+
+  // Marketer Commissions
+  async getMarketerCommissions(): Promise<MarketerCommissionEntry[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.MARKETER_COMMISSIONS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting marketer commissions:', error);
+          return [];
+      }
+  },
+
+  async getMarketerCommissionsByMarketerId(marketerId: string): Promise<MarketerCommissionEntry[]> {
+      const commissions = await this.getMarketerCommissions();
+      return commissions.filter(c => c.marketerId === marketerId)
+          .sort((a, b) => new Date(b.calculatedAt).getTime() - new Date(a.calculatedAt).getTime());
+  },
+
+  async addMarketerCommissionEntry(entry: Omit<MarketerCommissionEntry, 'id' | 'calculatedAt'>): Promise<MarketerCommissionEntry> {
+      try {
+          const commissions = await this.getMarketerCommissions();
+          const newEntry: MarketerCommissionEntry = {
+              ...entry,
+              id: `COM${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+              calculatedAt: new Date().toISOString()
+          };
+          commissions.push(newEntry);
+          localStorage.setItem(STORAGE_KEYS.MARKETER_COMMISSIONS, JSON.stringify(commissions));
+          
+          // Update marketer earnings
+          const marketers = await this.getMarketers();
+          const marketerIndex = marketers.findIndex(m => m.id === entry.marketerId);
+          if (marketerIndex !== -1) {
+              marketers[marketerIndex].totalEarnings = (marketers[marketerIndex].totalEarnings || 0) + entry.commissionAmount;
+              marketers[marketerIndex].pendingEarnings = (marketers[marketerIndex].pendingEarnings || 0) + entry.commissionAmount;
+              await this.saveMarketers(marketers);
+          }
+          
+          return newEntry;
+      } catch (error) {
+          console.error('Error adding marketer commission entry:', error);
+          throw error;
+      }
+  },
+
+  async updateMarketerCommissionStatus(id: string, status: CommissionStatus, approvedBy?: string, paidBy?: string, paymentReference?: string): Promise<void> {
+      try {
+          const commissions = await this.getMarketerCommissions();
+          const index = commissions.findIndex(c => c.id === id);
+          if (index !== -1) {
+              const commission = commissions[index];
+              const previousStatus = commission.status;
+              commission.status = status;
+              
+              if (status === 'APPROVED') {
+                  commission.approvedAt = new Date().toISOString();
+                  commission.approvedBy = approvedBy;
+              } else if (status === 'PAID') {
+                  commission.paidAt = new Date().toISOString();
+                  commission.paidBy = paidBy;
+                  commission.paymentReference = paymentReference;
+                  
+                  // Update marketer paid/pending earnings
+                  const marketers = await this.getMarketers();
+                  const marketerIndex = marketers.findIndex(m => m.id === commission.marketerId);
+                  if (marketerIndex !== -1) {
+                      marketers[marketerIndex].pendingEarnings = (marketers[marketerIndex].pendingEarnings || 0) - commission.commissionAmount;
+                      marketers[marketerIndex].paidEarnings = (marketers[marketerIndex].paidEarnings || 0) + commission.commissionAmount;
+                      marketers[marketerIndex].lastPaymentDate = new Date().toISOString();
+                      await this.saveMarketers(marketers);
+                  }
+              }
+              
+              localStorage.setItem(STORAGE_KEYS.MARKETER_COMMISSIONS, JSON.stringify(commissions));
+          }
+      } catch (error) {
+          console.error('Error updating marketer commission status:', error);
+      }
+  },
+
+  // Calculate commission for an order
+  async calculateOrderCommission(orderId: string, customerId: string, orderTotal: number): Promise<MarketerCommissionEntry | null> {
+      try {
+          const settings = await this.getMarketerSettings();
+          if (!settings.enabled) return null;
+          
+          const referral = await this.getActiveReferralForCustomer(customerId);
+          if (!referral) return null;
+          
+          const marketer = await this.getMarketer(referral.marketerId);
+          if (!marketer || !marketer.active) return null;
+          
+          const commissionType = marketer.commissionType || settings.defaultCommissionType;
+          const commissionValue = marketer.commissionValue || settings.defaultCommissionValue;
+          
+          let commissionAmount: number;
+          if (commissionType === 'PERCENT') {
+              commissionAmount = orderTotal * (commissionValue / 100);
+          } else {
+              commissionAmount = commissionValue;
+          }
+          
+          const entry = await this.addMarketerCommissionEntry({
+              marketerId: marketer.id,
+              customerId,
+              orderId,
+              orderTotal,
+              commissionAmount,
+              commissionType,
+              commissionRate: commissionValue,
+              status: settings.autoApproveCommissions && commissionAmount <= (settings.autoApproveThreshold || 100) ? 'APPROVED' : 'PENDING'
+          });
+          
+          return entry;
+      } catch (error) {
+          console.error('Error calculating order commission:', error);
+          return null;
       }
   }
 };
