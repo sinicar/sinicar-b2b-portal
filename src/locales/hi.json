@@ -824,6 +824,13 @@
     "users": "उपयोगकर्ता",
     "systemSettings": "सिस्टम सेटिंग्स",
     "marketingCenter": "मार्केटिंग सेंटर",
+    "pricingCenter": "मूल्य निर्धारण केंद्र",
+    "traderTools": "व्यापारी उपकरण",
+    "supplierMarketplace": "आपूर्तिकर्ता मार्केटप्लेस",
+    "marketers": "विपणक",
+    "installments": "किस्त अनुरोध",
+    "advertising": "विज्ञापन",
+    "customerPortalSettings": "ग्राहक पोर्टल सेटिंग्स",
     "connected": "सिस्टम कनेक्टेड",
     "slowConnection": "धीमा कनेक्शन",
     "disconnected": "डिस्कनेक्टेड",
@@ -839,7 +846,15 @@
       "settings": "सामान्य सेटिंग्स",
       "users": "उपयोगकर्ता प्रबंधन",
       "products": "उत्पाद प्रबंधन",
-      "marketing": "मार्केटिंग सेंटर"
+      "marketing": "मार्केटिंग सेंटर",
+      "pricing": "मूल्य निर्धारण केंद्र",
+      "traderTools": "व्यापारी उपकरण प्रबंधन",
+      "supplierMarketplace": "आपूर्तिकर्ता मार्केटप्लेस सेटिंग्स",
+      "marketers": "विपणक प्रबंधन",
+      "installments": "किस्त अनुरोध प्रबंधन",
+      "advertising": "विज्ञापन प्रबंधन",
+      "customerPortal": "ग्राहक पोर्टल सेटिंग्स",
+      "teamSettings": "संगठन और टीम"
     },
     "stats": {
       "totalRevenue": "कुल राजस्व",
@@ -892,7 +907,8 @@
       "marketers": "विपणक",
       "installments": "किस्त अनुरोध",
       "advertising": "विज्ञापन",
-      "teamSettings": "संगठन और टीम"
+      "teamSettings": "संगठन और टीम",
+      "customerPortal": "ग्राहक पोर्टल"
     },
     "onlineUsers": {
       "title": "ऑनलाइन ग्राहक",

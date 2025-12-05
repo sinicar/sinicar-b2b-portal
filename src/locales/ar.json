@@ -834,6 +834,7 @@
     "marketers": "المسوقين",
     "installments": "طلبات التقسيط",
     "advertising": "الإعلانات",
+    "customerPortalSettings": "إعدادات بوابة العميل",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -855,7 +856,9 @@
       "supplierMarketplace": "إعدادات سوق الموردين",
       "marketers": "إدارة المسوقين",
       "installments": "إدارة طلبات التقسيط",
-      "advertising": "إدارة الإعلانات"
+      "advertising": "إدارة الإعلانات",
+      "customerPortal": "إعدادات بوابة العميل",
+      "teamSettings": "المنظمات والفرق"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",
@@ -908,7 +911,8 @@
       "marketers": "المسوقين",
       "installments": "طلبات التقسيط",
       "advertising": "الإعلانات",
-      "teamSettings": "المنظمات والفرق"
+      "teamSettings": "المنظمات والفرق",
+      "customerPortal": "بوابة العميل"
     },
     "onlineUsers": {
       "title": "العملاء المتصلين الآن",

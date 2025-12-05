@@ -824,6 +824,13 @@
     "users": "用户",
     "systemSettings": "系统设置",
     "marketingCenter": "营销中心",
+    "pricingCenter": "定价中心",
+    "traderTools": "商家工具",
+    "supplierMarketplace": "供应商市场",
+    "marketers": "营销人员",
+    "installments": "分期付款请求",
+    "advertising": "广告",
+    "customerPortalSettings": "客户门户设置",
     "connected": "系统已连接",
     "slowConnection": "连接缓慢",
     "disconnected": "已断开连接",
@@ -839,7 +846,15 @@
       "settings": "一般设置",
       "users": "用户管理",
       "products": "产品管理",
-      "marketing": "营销中心"
+      "marketing": "营销中心",
+      "pricing": "定价中心",
+      "traderTools": "商家工具管理",
+      "supplierMarketplace": "供应商市场设置",
+      "marketers": "营销人员管理",
+      "installments": "分期付款请求管理",
+      "advertising": "广告管理",
+      "customerPortal": "客户门户设置",
+      "teamSettings": "组织和团队"
     },
     "stats": {
       "totalRevenue": "总收入",
@@ -892,7 +907,8 @@
       "marketers": "营销人员",
       "installments": "分期付款请求",
       "advertising": "广告",
-      "teamSettings": "组织和团队"
+      "teamSettings": "组织和团队",
+      "customerPortal": "客户门户"
     },
     "onlineUsers": {
       "title": "在线客户",

@@ -830,6 +830,7 @@
     "marketers": "Marketers",
     "installments": "Installment Requests",
     "advertising": "Advertising",
+    "customerPortalSettings": "Customer Portal Settings",
     "connected": "System Connected",
     "slowConnection": "Slow Connection",
     "disconnected": "Disconnected",
@@ -851,7 +852,9 @@
       "supplierMarketplace": "Supplier Marketplace Settings",
       "marketers": "Marketers Management",
       "installments": "Installment Requests Management",
-      "advertising": "Advertising Management"
+      "advertising": "Advertising Management",
+      "customerPortal": "Customer Portal Settings",
+      "teamSettings": "Organizations & Teams"
     },
     "stats": {
       "totalRevenue": "Total Revenue",
@@ -904,7 +907,8 @@
       "marketers": "Marketers",
       "installments": "Installment Requests",
       "advertising": "Advertising",
-      "teamSettings": "Organizations & Teams"
+      "teamSettings": "Organizations & Teams",
+      "customerPortal": "Customer Portal"
     },
     "onlineUsers": {
       "title": "Online Customers",
