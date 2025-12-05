@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { PaginatedResult } from './pagination';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -24,6 +25,23 @@ export function successResponse<T>(res: Response, data: T, message?: string, met
   return res.json(response);
 }
 
+export function paginatedResponse<T>(res: Response, result: PaginatedResult<T>, message?: string) {
+  return res.status(200).json({
+    success: true,
+    message,
+    data: result.data,
+    pagination: result.pagination,
+  });
+}
+
+export function createdResponse<T>(res: Response, data: T, message?: string) {
+  return res.status(201).json({
+    success: true,
+    message: message || 'تم الإنشاء بنجاح',
+    data,
+  });
+}
+
 export function errorResponse(res: Response, error: string, statusCode: number = 400) {
   const response: ApiResponse = {
     success: false,
@@ -45,7 +63,7 @@ export function forbiddenResponse(res: Response, message: string = 'لا تمل�
   return errorResponse(res, message, 403);
 }
 
-export function validationError(res: Response, errors: Record<string, string>) {
+export function validationError(res: Response, errors: Record<string, string> | Record<string, string[]>) {
   return res.status(422).json({
     success: false,
     error: 'بيانات غير صالحة',
