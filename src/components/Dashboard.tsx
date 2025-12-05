@@ -52,6 +52,7 @@ import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
 import { TeamManagementPage } from './TeamManagementPage';
+import { useOrganization } from '../services/OrganizationContext';
 
 interface DashboardProps {
   user: User;
@@ -405,7 +406,18 @@ const CollapsibleSidebarItem = memo(({ icon, label, active, onClick, badge, coll
 ));
 
 // --- Extract Sidebar and Header for better memoization - Premium Glass Design ---
-const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick, collapsed, setCollapsed }: any) => {
+const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick, collapsed, setCollapsed, hasPermission, isOwner }: any) => {
+    // Check if user has permission for a feature
+    // - Owners (main account holders) always have full access
+    // - Staff users must have specific scoped permission
+    const canAccessFeature = (permissionKey: string): boolean => {
+        // If user is the owner of the organization, grant full access
+        if (isOwner) return true;
+        // For main customer accounts (not staff), grant access
+        if (user.role === 'CUSTOMER' && !user.parentId) return true;
+        // For staff users (CUSTOMER_STAFF), check specific permission
+        return hasPermission ? hasPermission(permissionKey) : false;
+    };
     // RTL: sidebar on right, slides from right. LTR: sidebar on left, slides from left
     const sidebarPosition = isRTL ? 'right-0' : 'left-0';
     const sidebarTransform = isRTL 
@@ -544,7 +556,9 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                     collapsed={collapsed}
                 />
                 <CollapsibleSidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('IMPORT_CHINA')} collapsed={collapsed} />
-                <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
+                {canAccessFeature('cust_use_trader_tools') && (
+                    <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
+                )}
                 <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
                 
                 {!collapsed && (
@@ -555,7 +569,9 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                     </div>
                 )}
                 <CollapsibleSidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORGANIZATION')} collapsed={collapsed} />
-                <CollapsibleSidebarItem icon={<Users size={20} />} label={tDynamic('sidebar.teamManagement', 'إدارة الفريق')} active={view === 'TEAM_MANAGEMENT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TEAM_MANAGEMENT')} collapsed={collapsed} />
+                {canAccessFeature('org_manage_team') && (
+                    <CollapsibleSidebarItem icon={<Users size={20} />} label={tDynamic('sidebar.teamManagement', 'إدارة الفريق')} active={view === 'TEAM_MANAGEMENT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TEAM_MANAGEMENT')} collapsed={collapsed} />
+                )}
                 
                 {!collapsed && (
                     <div className="flex items-center gap-2 px-3 py-2 mt-6 mb-2">
@@ -656,6 +672,9 @@ const DashboardHeader = memo(({
 
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, onRefreshUser }) => {
+    // Organization Context for team permissions
+    const { hasPermission, loadOrganization, currentOrganization, isOwner } = useOrganization();
+    
     // Add IMPORT_CHINA and TRADER_TOOLS to view state
     const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -786,6 +805,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         };
         loadData();
     }, [user.id, view]); // Reload when view changes to refresh data
+    
+    // Load Organization Context for Team Permissions
+    useEffect(() => {
+        const entityId = user.role === 'CUSTOMER_STAFF' && user.parentId ? user.parentId : user.id;
+        loadOrganization(entityId, 'customer');
+    }, [user.id, user.role, user.parentId, loadOrganization]);
 
     // Log Page View Logic
     useEffect(() => {
@@ -1257,6 +1282,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 onGuestPageClick={() => setShowGuestPrompt(true)}
                 collapsed={sidebarCollapsed}
                 setCollapsed={handleSetSidebarCollapsed}
+                hasPermission={hasPermission}
+                isOwner={isOwner}
             />
 
             {/* Main Content Area */}

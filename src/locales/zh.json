@@ -585,8 +585,10 @@
     "orders": "订单历史",
     "quotes": "报价请求",
     "import": "从中国进口",
+    "traderTools": "交易工具",
     "history": "搜索历史",
     "organization": "组织管理",
+    "teamManagement": "团队管理",
     "support": "关于 / 支持",
     "searchCredits": "剩余搜索积分",
     "unlimitedSearch": "无限搜索"
