@@ -587,6 +587,7 @@ const DashboardHeader = memo(({
     view, 
     setSidebarOpen, 
     user, 
+    profile,
     tDynamic, 
     t,
     isRTL,
@@ -640,7 +641,7 @@ const DashboardHeader = memo(({
                         isRTL={isRTL}
                     />
                     
-                    <NotificationBell user={user} />
+                    <NotificationBell user={user} customerType={profile?.customerType} />
                     <LanguageSwitcher />
             </div>
         </header>
@@ -1270,6 +1271,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     view={view}
                     setSidebarOpen={setSidebarOpen}
                     user={user}
+                    profile={profile}
                     tDynamic={tDynamic}
                     t={t}
                     isRTL={dir === 'rtl'}

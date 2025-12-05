@@ -206,7 +206,8 @@ export type NotificationType =
   | 'GENERAL'
   | 'ACCOUNT_UPDATE'
   | 'IMPORT_UPDATE'
-  | 'SYSTEM'; // System notifications (password reset, etc.)
+  | 'SYSTEM'
+  | 'MARKETING'; // Marketing campaign notifications
 
 export interface Notification {
   id: string;

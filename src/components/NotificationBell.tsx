@@ -1,17 +1,26 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, CheckCircle2, Clock, Trash2, X, Package, FileSpreadsheet, Search, AlertTriangle, Key, Info, Settings } from 'lucide-react';
-import { Notification, User } from '../types';
+import { Bell, Check, CheckCircle2, Clock, Trash2, X, Package, FileSpreadsheet, Search, AlertTriangle, Key, Info, Settings, Megaphone } from 'lucide-react';
+import { Notification, User, MarketingCampaign } from '../types';
 import { MockApi } from '../services/mockApi';
 import { formatDateTime } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
 
 interface NotificationBellProps {
     user: User;
+    customerType?: string;
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+// Extended notification type to include marketing campaigns
+interface ExtendedNotification extends Notification {
+    isCampaign?: boolean;
+    campaignId?: string;
+    ctaUrl?: string;
+    ctaLabel?: string;
+}
+
+export const NotificationBell: React.FC<NotificationBellProps> = ({ user, customerType }) => {
+    const [notifications, setNotifications] = useState<ExtendedNotification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,15 +44,41 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
             clearInterval(interval);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [user.id]);
+    }, [user.id, customerType]);
 
     const loadNotifications = async () => {
         try {
-            const list = await MockApi.getNotificationsForUser(user.id);
-            // Sort by newest
-            list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setNotifications(list);
-            setUnreadCount(list.filter(n => !n.isRead).length);
+            // Load regular notifications
+            const regularNotifs = await MockApi.getNotificationsForUser(user.id);
+            
+            // Load BELL type marketing campaigns (getActiveCampaignsForUser already filters dismissed ones)
+            const campaigns = await MockApi.getActiveCampaignsForUser(user.id, customerType);
+            const bellCampaigns = campaigns.filter(c => c.displayType === 'BELL');
+            
+            // Get list of campaigns the user has "read" in the bell (stored locally per session)
+            const readCampaignIds = JSON.parse(localStorage.getItem(`siniCar_bell_read_${user.id}`) || '[]');
+            
+            // Convert campaigns to notification format
+            const campaignNotifs: ExtendedNotification[] = bellCampaigns.map(campaign => ({
+                id: `campaign-${campaign.id}`,
+                userId: user.id,
+                type: 'MARKETING' as const,
+                title: campaign.title,
+                message: campaign.message,
+                createdAt: campaign.createdAt,
+                isRead: readCampaignIds.includes(campaign.id),
+                isCampaign: true,
+                campaignId: campaign.id,
+                ctaUrl: campaign.ctaUrl,
+                ctaLabel: campaign.ctaLabel
+            }));
+            
+            // Combine and sort by newest
+            const allNotifs: ExtendedNotification[] = [...regularNotifs, ...campaignNotifs];
+            allNotifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            
+            setNotifications(allNotifs);
+            setUnreadCount(allNotifs.filter(n => !n.isRead).length);
         } catch (e) {
             console.error("Failed to load notifications", e);
         }
@@ -53,7 +88,20 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
         setIsOpen(!isOpen);
         if (!isOpen && unreadCount > 0) {
             try {
+                // Mark regular notifications as read
                 await MockApi.markNotificationsAsRead(user.id);
+                
+                // Mark campaign notifications as read in localStorage
+                const unreadCampaignIds = notifications
+                    .filter(n => n.isCampaign && !n.isRead && n.campaignId)
+                    .map(n => n.campaignId!);
+                
+                if (unreadCampaignIds.length > 0) {
+                    const readCampaignIds = JSON.parse(localStorage.getItem(`siniCar_bell_read_${user.id}`) || '[]');
+                    const newReadIds = [...new Set([...readCampaignIds, ...unreadCampaignIds])];
+                    localStorage.setItem(`siniCar_bell_read_${user.id}`, JSON.stringify(newReadIds));
+                }
+                
                 // Locally update read status to avoid refetch lag
                 setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
                 setUnreadCount(0);
@@ -85,6 +133,16 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
         }
     };
 
+    const handleDismissCampaign = async (campaignId: string, notifId: string) => {
+        try {
+            await MockApi.dismissCampaignForUser(user.id, campaignId);
+            setNotifications(prev => prev.filter(n => n.id !== notifId));
+            addToast('تم إخفاء الإشعار', 'success');
+        } catch (e) {
+            console.error("Failed to dismiss campaign", e);
+        }
+    };
+
     const getIcon = (type: string) => {
         switch (type) {
             case 'ORDER_STATUS_CHANGED':
@@ -101,6 +159,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
                 return <Package size={16} className="text-orange-500" />;
             case 'GENERAL':
                 return <Info size={16} className="text-blue-400" />;
+            case 'MARKETING':
+                return <Megaphone size={16} className="text-pink-500" />;
             default:
                 return <Bell size={16} className="text-slate-400" />;
         }
@@ -120,6 +180,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
                 return 'bg-slate-50 border-slate-200';
             case 'IMPORT_UPDATE':
                 return 'bg-orange-50 border-orange-100';
+            case 'MARKETING':
+                return 'bg-pink-50 border-pink-100';
             default:
                 return 'bg-white border-slate-100';
         }
@@ -187,7 +249,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
                                 {notifications.map((notif) => (
                                     <div 
                                         key={notif.id} 
-                                        className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 group ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
+                                        className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 group ${
+                                            notif.isCampaign ? 'bg-gradient-to-l from-pink-50/50 to-transparent' : 
+                                            !notif.isRead ? 'bg-blue-50/30' : ''
+                                        }`}
                                         data-testid={`notification-item-${notif.id}`}
                                     >
                                         <div className={`mt-0.5 p-2 rounded-full border shadow-sm shrink-0 h-fit ${getIconBg(notif.type)}`}>
@@ -195,13 +260,27 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start gap-2 mb-1">
-                                                <h4 className="text-sm font-bold text-slate-800 leading-tight">{notif.title}</h4>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="text-sm font-bold text-slate-800 leading-tight">{notif.title}</h4>
+                                                    {notif.isCampaign && (
+                                                        <span className="text-[9px] bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded font-bold">
+                                                            عرض
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center gap-1 shrink-0">
                                                     <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
                                                         {formatRelativeTime(notif.createdAt)}
                                                     </span>
                                                     <button 
-                                                        onClick={(e) => { e.stopPropagation(); handleDeleteOne(notif.id); }}
+                                                        onClick={(e) => { 
+                                                            e.stopPropagation(); 
+                                                            if (notif.isCampaign && notif.campaignId) {
+                                                                handleDismissCampaign(notif.campaignId, notif.id);
+                                                            } else {
+                                                                handleDeleteOne(notif.id);
+                                                            }
+                                                        }}
                                                         className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all rounded hover:bg-red-50"
                                                         title="حذف"
                                                         data-testid={`button-delete-notification-${notif.id}`}
@@ -213,7 +292,19 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user }) => {
                                             <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
                                                 {notif.message}
                                             </p>
-                                            {!notif.isRead && (
+                                            {/* CTA Button for campaigns */}
+                                            {notif.isCampaign && notif.ctaUrl && notif.ctaLabel && (
+                                                <a 
+                                                    href={notif.ctaUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-block mt-2 text-[11px] bg-pink-500 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-pink-600 transition-colors"
+                                                    data-testid={`button-cta-${notif.id}`}
+                                                >
+                                                    {notif.ctaLabel}
+                                                </a>
+                                            )}
+                                            {!notif.isRead && !notif.isCampaign && (
                                                 <span className="inline-block mt-1.5 text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-bold">
                                                     جديد
                                                 </span>

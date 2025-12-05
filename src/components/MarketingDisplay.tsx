@@ -28,14 +28,25 @@ export const MarketingBanner = memo(({ userId, customerType }: MarketingBannerPr
 
     const handleDismiss = async (campaignId: string) => {
         await MockApi.dismissCampaignForUser(userId, campaignId);
-        setDismissed(prev => new Set([...prev, campaignId]));
+        setDismissed(prev => {
+            const newDismissed = new Set([...prev, campaignId]);
+            // Calculate new visible campaigns count
+            const newVisibleCount = campaigns.filter(c => !newDismissed.has(c.id)).length;
+            // Reset index if needed to prevent out of bounds
+            if (newVisibleCount > 0 && currentIndex >= newVisibleCount) {
+                setCurrentIndex(0);
+            }
+            return newDismissed;
+        });
     };
 
     const visibleCampaigns = campaigns.filter(c => !dismissed.has(c.id));
 
     if (visibleCampaigns.length === 0) return null;
 
-    const currentCampaign = visibleCampaigns[currentIndex % visibleCampaigns.length];
+    // Ensure currentIndex is valid
+    const safeIndex = visibleCampaigns.length > 0 ? currentIndex % visibleCampaigns.length : 0;
+    const currentCampaign = visibleCampaigns[safeIndex];
     if (!currentCampaign) return null;
 
     const handleNext = () => {
@@ -90,7 +101,7 @@ export const MarketingBanner = memo(({ userId, customerType }: MarketingBannerPr
                                 {isRTL ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             </button>
                             <span className="text-xs text-white/70 min-w-[2rem] text-center">
-                                {currentIndex + 1}/{visibleCampaigns.length}
+                                {safeIndex + 1}/{visibleCampaigns.length}
                             </span>
                             <button
                                 onClick={handleNext}

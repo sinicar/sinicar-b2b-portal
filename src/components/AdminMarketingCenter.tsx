@@ -144,14 +144,41 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
         
         if (!formData.title?.trim()) {
             errors.title = 'عنوان الحملة مطلوب';
+        } else if (formData.title.length > 100) {
+            errors.title = 'العنوان طويل جداً (الحد الأقصى 100 حرف)';
         }
         
         if (!formData.message?.trim()) {
             errors.message = 'نص الرسالة مطلوب';
+        } else if (formData.message.length > 500) {
+            errors.message = 'الرسالة طويلة جداً (الحد الأقصى 500 حرف)';
         }
         
         if ((formData.contentType === 'IMAGE' || formData.contentType === 'VIDEO') && !formData.mediaUrl?.trim()) {
             errors.mediaUrl = 'رابط الوسائط مطلوب لهذا النوع من المحتوى';
+        }
+        
+        // Validate CTA URL if provided
+        if (formData.ctaUrl?.trim()) {
+            try {
+                new URL(formData.ctaUrl);
+            } catch {
+                errors.ctaUrl = 'رابط الإجراء غير صالح';
+            }
+        }
+        
+        // Validate date range
+        if (formData.startsAt && formData.expiresAt) {
+            const start = new Date(formData.startsAt);
+            const end = new Date(formData.expiresAt);
+            if (end <= start) {
+                errors.expiresAt = 'تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية';
+            }
+        }
+        
+        // Validate priority range
+        if (formData.priority < 1 || formData.priority > 100) {
+            errors.priority = 'الأولوية يجب أن تكون بين 1 و 100';
         }
         
         setFormErrors(errors);
@@ -559,14 +586,17 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
                                         type="url"
                                         value={formData.ctaUrl}
                                         onChange={(e) => setFormData({ ...formData, ctaUrl: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                        className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 ${formErrors.ctaUrl ? 'border-red-300' : 'border-slate-200'}`}
                                         placeholder="https://..."
                                         data-testid="input-cta-url"
                                     />
+                                    {formErrors.ctaUrl && (
+                                        <p className="text-red-500 text-xs mt-1">{formErrors.ctaUrl}</p>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Audience & Status */}
+                            {/* Audience & Priority */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-1.5">
@@ -593,9 +623,12 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
                                         max="100"
                                         value={formData.priority}
                                         onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 1 })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                        className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 ${formErrors.priority ? 'border-red-300' : 'border-slate-200'}`}
                                         data-testid="input-priority"
                                     />
+                                    {formErrors.priority && (
+                                        <p className="text-red-500 text-xs mt-1">{formErrors.priority}</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -621,9 +654,12 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
                                         type="datetime-local"
                                         value={formData.expiresAt}
                                         onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                        className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-purple-500 ${formErrors.expiresAt ? 'border-red-300' : 'border-slate-200'}`}
                                         data-testid="input-expires-at"
                                     />
+                                    {formErrors.expiresAt && (
+                                        <p className="text-red-500 text-xs mt-1">{formErrors.expiresAt}</p>
+                                    )}
                                 </div>
                             </div>
 
