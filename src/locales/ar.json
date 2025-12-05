@@ -696,6 +696,7 @@
     "products": "المنتجات",
     "users": "المستخدمون",
     "systemSettings": "إعدادات النظام",
+    "marketingCenter": "مركز التسويق",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -710,7 +711,8 @@
       "missing": "النواقص",
       "settings": "الإعدادات العامة",
       "users": "إدارة المستخدمين",
-      "products": "إدارة المنتجات"
+      "products": "إدارة المنتجات",
+      "marketing": "مركز التسويق"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",

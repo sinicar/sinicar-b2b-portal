@@ -692,6 +692,7 @@
     "products": "उत्पाद",
     "users": "उपयोगकर्ता",
     "systemSettings": "सिस्टम सेटिंग्स",
+    "marketingCenter": "मार्केटिंग सेंटर",
     "connected": "सिस्टम कनेक्टेड",
     "slowConnection": "धीमा कनेक्शन",
     "disconnected": "डिस्कनेक्टेड",
@@ -706,7 +707,8 @@
       "missing": "लापता पार्ट्स",
       "settings": "सामान्य सेटिंग्स",
       "users": "उपयोगकर्ता प्रबंधन",
-      "products": "उत्पाद प्रबंधन"
+      "products": "उत्पाद प्रबंधन",
+      "marketing": "मार्केटिंग सेंटर"
     },
     "stats": {
       "totalRevenue": "कुल राजस्व",

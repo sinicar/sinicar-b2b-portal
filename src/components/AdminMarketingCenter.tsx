@@ -400,7 +400,7 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
 
             {/* Create/Edit Modal */}
             {showCreateModal && (
-                <Modal onClose={() => { setShowCreateModal(false); resetForm(); }}>
+                <Modal isOpen={showCreateModal} onClose={() => { setShowCreateModal(false); resetForm(); }}>
                     <div className="p-6 max-h-[85vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -668,7 +668,7 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
-                <Modal onClose={() => setShowDeleteConfirm(null)}>
+                <Modal isOpen={!!showDeleteConfirm} onClose={() => setShowDeleteConfirm(null)}>
                     <div className="p-6 text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertCircle size={32} className="text-red-600" />

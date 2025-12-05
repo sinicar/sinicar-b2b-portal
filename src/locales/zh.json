@@ -692,6 +692,7 @@
     "products": "产品",
     "users": "用户",
     "systemSettings": "系统设置",
+    "marketingCenter": "营销中心",
     "connected": "系统已连接",
     "slowConnection": "连接缓慢",
     "disconnected": "已断开连接",
@@ -706,7 +707,8 @@
       "missing": "缺货零件",
       "settings": "一般设置",
       "users": "用户管理",
-      "products": "产品管理"
+      "products": "产品管理",
+      "marketing": "营销中心"
     },
     "stats": {
       "totalRevenue": "总收入",
