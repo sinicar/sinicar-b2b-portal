@@ -277,6 +277,9 @@ export interface BusinessProfile {
   totalInvoicesCount?: number;         // عدد الطلبات التي تحولت إلى فاتورة
   totalSearchesCount?: number;         // إجمالي عمليات البحث
   missingRequestsCount?: number;       // عدد النواقص المسجلة منه
+  
+  // Marketing Campaigns - dismissed campaign IDs
+  dismissedCampaignIds?: string[];
 }
 
 export interface Product {
@@ -1274,4 +1277,39 @@ export interface SidebarPreferences {
   collapsed: boolean;
   width: number;
   mobileAutoClose: boolean;
+}
+
+// --- Marketing Campaign Types (مركز التسويق) ---
+
+export type CampaignDisplayType = 'POPUP' | 'BANNER' | 'BELL' | 'DASHBOARD_CARD';
+
+export type CampaignContentType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'HTML';
+
+export type CampaignStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+
+export type CampaignAudienceType = 
+  | 'ALL' 
+  | 'SPARE_PARTS_SHOP' 
+  | 'RENTAL_COMPANY' 
+  | 'MAINTENANCE_CENTER' 
+  | 'INSURANCE_COMPANY'
+  | 'SALES_REP';
+
+export interface MarketingCampaign {
+  id: string;
+  title: string;
+  message: string;
+  displayType: CampaignDisplayType;
+  skippable: boolean;
+  contentType: CampaignContentType;
+  mediaUrl?: string;
+  htmlContent?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  audienceType: CampaignAudienceType;
+  status: CampaignStatus;
+  priority: number;
+  createdAt: string;
+  startsAt?: string;
+  expiresAt?: string;
 }
