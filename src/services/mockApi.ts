@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -348,7 +348,12 @@ const STORAGE_KEYS = {
   MARKETERS: 'sini_marketers',
   CUSTOMER_REFERRALS: 'sini_customer_referrals',
   MARKETER_COMMISSIONS: 'sini_marketer_commissions',
-  MARKETER_SETTINGS: 'sini_marketer_settings'
+  MARKETER_SETTINGS: 'sini_marketer_settings',
+  // Advertising System
+  ADVERTISERS: 'sini_advertisers',
+  AD_CAMPAIGNS: 'sini_ad_campaigns',
+  AD_SLOTS: 'sini_ad_slots',
+  AD_SLOT_ROTATIONS: 'sini_ad_slot_rotations'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -4699,5 +4704,361 @@ export const MockApi = {
           console.error('Error calculating order commission:', error);
           return null;
       }
+  },
+
+  // ============================================================
+  // ADVERTISING SYSTEM
+  // ============================================================
+
+  // Default Ad Slots
+  getDefaultAdSlots(): AdSlot[] {
+      const now = new Date().toISOString();
+      return [
+          {
+              id: 'slot-home-top',
+              slotKey: 'HOME_TOP_BANNER',
+              nameAr: 'بانر الصفحة الرئيسية العلوي',
+              nameEn: 'Home Top Banner',
+              descriptionAr: 'بانر إعلاني في أعلى الصفحة الرئيسية',
+              descriptionEn: 'Ad banner at the top of the home page',
+              isEnabled: true,
+              maxAds: 3,
+              selectionMode: 'rotate',
+              createdAt: now,
+              updatedAt: now
+          },
+          {
+              id: 'slot-dashboard-sidebar',
+              slotKey: 'CUSTOMER_DASHBOARD_SIDEBAR',
+              nameAr: 'الشريط الجانبي لوحة العميل',
+              nameEn: 'Customer Dashboard Sidebar',
+              descriptionAr: 'إعلانات في الشريط الجانبي للوحة تحكم العميل',
+              descriptionEn: 'Ads in the customer dashboard sidebar',
+              isEnabled: true,
+              maxAds: 2,
+              selectionMode: 'by_priority',
+              createdAt: now,
+              updatedAt: now
+          },
+          {
+              id: 'slot-tools-banner',
+              slotKey: 'TOOLS_PAGE_BANNER',
+              nameAr: 'بانر صفحة الأدوات',
+              nameEn: 'Tools Page Banner',
+              descriptionAr: 'بانر إعلاني في صفحة أدوات التاجر',
+              descriptionEn: 'Ad banner on the trader tools page',
+              isEnabled: true,
+              maxAds: 1,
+              selectionMode: 'by_priority',
+              createdAt: now,
+              updatedAt: now
+          },
+          {
+              id: 'slot-products-card',
+              slotKey: 'PRODUCTS_PAGE_CARD',
+              nameAr: 'بطاقة صفحة المنتجات',
+              nameEn: 'Products Page Card',
+              descriptionAr: 'بطاقة إعلانية تظهر ضمن نتائج البحث عن المنتجات',
+              descriptionEn: 'Ad card appearing within product search results',
+              isEnabled: true,
+              maxAds: 2,
+              selectionMode: 'random',
+              createdAt: now,
+              updatedAt: now
+          }
+      ];
+  },
+
+  // --- Advertisers CRUD ---
+  async getAdvertisers(): Promise<Advertiser[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.ADVERTISERS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting advertisers:', error);
+          return [];
+      }
+  },
+
+  async saveAdvertisers(advertisers: Advertiser[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.ADVERTISERS, JSON.stringify(advertisers));
+      } catch (error) {
+          console.error('Error saving advertisers:', error);
+      }
+  },
+
+  async getAdvertiserById(id: string): Promise<Advertiser | null> {
+      const advertisers = await this.getAdvertisers();
+      return advertisers.find(a => a.id === id) || null;
+  },
+
+  async createAdvertiser(data: Omit<Advertiser, 'id' | 'createdAt' | 'updatedAt'>): Promise<Advertiser> {
+      const advertisers = await this.getAdvertisers();
+      const now = new Date().toISOString();
+      const newAdvertiser: Advertiser = {
+          ...data,
+          id: `adv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: now,
+          updatedAt: now
+      };
+      advertisers.push(newAdvertiser);
+      await this.saveAdvertisers(advertisers);
+      return newAdvertiser;
+  },
+
+  async updateAdvertiser(id: string, updates: Partial<Advertiser>): Promise<Advertiser | null> {
+      const advertisers = await this.getAdvertisers();
+      const index = advertisers.findIndex(a => a.id === id);
+      if (index === -1) return null;
+      
+      advertisers[index] = {
+          ...advertisers[index],
+          ...updates,
+          updatedAt: new Date().toISOString()
+      };
+      await this.saveAdvertisers(advertisers);
+      return advertisers[index];
+  },
+
+  async deleteAdvertiser(id: string): Promise<boolean> {
+      const advertisers = await this.getAdvertisers();
+      const index = advertisers.findIndex(a => a.id === id);
+      if (index === -1) return false;
+      
+      advertisers.splice(index, 1);
+      await this.saveAdvertisers(advertisers);
+      return true;
+  },
+
+  // --- Ad Campaigns CRUD ---
+  async getAdCampaigns(): Promise<AdCampaign[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.AD_CAMPAIGNS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting ad campaigns:', error);
+          return [];
+      }
+  },
+
+  async saveAdCampaigns(campaigns: AdCampaign[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.AD_CAMPAIGNS, JSON.stringify(campaigns));
+      } catch (error) {
+          console.error('Error saving ad campaigns:', error);
+      }
+  },
+
+  async getAdCampaignById(id: string): Promise<AdCampaign | null> {
+      const campaigns = await this.getAdCampaigns();
+      return campaigns.find(c => c.id === id) || null;
+  },
+
+  async createAdCampaign(data: Omit<AdCampaign, 'id' | 'createdAt' | 'updatedAt' | 'currentViews' | 'currentClicks'>): Promise<AdCampaign> {
+      const campaigns = await this.getAdCampaigns();
+      const now = new Date().toISOString();
+      const newCampaign: AdCampaign = {
+          ...data,
+          id: `camp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          currentViews: 0,
+          currentClicks: 0,
+          createdAt: now,
+          updatedAt: now
+      };
+      campaigns.push(newCampaign);
+      await this.saveAdCampaigns(campaigns);
+      return newCampaign;
+  },
+
+  async updateAdCampaign(id: string, updates: Partial<AdCampaign>): Promise<AdCampaign | null> {
+      const campaigns = await this.getAdCampaigns();
+      const index = campaigns.findIndex(c => c.id === id);
+      if (index === -1) return null;
+      
+      campaigns[index] = {
+          ...campaigns[index],
+          ...updates,
+          updatedAt: new Date().toISOString()
+      };
+      await this.saveAdCampaigns(campaigns);
+      return campaigns[index];
+  },
+
+  async deleteAdCampaign(id: string): Promise<boolean> {
+      const campaigns = await this.getAdCampaigns();
+      const index = campaigns.findIndex(c => c.id === id);
+      if (index === -1) return false;
+      
+      campaigns.splice(index, 1);
+      await this.saveAdCampaigns(campaigns);
+      return true;
+  },
+
+  // --- Ad Slots CRUD ---
+  async getAdSlots(): Promise<AdSlot[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.AD_SLOTS);
+          if (!stored) {
+              const defaults = this.getDefaultAdSlots();
+              localStorage.setItem(STORAGE_KEYS.AD_SLOTS, JSON.stringify(defaults));
+              return defaults;
+          }
+          return JSON.parse(stored);
+      } catch (error) {
+          console.error('Error getting ad slots:', error);
+          return this.getDefaultAdSlots();
+      }
+  },
+
+  async saveAdSlots(slots: AdSlot[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.AD_SLOTS, JSON.stringify(slots));
+      } catch (error) {
+          console.error('Error saving ad slots:', error);
+      }
+  },
+
+  async getAdSlotByKey(slotKey: string): Promise<AdSlot | null> {
+      const slots = await this.getAdSlots();
+      return slots.find(s => s.slotKey === slotKey) || null;
+  },
+
+  async createAdSlot(data: Omit<AdSlot, 'id' | 'createdAt' | 'updatedAt'>): Promise<AdSlot> {
+      const slots = await this.getAdSlots();
+      const now = new Date().toISOString();
+      const newSlot: AdSlot = {
+          ...data,
+          id: `slot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: now,
+          updatedAt: now
+      };
+      slots.push(newSlot);
+      await this.saveAdSlots(slots);
+      return newSlot;
+  },
+
+  async updateAdSlot(id: string, updates: Partial<AdSlot>): Promise<AdSlot | null> {
+      const slots = await this.getAdSlots();
+      const index = slots.findIndex(s => s.id === id);
+      if (index === -1) return null;
+      
+      slots[index] = {
+          ...slots[index],
+          ...updates,
+          updatedAt: new Date().toISOString()
+      };
+      await this.saveAdSlots(slots);
+      return slots[index];
+  },
+
+  // --- Get Active Ads By Slot ---
+  async getActiveAdsBySlot(slotKey: string, customerId?: string): Promise<AdCampaign[]> {
+      try {
+          const slot = await this.getAdSlotByKey(slotKey);
+          if (!slot || !slot.isEnabled) return [];
+          
+          const campaigns = await this.getAdCampaigns();
+          const today = new Date().toISOString().split('T')[0];
+          
+          // Filter active campaigns for this slot
+          let activeCampaigns = campaigns.filter(campaign => {
+              if (campaign.status !== 'running') return false;
+              if (campaign.startDate > today) return false;
+              if (campaign.endDate && campaign.endDate < today) return false;
+              
+              // Check if campaign targets this slot type
+              const slotTypeMap: Record<string, string[]> = {
+                  'HOME_TOP_BANNER': ['banner_top'],
+                  'CUSTOMER_DASHBOARD_SIDEBAR': ['banner_sidebar'],
+                  'TOOLS_PAGE_BANNER': ['banner_top', 'banner_sidebar'],
+                  'PRODUCTS_PAGE_CARD': ['card_in_products']
+              };
+              const allowedTypes = slotTypeMap[slotKey] || [];
+              if (!allowedTypes.includes(campaign.type)) return false;
+              
+              // Check max views/clicks
+              if (campaign.maxViews && (campaign.currentViews || 0) >= campaign.maxViews) return false;
+              if (campaign.maxClicks && (campaign.currentClicks || 0) >= campaign.maxClicks) return false;
+              
+              return true;
+          });
+          
+          // Apply selection mode
+          if (slot.selectionMode === 'by_priority') {
+              activeCampaigns.sort((a, b) => a.priority - b.priority);
+          } else if (slot.selectionMode === 'random') {
+              activeCampaigns = activeCampaigns.sort(() => Math.random() - 0.5);
+          } else if (slot.selectionMode === 'rotate') {
+              // Get rotation state
+              const rotations = JSON.parse(localStorage.getItem(STORAGE_KEYS.AD_SLOT_ROTATIONS) || '[]') as AdSlotRotationState[];
+              let rotation = rotations.find(r => r.slotKey === slotKey);
+              
+              if (!rotation) {
+                  rotation = { slotKey, currentIndex: 0, lastRotatedAt: new Date().toISOString() };
+                  rotations.push(rotation);
+              }
+              
+              // Rotate through campaigns
+              const startIndex = rotation.currentIndex % activeCampaigns.length || 0;
+              activeCampaigns = [
+                  ...activeCampaigns.slice(startIndex),
+                  ...activeCampaigns.slice(0, startIndex)
+              ];
+              
+              // Update rotation index
+              rotation.currentIndex = (rotation.currentIndex + 1) % Math.max(activeCampaigns.length, 1);
+              rotation.lastRotatedAt = new Date().toISOString();
+              localStorage.setItem(STORAGE_KEYS.AD_SLOT_ROTATIONS, JSON.stringify(rotations));
+          }
+          
+          // Limit to maxAds
+          return activeCampaigns.slice(0, slot.maxAds);
+      } catch (error) {
+          console.error('Error getting active ads by slot:', error);
+          return [];
+      }
+  },
+
+  // Record ad view
+  async recordAdView(campaignId: string): Promise<void> {
+      const campaign = await this.getAdCampaignById(campaignId);
+      if (campaign) {
+          await this.updateAdCampaign(campaignId, {
+              currentViews: (campaign.currentViews || 0) + 1
+          });
+      }
+  },
+
+  // Record ad click
+  async recordAdClick(campaignId: string): Promise<void> {
+      const campaign = await this.getAdCampaignById(campaignId);
+      if (campaign) {
+          await this.updateAdCampaign(campaignId, {
+              currentClicks: (campaign.currentClicks || 0) + 1
+          });
+      }
+  },
+
+  // Get advertising statistics
+  async getAdvertisingStats(): Promise<{
+      totalAdvertisers: number;
+      activeAdvertisers: number;
+      totalCampaigns: number;
+      runningCampaigns: number;
+      totalViews: number;
+      totalClicks: number;
+  }> {
+      const advertisers = await this.getAdvertisers();
+      const campaigns = await this.getAdCampaigns();
+      
+      return {
+          totalAdvertisers: advertisers.length,
+          activeAdvertisers: advertisers.filter(a => a.status === 'active').length,
+          totalCampaigns: campaigns.length,
+          runningCampaigns: campaigns.filter(c => c.status === 'running').length,
+          totalViews: campaigns.reduce((sum, c) => sum + (c.currentViews || 0), 0),
+          totalClicks: campaigns.reduce((sum, c) => sum + (c.currentClicks || 0), 0)
+      };
   }
 };
