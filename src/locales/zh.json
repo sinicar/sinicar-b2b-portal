@@ -85,6 +85,12 @@
     "guest": "访客",
     "guestWelcome": "欢迎访客！您只能浏览产品"
   },
+  "marketing": {
+    "dismiss": "关闭",
+    "campaignOf": "活动 {{current}}/{{total}}",
+    "next": "下一个",
+    "understood": "明白了"
+  },
   "guestMode": {
     "restrictedTitle": "B2B批发专属服务",
     "restrictedSubtitle": "新尼汽车商业平台",

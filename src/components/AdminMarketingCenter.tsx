@@ -94,7 +94,7 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
         ctaLabel: '',
         ctaUrl: '',
         audienceType: 'ALL',
-        status: 'DRAFT',
+        status: 'ACTIVE',
         priority: 1,
         startsAt: '',
         expiresAt: ''
@@ -130,7 +130,7 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
             ctaLabel: '',
             ctaUrl: '',
             audienceType: 'ALL',
-            status: 'DRAFT',
+            status: 'ACTIVE',
             priority: 1,
             startsAt: '',
             expiresAt: ''

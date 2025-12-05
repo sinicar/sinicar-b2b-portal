@@ -48,6 +48,7 @@ import { formatDateTime } from '../utils/dateUtils';
 import { searchProducts } from '../utils/arabicSearch';
 import { UsageIntroModal } from './UsageIntroModal';
 import { NotificationBell } from './NotificationBell';
+import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 
 interface DashboardProps {
@@ -721,6 +722,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const [showGuestPrompt, setShowGuestPrompt] = useState(false);
     const isGuest = user.isGuest === true;
     
+    // Marketing Popup State - Only show for non-guest users
+    const [showMarketingPopup, setShowMarketingPopup] = useState(!user.isGuest);
+    
     // Guest Mode Settings Helper Functions
     const guestSettings = settings?.guestSettings;
     
@@ -1252,6 +1256,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             <main className="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-100">
                 
                 <ClientTicker />
+                
+                {/* Marketing Banner - Only for non-guest users */}
+                {!isGuest && (
+                    <MarketingBanner 
+                        userId={user.id} 
+                        customerType={profile?.businessType}
+                    />
+                )}
 
                 {/* Top Header (Memoized) */}
                 <DashboardHeader 
@@ -2172,6 +2184,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         </div>
                     </div>
                 </Modal>
+            )}
+            
+            {/* Marketing Popup - Only for non-guest users */}
+            {showMarketingPopup && !isGuest && (
+                <MarketingPopup
+                    userId={user.id}
+                    customerType={profile?.businessType}
+                    onClose={() => setShowMarketingPopup(false)}
+                />
             )}
         </div>
     );

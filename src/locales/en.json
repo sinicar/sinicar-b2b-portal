@@ -85,6 +85,12 @@
     "guest": "Guest",
     "guestWelcome": "Welcome as a guest! You can browse products only"
   },
+  "marketing": {
+    "dismiss": "Dismiss",
+    "campaignOf": "Campaign {{current}} of {{total}}",
+    "next": "Next",
+    "understood": "Got it"
+  },
   "guestMode": {
     "restrictedTitle": "Exclusive B2B Wholesale Service",
     "restrictedSubtitle": "Sini Car Business Platform",

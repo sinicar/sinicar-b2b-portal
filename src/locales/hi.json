@@ -85,6 +85,12 @@
     "guest": "अतिथि",
     "guestWelcome": "अतिथि के रूप में स्वागत है! आप केवल उत्पाद देख सकते हैं"
   },
+  "marketing": {
+    "dismiss": "बंद करें",
+    "campaignOf": "अभियान {{current}} में से {{total}}",
+    "next": "अगला",
+    "understood": "समझ गया"
+  },
   "guestMode": {
     "restrictedTitle": "विशेष B2B थोक सेवा",
     "restrictedSubtitle": "सिनी कार बिज़नेस प्लेटफॉर्म",

@@ -85,6 +85,12 @@
     "guest": "زائر",
     "guestWelcome": "أهلاً بك كزائر! يمكنك تصفح المنتجات فقط"
   },
+  "marketing": {
+    "dismiss": "إخفاء",
+    "campaignOf": "الحملة {{current}} من {{total}}",
+    "next": "التالي",
+    "understood": "فهمت"
+  },
   "guestMode": {
     "restrictedTitle": "خدمة حصرية لعملاء الجملة",
     "restrictedSubtitle": "منصة صيني كار للأعمال B2B",
