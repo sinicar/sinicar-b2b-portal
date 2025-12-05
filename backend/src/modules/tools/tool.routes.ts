@@ -1,232 +1,165 @@
 import { Router } from 'express';
+import { toolService } from './tool.service';
 import { authMiddleware, adminOnly, AuthRequest } from '../../middleware/auth.middleware';
-import { successResponse, errorResponse } from '../../utils/response';
+import { validate } from '../../middleware/validate.middleware';
+import { asyncHandler } from '../../middleware/error.middleware';
+import { successResponse, createdResponse, paginatedResponse } from '../../utils/response';
+import { parsePaginationParams } from '../../utils/pagination';
+import {
+  toolConfigSchema,
+  updateToolConfigSchema,
+  customerToolsOverrideSchema,
+  priceComparisonSchema,
+  vinExtractionSchema,
+  supplierPriceUploadSchema,
+  createMarketerSchema,
+  updateMarketerSchema
+} from '../../schemas/tools.schema';
 
 const router = Router();
 
-router.get('/configs', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, [], 'TODO: Fetch tool configs from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/configs', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const configs = await toolService.getToolConfigs();
+  successResponse(res, configs);
+}));
 
-router.put('/configs/:toolKey', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { toolKey } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update tool config in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/configs/:toolKey', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const config = await toolService.getToolConfig(req.params.toolKey);
+  successResponse(res, config);
+}));
 
-router.get('/customer-overrides', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, [], 'TODO: Fetch customer tool overrides from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/configs', authMiddleware, adminOnly, validate(toolConfigSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const config = await toolService.createToolConfig(req.body);
+  createdResponse(res, config, 'تم إنشاء إعدادات الأداة');
+}));
 
-router.put('/customer-overrides/:customerId', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { customerId } = req.params;
-    const overrides = req.body;
-    
-    successResponse(res, null, 'TODO: Update customer tool overrides in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/configs/:toolKey', authMiddleware, adminOnly, validate(updateToolConfigSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const config = await toolService.updateToolConfig(req.params.toolKey, req.body);
+  successResponse(res, config, 'تم تحديث إعدادات الأداة');
+}));
 
-router.delete('/customer-overrides/:customerId', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { customerId } = req.params;
-    
-    successResponse(res, null, 'TODO: Delete customer tool overrides from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.delete('/configs/:toolKey', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await toolService.deleteToolConfig(req.params.toolKey);
+  successResponse(res, result, result.message);
+}));
 
-router.get('/usage', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { customerId, toolKey, startDate, endDate } = req.query;
-    
-    successResponse(res, [], 'TODO: Fetch tool usage records from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/customer-overrides/:customerId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const overrides = await toolService.getCustomerToolOverrides(req.params.customerId);
+  successResponse(res, overrides);
+}));
 
-router.post('/usage/log', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { toolKey, metadata } = req.body;
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Log tool usage in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/customer-overrides', authMiddleware, adminOnly, validate(customerToolsOverrideSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const overrides = await toolService.setCustomerToolOverrides(req.body);
+  successResponse(res, overrides, 'تم تحديث إعدادات العميل');
+}));
 
-router.post('/price-comparison/session', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { partNumbers, supplierIds } = req.body;
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Create price comparison session in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/can-use/:toolKey', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await toolService.canUseTool(req.user!.id, req.params.toolKey);
+  successResponse(res, result);
+}));
 
-router.get('/price-comparison/sessions', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const customerId = req.user?.id;
-    
-    successResponse(res, [], 'TODO: Fetch price comparison sessions from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/usage/log', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { toolKey, metadata } = req.body;
+  const usage = await toolService.recordToolUsage(req.user!.id, toolKey, metadata);
+  successResponse(res, usage, 'تم تسجيل الاستخدام');
+}));
 
-router.post('/vin-extraction', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { vinNumber, extractedData } = req.body;
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Save VIN extraction in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/price-comparison', authMiddleware, validate(priceComparisonSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await toolService.comparePrices(req.user!.id, req.body);
+  successResponse(res, result);
+}));
 
-router.get('/vin-extractions', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const customerId = req.user?.id;
-    
-    successResponse(res, [], 'TODO: Fetch VIN extractions from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/vin-extraction', authMiddleware, validate(vinExtractionSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await toolService.extractVin(req.user!.id, req.body);
+  successResponse(res, result);
+}));
 
-router.post('/pdf-to-excel', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { fileName, extractedData } = req.body;
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Save PDF to Excel result in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/supplier-prices/upload', authMiddleware, validate(supplierPriceUploadSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await toolService.uploadSupplierPrices(req.user!.id, req.body);
+  successResponse(res, result, 'تم رفع الأسعار بنجاح');
+}));
 
-router.get('/pdf-to-excel/records', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const customerId = req.user?.id;
-    
-    successResponse(res, [], 'TODO: Fetch PDF to Excel records from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/marketer/settings', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const settings = await toolService.getMarketerSettings();
+  successResponse(res, settings);
+}));
 
-router.get('/marketer/settings', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, null, 'TODO: Fetch marketer settings from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/marketer/settings', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const settings = await toolService.updateMarketerSettings(req.body);
+  successResponse(res, settings, 'تم تحديث الإعدادات');
+}));
 
-router.put('/marketer/settings', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const settings = req.body;
-    
-    successResponse(res, null, 'TODO: Update marketer settings in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/marketer/stats', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketerId = req.user!.role === 'SUPER_ADMIN' ? undefined : req.user!.id;
+  const stats = await toolService.getMarketerStats(marketerId);
+  successResponse(res, stats);
+}));
 
-router.get('/marketers', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { status, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      marketers: [],
-      total: 0
-    }, 'TODO: Fetch marketers from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/marketers', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    status: req.query.status as any,
+    search: req.query.search as string,
+    minEarnings: req.query.minEarnings ? Number(req.query.minEarnings) : undefined,
+    minReferrals: req.query.minReferrals ? Number(req.query.minReferrals) : undefined
+  };
+  const result = await toolService.listMarketers(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.post('/marketers', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const marketerData = req.body;
-    
-    successResponse(res, null, 'TODO: Create marketer in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/marketers/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketer = await toolService.getMarketerById(req.params.id);
+  successResponse(res, marketer);
+}));
 
-router.put('/marketers/:id', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update marketer in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/marketers', authMiddleware, validate(createMarketerSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketer = await toolService.createMarketer(req.body);
+  createdResponse(res, marketer, 'تم التسجيل كمسوق بنجاح');
+}));
 
-router.put('/marketers/:id/status', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { status, reason } = req.body;
-    
-    successResponse(res, null, 'TODO: Update marketer status in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/marketers/:id', authMiddleware, validate(updateMarketerSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketer = await toolService.updateMarketer(req.params.id, req.body);
+  successResponse(res, marketer, 'تم تحديث البيانات');
+}));
 
-router.get('/marketers/:id/commissions', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, [], 'TODO: Fetch marketer commissions from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/marketers/:id/approve', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketer = await toolService.approveMarketer(req.params.id);
+  successResponse(res, marketer, 'تم تفعيل المسوق');
+}));
 
-router.get('/marketers/:id/referrals', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, [], 'TODO: Fetch marketer referrals from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/marketers/:id/suspend', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketer = await toolService.suspendMarketer(req.params.id);
+  successResponse(res, marketer, 'تم إيقاف المسوق');
+}));
 
-router.post('/track-referral', async (req, res) => {
-  try {
-    const { referralCode, visitorData } = req.body;
-    
-    successResponse(res, null, 'TODO: Track referral in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.delete('/marketers/:id', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await toolService.deleteMarketer(req.params.id);
+  successResponse(res, result, result.message);
+}));
+
+router.get('/marketers/:id/details', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const marketer = await toolService.getMarketerById(req.params.id);
+  successResponse(res, {
+    marketer,
+    referrals: marketer.referrals,
+    commissions: marketer.commissions
+  });
+}));
+
+router.post('/track-referral', asyncHandler(async (req: any, res: any) => {
+  const { referralCode, customerId, customerName } = req.body;
+  const referral = await toolService.createReferral(referralCode, customerId, customerName);
+  successResponse(res, referral, 'تم تسجيل الإحالة');
+}));
+
+router.post('/commissions/:id/approve', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const commission = await toolService.approveCommission(req.params.id);
+  successResponse(res, commission, 'تم اعتماد العمولة');
+}));
+
+router.post('/commissions/:id/pay', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const commission = await toolService.payCommission(req.params.id);
+  successResponse(res, commission, 'تم صرف العمولة');
+}));
 
 export default router;

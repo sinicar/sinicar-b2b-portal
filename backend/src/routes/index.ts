@@ -19,7 +19,7 @@ router.use('/suppliers', supplierRoutes);
 router.use('/ads', adRoutes);
 router.use('/trader-tools', toolRoutes);
 
-router.get('/', (req, res) => {
+router.get('/', (req: any, res: any) => {
   res.json({
     message: 'SINI CAR B2B API',
     version: 'v1',

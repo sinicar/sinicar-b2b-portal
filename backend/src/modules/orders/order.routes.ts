@@ -1,154 +1,126 @@
 import { Router } from 'express';
+import { orderService } from './order.service';
 import { authMiddleware, adminOnly, AuthRequest } from '../../middleware/auth.middleware';
-import { successResponse, errorResponse, notFoundResponse } from '../../utils/response';
+import { validate } from '../../middleware/validate.middleware';
+import { asyncHandler } from '../../middleware/error.middleware';
+import { successResponse, createdResponse, paginatedResponse } from '../../utils/response';
+import { parsePaginationParams } from '../../utils/pagination';
+import {
+  createOrderSchema,
+  updateOrderStatusSchema,
+  updateInternalStatusSchema,
+  createQuoteRequestSchema
+} from '../../schemas/order.schema';
 
 const router = Router();
 
-router.get('/', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { status, internalStatus, customerId, startDate, endDate, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      orders: [],
-      total: 0,
-      page: Number(page),
-      totalPages: 0
-    }, 'TODO: Fetch orders from Prisma with filters');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    search: req.query.search as string,
+    status: req.query.status as any,
+    internalStatus: req.query.internalStatus as any,
+    userId: req.query.customerId as string,
+    fromDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
+    toDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+    minAmount: req.query.minAmount ? Number(req.query.minAmount) : undefined,
+    maxAmount: req.query.maxAmount ? Number(req.query.maxAmount) : undefined
+  };
+  const result = await orderService.list(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.get('/my-orders', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user?.id;
-    
-    successResponse(res, [], 'TODO: Fetch user orders from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/my-orders', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const result = await orderService.getByUser(req.user!.id, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, null, 'TODO: Fetch order by ID from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/stats', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user!.role === 'SUPER_ADMIN' ? undefined : req.user!.id;
+  const stats = await orderService.getOrderStats(userId);
+  successResponse(res, stats);
+}));
 
-router.post('/', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const orderData = req.body;
-    const userId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Create order in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/quotes', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    status: req.query.status as any,
+    userId: req.user!.role === 'SUPER_ADMIN' ? undefined : req.user!.id
+  };
+  const result = await orderService.getQuoteRequests(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.put('/:id/status', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { status, note } = req.body;
-    const changedBy = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Update order status in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/quotes/my-quotes', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const result = await orderService.getQuoteRequests({ userId: req.user!.id }, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.put('/:id/internal-status', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { internalStatus, note } = req.body;
-    const changedBy = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Update internal status in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/quotes/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const quote = await orderService.getQuoteById(req.params.id);
+  successResponse(res, quote);
+}));
 
-router.post('/:id/cancel', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { reason } = req.body;
-    const cancelledBy = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Cancel order in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/quotes', authMiddleware, validate(createQuoteRequestSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const quote = await orderService.createQuoteRequest(
+    req.user!.id,
+    '', // userName
+    '', // companyName
+    req.body
+  );
+  createdResponse(res, quote, 'تم إنشاء طلب عرض السعر بنجاح');
+}));
 
-router.delete('/:id', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, null, 'TODO: Delete order from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/quotes/:id/process', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const quote = await orderService.processQuote(req.params.id);
+  successResponse(res, quote, 'تم معالجة طلب عرض السعر');
+}));
 
-router.get('/:id/history', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, [], 'TODO: Fetch order status history from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/quotes/:id/status', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const quote = await orderService.updateQuoteStatus(req.params.id, req.body.status);
+  successResponse(res, quote, 'تم تحديث حالة الطلب');
+}));
 
-router.get('/quotes', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { status, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      quotes: [],
-      total: 0
-    }, 'TODO: Fetch quote requests from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/products/search', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const products = await orderService.searchProducts(req.query.q as string || '', 20);
+  successResponse(res, products);
+}));
 
-router.get('/quotes/my-quotes', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user?.id;
-    
-    successResponse(res, [], 'TODO: Fetch user quote requests from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const order = await orderService.getById(req.params.id);
+  successResponse(res, order);
+}));
 
-router.post('/quotes', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const quoteData = req.body;
-    const userId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Create quote request in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/', authMiddleware, validate(createOrderSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const order = await orderService.create(req.user!.id, req.body);
+  createdResponse(res, order, 'تم إنشاء الطلب بنجاح');
+}));
 
-router.put('/quotes/:id', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update quote request in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/status', authMiddleware, adminOnly, validate(updateOrderStatusSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const order = await orderService.updateStatus(req.params.id, req.user!.id, req.body);
+  successResponse(res, order, 'تم تحديث حالة الطلب');
+}));
+
+router.put('/:id/internal-status', authMiddleware, adminOnly, validate(updateInternalStatusSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const order = await orderService.updateInternalStatus(req.params.id, req.body.internalStatus, req.body.internalNotes);
+  successResponse(res, order, 'تم تحديث الحالة الداخلية');
+}));
+
+router.post('/:id/cancel', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const order = await orderService.cancel(req.params.id, req.user!.id, req.body.reason);
+  successResponse(res, order, 'تم إلغاء الطلب');
+}));
+
+router.delete('/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await orderService.delete(req.params.id, req.user!.id);
+  successResponse(res, result, result.message);
+}));
+
+router.get('/:id/history', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const order = await orderService.getById(req.params.id);
+  successResponse(res, order.statusHistory);
+}));
 
 export default router;

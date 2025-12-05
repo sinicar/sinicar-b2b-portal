@@ -1,152 +1,104 @@
 import { Router } from 'express';
+import { installmentService } from './installment.service';
 import { authMiddleware, adminOnly, AuthRequest } from '../../middleware/auth.middleware';
-import { successResponse, errorResponse, notFoundResponse } from '../../utils/response';
+import { validate } from '../../middleware/validate.middleware';
+import { asyncHandler } from '../../middleware/error.middleware';
+import { successResponse, createdResponse, paginatedResponse } from '../../utils/response';
+import { parsePaginationParams } from '../../utils/pagination';
+import {
+  createInstallmentRequestSchema,
+  adminReviewSchema,
+  forwardToSuppliersSchema,
+  createOfferSchema,
+  offerResponseSchema
+} from '../../schemas/installment.schema';
 
 const router = Router();
 
-router.get('/', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { status, customerId, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      requests: [],
-      total: 0,
-      page: Number(page),
-      totalPages: 0
-    }, 'TODO: Fetch installment requests from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/settings', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const settings = await installmentService.getSettings();
+  successResponse(res, settings);
+}));
 
-router.get('/my-requests', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const customerId = req.user?.id;
-    
-    successResponse(res, [], 'TODO: Fetch customer installment requests from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/settings', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const settings = await installmentService.updateSettings(req.body);
+  successResponse(res, settings, 'تم تحديث الإعدادات');
+}));
 
-router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, null, 'TODO: Fetch installment request by ID from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/stats', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const customerId = req.user!.role === 'SUPER_ADMIN' ? undefined : req.user!.id;
+  const stats = await installmentService.getStats(customerId);
+  successResponse(res, stats);
+}));
 
-router.post('/', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const requestData = req.body;
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Create installment request in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    status: req.query.status as any,
+    customerId: req.query.customerId as string,
+    fromDate: req.query.fromDate ? new Date(req.query.fromDate as string) : undefined,
+    toDate: req.query.toDate ? new Date(req.query.toDate as string) : undefined,
+    minValue: req.query.minValue ? Number(req.query.minValue) : undefined,
+    maxValue: req.query.maxValue ? Number(req.query.maxValue) : undefined
+  };
+  const result = await installmentService.list(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.put('/:id/sinicar-decision', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { decision, approvedItems, schedule, notes } = req.body;
-    const reviewedBy = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Update SINICAR decision in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/my-requests', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const result = await installmentService.getByCustomer(req.user!.id, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.put('/:id/forward-to-suppliers', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { supplierIds } = req.body;
-    
-    successResponse(res, null, 'TODO: Forward to suppliers in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.getById(req.params.id);
+  successResponse(res, request);
+}));
 
-router.get('/:id/offers', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, [], 'TODO: Fetch offers for request from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/', authMiddleware, validate(createInstallmentRequestSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.create(req.user!.id, req.user!.clientId, req.body);
+  createdResponse(res, request, 'تم إنشاء طلب التقسيط بنجاح');
+}));
 
-router.post('/:id/offers', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const offerData = req.body;
-    const createdBy = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Create offer in Prisma (supplier or SINICAR)');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/sinicar-decision', authMiddleware, adminOnly, validate(adminReviewSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.adminReview(req.params.id, req.user!.id, req.body);
+  successResponse(res, request, 'تم تحديث القرار');
+}));
 
-router.put('/:id/offers/:offerId/customer-response', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id, offerId } = req.params;
-    const { response, reason } = req.body;
-    
-    successResponse(res, null, 'TODO: Update customer response to offer in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/forward-to-suppliers', authMiddleware, adminOnly, validate(forwardToSuppliersSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.forwardToSuppliers(req.params.id, req.body);
+  successResponse(res, request, 'تم تحويل الطلب للموردين');
+}));
 
-router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { reason } = req.body;
-    
-    successResponse(res, null, 'TODO: Cancel installment request in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id/offers', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.getById(req.params.id);
+  successResponse(res, request.offers);
+}));
 
-router.get('/settings', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, null, 'TODO: Fetch installment settings from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/:id/offers', authMiddleware, validate(createOfferSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const offer = await installmentService.createOffer(req.params.id, req.user!.id, req.body);
+  createdResponse(res, offer, 'تم إنشاء العرض بنجاح');
+}));
 
-router.put('/settings', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const settings = req.body;
-    
-    successResponse(res, null, 'TODO: Update installment settings in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/offers/:offerId/customer-response', authMiddleware, validate(offerResponseSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await installmentService.customerOfferResponse(req.params.offerId, req.user!.id, req.body);
+  successResponse(res, result, req.body.action === 'accept' ? 'تم قبول العرض' : 'تم رفض العرض');
+}));
 
-router.get('/stats', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, {
-      totalRequests: 0,
-      pendingRequests: 0,
-      activeContracts: 0,
-      totalValue: 0,
-      approvalRate: 0
-    }, 'TODO: Calculate installment stats from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/cancel', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.cancel(req.params.id, req.user!.id, req.body.reason);
+  successResponse(res, request, 'تم إلغاء الطلب');
+}));
+
+router.put('/:id/close', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.close(req.params.id, req.body.reason);
+  successResponse(res, request, 'تم إغلاق الطلب');
+}));
+
+router.put('/:id/complete', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const request = await installmentService.complete(req.params.id);
+  successResponse(res, request, 'تم إكمال العقد');
+}));
 
 export default router;

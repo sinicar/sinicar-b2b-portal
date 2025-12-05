@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env';
 import routes from './routes';
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 const app = express();
 
@@ -26,27 +27,8 @@ app.get('/health', (req, res) => {
 
 app.use(`/api/${env.api.version}`, routes);
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
-  
-  const statusCode = err.statusCode || 500;
-  const message = env.isProduction 
-    ? 'حدث خطأ في الخادم'
-    : err.message || 'Internal Server Error';
-    
-  res.status(statusCode).json({
-    success: false,
-    error: message,
-    ...(env.isDevelopment && { stack: err.stack })
-  });
-});
-
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'المسار غير موجود'
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.listen(env.port, () => {
   console.log(`

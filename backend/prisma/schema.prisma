@@ -1,0 +1,566 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============ Enums ============
+
+// ============ User & Auth Models ============
+
+model User {
+  id                   String    @id @default(uuid())
+  clientId             String    @unique
+  name                 String
+  email                String?
+  phone                String?
+  password             String?
+  role                 String    @default("CUSTOMER_OWNER")
+  employeeRole         String?
+  status               String    @default("PENDING")
+  isActive             Boolean   @default(true)
+  parentId             String?
+  businessId           String?
+  activationCode       String?
+  searchLimit          Int       @default(100)
+  searchUsed           Int       @default(0)
+  failedLoginAttempts  Int       @default(0)
+  lastLoginAt          DateTime?
+  lastActiveAt         DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  parent               User?     @relation("UserHierarchy", fields: [parentId], references: [id])
+  children             User[]    @relation("UserHierarchy")
+  profile              BusinessProfile?
+  organizationUsers    OrganizationUser[]
+  orders               Order[]
+  quoteRequests        QuoteRequest[]
+  installmentRequests  InstallmentRequest[]
+  activityLogs         ActivityLog[]
+}
+
+model BusinessProfile {
+  id                    String    @id @default(uuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName           String?
+  phone                 String?
+  region                String?
+  city                  String?
+  crNumber              String?
+  taxNumber             String?
+  nationalAddress       String?
+  customerType          String    @default("RETAIL")
+  businessCustomerType  String?
+  assignedPriceLevel    String    @default("PRICE_3")
+  priceVisibility       String    @default("ALL")
+  isApproved            Boolean   @default(false)
+  searchPointsTotal     Int       @default(0)
+  searchPointsRemaining Int       @default(0)
+  suspendedUntil        DateTime?
+  internalNotes         String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  branches              Branch[]
+  documents             Document[]
+}
+
+model Branch {
+  id            String   @id @default(uuid())
+  profileId     String
+  profile       BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name          String
+  city          String
+  phone         String?
+  address       String?
+  managerName   String?
+  managerPhone  String?
+  isMainBranch  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  profileId   String
+  profile     BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type        String
+  fileName    String
+  fileUrl     String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  userName    String?
+  role        String?
+  eventType   String
+  description String
+  page        String?
+  metadata    String?
+  createdAt   DateTime @default(now())
+}
+
+// ============ Organization Models ============
+
+model Organization {
+  id                   String   @id @default(uuid())
+  type                 String   @default("TRADER")
+  name                 String
+  ownerUserId          String
+  maxEmployees         Int      @default(5)
+  allowCustomPermissions Boolean @default(false)
+  status               String   @default("ACTIVE")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  users                OrganizationUser[]
+  invitations          TeamInvitation[]
+  activityLogs         OrgActivityLog[]
+}
+
+model OrganizationUser {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role            String   @default("STAFF")
+  permissions     String?
+  jobTitle        String?
+  department      String?
+  status          String   @default("ACTIVE")
+  invitedBy       String?
+  joinedAt        DateTime @default(now())
+  lastActiveAt    DateTime?
+}
+
+model TeamInvitation {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email           String
+  phone           String?
+  role            String   @default("STAFF")
+  inviteCode      String   @unique
+  status          String   @default("PENDING")
+  expiresAt       DateTime
+  createdBy       String
+  acceptedAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model OrgActivityLog {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId          String
+  userName        String?
+  action          String
+  description     String
+  metadata        String?
+  createdAt       DateTime @default(now())
+}
+
+// ============ Product Models ============
+
+model Product {
+  id              String   @id @default(uuid())
+  partNumber      String   @unique
+  name            String
+  brand           String?
+  category        String?
+  description     String?
+  imageUrl        String?
+  priceRetail     Float    @default(0)
+  priceWholesale  Float    @default(0)
+  priceVip        Float    @default(0)
+  stock           Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orderItems      OrderItem[]
+  quoteItems      QuoteItem[]
+}
+
+// ============ Order Models ============
+
+model Order {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  businessId      String?
+  branchId        String?
+  status          String   @default("PENDING")
+  internalStatus  String   @default("NEW")
+  internalNotes   String?
+  totalAmount     Float    @default(0)
+  cancelledBy     String?
+  cancelledAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  partNumber  String
+  name        String
+  quantity    Int
+  unitPrice   Float
+  totalPrice  Float
+  createdAt   DateTime @default(now())
+}
+
+model OrderStatusHistory {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  changedBy String
+  note      String?
+  changedAt DateTime @default(now())
+}
+
+model QuoteRequest {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  userName     String?
+  companyName  String?
+  priceType    String?
+  status       String   @default("NEW")
+  resultReady  Boolean  @default(false)
+  processedAt  DateTime?
+  createdAt    DateTime @default(now())
+
+  items        QuoteItem[]
+}
+
+model QuoteItem {
+  id           String   @id @default(uuid())
+  quoteId      String
+  quote        QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id])
+  partNumber   String
+  partName     String?
+  requestedQty Int
+  matchedPrice Float?
+  notes        String?
+  status       String   @default("PENDING")
+}
+
+// ============ Installment Models ============
+
+model InstallmentRequest {
+  id                      String   @id @default(uuid())
+  customerId              String
+  customer                User     @relation(fields: [customerId], references: [id])
+  customerName            String?
+  totalRequestedValue     Float
+  paymentFrequency        String   @default("MONTHLY")
+  requestedDurationMonths Int
+  status                  String   @default("PENDING_SINICAR_REVIEW")
+  sinicarDecision         String   @default("PENDING")
+  adminNotes              String?
+  allowedForSuppliers     Boolean  @default(false)
+  forwardedToSupplierIds  String?
+  reviewedBy              String?
+  reviewedAt              DateTime?
+  acceptedOfferId         String?
+  closedAt                DateTime?
+  closedReason            String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  items                   InstallmentItem[]
+  offers                  InstallmentOffer[]
+}
+
+model InstallmentItem {
+  id             String   @id @default(uuid())
+  requestId      String
+  request        InstallmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  partNumber     String
+  partName       String?
+  quantity       Int
+  estimatedPrice Float
+}
+
+model InstallmentOffer {
+  id                 String   @id @default(uuid())
+  requestId          String
+  request            InstallmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  sourceType         String   @default("SINICAR")
+  supplierId         String?
+  supplierName       String?
+  type               String   @default("FULL")
+  itemsApproved      String?
+  totalApprovedValue Float
+  schedule           String?
+  notes              String?
+  status             String   @default("WAITING_FOR_CUSTOMER")
+  createdBy          String?
+  createdAt          DateTime @default(now())
+}
+
+model InstallmentSettings {
+  id                   String  @id @default(uuid())
+  key                  String  @unique @default("global")
+  enableInstallments   Boolean @default(true)
+  allowSupplierOffers  Boolean @default(true)
+  minInstallmentValue  Float   @default(1000)
+  maxInstallmentValue  Float   @default(100000)
+  minDurationMonths    Int     @default(3)
+  maxDurationMonths    Int     @default(24)
+  defaultCommission    Float   @default(5)
+}
+
+// ============ Supplier Models ============
+
+model SupplierProfile {
+  id            String   @id @default(uuid())
+  customerId    String
+  companyName   String
+  contactName   String?
+  contactPhone  String?
+  contactEmail  String?
+  categories    String?
+  regions       String?
+  rating        Float    @default(0)
+  totalRevenue  Float    @default(0)
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  catalogItems  SupplierCatalogItem[]
+}
+
+model SupplierCatalogItem {
+  id           String   @id @default(uuid())
+  supplierId   String
+  supplier     SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  partNumber   String
+  partName     String?
+  brand        String?
+  price        Float
+  stock        Int      @default(0)
+  leadTimeDays Int      @default(7)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SupplierMarketplaceSettings {
+  id                       String  @id @default(uuid())
+  key                      String  @unique @default("global")
+  enableMarketplace        Boolean @default(true)
+  hideRealSupplierFromCustomer Boolean @default(false)
+  markupPercentage         Float   @default(0)
+}
+
+// ============ Advertising Models ============
+
+model Advertiser {
+  id            String   @id @default(uuid())
+  name          String
+  contactName   String?
+  contactEmail  String?
+  contactPhone  String?
+  balance       Float    @default(0)
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaigns     AdCampaign[]
+}
+
+model AdSlot {
+  id            String   @id @default(uuid())
+  name          String
+  location      String
+  width         Int
+  height        Int
+  pricePerDay   Float
+  pricePerWeek  Float
+  pricePerMonth Float
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  campaigns     AdCampaign[]
+}
+
+model AdCampaign {
+  id            String   @id @default(uuid())
+  advertiserId  String
+  advertiser    Advertiser @relation(fields: [advertiserId], references: [id])
+  slotId        String
+  slot          AdSlot   @relation(fields: [slotId], references: [id])
+  title         String
+  imageUrl      String?
+  targetUrl     String?
+  budget        Float    @default(0)
+  spent         Float    @default(0)
+  impressions   Int      @default(0)
+  clicks        Int      @default(0)
+  startDate     DateTime
+  endDate       DateTime
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ============ Tools Models ============
+
+model ToolConfig {
+  id                   String   @id @default(uuid())
+  toolKey              String   @unique
+  displayName          String
+  description          String?
+  isEnabled            Boolean  @default(true)
+  dailyLimit           Int?
+  monthlyLimit         Int?
+  requiredPriceLevel   String?
+  allowedCustomerTypes String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model CustomerToolsOverride {
+  id          String   @id @default(uuid())
+  customerId  String   @unique
+  overrides   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ToolUsageRecord {
+  id          String   @id @default(uuid())
+  customerId  String
+  toolKey     String
+  metadata    String?
+  usageDate   DateTime @default(now())
+}
+
+model PriceComparisonSession {
+  id          String   @id @default(uuid())
+  customerId  String
+  partNumbers String
+  supplierIds String?
+  results     String?
+  createdAt   DateTime @default(now())
+}
+
+model VinExtractionRecord {
+  id            String   @id @default(uuid())
+  customerId    String
+  vinNumber     String
+  extractedData String
+  createdAt     DateTime @default(now())
+}
+
+model SupplierPriceRecord {
+  id           String   @id @default(uuid())
+  customerId   String
+  fileName     String?
+  supplierName String?
+  data         String
+  createdAt    DateTime @default(now())
+}
+
+// ============ Marketer Models ============
+
+model Marketer {
+  id              String   @id @default(uuid())
+  userId          String?
+  name            String
+  email           String
+  phone           String
+  paymentMethod   String?
+  bankDetails     String?
+  commissionRate  Float    @default(5)
+  referralCode    String   @unique
+  referralUrl     String?
+  referralCount   Int      @default(0)
+  totalEarnings   Float    @default(0)
+  pendingPayouts  Float    @default(0)
+  paidAmount      Float    @default(0)
+  status          String   @default("PENDING")
+  approvedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  referrals       CustomerReferral[]
+  commissions     MarketerCommission[]
+}
+
+model CustomerReferral {
+  id           String   @id @default(uuid())
+  marketerId   String
+  marketer     Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  customerId   String
+  customerName String?
+  status       String   @default("PENDING")
+  convertedAt  DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model MarketerCommission {
+  id               String   @id @default(uuid())
+  marketerId       String
+  marketer         Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  orderId          String
+  customerId       String
+  customerName     String?
+  orderAmount      Float
+  commissionRate   Float
+  commissionAmount Float
+  status           String   @default("PENDING")
+  approvedAt       DateTime?
+  paidAt           DateTime?
+  createdAt        DateTime @default(now())
+}
+
+model MarketerSettings {
+  id                    String  @id @default(uuid())
+  key                   String  @unique @default("global")
+  enableMarketing       Boolean @default(true)
+  defaultCommissionRate Float   @default(5)
+  minPayoutAmount       Float   @default(100)
+  payoutFrequency       String  @default("MONTHLY")
+}
+
+// ============ Account Opening Request ============
+
+model AccountOpeningRequest {
+  id            String   @id @default(uuid())
+  companyName   String
+  ownerName     String
+  phone         String
+  email         String?
+  region        String?
+  city          String?
+  crNumber      String?
+  businessType  String?
+  status        String   @default("PENDING")
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+}

@@ -1,167 +1,117 @@
 import { Router } from 'express';
+import { supplierService } from './supplier.service';
 import { authMiddleware, adminOnly, AuthRequest } from '../../middleware/auth.middleware';
-import { successResponse, errorResponse, notFoundResponse } from '../../utils/response';
+import { validate } from '../../middleware/validate.middleware';
+import { asyncHandler } from '../../middleware/error.middleware';
+import { successResponse, createdResponse, paginatedResponse } from '../../utils/response';
+import { parsePaginationParams } from '../../utils/pagination';
+import {
+  createSupplierProfileSchema,
+  updateSupplierProfileSchema,
+  catalogItemSchema,
+  bulkUploadCatalogSchema,
+  marketplaceSearchSchema
+} from '../../schemas/supplier.schema';
 
 const router = Router();
 
-router.get('/', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { status, search, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      suppliers: [],
-      total: 0,
-      page: Number(page),
-      totalPages: 0
-    }, 'TODO: Fetch suppliers from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/settings', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const settings = await supplierService.getSettings();
+  successResponse(res, settings);
+}));
 
-router.get('/my-profile', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Fetch supplier profile from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/settings', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const settings = await supplierService.updateSettings(req.body);
+  successResponse(res, settings, 'تم تحديث الإعدادات');
+}));
 
-router.post('/register', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const profileData = req.body;
-    const customerId = req.user?.id;
-    
-    successResponse(res, null, 'TODO: Register as supplier in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/stats', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const stats = await supplierService.getStats();
+  successResponse(res, stats);
+}));
 
-router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, null, 'TODO: Fetch supplier by ID from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/marketplace/search', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    partNumber: req.query.partNumber as string,
+    partName: req.query.partName as string,
+    brand: req.query.brand as string,
+    category: req.query.category as string,
+    minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+    maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+    inStock: req.query.inStock === 'true'
+  };
+  const result = await supplierService.searchMarketplace(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update supplier in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    search: req.query.search as string,
+    status: req.query.status as any,
+    category: req.query.category as string,
+    region: req.query.region as string,
+    minRating: req.query.minRating ? Number(req.query.minRating) : undefined
+  };
+  const result = await supplierService.list(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.put('/:id/status', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { status, reason } = req.body;
-    
-    successResponse(res, null, 'TODO: Update supplier status in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/my-profile', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const profile = await supplierService.getByCustomerId(req.user!.id);
+  successResponse(res, profile);
+}));
 
-router.get('/:id/catalog', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { search, page = 1, limit = 50 } = req.query;
-    
-    successResponse(res, {
-      items: [],
-      total: 0
-    }, 'TODO: Fetch supplier catalog from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/register', authMiddleware, validate(createSupplierProfileSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const profile = await supplierService.create(req.user!.id, req.body);
+  createdResponse(res, profile, 'تم تسجيلك كمورد بنجاح');
+}));
 
-router.post('/:id/catalog', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const itemData = req.body;
-    
-    successResponse(res, null, 'TODO: Add catalog item in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const supplier = await supplierService.getById(req.params.id);
+  successResponse(res, supplier);
+}));
 
-router.post('/:id/catalog/bulk', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { items } = req.body;
-    
-    successResponse(res, {
-      added: 0,
-      updated: 0,
-      failed: 0
-    }, 'TODO: Bulk add/update catalog items in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id', authMiddleware, validate(updateSupplierProfileSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const supplier = await supplierService.update(req.params.id, req.user!.id, req.body);
+  successResponse(res, supplier, 'تم تحديث البيانات');
+}));
 
-router.put('/:id/catalog/:itemId', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id, itemId } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update catalog item in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/status', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const supplier = await supplierService.updateStatus(req.params.id, req.body.status);
+  successResponse(res, supplier, 'تم تحديث الحالة');
+}));
 
-router.delete('/:id/catalog/:itemId', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id, itemId } = req.params;
-    
-    successResponse(res, null, 'TODO: Delete catalog item from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.delete('/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await supplierService.delete(req.params.id, req.user!.id);
+  successResponse(res, result, result.message);
+}));
 
-router.get('/marketplace/search', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { partNumber, brand, minPrice, maxPrice, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      items: [],
-      total: 0
-    }, 'TODO: Search supplier marketplace from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id/catalog', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const result = await supplierService.getCatalogItems(req.params.id, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.get('/settings', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, null, 'TODO: Fetch marketplace settings from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/:id/catalog', authMiddleware, validate(catalogItemSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const item = await supplierService.addCatalogItem(req.params.id, req.user!.id, req.body);
+  createdResponse(res, item, 'تم إضافة المنتج');
+}));
 
-router.put('/settings', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const settings = req.body;
-    
-    successResponse(res, null, 'TODO: Update marketplace settings in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/:id/catalog/bulk', authMiddleware, validate(bulkUploadCatalogSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await supplierService.bulkUploadCatalog(req.params.id, req.user!.id, req.body);
+  successResponse(res, result, result.message);
+}));
+
+router.put('/:id/catalog/:itemId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const item = await supplierService.updateCatalogItem(req.params.itemId, req.params.id, req.user!.id, req.body);
+  successResponse(res, item, 'تم تحديث المنتج');
+}));
+
+router.delete('/:id/catalog/:itemId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await supplierService.deleteCatalogItem(req.params.itemId, req.params.id, req.user!.id);
+  successResponse(res, result, result.message);
+}));
 
 export default router;

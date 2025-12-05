@@ -12,7 +12,12 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio"
   },
-  "keywords": ["b2b", "auto-parts", "wholesale", "api"],
+  "keywords": [
+    "b2b",
+    "auto-parts",
+    "wholesale",
+    "api"
+  ],
   "author": "SINI CAR",
   "license": "ISC",
   "dependencies": {

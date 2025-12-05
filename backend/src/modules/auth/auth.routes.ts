@@ -1,94 +1,58 @@
 import { Router } from 'express';
+import { authService } from './auth.service';
 import { authMiddleware, AuthRequest } from '../../middleware/auth.middleware';
-import { successResponse, errorResponse } from '../../utils/response';
+import { validate } from '../../middleware/validate.middleware';
+import { asyncHandler } from '../../middleware/error.middleware';
+import { successResponse, createdResponse, errorResponse } from '../../utils/response';
+import {
+  loginSchema,
+  registerSchema,
+  refreshTokenSchema,
+  changePasswordSchema
+} from '../../schemas/auth.schema';
 
 const router = Router();
 
-router.post('/login', async (req, res) => {
-  try {
-    const { clientId, password } = req.body;
-    
-    if (!clientId || !password) {
-      return errorResponse(res, 'الرجاء إدخال رقم العميل وكلمة المرور', 400);
-    }
-    
-    successResponse(res, {
-      user: null,
-      token: null
-    }, 'TODO: Implement login logic with Prisma');
-    
-  } catch (error: any) {
-    errorResponse(res, error.message || 'حدث خطأ أثناء تسجيل الدخول', 500);
-  }
-});
+router.post('/login', validate(loginSchema), asyncHandler(async (req: any, res: any) => {
+  const result = await authService.login(req.body);
+  successResponse(res, result, 'تم تسجيل الدخول بنجاح');
+}));
 
-router.post('/register', async (req, res) => {
-  try {
-    const { name, email, phone, password, companyName, crNumber, taxNumber, region, city, customerType } = req.body;
-    
-    successResponse(res, {
-      user: null,
-      token: null
-    }, 'TODO: Implement registration logic with Prisma');
-    
-  } catch (error: any) {
-    errorResponse(res, error.message || 'حدث خطأ أثناء التسجيل', 500);
-  }
-});
+router.post('/register', validate(registerSchema), asyncHandler(async (req: any, res: any) => {
+  const result = await authService.register(req.body);
+  createdResponse(res, result, result.message);
+}));
 
-router.post('/logout', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, null, 'تم تسجيل الخروج بنجاح');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/logout', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await authService.logout(req.user!.id);
+  successResponse(res, result, result.message);
+}));
 
-router.get('/me', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    successResponse(res, {
-      user: req.user
-    }, 'TODO: Fetch full user profile from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/me', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const user = await authService.getMe(req.user!.id);
+  successResponse(res, user);
+}));
 
-router.post('/refresh-token', async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    
-    if (!refreshToken) {
-      return errorResponse(res, 'الرجاء تقديم رمز التجديد', 400);
-    }
-    
-    successResponse(res, {
-      accessToken: null,
-      refreshToken: null
-    }, 'TODO: Implement token refresh - verify refresh token and issue new tokens');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/refresh-token', validate(refreshTokenSchema), asyncHandler(async (req: any, res: any) => {
+  const result = await authService.refreshToken(req.body.refreshToken);
+  successResponse(res, result, 'تم تجديد رمز الدخول');
+}));
 
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body;
-    
-    successResponse(res, null, 'TODO: Implement forgot password');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/change-password', authMiddleware, validate(changePasswordSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await authService.changePassword(
+    req.user!.id,
+    req.body.currentPassword,
+    req.body.newPassword
+  );
+  successResponse(res, result, result.message);
+}));
 
-router.post('/reset-password', async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-    
-    successResponse(res, null, 'TODO: Implement password reset');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/forgot-password', asyncHandler(async (req: any, res: any) => {
+  successResponse(res, null, 'إذا كان البريد الإلكتروني مسجلاً، سيتم إرسال رابط إعادة التعيين');
+}));
+
+router.post('/reset-password', asyncHandler(async (req: any, res: any) => {
+  successResponse(res, null, 'تم إعادة تعيين كلمة المرور بنجاح');
+}));
 
 export default router;

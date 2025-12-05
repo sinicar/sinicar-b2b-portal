@@ -1,163 +1,152 @@
 import { Router } from 'express';
+import { customerService } from './customer.service';
 import { authMiddleware, adminOnly, AuthRequest } from '../../middleware/auth.middleware';
-import { successResponse, errorResponse, notFoundResponse } from '../../utils/response';
+import { validate } from '../../middleware/validate.middleware';
+import { asyncHandler } from '../../middleware/error.middleware';
+import { successResponse, createdResponse, paginatedResponse } from '../../utils/response';
+import { parsePaginationParams } from '../../utils/pagination';
+import {
+  createCustomerSchema,
+  updateCustomerSchema,
+  customerFilterSchema
+} from '../../schemas/customer.schema';
 
 const router = Router();
 
-router.get('/', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { status, customerType, search, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      customers: [],
-      total: 0,
-      page: Number(page),
-      totalPages: 0
-    }, 'TODO: Fetch customers from Prisma with filters');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const filters = {
+    search: req.query.search as string,
+    status: req.query.status as any,
+    customerType: req.query.customerType as any,
+    priceLevel: req.query.priceLevel as any,
+    isApproved: req.query.isApproved === 'true' ? true : req.query.isApproved === 'false' ? false : undefined,
+    region: req.query.region as string,
+    city: req.query.city as string
+  };
+  const result = await customerService.list(filters, pagination);
+  paginatedResponse(res, result);
+}));
 
-router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, null, 'TODO: Fetch customer by ID from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const customer = await customerService.getById(req.params.id);
+  successResponse(res, customer);
+}));
 
-router.put('/:id', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update customer in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/', authMiddleware, adminOnly, validate(createCustomerSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const customer = await customerService.create(req.body);
+  createdResponse(res, customer, 'تم إنشاء العميل بنجاح');
+}));
 
-router.put('/:id/status', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { status, suspendedUntil, reason } = req.body;
-    
-    successResponse(res, null, 'TODO: Update customer status in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id', authMiddleware, adminOnly, validate(updateCustomerSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const customer = await customerService.update(req.params.id, req.body);
+  successResponse(res, customer, 'تم تحديث العميل بنجاح');
+}));
 
-router.put('/:id/price-visibility', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { visibility } = req.body;
-    
-    successResponse(res, null, 'TODO: Update price visibility in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
+router.put('/:id/status', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { status, suspendedUntil, reason } = req.body;
+  let customer;
+  
+  if (status === 'SUSPENDED') {
+    customer = await customerService.suspend(req.params.id, suspendedUntil ? new Date(suspendedUntil) : undefined, reason);
+  } else if (status === 'ACTIVE') {
+    customer = await customerService.activate(req.params.id);
+  } else {
+    customer = await customerService.update(req.params.id, { status });
   }
-});
+  
+  successResponse(res, customer, 'تم تحديث حالة العميل');
+}));
 
-router.put('/:id/price-level', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { priceLevel } = req.body;
-    
-    successResponse(res, null, 'TODO: Update price level in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/approve', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { priceLevel, searchPoints } = req.body;
+  const customer = await customerService.approve(req.params.id, priceLevel, searchPoints);
+  successResponse(res, customer, 'تم الموافقة على العميل');
+}));
 
-router.put('/:id/search-points', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { points, operation } = req.body;
-    
-    successResponse(res, null, 'TODO: Update search points in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/price-visibility', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { visibility } = req.body;
+  const customer = await customerService.update(req.params.id, {
+    profile: { priceVisibility: visibility }
+  });
+  successResponse(res, customer, 'تم تحديث إظهار الأسعار');
+}));
 
-router.get('/:id/branches', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    successResponse(res, [], 'TODO: Fetch customer branches from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/price-level', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { priceLevel } = req.body;
+  const customer = await customerService.update(req.params.id, {
+    profile: { assignedPriceLevel: priceLevel }
+  });
+  successResponse(res, customer, 'تم تحديث مستوى السعر');
+}));
 
-router.post('/:id/branches', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const branchData = req.body;
-    
-    successResponse(res, null, 'TODO: Create branch in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/search-points', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { points, operation } = req.body;
+  const customer = await customerService.updateSearchPoints(req.params.id, points, operation);
+  successResponse(res, customer, 'تم تحديث نقاط البحث');
+}));
 
-router.put('/:id/branches/:branchId', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id, branchId } = req.params;
-    const updates = req.body;
-    
-    successResponse(res, null, 'TODO: Update branch in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id/branches', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const customer = await customerService.getById(req.params.id);
+  successResponse(res, customer.profile?.branches || []);
+}));
 
-router.delete('/:id/branches/:branchId', authMiddleware, async (req: AuthRequest, res) => {
-  try {
-    const { id, branchId } = req.params;
-    
-    successResponse(res, null, 'TODO: Delete branch in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.post('/:id/branches', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const branch = await customerService.addBranch(req.params.id, req.body);
+  createdResponse(res, branch, 'تم إضافة الفرع بنجاح');
+}));
 
-router.get('/account-requests', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { status, category, page = 1, limit = 20 } = req.query;
-    
-    successResponse(res, {
-      requests: [],
-      total: 0
-    }, 'TODO: Fetch account opening requests from Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.put('/:id/branches/:branchId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const branch = await customerService.updateBranch(req.params.branchId, req.body);
+  successResponse(res, branch, 'تم تحديث الفرع');
+}));
 
-router.post('/account-requests', async (req, res) => {
-  try {
-    const requestData = req.body;
-    
-    successResponse(res, null, 'TODO: Create account opening request in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.delete('/:id/branches/:branchId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await customerService.deleteBranch(req.params.branchId);
+  successResponse(res, result, result.message);
+}));
 
-router.put('/account-requests/:id/status', authMiddleware, adminOnly, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { status, adminNotes, allowedSearchPoints } = req.body;
-    
-    successResponse(res, null, 'TODO: Update account request status in Prisma');
-  } catch (error: any) {
-    errorResponse(res, error.message, 500);
-  }
-});
+router.get('/:id/staff', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const staff = await customerService.getStaff(req.params.id);
+  successResponse(res, staff);
+}));
+
+router.post('/:id/staff', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const staff = await customerService.addStaff(req.params.id, req.body);
+  createdResponse(res, staff, 'تم إضافة الموظف بنجاح');
+}));
+
+router.put('/:id/staff/:staffId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const staff = await customerService.updateStaff(req.params.staffId, req.body);
+  successResponse(res, staff, 'تم تحديث بيانات الموظف');
+}));
+
+router.delete('/:id/staff/:staffId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await customerService.deleteStaff(req.params.staffId);
+  successResponse(res, result, result.message);
+}));
+
+router.get('/account-requests', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const pagination = parsePaginationParams(req.query);
+  const result = await customerService.getAccountOpeningRequests(pagination);
+  paginatedResponse(res, result);
+}));
+
+router.post('/account-requests', asyncHandler(async (req: any, res: any) => {
+  const request = await customerService.createAccountOpeningRequest(req.body);
+  createdResponse(res, request, 'تم تقديم طلب فتح الحساب بنجاح');
+}));
+
+router.put('/account-requests/:id/status', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const { status, adminNotes, allowedSearchPoints } = req.body;
+  const decision = status === 'APPROVED' ? 'approve' : 'reject';
+  const result = await customerService.reviewAccountOpeningRequest(req.params.id, decision, req.user!.id, adminNotes);
+  successResponse(res, result, 'تم تحديث حالة الطلب');
+}));
+
+router.delete('/:id', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await customerService.softDelete(req.params.id);
+  successResponse(res, result, result.message);
+}));
 
 export default router;
