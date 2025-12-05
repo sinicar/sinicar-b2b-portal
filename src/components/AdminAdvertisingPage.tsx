@@ -143,7 +143,7 @@ export const AdminAdvertisingPage = () => {
       setAdSlots(slots);
       setStats(statistics);
     } catch (e) {
-      addToast({ type: 'error', message: t('advertising.loadError', 'حدث خطأ في تحميل البيانات') });
+      addToast(t('advertising.loadError', 'حدث خطأ في تحميل البيانات'), 'error');
     } finally {
       setLoading(false);
     }
@@ -252,7 +252,7 @@ export const AdminAdvertisingPage = () => {
             if (confirm(t('advertising.confirmDelete', 'هل أنت متأكد من الحذف؟'))) {
               await MockApi.deleteAdvertiser(id);
               loadData();
-              addToast({ type: 'success', message: t('advertising.deleted', 'تم الحذف بنجاح') });
+              addToast(t('advertising.deleted', 'تم الحذف بنجاح'), 'success');
             }
           }}
           t={t}
@@ -279,13 +279,13 @@ export const AdminAdvertisingPage = () => {
             if (confirm(t('advertising.confirmDelete', 'هل أنت متأكد من الحذف؟'))) {
               await MockApi.deleteAdCampaign(id);
               loadData();
-              addToast({ type: 'success', message: t('advertising.deleted', 'تم الحذف بنجاح') });
+              addToast(t('advertising.deleted', 'تم الحذف بنجاح'), 'success');
             }
           }}
           onStatusChange={async (id, status) => {
             await MockApi.updateAdCampaign(id, { status });
             loadData();
-            addToast({ type: 'success', message: t('advertising.statusUpdated', 'تم تحديث الحالة') });
+            addToast(t('advertising.statusUpdated', 'تم تحديث الحالة'), 'success');
           }}
           getAdvertiserName={getAdvertiserName}
           t={t}
@@ -301,7 +301,7 @@ export const AdminAdvertisingPage = () => {
           onToggle={async (id, enabled) => {
             await MockApi.updateAdSlot(id, { isEnabled: enabled });
             loadData();
-            addToast({ type: 'success', message: t('advertising.slotUpdated', 'تم تحديث الموقع') });
+            addToast(t('advertising.slotUpdated', 'تم تحديث الموقع'), 'success');
           }}
           t={t}
           isRTL={isRTL}
@@ -324,7 +324,7 @@ export const AdminAdvertisingPage = () => {
             }
             setShowAdvertiserModal(false);
             loadData();
-            addToast({ type: 'success', message: t('advertising.saved', 'تم الحفظ بنجاح') });
+            addToast(t('advertising.saved', 'تم الحفظ بنجاح'), 'success');
           }}
           t={t}
           isRTL={isRTL}
@@ -344,7 +344,7 @@ export const AdminAdvertisingPage = () => {
             }
             setShowCampaignModal(false);
             loadData();
-            addToast({ type: 'success', message: t('advertising.saved', 'تم الحفظ بنجاح') });
+            addToast(t('advertising.saved', 'تم الحفظ بنجاح'), 'success');
           }}
           t={t}
           isRTL={isRTL}
@@ -359,7 +359,7 @@ export const AdminAdvertisingPage = () => {
             await MockApi.updateAdSlot(editingSlot.id, data);
             setShowSlotModal(false);
             loadData();
-            addToast({ type: 'success', message: t('advertising.slotUpdated', 'تم تحديث الموقع') });
+            addToast(t('advertising.slotUpdated', 'تم تحديث الموقع'), 'success');
           }}
           t={t}
           isRTL={isRTL}

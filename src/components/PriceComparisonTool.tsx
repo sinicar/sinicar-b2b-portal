@@ -140,10 +140,7 @@ export const PriceComparisonTool = ({ user, profile, onClose }: PriceComparisonT
       const product = products[0];
       
       if (!product) {
-        addToast({
-          type: 'warning',
-          message: t('priceComparison.noProductFound', 'لم يتم العثور على منتج بهذا الرقم')
-        });
+        addToast(t('priceComparison.noProductFound', 'لم يتم العثور على منتج بهذا الرقم'), 'info');
         setIsSearching(false);
         return;
       }
@@ -180,17 +177,11 @@ export const PriceComparisonTool = ({ user, profile, onClose }: PriceComparisonT
         { partNumber: product.partNumber, suppliersCount: suppliers.length }
       );
       
-      addToast({
-        type: 'success',
-        message: t('priceComparison.searchComplete', 'تمت المقارنة بنجاح')
-      });
+      addToast(t('priceComparison.searchComplete', 'تمت المقارنة بنجاح'), 'success');
       
     } catch (error) {
       console.error('Search failed:', error);
-      addToast({
-        type: 'error',
-        message: t('priceComparison.searchError', 'حدث خطأ أثناء البحث')
-      });
+      addToast(t('priceComparison.searchError', 'حدث خطأ أثناء البحث'), 'error');
       
       await toolsAccessService.recordToolUsage(
         'PRICE_COMPARISON',
@@ -224,10 +215,7 @@ export const PriceComparisonTool = ({ user, profile, onClose }: PriceComparisonT
   const clearHistory = () => {
     setSearchHistory([]);
     localStorage.removeItem(`price_comparison_history_${user.id}`);
-    addToast({
-      type: 'success',
-      message: t('priceComparison.historyCleared', 'تم مسح سجل البحث')
-    });
+    addToast(t('priceComparison.historyCleared', 'تم مسح سجل البحث'), 'success');
   };
   
   return (

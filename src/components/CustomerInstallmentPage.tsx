@@ -82,7 +82,7 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
       setRequests(requestsData);
       setProducts(productsData);
     } catch (error) {
-      addToast({ type: 'error', message: t('installment.loadError', 'حدث خطأ في تحميل البيانات') });
+      addToast(t('installment.loadError', 'حدث خطأ في تحميل البيانات'), 'error');
     } finally {
       setLoading(false);
     }
@@ -106,12 +106,10 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
     setProcessingAction(true);
     try {
       await MockApi.customerRespondToOffer(offerId, decision);
-      addToast({ 
-        type: 'success', 
-        message: decision === 'accept' 
-          ? t('installment.offerAccepted', 'تم قبول العرض بنجاح') 
-          : t('installment.offerRejected', 'تم رفض العرض')
-      });
+      const message = decision === 'accept' 
+        ? t('installment.offerAccepted', 'تم قبول العرض بنجاح') 
+        : t('installment.offerRejected', 'تم رفض العرض');
+      addToast(message, 'success');
       await loadData();
       if (selectedRequest) {
         const updatedRequest = await MockApi.getInstallmentRequestById(selectedRequest.id);
@@ -119,7 +117,7 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
         await loadOffersForRequest(selectedRequest.id);
       }
     } catch (error: any) {
-      addToast({ type: 'error', message: error.message || t('installment.actionError', 'حدث خطأ') });
+      addToast(error.message || t('installment.actionError', 'حدث خطأ'), 'error');
     } finally {
       setProcessingAction(false);
     }
@@ -131,11 +129,11 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
     setProcessingAction(true);
     try {
       await MockApi.cancelInstallmentRequest(requestId);
-      addToast({ type: 'success', message: t('installment.requestCancelled', 'تم إلغاء الطلب') });
+      addToast(t('installment.requestCancelled', 'تم إلغاء الطلب'), 'success');
       await loadData();
       setSelectedRequest(null);
     } catch (error: any) {
-      addToast({ type: 'error', message: error.message || t('installment.cancelError', 'حدث خطأ في الإلغاء') });
+      addToast(error.message || t('installment.cancelError', 'حدث خطأ في الإلغاء'), 'error');
     } finally {
       setProcessingAction(false);
     }
@@ -730,19 +728,19 @@ const NewRequestModal = ({
     const totalValue = useProducts ? calculateTotalFromItems() : form.totalRequestedValue;
     
     if (totalValue < (settings.minRequestAmount || 0)) {
-      addToast({ type: 'error', message: t('installment.minAmountError', 'القيمة أقل من الحد الأدنى المسموح') });
+      addToast(t('installment.minAmountError', 'القيمة أقل من الحد الأدنى المسموح'), 'error');
       return;
     }
     
     if (settings.maxRequestAmount && totalValue > settings.maxRequestAmount) {
-      addToast({ type: 'error', message: t('installment.maxAmountError', 'القيمة أكبر من الحد الأقصى المسموح') });
+      addToast(t('installment.maxAmountError', 'القيمة أكبر من الحد الأقصى المسموح'), 'error');
       return;
     }
     
     if (settings.requireDownPayment) {
       const minDown = (totalValue * (settings.minDownPaymentPercent || 10)) / 100;
       if (form.downPaymentAmount < minDown) {
-        addToast({ type: 'error', message: t('installment.minDownPaymentError', 'الدفعة المقدمة أقل من الحد الأدنى') });
+        addToast(t('installment.minDownPaymentError', 'الدفعة المقدمة أقل من الحد الأدنى'), 'error');
         return;
       }
     }
@@ -771,10 +769,10 @@ const NewRequestModal = ({
         notes: form.notes || undefined
       });
       
-      addToast({ type: 'success', message: t('installment.requestCreated', 'تم تقديم الطلب بنجاح') });
+      addToast(t('installment.requestCreated', 'تم تقديم الطلب بنجاح'), 'success');
       onSuccess();
     } catch (error: any) {
-      addToast({ type: 'error', message: error.message || t('installment.createError', 'حدث خطأ في تقديم الطلب') });
+      addToast(error.message || t('installment.createError', 'حدث خطأ في تقديم الطلب'), 'error');
     } finally {
       setSubmitting(false);
     }

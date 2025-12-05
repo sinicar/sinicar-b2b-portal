@@ -101,7 +101,7 @@ export const AdminInstallmentsPage = () => {
       setCreditProfiles(profilesData);
       setStats(statsData);
     } catch (error) {
-      addToast({ type: 'error', message: t('installment.loadError', 'حدث خطأ في تحميل البيانات') });
+      addToast(t('installment.loadError', 'حدث خطأ في تحميل البيانات'), 'error');
     } finally {
       setLoading(false);
     }
@@ -309,9 +309,9 @@ export const AdminInstallmentsPage = () => {
                 try {
                   await MockApi.updateInstallmentSettings(updated);
                   await loadData();
-                  addToast({ type: 'success', message: t('installment.settingsSaved', 'تم حفظ الإعدادات') });
+                  addToast(t('installment.settingsSaved', 'تم حفظ الإعدادات'), 'success');
                 } catch (error) {
-                  addToast({ type: 'error', message: t('installment.settingsError', 'حدث خطأ في حفظ الإعدادات') });
+                  addToast(t('installment.settingsError', 'حدث خطأ في حفظ الإعدادات'), 'error');
                 }
               }}
               t={t}
@@ -344,7 +344,7 @@ export const AdminInstallmentsPage = () => {
                   offer: data?.offer,
                   adminNotes: data?.notes
                 });
-                addToast({ type: 'success', message: t('installment.decisionRecorded', 'تم تسجيل القرار') });
+                addToast(t('installment.decisionRecorded', 'تم تسجيل القرار'), 'success');
               } else if (action === 'reject') {
                 await MockApi.recordSinicarDecision(selectedRequest.id, {
                   decisionType: 'reject',
@@ -352,15 +352,15 @@ export const AdminInstallmentsPage = () => {
                   forwardToSuppliers: data?.forwardToSuppliers,
                   supplierIds: data?.supplierIds
                 });
-                addToast({ type: 'success', message: t('installment.requestRejected', 'تم رفض الطلب') });
+                addToast(t('installment.requestRejected', 'تم رفض الطلب'), 'success');
               } else if (action === 'forward') {
                 await MockApi.forwardRequestToSuppliers(selectedRequest.id, data?.supplierIds || []);
-                addToast({ type: 'success', message: t('installment.forwarded', 'تم تحويل الطلب للموردين') });
+                addToast(t('installment.forwarded', 'تم تحويل الطلب للموردين'), 'success');
               }
               await loadData();
               setSelectedRequest(null);
             } catch (error: any) {
-              addToast({ type: 'error', message: error.message || t('installment.actionError', 'حدث خطأ') });
+              addToast(error.message || t('installment.actionError', 'حدث خطأ'), 'error');
             } finally {
               setProcessingAction(false);
             }

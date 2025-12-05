@@ -69,7 +69,7 @@ export const SupplierInstallmentPage = ({ supplierId, supplierName }: SupplierIn
       setRequests(requestsData);
       setMyOffers(offersData.filter(o => o.supplierId === supplierId));
     } catch (error) {
-      addToast({ type: 'error', message: t('installment.loadError', 'حدث خطأ في تحميل البيانات') });
+      addToast(t('installment.loadError', 'حدث خطأ في تحميل البيانات'), 'error');
     } finally {
       setLoading(false);
     }
@@ -373,7 +373,7 @@ const SubmitOfferModal = ({
 
   const handleSubmit = async () => {
     if (form.totalApprovedValue <= 0) {
-      addToast({ type: 'error', message: t('installment.invalidAmount', 'المبلغ غير صحيح') });
+      addToast(t('installment.invalidAmount', 'المبلغ غير صحيح'), 'error');
       return;
     }
     
@@ -393,10 +393,10 @@ const SubmitOfferModal = ({
         }
       );
       
-      addToast({ type: 'success', message: t('installment.offerSubmitted', 'تم تقديم العرض بنجاح') });
+      addToast(t('installment.offerSubmitted', 'تم تقديم العرض بنجاح'), 'success');
       onSuccess();
     } catch (error: any) {
-      addToast({ type: 'error', message: error.message || t('installment.offerError', 'حدث خطأ في تقديم العرض') });
+      addToast(error.message || t('installment.offerError', 'حدث خطأ في تقديم العرض'), 'error');
     } finally {
       setSubmitting(false);
     }

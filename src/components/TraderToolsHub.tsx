@@ -159,10 +159,7 @@ export const TraderToolsHub = ({ user, profile }: TraderToolsHubProps) => {
         setToolsAccess(access);
       } catch (error) {
         console.error('Failed to load tools access:', error);
-        addToast({
-          type: 'error',
-          message: t('traderTools.loadError', 'حدث خطأ أثناء تحميل الأدوات')
-        });
+        addToast(t('traderTools.loadError', 'حدث خطأ أثناء تحميل الأدوات'), 'error');
       } finally {
         setLoading(false);
       }
@@ -176,10 +173,7 @@ export const TraderToolsHub = ({ user, profile }: TraderToolsHubProps) => {
     if (access?.hasAccess) {
       setActiveTool(toolKey);
     } else if (access?.isInMaintenanceMode) {
-      addToast({
-        type: 'warning',
-        message: t('traderTools.maintenanceMessage', 'هذه الأداة تحت الصيانة حالياً')
-      });
+      addToast(t('traderTools.maintenanceMessage', 'هذه الأداة تحت الصيانة حالياً'), 'info');
     }
   };
   

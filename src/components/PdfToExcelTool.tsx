@@ -46,10 +46,7 @@ export const PdfToExcelTool = ({ user, profile, onClose }: PdfToExcelToolProps) 
       );
       
       if (newFiles.length !== allFiles.length) {
-        addToast({
-          type: 'warning',
-          message: t('pdfToExcel.onlyPdfAllowed', 'يُسمح فقط بملفات PDF')
-        });
+        addToast(t('pdfToExcel.onlyPdfAllowed', 'يُسمح فقط بملفات PDF'), 'info');
       }
       
       setFiles(prev => [...prev, ...newFiles]);
@@ -78,10 +75,7 @@ export const PdfToExcelTool = ({ user, profile, onClose }: PdfToExcelToolProps) 
     if (droppedFiles.length > 0) {
       setFiles(prev => [...prev, ...droppedFiles]);
     } else {
-      addToast({
-        type: 'warning',
-        message: t('pdfToExcel.onlyPdfAllowed', 'يُسمح فقط بملفات PDF')
-      });
+      addToast(t('pdfToExcel.onlyPdfAllowed', 'يُسمح فقط بملفات PDF'), 'info');
     }
   }, [addToast, t]);
   
@@ -215,10 +209,7 @@ export const PdfToExcelTool = ({ user, profile, onClose }: PdfToExcelToolProps) 
     setIsProcessing(false);
     setFiles([]);
     
-    addToast({
-      type: 'success',
-      message: t('pdfToExcel.conversionComplete', 'تم تحويل الملفات بنجاح')
-    });
+    addToast(t('pdfToExcel.conversionComplete', 'تم تحويل الملفات بنجاح'), 'success');
   };
   
   const downloadFile = (conversion: ConversionResult) => {

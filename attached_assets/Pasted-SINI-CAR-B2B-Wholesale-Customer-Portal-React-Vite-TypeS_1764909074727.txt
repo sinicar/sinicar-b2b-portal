@@ -1,0 +1,502 @@
+SINI CAR – B2B Wholesale Customer Portal
+(React + Vite + TypeScript + Tailwind + mockApi + LocalStorage + i18n AR/EN/HI/ZH)
+
+Your task:
+Extend the system so that every main account type (Customer, Supplier, Advertiser, Affiliate/Marketer, etc.) can have their own employees/sub-users, with fine-grained permissions and full supervision over what their employees do across all existing features (Advertising, Trader Tools, Supplier Marketplace, Installment Requests, etc.).
+
+This feature is called:
+
+“Team & Sub-User Management per Account”
+
+GLOBAL RULES:
+
+Read the entire existing codebase and previous additions (Advertising System, Installment Wholesale Requests, Supplier Marketplace, Trader Tools, Affiliates) before coding.
+
+Do NOT delete or rewrite any existing logic for Admin, Customers, Suppliers, Advertisers, Installments, or Tools. Only extend.
+
+Follow the current style (React + TypeScript + Tailwind via CDN + mockApi + LocalStorage + i18n).
+
+Every behavior in this feature must be driven by SETTINGS, not hard-coded, to reduce future programming needs.
+
+All data lives in mockApi + LocalStorage. No external backend.
+
+PART 1 — CONCEPT: ORGANIZATIONS & TEAM USERS
+
+We treat these as “account owners” (organizations):
+
+SINI CAR (global owner / platform owner) – already handled by Admin.
+
+Wholesale Customer Accounts (B2B customers).
+
+Suppliers (in Supplier Marketplace).
+
+Advertisers (in Advertising module).
+
+Affiliates / Marketers (in Affiliate module).
+
+Each “account owner” can have:
+
+An Owner user (already existing in the system).
+
+A set of Employees / Sub-Users (team members) with limited and scoped permissions.
+
+We will add generic models to represent:
+
+Organization
+
+OrganizationUser (team member)
+
+ScopedPermissions (per organization and per feature)
+
+These will be reused for:
+
+Customer teams
+
+Supplier teams
+
+Advertiser teams
+
+Affiliate/Marketer teams
+
+PART 2 — DATA MODELS
+
+Create a new models file, for example:
+src/models/organizations.ts
+
+Organization
+
+Represents any business account that can have a team.
+
+export type OrganizationType =
+| 'customer'
+| 'supplier'
+| 'advertiser'
+| 'affiliate'
+| 'platform'; // for SINI CAR itself if needed
+
+export interface Organization {
+id: string;
+type: OrganizationType;
+// Link to existing entities:
+customerId?: string; // if type === 'customer'
+supplierId?: string; // if type === 'supplier'
+advertiserId?: string; // if type === 'advertiser'
+affiliateId?: string; // if type === 'affiliate'
+
+name: string; // display name for the organization
+ownerUserId: string; // main account owner (already exists as a user)
+
+isActive: boolean;
+createdAt: string;
+updatedAt: string;
+}
+
+OrganizationUser (Team Member / Sub-User)
+
+Represents an employee user under an Organization.
+
+export type OrganizationUserRole =
+| 'owner' // main account owner (full control within this organization scope)
+| 'manager'
+| 'staff'
+| 'readonly';
+
+export interface OrganizationUser {
+id: string;
+organizationId: string;
+userId: string; // reference to the main User model in the system
+
+role: OrganizationUserRole;
+
+// For fine-grained permissions inside this organization:
+permissions: ScopedPermissionKey[];
+
+isActive: boolean;
+createdAt: string;
+updatedAt: string;
+}
+
+ScopedPermissionKey
+
+Define a union type to represent all feature-specific permissions for sub-users.
+You should integrate with the existing permissions system, but scoped per organization:
+
+export type ScopedPermissionKey =
+// Advertising module (Advertiser org):
+| 'adv_view_campaigns'
+| 'adv_manage_campaigns'
+| 'adv_manage_slots'
+| 'adv_view_reports'
+
+// Supplier module:
+| 'sup_view_forwarded_requests'
+| 'sup_submit_offers'
+| 'sup_view_team_activity'
+
+// Customer (wholesale) module:
+| 'cust_create_orders'
+| 'cust_create_installment_requests'
+| 'cust_manage_installment_requests'
+| 'cust_use_trader_tools'
+| 'cust_view_team_activity'
+
+// Affiliate/Marketer module:
+| 'aff_view_links'
+| 'aff_manage_links'
+| 'aff_view_commissions'
+
+// General:
+| 'org_manage_team'
+| 'org_view_logs';
+
+This list can be extended, but start with something like the above.
+
+OrganizationSettings
+
+We want the behavior of teams to be fully controlled by settings (per organization type).
+
+export interface OrganizationSettings {
+// Global toggle:
+enableTeamsForCustomers: boolean;
+enableTeamsForSuppliers: boolean;
+enableTeamsForAdvertisers: boolean;
+enableTeamsForAffiliates: boolean;
+
+// Limits:
+maxCustomerEmployees: number;
+maxSupplierEmployees: number;
+maxAdvertiserEmployees: number;
+maxAffiliateEmployees: number;
+
+// Default permission templates for each role per org type:
+defaultCustomerManagerPermissions: ScopedPermissionKey[];
+defaultCustomerStaffPermissions: ScopedPermissionKey[];
+defaultSupplierManagerPermissions: ScopedPermissionKey[];
+defaultSupplierStaffPermissions: ScopedPermissionKey[];
+defaultAdvertiserManagerPermissions: ScopedPermissionKey[];
+defaultAdvertiserStaffPermissions: ScopedPermissionKey[];
+defaultAffiliateManagerPermissions: ScopedPermissionKey[];
+defaultAffiliateStaffPermissions: ScopedPermissionKey[];
+
+// Control if owners can customize permissions manually, or must use templates only:
+allowCustomPermissionsForCustomers: boolean;
+allowCustomPermissionsForSuppliers: boolean;
+allowCustomPermissionsForAdvertisers: boolean;
+allowCustomPermissionsForAffiliates: boolean;
+
+// Audit / Logs:
+trackTeamActivityPerOrganization: boolean;
+}
+
+Store OrganizationSettings in LocalStorage and make them editable from an Admin Settings UI.
+
+PART 3 — mockApi + LOCALSTORAGE
+
+Add mockApi functions to manage:
+
+Organizations
+
+OrganizationUsers (team members)
+
+OrganizationSettings
+
+Team activity logs (if you have a logs system, extend it; otherwise add a minimal log model)
+
+Use LocalStorage keys like:
+
+"organizations"
+
+"organizationUsers"
+
+"organizationSettings"
+
+"organizationActivityLogs" (if needed)
+
+Functions:
+
+Organizations:
+
+getOrganizationByCustomer(customerId)
+
+getOrganizationBySupplier(supplierId)
+
+getOrganizationByAdvertiser(advertiserId)
+
+getOrganizationByAffiliate(affiliateId)
+
+getOrCreateOrganizationForEntity(type, entityId, name, ownerUserId)
+(This will ensure each entity has a single Organization record.)
+
+Organization Users:
+
+getOrganizationUsers(orgId)
+
+getOrganizationUser(orgId, userId)
+
+createOrganizationUser(orgId, userPayload)
+
+updateOrganizationUser(id, partialData)
+
+deactivateOrganizationUser(id)
+
+Organization Settings:
+
+getOrganizationSettings()
+
+updateOrganizationSettings(partialSettings)
+
+Permissions helper:
+
+hasScopedPermission(userId, orgId, permissionKey): boolean
+
+Checks if this user belongs to this org and has the specific ScopedPermissionKey.
+
+Integrate with the existing auth/user context.
+
+Optional logs:
+
+logOrganizationActivity(orgId, userId, actionType, metadata)
+
+Extend existing logging system if present.
+
+This will let owners/admins review what each team member did.
+
+PART 4 — OWNER UI: MANAGE TEAM MEMBERS
+
+Each account type (Customer, Supplier, Advertiser, Affiliate) should have a “Team” or “Employees” section in their portal.
+
+Examples:
+
+Customer Portal:
+
+Route: /customer/team
+
+Only visible if OrganizationSettings.enableTeamsForCustomers is true.
+
+Only accessible by:
+
+the owner of that customer organization, or
+
+users with 'org_manage_team' scoped permission.
+
+Supplier Portal:
+
+Route: /supplier/team
+
+Advertiser Portal:
+
+Route: /advertiser/team
+
+Affiliate Portal:
+
+Route: /affiliate/team
+
+Each "Team" page should:
+
+Show a list of team members (OrganizationUsers) under that organization.
+
+name / email
+
+role (owner/manager/staff/readonly)
+
+active/inactive
+
+last activity (optional if logs available)
+
+Provide actions (depending on settings and permissions):
+
+Invite/Add new team member:
+
+by email / username (depending on existing User model)
+
+assign role (manager/staff/readonly)
+
+auto-assign default permissions based on OrganizationSettings templates.
+
+Edit team member:
+
+change role
+
+if allowed by settings, customize permissions (ScopedPermissionKey[])
+
+Deactivate team member:
+
+set isActive = false (do not delete).
+
+Optional: “Team Activity” tab for that org:
+
+If OrganizationSettings.trackTeamActivityPerOrganization is true:
+
+Show last actions done by each member (from logs).
+
+All UI must respect i18n + RTL + existing layout components.
+
+PART 5 — INTEGRATION WITH EXISTING FEATURES
+
+For each major feature, integrate team permissions:
+
+Advertising (Advertisers and their employees):
+
+In the Advertising module (Advertiser Portal):
+
+Only users with appropriate scoped permissions can:
+
+View campaigns: adv_view_campaigns
+
+Create/edit campaigns: adv_manage_campaigns
+
+Manage ad slots (if allowed): adv_manage_slots
+
+View reports: adv_view_reports
+
+The owner automatically has full advertiser-scoped permissions within their own organization.
+
+Supplier Marketplace (Suppliers and their employees):
+
+In the Supplier Portal:
+
+Only users with:
+
+sup_view_forwarded_requests → can see forwarded installment/wholesale requests.
+
+sup_submit_offers → can create offers in response to forwarded requests.
+
+sup_view_team_activity → can view team logs if implemented.
+
+Customer Portal (Wholesale customers and their employees):
+
+In the Customer Portal:
+
+cust_create_orders → can place wholesale orders.
+
+cust_create_installment_requests → can create installment/credit requests.
+
+cust_manage_installment_requests → can manage/track installment requests and offers.
+
+cust_use_trader_tools → can access Trader Tools (PDF→Excel, VIN, Price Comparison).
+
+cust_view_team_activity → can see what other employees did (if logs implemented).
+
+Affiliates / Marketers:
+
+In the Affiliate Portal:
+
+aff_view_links → view referral links.
+
+aff_manage_links → create/edit referral links.
+
+aff_view_commissions → view commission reports.
+
+Global / Organization-level:
+
+If a user has org_manage_team in a given organization:
+
+They can access the Team Management pages for that org.
+If they have org_view_logs:
+
+They can view team-related activity logs.
+
+PART 6 — ADMIN-LEVEL CONTROL (PLATFORM SETTINGS)
+
+Add a new Admin Settings page (or tab) for:
+
+“Organization & Team Settings”
+
+Route example:
+
+/admin/settings/organizations
+
+In this page, connect to OrganizationSettings and allow the platform admin to configure:
+
+enableTeamsForCustomers (toggle)
+
+enableTeamsForSuppliers (toggle)
+
+enableTeamsForAdvertisers (toggle)
+
+enableTeamsForAffiliates (toggle)
+
+maxCustomerEmployees (number)
+
+maxSupplierEmployees (number)
+
+maxAdvertiserEmployees (number)
+
+maxAffiliateEmployees (number)
+
+For each organization type:
+
+defaultManagerPermissions (multi-select from ScopedPermissionKey list)
+
+defaultStaffPermissions (same)
+
+allowCustomPermissions (true/false)
+
+trackTeamActivityPerOrganization (toggle)
+
+These settings must fully control how teams behave, instead of hard-coding limits or rules.
+
+PART 7 — AUTH & CONTEXT ADAPTATION
+
+Integrate with the existing authentication and user context:
+
+When a user logs in and selects a specific “portal” (Customer/Supplier/Advertiser/Affiliate), the system should determine:
+
+Which organization they are operating under (Organization).
+
+What OrganizationUser record they have, if any.
+
+Which ScopedPermissionKey[] they have in this organization.
+
+Use helper functions (in a shared hooks/service file) like:
+
+useCurrentOrganization()
+
+useOrganizationPermissions(orgId)
+
+hasScopedPermission(permissionKey)
+
+Use these helpers in all relevant components instead of spreading logic.
+
+PART 8 — PERMISSIONS & i18n
+
+Permissions:
+If there is a global permission system, extend it with:
+
+canUseTeamsModule (admin-level)
+
+canViewOrganizationSettings
+
+canEditOrganizationSettings
+
+Use these for Admin UI.
+
+i18n:
+For all new labels, headings, descriptions, and error messages:
+
+Add translation keys (AR/EN minimum) instead of hardcoding text.
+
+Examples:
+
+"organization.team.title"
+
+"organization.team.addMember"
+
+"organization.team.role.manager"
+
+"organization.settings.maxCustomerEmployees"
+Etc.
+
+FINAL NOTES
+
+Keep everything in this feature driven by OrganizationSettings and ScopedPermissionKey, not hard-coded branching.
+
+Do not change or break the existing User model, just connect it to OrganizationUser where needed.
+
+Reuse existing components for tables, modals, tabs, and forms to maintain consistent UI.
+
+Make sure each account owner (Customer, Supplier, Advertiser, Affiliate) can fully manage their own team and see what they are allowed to see — nothing more.
+
+Read this entire specification before coding, then implement it step-by-step, keeping TypeScript types strict and consistent with the rest of the SINI CAR project.
+
+END OF SPECIFICATION.

@@ -107,10 +107,7 @@ export const VinExtractorTool = ({ user, profile, onClose }: VinExtractorToolPro
       );
       
       if (newFiles.length !== allFiles.length) {
-        addToast({
-          type: 'warning',
-          message: t('vinExtractor.onlyImagesAllowed', 'يُسمح فقط بملفات الصور')
-        });
+        addToast(t('vinExtractor.onlyImagesAllowed', 'يُسمح فقط بملفات الصور'), 'info');
       }
       
       setImages(prev => [...prev, ...newFiles]);
@@ -139,10 +136,7 @@ export const VinExtractorTool = ({ user, profile, onClose }: VinExtractorToolPro
     if (droppedFiles.length > 0) {
       setImages(prev => [...prev, ...droppedFiles]);
     } else {
-      addToast({
-        type: 'warning',
-        message: t('vinExtractor.onlyImagesAllowed', 'يُسمح فقط بملفات الصور')
-      });
+      addToast(t('vinExtractor.onlyImagesAllowed', 'يُسمح فقط بملفات الصور'), 'info');
     }
   }, [addToast, t]);
   
@@ -227,26 +221,17 @@ export const VinExtractorTool = ({ user, profile, onClose }: VinExtractorToolPro
     setIsProcessing(false);
     setImages([]);
     
-    addToast({
-      type: 'success',
-      message: t('vinExtractor.processingComplete', 'تمت معالجة الصور')
-    });
+    addToast(t('vinExtractor.processingComplete', 'تمت معالجة الصور'), 'success');
   };
   
   const copyVin = (vin: string) => {
     navigator.clipboard.writeText(vin);
-    addToast({
-      type: 'success',
-      message: t('vinExtractor.vinCopied', 'تم نسخ رقم الشاصي')
-    });
+    addToast(t('vinExtractor.vinCopied', 'تم نسخ رقم الشاصي'), 'success');
   };
   
   const lookupManualVin = () => {
     if (manualVin.length !== 17) {
-      addToast({
-        type: 'error',
-        message: t('vinExtractor.invalidVinLength', 'رقم الشاصي يجب أن يكون 17 حرف')
-      });
+      addToast(t('vinExtractor.invalidVinLength', 'رقم الشاصي يجب أن يكون 17 حرف'), 'error');
       return;
     }
     
@@ -265,10 +250,7 @@ export const VinExtractorTool = ({ user, profile, onClose }: VinExtractorToolPro
     setResults(prev => [newResult, ...prev]);
     setManualVin('');
     
-    addToast({
-      type: 'success',
-      message: t('vinExtractor.vinDecoded', 'تم فك تشفير رقم الشاصي')
-    });
+    addToast(t('vinExtractor.vinDecoded', 'تم فك تشفير رقم الشاصي'), 'success');
   };
   
   const clearResults = () => {
