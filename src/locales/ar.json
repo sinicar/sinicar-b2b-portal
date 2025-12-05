@@ -835,6 +835,7 @@
     "installments": "طلبات التقسيط",
     "advertising": "الإعلانات",
     "customerPortalSettings": "إعدادات بوابة العميل",
+    "aiSettings": "إعدادات الذكاء الاصطناعي",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -858,7 +859,8 @@
       "installments": "إدارة طلبات التقسيط",
       "advertising": "إدارة الإعلانات",
       "customerPortal": "إعدادات بوابة العميل",
-      "teamSettings": "المنظمات والفرق"
+      "teamSettings": "المنظمات والفرق",
+      "aiSettings": "إعدادات الذكاء الاصطناعي"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",
@@ -912,7 +914,8 @@
       "installments": "طلبات التقسيط",
       "advertising": "الإعلانات",
       "teamSettings": "المنظمات والفرق",
-      "customerPortal": "بوابة العميل"
+      "customerPortal": "بوابة العميل",
+      "aiSettings": "الذكاء الاصطناعي"
     },
     "onlineUsers": {
       "title": "العملاء المتصلين الآن",
@@ -2513,6 +2516,115 @@
     },
     "cards": {
       "info": "بطاقات المعلومات"
+    }
+  },
+  "aiSettings": {
+    "title": "إعدادات الذكاء الاصطناعي",
+    "description": "إدارة مزودي الذكاء الاصطناعي وميزاتهم",
+    "globalEnable": "تفعيل الذكاء الاصطناعي",
+    "globalEnableDesc": "تفعيل أو تعطيل جميع ميزات الذكاء الاصطناعي",
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "resetDefaults": "إعادة تعيين",
+    "saveChanges": "حفظ التغييرات",
+    "savedSuccess": "تم حفظ إعدادات الذكاء الاصطناعي بنجاح",
+    "resetSuccess": "تم إعادة تعيين الإعدادات",
+    "confirmReset": "هل أنت متأكد من إعادة تعيين جميع إعدادات الذكاء الاصطناعي؟",
+    "tabs": {
+      "providers": "مزودي الخدمة",
+      "features": "الميزات",
+      "limits": "حدود الاستخدام",
+      "prompts": "النصوص التوجيهية",
+      "safety": "الأمان والخصوصية"
+    },
+    "providers": {
+      "title": "مزودي الذكاء الاصطناعي",
+      "description": "إدارة اتصالات OpenAI و Gemini و Anthropic",
+      "default": "افتراضي",
+      "enabled": "مفعل",
+      "disabled": "معطل",
+      "apiKey": "مفتاح API",
+      "apiKeyPlaceholder": "أدخل مفتاح API",
+      "apiKeyNote": "يمكن ترك هذا الحقل فارغاً لاستخدام Replit AI",
+      "model": "النموذج",
+      "maxTokens": "الحد الأقصى للرموز",
+      "rateLimit": "حدود الطلبات",
+      "perMinute": "في الدقيقة",
+      "perDay": "في اليوم",
+      "chat": "محادثة",
+      "imageGen": "توليد الصور",
+      "vision": "رؤية",
+      "audio": "صوت",
+      "setDefault": "تعيين كافتراضي"
+    },
+    "features": {
+      "customerTitle": "ميزات العملاء",
+      "customerDesc": "ميزات الذكاء الاصطناعي المتاحة للعملاء",
+      "adminTitle": "ميزات المشرفين",
+      "adminDesc": "ميزات الذكاء الاصطناعي المتاحة للمشرفين",
+      "marketingTitle": "ميزات التسويق",
+      "enableAIAssistant": "المساعد الذكي",
+      "enableAIAssistantDesc": "مساعد دردشة يساعد العملاء في الاستفسارات",
+      "enableAIProductSearch": "البحث الذكي",
+      "enableAIProductSearchDesc": "بحث محسن بالذكاء الاصطناعي عن المنتجات",
+      "enableAIPartMatching": "مطابقة القطع",
+      "enableAIPartMatchingDesc": "مطابقة ذكية لأرقام القطع",
+      "enableAIVinDecoding": "فك شيفرة VIN",
+      "enableAIVinDecodingDesc": "استخراج معلومات السيارة من رقم الهيكل",
+      "enableAIPriceAnalysis": "تحليل الأسعار",
+      "enableAIPriceAnalysisDesc": "مقارنة وتحليل الأسعار",
+      "enableAITranslation": "الترجمة الفورية",
+      "enableAITranslationDesc": "ترجمة تلقائية للمحتوى",
+      "enableAIOrderAnalysis": "تحليل الطلبات",
+      "enableAIOrderAnalysisDesc": "تحليل ذكي لبيانات الطلبات",
+      "enableAICustomerInsights": "رؤى العملاء",
+      "enableAICustomerInsightsDesc": "تحليل سلوك العملاء",
+      "enableAIReports": "التقارير الذكية",
+      "enableAIReportsDesc": "توليد تقارير تلقائية",
+      "enableAIFraudDetection": "كشف الاحتيال",
+      "enableAIFraudDetectionDesc": "اكتشاف الأنشطة المشبوهة",
+      "enableAIInventoryPrediction": "توقع المخزون",
+      "enableAIInventoryPredictionDesc": "توقع احتياجات المخزون",
+      "enableAIContentGeneration": "توليد المحتوى",
+      "enableAIContentGenerationDesc": "إنشاء محتوى تسويقي تلقائي",
+      "enableAICampaignOptimization": "تحسين الحملات",
+      "enableAICampaignOptimizationDesc": "تحسين الحملات الإعلانية تلقائياً"
+    },
+    "limits": {
+      "title": "حدود الاستخدام",
+      "description": "تعيين حدود الاستخدام حسب دور المستخدم",
+      "dailyRequests": "الطلبات اليومية",
+      "monthlyRequests": "الطلبات الشهرية",
+      "maxTokens": "الحد الأقصى للرموز لكل طلب",
+      "role": {
+        "customer": "عميل",
+        "admin": "مشرف",
+        "super_admin": "مشرف عام"
+      }
+    },
+    "prompts": {
+      "title": "النصوص التوجيهية",
+      "description": "تخصيص النصوص التوجيهية للذكاء الاصطناعي",
+      "customerAssistant": "المساعد الذكي للعملاء",
+      "customerAssistantDesc": "النص التوجيهي لمساعد الدردشة",
+      "productSearch": "البحث عن المنتجات",
+      "productSearchDesc": "النص التوجيهي للبحث الذكي",
+      "partMatching": "مطابقة القطع",
+      "partMatchingDesc": "النص التوجيهي لمطابقة أرقام القطع"
+    },
+    "safety": {
+      "title": "الأمان والخصوصية",
+      "description": "إعدادات أمان الذكاء الاصطناعي",
+      "contentModeration": "مراقبة المحتوى",
+      "contentModerationDesc": "تصفية المحتوى غير المناسب",
+      "blockedTopics": "المواضيع المحظورة",
+      "blockedTopicsDesc": "قائمة المواضيع التي لن يناقشها الذكاء الاصطناعي",
+      "addTopic": "أضف موضوع واضغط Enter",
+      "maxConversation": "الحد الأقصى للمحادثة",
+      "maxConversationDesc": "عدد الرسائل القصوى في المحادثة الواحدة",
+      "trackUsage": "تتبع الاستخدام",
+      "trackUsageDesc": "تسجيل استخدام الذكاء الاصطناعي",
+      "trackCosts": "تتبع التكاليف",
+      "trackCostsDesc": "حساب تكاليف API"
     }
   }
 }

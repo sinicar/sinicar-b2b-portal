@@ -2580,3 +2580,564 @@ export interface CustomerPortalSettings {
   lastModifiedAt: string;
   lastModifiedBy?: string;
 }
+
+// ===========================================
+// AI SETTINGS & INTEGRATION TYPES
+// ===========================================
+
+// AI Provider Types
+export type AIProvider = 'openai' | 'gemini' | 'anthropic' | 'custom';
+
+export type AIModelType = 
+  | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4' | 'gpt-3.5-turbo'
+  | 'gemini-2.5-pro' | 'gemini-2.5-flash' | 'gemini-pro'
+  | 'claude-sonnet-4-5' | 'claude-opus-4-5' | 'claude-haiku-4-5';
+
+// AI Provider Configuration
+export interface AIProviderConfig {
+  id: string;
+  provider: AIProvider;
+  displayName: MultilingualText;
+  enabled: boolean;
+  isDefault: boolean;
+  
+  // API Configuration
+  apiKey?: string;
+  apiEndpoint?: string;
+  model: AIModelType | string;
+  
+  // Rate Limiting
+  maxTokens: number;
+  maxRequestsPerMinute: number;
+  maxRequestsPerDay: number;
+  
+  // Features
+  supportsChat: boolean;
+  supportsImageGeneration: boolean;
+  supportsVision: boolean;
+  supportsAudio: boolean;
+  
+  // Pricing Info
+  inputTokenCost?: number;  // Cost per 1000 tokens
+  outputTokenCost?: number;
+}
+
+// AI Feature Configuration - where AI can be used
+export interface AIFeatureSettings {
+  // Customer Portal AI Features
+  enableAIAssistant: boolean;          // مساعد ذكي للعملاء
+  enableAIProductSearch: boolean;      // بحث ذكي عن المنتجات
+  enableAIPartMatching: boolean;       // مطابقة القطع بالذكاء الاصطناعي
+  enableAIVinDecoding: boolean;        // فك رموز VIN
+  enableAIPriceAnalysis: boolean;      // تحليل الأسعار
+  enableAITranslation: boolean;        // ترجمة تلقائية
+  
+  // Admin AI Features
+  enableAIOrderAnalysis: boolean;      // تحليل الطلبات
+  enableAICustomerInsights: boolean;   // رؤى العملاء
+  enableAIReports: boolean;            // تقارير ذكية
+  enableAIFraudDetection: boolean;     // كشف الاحتيال
+  enableAIInventoryPrediction: boolean;// توقع المخزون
+  
+  // Marketer/Affiliate AI Features
+  enableAIContentGeneration: boolean;  // توليد المحتوى
+  enableAICampaignOptimization: boolean; // تحسين الحملات
+}
+
+// AI Usage Limits per User Role
+export interface AIUsageLimits {
+  role: UserRole;
+  dailyRequests: number;
+  monthlyRequests: number;
+  maxTokensPerRequest: number;
+  allowedFeatures: string[];  // Feature keys from AIFeatureSettings
+}
+
+// AI Chat Message
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  provider?: AIProvider;
+  model?: string;
+  tokensUsed?: number;
+}
+
+// AI Conversation Session
+export interface AIConversation {
+  id: string;
+  userId: string;
+  title: string;
+  messages: AIChatMessage[];
+  provider: AIProvider;
+  model: string;
+  createdAt: string;
+  updatedAt: string;
+  totalTokensUsed: number;
+}
+
+// AI Usage Log Entry
+export interface AIUsageLog {
+  id: string;
+  userId: string;
+  provider: AIProvider;
+  model: string;
+  feature: string;  // Which AI feature was used
+  inputTokens: number;
+  outputTokens: number;
+  cost?: number;
+  timestamp: string;
+  success: boolean;
+  errorMessage?: string;
+}
+
+// Complete AI Settings Configuration
+export interface AISettings {
+  id: string;
+  
+  // Global Settings
+  enabled: boolean;
+  defaultProvider: AIProvider;
+  
+  // Provider Configurations
+  providers: AIProviderConfig[];
+  
+  // Feature Settings
+  features: AIFeatureSettings;
+  
+  // Usage Limits by Role
+  usageLimits: AIUsageLimits[];
+  
+  // System Prompts
+  systemPrompts: {
+    customerAssistant: MultilingualText;
+    productSearch: MultilingualText;
+    partMatching: MultilingualText;
+  };
+  
+  // Safety & Moderation
+  enableContentModeration: boolean;
+  blockedTopics: string[];
+  maxConversationLength: number;
+  
+  // Analytics
+  trackUsage: boolean;
+  trackCosts: boolean;
+  
+  // Metadata
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// TRADER TOOLS STORAGE TYPES
+// ===========================================
+
+// Saved Price Comparison
+export interface SavedPriceComparison {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  partNumber: string;
+  partName: string;
+  suppliers: {
+    supplierId: string;
+    supplierName: string;
+    price: number;
+    currency: string;
+    availability: string;
+    deliveryTime?: string;
+    notes?: string;
+  }[];
+  bestPrice: number;
+  averagePrice: number;
+  createdAt: string;
+  updatedAt: string;
+  tags?: string[];
+}
+
+// Saved VIN Extraction
+export interface SavedVinExtraction {
+  id: string;
+  userId: string;
+  name: string;
+  vin: string;
+  vehicleInfo: {
+    make: string;
+    model: string;
+    year: number;
+    engineType?: string;
+    transmission?: string;
+    bodyType?: string;
+    country?: string;
+    plantCode?: string;
+  };
+  extractedParts?: {
+    partNumber: string;
+    partName: string;
+    category: string;
+  }[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  tags?: string[];
+}
+
+// Saved Quote Form Template
+export interface SavedQuoteTemplate {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  items: {
+    partNumber: string;
+    partName: string;
+    quantity: number;
+    notes?: string;
+  }[];
+  defaultSuppliers?: string[];
+  createdAt: string;
+  updatedAt: string;
+  isPublic: boolean;
+  usageCount: number;
+}
+
+// File Conversion History
+export interface FileConversionRecord {
+  id: string;
+  userId: string;
+  originalFileName: string;
+  originalFileType: string;
+  convertedFileType: string;
+  fileSize: number;
+  rowCount?: number;
+  columnCount?: number;
+  conversionDate: string;
+  downloadUrl?: string;
+  expiresAt?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  errorMessage?: string;
+}
+
+// ===========================================
+// SECURITY & AUTHENTICATION SETTINGS
+// ===========================================
+
+// Two-Factor Authentication Settings
+export interface TwoFactorSettings {
+  enabled: boolean;
+  method: 'sms' | 'email' | 'authenticator' | 'all';
+  requiredForAdmins: boolean;
+  requiredForFinancial: boolean;
+  graceLoginCount: number;  // Number of logins before enforcing
+}
+
+// Login Tracking Entry
+export interface LoginRecord {
+  id: string;
+  userId: string;
+  timestamp: string;
+  ipAddress: string;
+  userAgent: string;
+  location?: {
+    country: string;
+    city: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  success: boolean;
+  failureReason?: string;
+  deviceType: 'desktop' | 'mobile' | 'tablet' | 'unknown';
+  browserName?: string;
+  osName?: string;
+  is2FAUsed: boolean;
+  riskScore?: number;
+}
+
+// Session Management
+export interface ActiveSession {
+  id: string;
+  userId: string;
+  token: string;
+  createdAt: string;
+  lastActiveAt: string;
+  expiresAt: string;
+  ipAddress: string;
+  userAgent: string;
+  deviceInfo?: string;
+  isCurrentSession: boolean;
+}
+
+// Security Settings
+export interface SecuritySettings {
+  id: string;
+  
+  // Password Policy
+  passwordMinLength: number;
+  passwordRequireUppercase: boolean;
+  passwordRequireLowercase: boolean;
+  passwordRequireNumbers: boolean;
+  passwordRequireSymbols: boolean;
+  passwordExpiryDays: number;
+  passwordHistoryCount: number;
+  
+  // Login Security
+  maxLoginAttempts: number;
+  lockoutDurationMinutes: number;
+  sessionTimeoutMinutes: number;
+  allowMultipleSessions: boolean;
+  
+  // 2FA Settings
+  twoFactor: TwoFactorSettings;
+  
+  // IP & Access Control
+  enableIPWhitelist: boolean;
+  ipWhitelist: string[];
+  enableGeoBlocking: boolean;
+  blockedCountries: string[];
+  
+  // Risk Detection
+  enableRiskDetection: boolean;
+  riskThreshold: number;
+  notifyOnSuspiciousLogin: boolean;
+  
+  // Audit
+  enableAuditLog: boolean;
+  auditRetentionDays: number;
+  
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// REPORTING & ANALYTICS TYPES
+// ===========================================
+
+// Report Template
+export interface ReportTemplate {
+  id: string;
+  name: MultilingualText;
+  description: MultilingualText;
+  type: 'sales' | 'inventory' | 'customers' | 'orders' | 'financial' | 'custom';
+  columns: {
+    key: string;
+    label: MultilingualText;
+    type: 'string' | 'number' | 'date' | 'currency' | 'percentage';
+    aggregation?: 'sum' | 'avg' | 'count' | 'min' | 'max';
+  }[];
+  filters: {
+    key: string;
+    label: MultilingualText;
+    type: 'select' | 'date-range' | 'number-range' | 'text';
+    options?: { value: string; label: MultilingualText }[];
+  }[];
+  defaultSortBy: string;
+  defaultSortOrder: 'asc' | 'desc';
+  createdBy?: string;
+  createdAt: string;
+  isSystem: boolean;
+}
+
+// Scheduled Report
+export interface ScheduledReport {
+  id: string;
+  templateId: string;
+  name: string;
+  schedule: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  recipients: string[];  // Email addresses
+  format: 'pdf' | 'excel' | 'csv';
+  filters: Record<string, any>;
+  enabled: boolean;
+  lastRunAt?: string;
+  nextRunAt: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+// Dashboard Widget
+export interface DashboardWidget {
+  id: string;
+  type: 'chart' | 'metric' | 'table' | 'map';
+  title: MultilingualText;
+  dataSource: string;
+  config: {
+    chartType?: 'line' | 'bar' | 'pie' | 'area' | 'donut';
+    metric?: 'sum' | 'count' | 'avg';
+    groupBy?: string;
+    timeRange?: 'today' | 'week' | 'month' | 'year' | 'custom';
+    colors?: string[];
+    showLegend?: boolean;
+    showTrend?: boolean;
+  };
+  position: { x: number; y: number; w: number; h: number };
+  refreshInterval: number;  // seconds
+}
+
+// ===========================================
+// NOTIFICATION SETTINGS TYPES
+// ===========================================
+
+// Extended Notification Channel (adds whatsapp, push to existing)
+export type ExtendedNotificationChannel = NotificationChannel | 'whatsapp' | 'push' | 'in_app';
+
+// Notification Preference
+export interface NotificationPreference {
+  eventType: NotificationType;
+  channels: ExtendedNotificationChannel[];
+  enabled: boolean;
+  frequency?: 'immediate' | 'hourly' | 'daily' | 'weekly';
+}
+
+// Extended Notification Template for Settings
+export interface ExtendedNotificationTemplate {
+  id: string;
+  eventType: NotificationType;
+  channel: ExtendedNotificationChannel;
+  subject: MultilingualText;
+  body: MultilingualText;
+  variables: string[];  // Available template variables
+  isSystemTemplate: boolean;
+  lastModifiedAt: string;
+}
+
+// Advanced Notification Settings for Channels
+export interface AdvancedNotificationSettings {
+  id: string;
+  
+  // Global Settings
+  enabled: boolean;
+  defaultChannels: ExtendedNotificationChannel[];
+  
+  // Channel Configurations
+  emailConfig: {
+    enabled: boolean;
+    senderName: string;
+    senderEmail: string;
+    replyToEmail?: string;
+    smtpHost?: string;
+    smtpPort?: number;
+  };
+  smsConfig: {
+    enabled: boolean;
+    provider: string;
+    senderId?: string;
+  };
+  whatsappConfig: {
+    enabled: boolean;
+    provider: string;
+    phoneNumber?: string;
+  };
+  pushConfig: {
+    enabled: boolean;
+    vapidPublicKey?: string;
+  };
+  
+  // Templates
+  templates: ExtendedNotificationTemplate[];
+  
+  // Default Preferences
+  defaultPreferences: NotificationPreference[];
+  
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// MARKETING SYSTEM TYPES
+// ===========================================
+
+// Coupon/Discount Code
+export interface CouponCode {
+  id: string;
+  code: string;
+  name: MultilingualText;
+  description?: MultilingualText;
+  discountType: 'percentage' | 'fixed' | 'free_shipping';
+  discountValue: number;
+  minOrderValue?: number;
+  maxDiscountAmount?: number;
+  usageLimit?: number;
+  usageCount: number;
+  perUserLimit?: number;
+  applicableCategories?: string[];
+  applicableBrands?: string[];
+  excludedProducts?: string[];
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
+}
+
+// Loyalty Program Level
+export interface LoyaltyLevel {
+  id: string;
+  name: MultilingualText;
+  minPoints: number;
+  maxPoints?: number;
+  benefits: {
+    type: 'discount' | 'free_shipping' | 'priority_support' | 'exclusive_access';
+    value?: number;
+    description: MultilingualText;
+  }[];
+  iconUrl?: string;
+  color: string;
+}
+
+// Loyalty Program Settings
+export interface LoyaltySettings {
+  id: string;
+  enabled: boolean;
+  programName: MultilingualText;
+  pointsPerCurrency: number;  // Points earned per 1 SAR spent
+  pointsRedemptionRate: number;  // SAR value per point when redeeming
+  levels: LoyaltyLevel[];
+  pointsExpiryDays?: number;
+  allowPartialRedemption: boolean;
+  minimumRedemptionPoints: number;
+  lastModifiedAt: string;
+}
+
+// Customer Loyalty Record
+export interface CustomerLoyalty {
+  id: string;
+  userId: string;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+  currentPoints: number;
+  currentLevel: string;  // Level ID
+  transactions: {
+    id: string;
+    type: 'earn' | 'redeem' | 'expire' | 'bonus';
+    points: number;
+    description: string;
+    orderId?: string;
+    createdAt: string;
+  }[];
+  memberSince: string;
+  lastActivityAt: string;
+}
+
+// Promotional Campaign (extends existing MarketingCampaign)
+export interface PromotionalCampaign {
+  id: string;
+  name: MultilingualText;
+  type: 'flash_sale' | 'bundle' | 'buy_x_get_y' | 'seasonal' | 'clearance';
+  description: MultilingualText;
+  startDate: string;
+  endDate: string;
+  rules: {
+    minQuantity?: number;
+    bundleProducts?: string[];
+    discountPercentage?: number;
+    freeProduct?: string;
+    applicableCategories?: string[];
+  };
+  bannerImageUrl?: string;
+  isActive: boolean;
+  priority: number;
+  createdBy: string;
+  createdAt: string;
+}

@@ -831,6 +831,7 @@
     "installments": "Installment Requests",
     "advertising": "Advertising",
     "customerPortalSettings": "Customer Portal Settings",
+    "aiSettings": "AI Settings",
     "connected": "System Connected",
     "slowConnection": "Slow Connection",
     "disconnected": "Disconnected",
@@ -854,7 +855,8 @@
       "installments": "Installment Requests Management",
       "advertising": "Advertising Management",
       "customerPortal": "Customer Portal Settings",
-      "teamSettings": "Organizations & Teams"
+      "teamSettings": "Organizations & Teams",
+      "aiSettings": "AI Settings"
     },
     "stats": {
       "totalRevenue": "Total Revenue",
@@ -908,7 +910,8 @@
       "installments": "Installment Requests",
       "advertising": "Advertising",
       "teamSettings": "Organizations & Teams",
-      "customerPortal": "Customer Portal"
+      "customerPortal": "Customer Portal",
+      "aiSettings": "AI Settings"
     },
     "onlineUsers": {
       "title": "Online Customers",
@@ -2509,6 +2512,115 @@
     },
     "cards": {
       "info": "Info Cards"
+    }
+  },
+  "aiSettings": {
+    "title": "AI Settings",
+    "description": "Manage AI providers and their features",
+    "globalEnable": "Enable AI Features",
+    "globalEnableDesc": "Enable or disable all AI features across the platform",
+    "unsavedChanges": "Unsaved changes",
+    "resetDefaults": "Reset to Defaults",
+    "saveChanges": "Save Changes",
+    "savedSuccess": "AI settings saved successfully",
+    "resetSuccess": "Settings reset to defaults",
+    "confirmReset": "Are you sure you want to reset all AI settings?",
+    "tabs": {
+      "providers": "AI Providers",
+      "features": "Features",
+      "limits": "Usage Limits",
+      "prompts": "System Prompts",
+      "safety": "Safety & Privacy"
+    },
+    "providers": {
+      "title": "AI Providers",
+      "description": "Manage OpenAI, Gemini, and Anthropic connections",
+      "default": "Default",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "Enter API key",
+      "apiKeyNote": "Leave empty to use Replit AI integration",
+      "model": "Model",
+      "maxTokens": "Max Tokens",
+      "rateLimit": "Rate Limits",
+      "perMinute": "Per minute",
+      "perDay": "Per day",
+      "chat": "Chat",
+      "imageGen": "Image Generation",
+      "vision": "Vision",
+      "audio": "Audio",
+      "setDefault": "Set as Default"
+    },
+    "features": {
+      "customerTitle": "Customer Features",
+      "customerDesc": "AI features available to customers",
+      "adminTitle": "Admin Features",
+      "adminDesc": "AI features available to administrators",
+      "marketingTitle": "Marketing Features",
+      "enableAIAssistant": "AI Assistant",
+      "enableAIAssistantDesc": "Chat assistant for customer inquiries",
+      "enableAIProductSearch": "Smart Search",
+      "enableAIProductSearchDesc": "AI-enhanced product search",
+      "enableAIPartMatching": "Part Matching",
+      "enableAIPartMatchingDesc": "Intelligent part number matching",
+      "enableAIVinDecoding": "VIN Decoding",
+      "enableAIVinDecodingDesc": "Extract vehicle info from VIN",
+      "enableAIPriceAnalysis": "Price Analysis",
+      "enableAIPriceAnalysisDesc": "Price comparison and analysis",
+      "enableAITranslation": "Auto Translation",
+      "enableAITranslationDesc": "Automatic content translation",
+      "enableAIOrderAnalysis": "Order Analysis",
+      "enableAIOrderAnalysisDesc": "Intelligent order data analysis",
+      "enableAICustomerInsights": "Customer Insights",
+      "enableAICustomerInsightsDesc": "Customer behavior analysis",
+      "enableAIReports": "Smart Reports",
+      "enableAIReportsDesc": "Automatic report generation",
+      "enableAIFraudDetection": "Fraud Detection",
+      "enableAIFraudDetectionDesc": "Detect suspicious activities",
+      "enableAIInventoryPrediction": "Inventory Prediction",
+      "enableAIInventoryPredictionDesc": "Predict inventory needs",
+      "enableAIContentGeneration": "Content Generation",
+      "enableAIContentGenerationDesc": "Auto-generate marketing content",
+      "enableAICampaignOptimization": "Campaign Optimization",
+      "enableAICampaignOptimizationDesc": "Auto-optimize ad campaigns"
+    },
+    "limits": {
+      "title": "Usage Limits",
+      "description": "Set usage limits by user role",
+      "dailyRequests": "Daily Requests",
+      "monthlyRequests": "Monthly Requests",
+      "maxTokens": "Max Tokens per Request",
+      "role": {
+        "customer": "Customer",
+        "admin": "Administrator",
+        "super_admin": "Super Admin"
+      }
+    },
+    "prompts": {
+      "title": "System Prompts",
+      "description": "Customize AI system prompts",
+      "customerAssistant": "Customer Assistant",
+      "customerAssistantDesc": "System prompt for chat assistant",
+      "productSearch": "Product Search",
+      "productSearchDesc": "System prompt for smart search",
+      "partMatching": "Part Matching",
+      "partMatchingDesc": "System prompt for part number matching"
+    },
+    "safety": {
+      "title": "Safety & Privacy",
+      "description": "AI safety and privacy settings",
+      "contentModeration": "Content Moderation",
+      "contentModerationDesc": "Filter inappropriate content",
+      "blockedTopics": "Blocked Topics",
+      "blockedTopicsDesc": "Topics AI will not discuss",
+      "addTopic": "Add topic and press Enter",
+      "maxConversation": "Max Conversation Length",
+      "maxConversationDesc": "Maximum messages per conversation",
+      "trackUsage": "Track Usage",
+      "trackUsageDesc": "Log AI usage statistics",
+      "trackCosts": "Track Costs",
+      "trackCostsDesc": "Calculate API costs"
     }
   }
 }

@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -6646,5 +6646,585 @@ export const MockApi = {
       const defaults = this.getDefaultCustomerPortalSettings();
       localStorage.setItem('b2b_customer_portal_settings_v1', JSON.stringify(defaults));
       return defaults;
+  },
+
+  // =============================================================================
+  // AI SETTINGS MANAGEMENT
+  // =============================================================================
+
+  async getAISettings(): Promise<AISettings> {
+      const stored = localStorage.getItem('b2b_ai_settings_v1');
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return this.getDefaultAISettings();
+  },
+
+  async saveAISettings(settings: AISettings): Promise<AISettings> {
+      settings.lastModifiedAt = new Date().toISOString();
+      localStorage.setItem('b2b_ai_settings_v1', JSON.stringify(settings));
+      return settings;
+  },
+
+  getDefaultAISettings(): AISettings {
+      return {
+          id: 'ai-settings-1',
+          enabled: true,
+          defaultProvider: 'openai',
+          
+          providers: [
+              {
+                  id: 'openai-provider',
+                  provider: 'openai',
+                  displayName: { ar: 'OpenAI', en: 'OpenAI', hi: 'OpenAI', zh: 'OpenAI' },
+                  enabled: true,
+                  isDefault: true,
+                  model: 'gpt-4o-mini',
+                  maxTokens: 4096,
+                  maxRequestsPerMinute: 60,
+                  maxRequestsPerDay: 1000,
+                  supportsChat: true,
+                  supportsImageGeneration: true,
+                  supportsVision: true,
+                  supportsAudio: false,
+                  inputTokenCost: 0.15,
+                  outputTokenCost: 0.60
+              },
+              {
+                  id: 'gemini-provider',
+                  provider: 'gemini',
+                  displayName: { ar: 'Google Gemini', en: 'Google Gemini', hi: 'Google Gemini', zh: 'Google Gemini' },
+                  enabled: false,
+                  isDefault: false,
+                  model: 'gemini-2.5-flash',
+                  maxTokens: 8192,
+                  maxRequestsPerMinute: 60,
+                  maxRequestsPerDay: 1500,
+                  supportsChat: true,
+                  supportsImageGeneration: true,
+                  supportsVision: true,
+                  supportsAudio: true,
+                  inputTokenCost: 0.075,
+                  outputTokenCost: 0.30
+              },
+              {
+                  id: 'anthropic-provider',
+                  provider: 'anthropic',
+                  displayName: { ar: 'Anthropic Claude', en: 'Anthropic Claude', hi: 'Anthropic Claude', zh: 'Anthropic Claude' },
+                  enabled: false,
+                  isDefault: false,
+                  model: 'claude-sonnet-4-5',
+                  maxTokens: 4096,
+                  maxRequestsPerMinute: 50,
+                  maxRequestsPerDay: 500,
+                  supportsChat: true,
+                  supportsImageGeneration: false,
+                  supportsVision: true,
+                  supportsAudio: false,
+                  inputTokenCost: 3.0,
+                  outputTokenCost: 15.0
+              }
+          ],
+          
+          features: {
+              enableAIAssistant: true,
+              enableAIProductSearch: true,
+              enableAIPartMatching: true,
+              enableAIVinDecoding: true,
+              enableAIPriceAnalysis: true,
+              enableAITranslation: true,
+              enableAIOrderAnalysis: true,
+              enableAICustomerInsights: true,
+              enableAIReports: true,
+              enableAIFraudDetection: false,
+              enableAIInventoryPrediction: false,
+              enableAIContentGeneration: true,
+              enableAICampaignOptimization: false
+          },
+          
+          usageLimits: [
+              {
+                  role: 'SUPER_ADMIN',
+                  dailyRequests: 500,
+                  monthlyRequests: 10000,
+                  maxTokensPerRequest: 8192,
+                  allowedFeatures: ['all']
+              },
+              {
+                  role: 'CUSTOMER_OWNER',
+                  dailyRequests: 100,
+                  monthlyRequests: 2000,
+                  maxTokensPerRequest: 4096,
+                  allowedFeatures: ['enableAIAssistant', 'enableAIProductSearch', 'enableAIPartMatching', 'enableAIVinDecoding', 'enableAIPriceAnalysis']
+              },
+              {
+                  role: 'CUSTOMER_STAFF',
+                  dailyRequests: 50,
+                  monthlyRequests: 1000,
+                  maxTokensPerRequest: 2048,
+                  allowedFeatures: ['enableAIAssistant', 'enableAIProductSearch']
+              }
+          ],
+          
+          systemPrompts: {
+              customerAssistant: {
+                  ar: 'أنت مساعد ذكي لعملاء صيني كار B2B. ساعد العملاء في البحث عن قطع الغيار، الأسعار، وحالة الطلبات. كن مهذباً ومفيداً.',
+                  en: 'You are an AI assistant for SINI CAR B2B customers. Help customers find spare parts, prices, and order status. Be polite and helpful.',
+                  hi: 'आप सिनी कार B2B ग्राहकों के लिए एक एआई सहायक हैं। ग्राहकों को स्पेयर पार्ट्स, कीमतें और ऑर्डर स्थिति खोजने में मदद करें।',
+                  zh: '您是SINI CAR B2B客户的AI助手。帮助客户查找备件、价格和订单状态。请礼貌且乐于助人。'
+              },
+              productSearch: {
+                  ar: 'ساعد المستخدم في البحث عن قطع غيار السيارات الصينية. استخدم أرقام القطع وأسماء العلامات التجارية مثل شانجان، MG، جيلي، هافال.',
+                  en: 'Help the user search for Chinese car spare parts. Use part numbers and brand names like Changan, MG, Geely, Haval.',
+                  hi: 'उपयोगकर्ता को चीनी कार स्पेयर पार्ट्स खोजने में मदद करें। चांगान, एमजी, जीली, हावल जैसे पार्ट नंबर और ब्रांड नाम का उपयोग करें।',
+                  zh: '帮助用户搜索中国汽车零配件。使用零件号和品牌名称，如长安、MG、吉利、哈弗。'
+              },
+              partMatching: {
+                  ar: 'قم بمطابقة القطع بناءً على رقم VIN أو وصف السيارة. حدد القطع المتوافقة مع الموديل والسنة.',
+                  en: 'Match parts based on VIN number or vehicle description. Identify parts compatible with the model and year.',
+                  hi: 'VIN नंबर या वाहन विवरण के आधार पर पार्ट्स का मिलान करें। मॉडल और वर्ष के साथ संगत पार्ट्स की पहचान करें।',
+                  zh: '根据VIN号或车辆描述匹配零件。识别与型号和年份兼容的零件。'
+              }
+          },
+          
+          enableContentModeration: true,
+          blockedTopics: ['weapons', 'drugs', 'violence', 'politics'],
+          maxConversationLength: 50,
+          
+          trackUsage: true,
+          trackCosts: true,
+          
+          lastModifiedAt: new Date().toISOString()
+      };
+  },
+
+  async resetAISettings(): Promise<AISettings> {
+      const defaults = this.getDefaultAISettings();
+      localStorage.setItem('b2b_ai_settings_v1', JSON.stringify(defaults));
+      return defaults;
+  },
+
+  // =============================================================================
+  // AI CONVERSATIONS & USAGE
+  // =============================================================================
+
+  async getAIConversations(userId: string): Promise<AIConversation[]> {
+      const stored = localStorage.getItem(`b2b_ai_conversations_${userId}`);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return [];
+  },
+
+  async saveAIConversation(conversation: AIConversation): Promise<AIConversation> {
+      const conversations = await this.getAIConversations(conversation.userId);
+      const existingIndex = conversations.findIndex(c => c.id === conversation.id);
+      
+      if (existingIndex >= 0) {
+          conversations[existingIndex] = conversation;
+      } else {
+          conversations.unshift(conversation);
+      }
+      
+      // Keep only last 50 conversations
+      const trimmed = conversations.slice(0, 50);
+      localStorage.setItem(`b2b_ai_conversations_${conversation.userId}`, JSON.stringify(trimmed));
+      return conversation;
+  },
+
+  async deleteAIConversation(userId: string, conversationId: string): Promise<boolean> {
+      const conversations = await this.getAIConversations(userId);
+      const filtered = conversations.filter(c => c.id !== conversationId);
+      localStorage.setItem(`b2b_ai_conversations_${userId}`, JSON.stringify(filtered));
+      return true;
+  },
+
+  async getAIUsageLogs(userId?: string): Promise<AIUsageLog[]> {
+      const stored = localStorage.getItem('b2b_ai_usage_logs');
+      let logs: AIUsageLog[] = stored ? JSON.parse(stored) : [];
+      
+      if (userId) {
+          logs = logs.filter(l => l.userId === userId);
+      }
+      
+      return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  },
+
+  async logAIUsage(log: AIUsageLog): Promise<void> {
+      const logs = await this.getAIUsageLogs();
+      logs.unshift(log);
+      // Keep only last 1000 logs
+      const trimmed = logs.slice(0, 1000);
+      localStorage.setItem('b2b_ai_usage_logs', JSON.stringify(trimmed));
+  },
+
+  // =============================================================================
+  // TRADER TOOLS STORAGE - Saved Comparisons & Extractions
+  // =============================================================================
+
+  async getSavedPriceComparisons(userId: string): Promise<SavedPriceComparison[]> {
+      const stored = localStorage.getItem(`b2b_saved_comparisons_${userId}`);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return [];
+  },
+
+  async savePriceComparison(comparison: SavedPriceComparison): Promise<SavedPriceComparison> {
+      const comparisons = await this.getSavedPriceComparisons(comparison.userId);
+      const existingIndex = comparisons.findIndex(c => c.id === comparison.id);
+      
+      if (existingIndex >= 0) {
+          comparisons[existingIndex] = { ...comparison, updatedAt: new Date().toISOString() };
+      } else {
+          comparison.createdAt = new Date().toISOString();
+          comparison.updatedAt = comparison.createdAt;
+          comparisons.unshift(comparison);
+      }
+      
+      localStorage.setItem(`b2b_saved_comparisons_${comparison.userId}`, JSON.stringify(comparisons));
+      return comparison;
+  },
+
+  async deletePriceComparison(userId: string, comparisonId: string): Promise<boolean> {
+      const comparisons = await this.getSavedPriceComparisons(userId);
+      const filtered = comparisons.filter(c => c.id !== comparisonId);
+      localStorage.setItem(`b2b_saved_comparisons_${userId}`, JSON.stringify(filtered));
+      return true;
+  },
+
+  async getSavedVinExtractions(userId: string): Promise<SavedVinExtraction[]> {
+      const stored = localStorage.getItem(`b2b_saved_vins_${userId}`);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return [];
+  },
+
+  async saveVinExtraction(extraction: SavedVinExtraction): Promise<SavedVinExtraction> {
+      const extractions = await this.getSavedVinExtractions(extraction.userId);
+      const existingIndex = extractions.findIndex(e => e.id === extraction.id);
+      
+      if (existingIndex >= 0) {
+          extractions[existingIndex] = { ...extraction, updatedAt: new Date().toISOString() };
+      } else {
+          extraction.createdAt = new Date().toISOString();
+          extraction.updatedAt = extraction.createdAt;
+          extractions.unshift(extraction);
+      }
+      
+      localStorage.setItem(`b2b_saved_vins_${extraction.userId}`, JSON.stringify(extractions));
+      return extraction;
+  },
+
+  async deleteVinExtraction(userId: string, extractionId: string): Promise<boolean> {
+      const extractions = await this.getSavedVinExtractions(userId);
+      const filtered = extractions.filter(e => e.id !== extractionId);
+      localStorage.setItem(`b2b_saved_vins_${userId}`, JSON.stringify(filtered));
+      return true;
+  },
+
+  async getSavedQuoteTemplates(userId: string): Promise<SavedQuoteTemplate[]> {
+      const stored = localStorage.getItem(`b2b_quote_templates_${userId}`);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return [];
+  },
+
+  async saveQuoteTemplate(template: SavedQuoteTemplate): Promise<SavedQuoteTemplate> {
+      const templates = await this.getSavedQuoteTemplates(template.userId);
+      const existingIndex = templates.findIndex(t => t.id === template.id);
+      
+      if (existingIndex >= 0) {
+          templates[existingIndex] = { ...template, updatedAt: new Date().toISOString() };
+      } else {
+          template.createdAt = new Date().toISOString();
+          template.updatedAt = template.createdAt;
+          template.usageCount = 0;
+          templates.unshift(template);
+      }
+      
+      localStorage.setItem(`b2b_quote_templates_${template.userId}`, JSON.stringify(templates));
+      return template;
+  },
+
+  async deleteQuoteTemplate(userId: string, templateId: string): Promise<boolean> {
+      const templates = await this.getSavedQuoteTemplates(userId);
+      const filtered = templates.filter(t => t.id !== templateId);
+      localStorage.setItem(`b2b_quote_templates_${userId}`, JSON.stringify(filtered));
+      return true;
+  },
+
+  async getFileConversionHistory(userId: string): Promise<FileConversionRecord[]> {
+      const stored = localStorage.getItem(`b2b_file_conversions_${userId}`);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return [];
+  },
+
+  async saveFileConversion(record: FileConversionRecord): Promise<FileConversionRecord> {
+      const records = await this.getFileConversionHistory(record.userId);
+      records.unshift(record);
+      // Keep only last 100 conversions
+      const trimmed = records.slice(0, 100);
+      localStorage.setItem(`b2b_file_conversions_${record.userId}`, JSON.stringify(trimmed));
+      return record;
+  },
+
+  // =============================================================================
+  // SECURITY SETTINGS
+  // =============================================================================
+
+  async getSecuritySettings(): Promise<SecuritySettings> {
+      const stored = localStorage.getItem('b2b_security_settings_v1');
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return this.getDefaultSecuritySettings();
+  },
+
+  async saveSecuritySettings(settings: SecuritySettings): Promise<SecuritySettings> {
+      settings.lastModifiedAt = new Date().toISOString();
+      localStorage.setItem('b2b_security_settings_v1', JSON.stringify(settings));
+      return settings;
+  },
+
+  getDefaultSecuritySettings(): SecuritySettings {
+      return {
+          id: 'security-settings-1',
+          
+          passwordMinLength: 8,
+          passwordRequireUppercase: true,
+          passwordRequireLowercase: true,
+          passwordRequireNumbers: true,
+          passwordRequireSymbols: false,
+          passwordExpiryDays: 90,
+          passwordHistoryCount: 3,
+          
+          maxLoginAttempts: 5,
+          lockoutDurationMinutes: 30,
+          sessionTimeoutMinutes: 60,
+          allowMultipleSessions: true,
+          
+          twoFactor: {
+              enabled: false,
+              method: 'email',
+              requiredForAdmins: true,
+              requiredForFinancial: true,
+              graceLoginCount: 3
+          },
+          
+          enableIPWhitelist: false,
+          ipWhitelist: [],
+          enableGeoBlocking: false,
+          blockedCountries: [],
+          
+          enableRiskDetection: true,
+          riskThreshold: 70,
+          notifyOnSuspiciousLogin: true,
+          
+          enableAuditLog: true,
+          auditRetentionDays: 90,
+          
+          lastModifiedAt: new Date().toISOString()
+      };
+  },
+
+  async getLoginHistory(userId?: string): Promise<LoginRecord[]> {
+      const stored = localStorage.getItem('b2b_login_history');
+      let records: LoginRecord[] = stored ? JSON.parse(stored) : [];
+      
+      if (userId) {
+          records = records.filter(r => r.userId === userId);
+      }
+      
+      return records.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  },
+
+  async logLogin(record: LoginRecord): Promise<void> {
+      const records = await this.getLoginHistory();
+      records.unshift(record);
+      // Keep only last 1000 login records
+      const trimmed = records.slice(0, 1000);
+      localStorage.setItem('b2b_login_history', JSON.stringify(trimmed));
+  },
+
+  // =============================================================================
+  // MARKETING SETTINGS - Coupons & Loyalty
+  // =============================================================================
+
+  async getCoupons(): Promise<CouponCode[]> {
+      const stored = localStorage.getItem('b2b_coupons');
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return [];
+  },
+
+  async saveCoupon(coupon: CouponCode): Promise<CouponCode> {
+      const coupons = await this.getCoupons();
+      const existingIndex = coupons.findIndex(c => c.id === coupon.id);
+      
+      if (existingIndex >= 0) {
+          coupons[existingIndex] = coupon;
+      } else {
+          coupon.createdAt = new Date().toISOString();
+          coupon.usageCount = 0;
+          coupons.push(coupon);
+      }
+      
+      localStorage.setItem('b2b_coupons', JSON.stringify(coupons));
+      return coupon;
+  },
+
+  async deleteCoupon(couponId: string): Promise<boolean> {
+      const coupons = await this.getCoupons();
+      const filtered = coupons.filter(c => c.id !== couponId);
+      localStorage.setItem('b2b_coupons', JSON.stringify(filtered));
+      return true;
+  },
+
+  async getLoyaltySettings(): Promise<LoyaltySettings> {
+      const stored = localStorage.getItem('b2b_loyalty_settings');
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return this.getDefaultLoyaltySettings();
+  },
+
+  async saveLoyaltySettings(settings: LoyaltySettings): Promise<LoyaltySettings> {
+      settings.lastModifiedAt = new Date().toISOString();
+      localStorage.setItem('b2b_loyalty_settings', JSON.stringify(settings));
+      return settings;
+  },
+
+  getDefaultLoyaltySettings(): LoyaltySettings {
+      return {
+          id: 'loyalty-settings-1',
+          enabled: true,
+          programName: { 
+              ar: 'برنامج ولاء صيني كار', 
+              en: 'SINI CAR Loyalty Program',
+              hi: 'सिनी कार लॉयल्टी प्रोग्राम',
+              zh: 'SINI CAR 忠诚度计划'
+          },
+          pointsPerCurrency: 1, // 1 point per 1 SAR
+          pointsRedemptionRate: 0.1, // 10 points = 1 SAR
+          levels: [
+              {
+                  id: 'bronze',
+                  name: { ar: 'البرونزي', en: 'Bronze', hi: 'ब्रॉन्ज', zh: '青铜' },
+                  minPoints: 0,
+                  maxPoints: 999,
+                  benefits: [
+                      { type: 'discount', value: 2, description: { ar: 'خصم 2% على جميع الطلبات', en: '2% discount on all orders', hi: 'सभी ऑर्डर पर 2% छूट', zh: '所有订单2%折扣' } }
+                  ],
+                  color: '#CD7F32'
+              },
+              {
+                  id: 'silver',
+                  name: { ar: 'الفضي', en: 'Silver', hi: 'सिल्वर', zh: '白银' },
+                  minPoints: 1000,
+                  maxPoints: 4999,
+                  benefits: [
+                      { type: 'discount', value: 5, description: { ar: 'خصم 5% على جميع الطلبات', en: '5% discount on all orders', hi: 'सभी ऑर्डर पर 5% छूट', zh: '所有订单5%折扣' } },
+                      { type: 'priority_support', description: { ar: 'دعم فني مميز', en: 'Priority support', hi: 'प्राथमिकता समर्थन', zh: '优先支持' } }
+                  ],
+                  color: '#C0C0C0'
+              },
+              {
+                  id: 'gold',
+                  name: { ar: 'الذهبي', en: 'Gold', hi: 'गोल्ड', zh: '黄金' },
+                  minPoints: 5000,
+                  maxPoints: 14999,
+                  benefits: [
+                      { type: 'discount', value: 10, description: { ar: 'خصم 10% على جميع الطلبات', en: '10% discount on all orders', hi: 'सभी ऑर्डर पर 10% छूट', zh: '所有订单10%折扣' } },
+                      { type: 'free_shipping', description: { ar: 'شحن مجاني', en: 'Free shipping', hi: 'मुफ्त शिपिंग', zh: '免费送货' } },
+                      { type: 'priority_support', description: { ar: 'دعم فني VIP', en: 'VIP support', hi: 'वीआईपी समर्थन', zh: 'VIP支持' } }
+                  ],
+                  color: '#FFD700'
+              },
+              {
+                  id: 'platinum',
+                  name: { ar: 'البلاتيني', en: 'Platinum', hi: 'प्लैटिनम', zh: '白金' },
+                  minPoints: 15000,
+                  benefits: [
+                      { type: 'discount', value: 15, description: { ar: 'خصم 15% على جميع الطلبات', en: '15% discount on all orders', hi: 'सभी ऑर्डर पर 15% छूट', zh: '所有订单15%折扣' } },
+                      { type: 'free_shipping', description: { ar: 'شحن مجاني ومعجل', en: 'Free express shipping', hi: 'मुफ्त एक्सप्रेस शिपिंग', zh: '免费快递' } },
+                      { type: 'exclusive_access', description: { ar: 'وصول حصري للعروض', en: 'Exclusive offer access', hi: 'विशेष ऑफ़र एक्सेस', zh: '独家优惠访问' } },
+                      { type: 'priority_support', description: { ar: 'مدير حساب شخصي', en: 'Personal account manager', hi: 'व्यक्तिगत खाता प्रबंधक', zh: '个人客户经理' } }
+                  ],
+                  color: '#E5E4E2'
+              }
+          ],
+          pointsExpiryDays: 365,
+          allowPartialRedemption: true,
+          minimumRedemptionPoints: 100,
+          lastModifiedAt: new Date().toISOString()
+      };
+  },
+
+  async getCustomerLoyalty(userId: string): Promise<CustomerLoyalty | null> {
+      const stored = localStorage.getItem(`b2b_customer_loyalty_${userId}`);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return null;
+  },
+
+  async saveCustomerLoyalty(loyalty: CustomerLoyalty): Promise<CustomerLoyalty> {
+      loyalty.lastActivityAt = new Date().toISOString();
+      localStorage.setItem(`b2b_customer_loyalty_${loyalty.userId}`, JSON.stringify(loyalty));
+      return loyalty;
+  },
+
+  // =============================================================================
+  // ADVANCED NOTIFICATION SETTINGS
+  // =============================================================================
+
+  async getAdvancedNotificationSettings(): Promise<AdvancedNotificationSettings> {
+      const stored = localStorage.getItem('b2b_advanced_notification_settings_v1');
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return this.getDefaultAdvancedNotificationSettings();
+  },
+
+  async saveAdvancedNotificationSettings(settings: AdvancedNotificationSettings): Promise<AdvancedNotificationSettings> {
+      settings.lastModifiedAt = new Date().toISOString();
+      localStorage.setItem('b2b_advanced_notification_settings_v1', JSON.stringify(settings));
+      return settings;
+  },
+
+  getDefaultAdvancedNotificationSettings(): AdvancedNotificationSettings {
+      return {
+          id: 'notification-settings-1',
+          enabled: true,
+          defaultChannels: ['toast', 'bell'],
+          
+          emailConfig: {
+              enabled: true,
+              senderName: 'SINI CAR B2B',
+              senderEmail: 'noreply@sinicar.com'
+          },
+          smsConfig: {
+              enabled: false,
+              provider: 'twilio'
+          },
+          whatsappConfig: {
+              enabled: false,
+              provider: 'twilio'
+          },
+          pushConfig: {
+              enabled: false
+          },
+          
+          templates: [],
+          defaultPreferences: [],
+          
+          lastModifiedAt: new Date().toISOString()
+      };
   }
 };
