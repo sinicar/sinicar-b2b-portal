@@ -10,6 +10,7 @@ import { User, BusinessProfile, SiteSettings } from './types';
 import { Lock, User as UserIcon, ArrowRight, ShieldCheck, Box, Server, Activity, Database, CheckCircle2, Globe, Zap, Package, Percent, Truck, Phone } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './services/LanguageContext';
 import { ToastProvider, useToast } from './services/ToastContext';
+import { OrganizationProvider } from './services/OrganizationContext';
 import { ToastContainer } from './components/Toast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { getDirection } from './services/i18n';
@@ -582,8 +583,10 @@ export default function App() {
     return (
         <LanguageProvider>
             <ToastProvider>
-              <ToastContainer />
-              <AppContent />
+              <OrganizationProvider>
+                <ToastContainer />
+                <AppContent />
+              </OrganizationProvider>
             </ToastProvider>
         </LanguageProvider>
     );
