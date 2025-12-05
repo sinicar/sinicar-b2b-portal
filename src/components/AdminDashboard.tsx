@@ -9,7 +9,7 @@ import {
     UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3, 
     TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, 
     Database, Server, ExternalLink, Plus, Layers, Megaphone, DollarSign,
-    Wrench, Store, UserCheck
+    Wrench, Store, UserCheck, Palette
 } from 'lucide-react';
 import { LanguageSwitcherLight } from './LanguageSwitcher';
 import { AdminSettings } from './AdminSettings';
@@ -30,6 +30,7 @@ import { AdminMarketersPage } from './AdminMarketersPage';
 import { AdminInstallmentsPage } from './AdminInstallmentsPage';
 import { AdminAdvertisingPage } from './AdminAdvertisingPage';
 import { AdminOrganizationSettings } from './AdminOrganizationSettings';
+import { AdminCustomerPortalSettings } from './AdminCustomerPortalSettings';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -44,7 +45,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -65,7 +66,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'MARKETERS': 'settings_general',
     'INSTALLMENTS': 'settings_general',
     'ADVERTISING': 'settings_general',
-    'TEAM_SETTINGS': 'settings_general'
+    'TEAM_SETTINGS': 'settings_general',
+    'CUSTOMER_PORTAL': 'settings_general'
 };
 
 const VIEW_LABELS_KEYS: Record<ViewType, string> = {
@@ -87,7 +89,8 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'MARKETERS': 'adminDashboard.views.marketers',
     'INSTALLMENTS': 'adminDashboard.views.installments',
     'ADVERTISING': 'adminDashboard.views.advertising',
-    'TEAM_SETTINGS': 'adminDashboard.views.teamSettings'
+    'TEAM_SETTINGS': 'adminDashboard.views.teamSettings',
+    'CUSTOMER_PORTAL': 'adminDashboard.views.customerPortal'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -408,6 +411,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Users size={20} />} label={t('adminDashboard.teamSettings')} active={view === 'TEAM_SETTINGS'} onClick={() => setView('TEAM_SETTINGS')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Palette size={20} />} label={t('adminDashboard.customerPortalSettings')} active={view === 'CUSTOMER_PORTAL'} onClick={() => setView('CUSTOMER_PORTAL')} />
+                    )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
@@ -438,6 +444,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'MARKETERS' && t('adminDashboard.pageTitles.marketers')}
                         {view === 'INSTALLMENTS' && t('adminDashboard.pageTitles.installments')}
                         {view === 'ADVERTISING' && t('adminDashboard.pageTitles.advertising')}
+                        {view === 'TEAM_SETTINGS' && t('adminDashboard.pageTitles.teamSettings')}
+                        {view === 'CUSTOMER_PORTAL' && t('adminDashboard.pageTitles.customerPortal')}
                         {['PRODUCTS'].includes(view) && t('adminDashboard.pageTitles.products')}
                     </h2>
                     <div className="flex items-center gap-4">
@@ -676,6 +684,12 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'TEAM_SETTINGS' && (
                         canAccess('settings_general') 
                             ? <AdminOrganizationSettings /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    
+                    {view === 'CUSTOMER_PORTAL' && (
+                        canAccess('settings_general') 
+                            ? <AdminCustomerPortalSettings /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
