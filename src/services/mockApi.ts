@@ -3321,5 +3321,50 @@ export const MockApi = {
   async getUserCountByRole(roleId: string): Promise<number> {
       const users = await this.getAdminUsers();
       return users.filter(u => u.roleId === roleId).length;
+  },
+
+  // تصدير جميع البيانات للنسخ الاحتياطي
+  async exportAllData(): Promise<Record<string, any>> {
+      return {
+          exportDate: new Date().toISOString(),
+          version: '1.0',
+          data: {
+              products: await this.getProducts(),
+              orders: await this.getOrders(),
+              customers: await this.getCustomersDatabase(),
+              settings: await this.getSettings(),
+              banners: await this.getBanners(),
+              quoteRequests: await this.getQuoteRequests(),
+              accountRequests: await this.getAccountRequests(),
+              notifications: JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]'),
+              activityLogs: JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOG) || '[]')
+          }
+      };
+  },
+
+  // إعادة ضبط جميع البيانات (فورمات)
+  async resetAllData(): Promise<void> {
+      // مسح جميع البيانات من localStorage
+      Object.values(STORAGE_KEYS).forEach(key => {
+          localStorage.removeItem(key);
+      });
+      
+      // إعادة تهيئة البيانات الافتراضية
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.QUOTE_REQUESTS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.ACCOUNT_REQUESTS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify([]));
+      
+      // تسجيل النشاط
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'OTHER',
+          description: 'تم إعادة ضبط جميع البيانات (فورمات)',
+          metadata: { action: 'reset_all_data' }
+      });
   }
 };

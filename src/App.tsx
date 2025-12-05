@@ -420,12 +420,12 @@ function AppContent() {
                           <Box size={40} className="text-cyan-400 relative z-10" strokeWidth={1.5} />
                       </div>
                       <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" data-testid="text-login-title">
-                          {t('login.wholesaleLogin')}
+                          {siteSettings?.authPageTexts?.loginTitle || t('login.wholesaleLogin')}
                       </h1>
                       <h2 className="text-lg text-cyan-400 font-bold mb-3">{t('common.siniCar')}</h2>
                       <div className="flex items-center justify-center gap-2 text-cyan-500/80 text-sm font-mono tracking-wider">
                           <Activity size={14} />
-                          <span>{t('login.b2bPortal')}</span>
+                          <span>{siteSettings?.authPageTexts?.loginSubtitle || t('login.b2bPortal')}</span>
                       </div>
                   </div>
 
@@ -451,7 +451,7 @@ function AppContent() {
                   <form onSubmit={handleLogin} className="space-y-6">
                       <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                              {loginType === 'OWNER' ? t('login.clientId') : t('login.phoneNumber')}
+                              {loginType === 'OWNER' ? (siteSettings?.authPageTexts?.loginClientIdLabel || t('login.clientId')) : t('login.phoneNumber')}
                               <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4]"></span>
                           </label>
                           <div className="relative group/input">
@@ -462,7 +462,7 @@ function AppContent() {
                                   type={loginType === 'OWNER' ? "text" : "tel"}
                                   required
                                   className="block w-full pr-12 pl-4 py-4 bg-slate-900/50 border border-slate-700 text-white placeholder-slate-600 rounded-lg focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-mono"
-                                  placeholder={loginType === 'OWNER' ? "C-100200" : "05xxxxxxxx"}
+                                  placeholder={loginType === 'OWNER' ? (siteSettings?.authPageTexts?.loginClientIdPlaceholder || "C-100200") : "05xxxxxxxx"}
                                   value={identifier}
                                   onChange={(e) => setIdentifier(e.target.value)}
                                   data-testid="input-identifier"
@@ -475,7 +475,7 @@ function AppContent() {
 
                       <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                              {loginType === 'OWNER' ? t('login.password') : t('login.activationCode')}
+                              {loginType === 'OWNER' ? (siteSettings?.authPageTexts?.loginPasswordLabel || t('login.password')) : t('login.activationCode')}
                           </label>
                           <div className="relative group/input">
                               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500 group-focus-within/input:text-cyan-400 transition-colors">
@@ -485,7 +485,7 @@ function AppContent() {
                                   type={loginType === 'OWNER' ? "password" : "text"}
                                   required
                                   className="block w-full pr-12 pl-4 py-4 bg-slate-900/50 border border-slate-700 text-white placeholder-slate-600 rounded-lg focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
-                                  placeholder={loginType === 'OWNER' ? "••••••••" : "123456"}
+                                  placeholder={loginType === 'OWNER' ? (siteSettings?.authPageTexts?.loginPasswordPlaceholder || "••••••••") : "123456"}
                                   value={secret}
                                   onChange={(e) => setSecret(e.target.value)}
                                   data-testid="input-password"
@@ -511,7 +511,7 @@ function AppContent() {
                               <span className="text-sm text-slate-400 group-hover:text-cyan-400 transition-colors">{t('login.rememberMe')}</span>
                           </label>
                           {loginType === 'OWNER' && (
-                              <a href="#" className="text-sm font-bold text-slate-500 hover:text-white transition-colors" data-testid="link-forgot-password">{t('login.forgotPassword')}</a>
+                              <a href="#" className="text-sm font-bold text-slate-500 hover:text-white transition-colors" data-testid="link-forgot-password">{siteSettings?.authPageTexts?.loginForgotPasswordText || t('login.forgotPassword')}</a>
                           )}
                       </div>
 
@@ -525,7 +525,7 @@ function AppContent() {
                              <span className="animate-pulse">{t('login.verifying')}</span>
                           ) : (
                              <>
-                                <span className="relative z-10">{t('login.enter')}</span>
+                                <span className="relative z-10">{siteSettings?.authPageTexts?.loginButtonText || t('login.enter')}</span>
                                 <ArrowRight className="w-5 h-5 rtl:rotate-180 relative z-10 group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" />
                              </>
                           )}
@@ -550,7 +550,7 @@ function AppContent() {
                               className="mt-4 text-cyan-500 text-sm font-bold hover:text-cyan-400 hover:underline transition-all"
                               data-testid="button-open-account-request"
                           >
-                              {t('login.openNewAccount')}
+                              {siteSettings?.authPageTexts?.loginRegisterLinkText || t('login.openNewAccount')}
                           </button>
                       )}
                       

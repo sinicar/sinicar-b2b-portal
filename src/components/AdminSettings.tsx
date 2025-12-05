@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Banner, SiteSettings, StatusLabelsConfig, GuestModeSettings, NotificationTemplate, NotificationSettings, DocumentTemplate, PrintSettings } from '../types';
 import { MockApi } from '../services/mockApi';
-import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award, UserX, Bell, Printer, Layout, Copy, Move, AlignLeft, AlignCenter, AlignRight, Volume2, MessageSquare, AlertCircle, Info, CheckCircle2, XCircle, Sparkles, Zap, Mail, Smartphone } from 'lucide-react';
+import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award, UserX, Bell, Printer, Layout, Copy, Move, AlignLeft, AlignCenter, AlignRight, Volume2, MessageSquare, AlertCircle, AlertTriangle, Info, CheckCircle2, XCircle, Sparkles, Zap, Mail, Smartphone, Lock } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 
 export const AdminSettings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'STATUS_LABELS' | 'FEATURES' | 'GUEST_MODE' | 'NOTIFICATIONS' | 'PRINT_TEMPLATES'>('GENERAL');
+    const [activeTab, setActiveTab] = useState<'GENERAL' | 'BANNERS' | 'API' | 'APPEARANCE' | 'TEXTS' | 'AUTH_TEXTS' | 'STATUS_LABELS' | 'FEATURES' | 'GUEST_MODE' | 'NOTIFICATIONS' | 'PRINT_TEMPLATES' | 'QUANTITY_MODAL' | 'DATA_MANAGEMENT'>('GENERAL');
     const [settings, setSettings] = useState<SiteSettings | null>(null);
     const [banners, setBanners] = useState<Banner[]>([]);
     const [loading, setLoading] = useState(true);
@@ -158,6 +158,9 @@ export const AdminSettings: React.FC = () => {
                         <TabButton id="NOTIFICATIONS" icon={<Bell size={20} />} label={t('adminSettings.notifications', 'إدارة الإشعارات')} />
                         <TabButton id="PRINT_TEMPLATES" icon={<Printer size={20} />} label={t('adminSettings.printTemplates', 'قوالب الطباعة')} />
                         <TabButton id="TEXTS" icon={<Type size={20} />} label={t('adminSettings.textManagement')} />
+                        <TabButton id="AUTH_TEXTS" icon={<Pencil size={20} />} label="نصوص صفحات الدخول" />
+                        <TabButton id="QUANTITY_MODAL" icon={<Move size={20} />} label="شاشة تحديد الكميات" />
+                        <TabButton id="DATA_MANAGEMENT" icon={<Database size={20} />} label="إدارة البيانات" />
                         <TabButton id="STATUS_LABELS" icon={<Tags size={20} />} label={t('adminSettings.statusLabels')} />
                         <TabButton id="API" icon={<Server size={20} />} label={t('adminSettings.apiIntegration')} />
                         <TabButton id="APPEARANCE" icon={<Palette size={20} />} label={t('adminSettings.appearanceIdentity')} />
@@ -1428,6 +1431,415 @@ export const AdminSettings: React.FC = () => {
                 {activeTab === 'NOTIFICATIONS' && <NotificationManagement t={t} />}
 
                 {activeTab === 'PRINT_TEMPLATES' && <PrintTemplatesDesigner t={t} />}
+
+                {/* Auth Page Texts Editor */}
+                {activeTab === 'AUTH_TEXTS' && (
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Pencil className="text-brand-600" /> نصوص صفحات الدخول والتسجيل
+                                </h2>
+                                <p className="text-sm text-slate-500 mt-1">تخصيص النصوص والعناوين في صفحات تسجيل الدخول وطلب فتح الحساب</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => {
+                                        setSettings({...settings, authPageTexts: undefined});
+                                        addToast('تم استعادة النصوص الافتراضية', 'success');
+                                    }} 
+                                    className="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg font-bold hover:bg-slate-200 flex items-center gap-2"
+                                >
+                                    <RefreshCcw size={16} /> استعادة الافتراضي
+                                </button>
+                                <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
+                                    <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Login Page Texts */}
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2 border-b pb-2">
+                                <Lock size={18} className="text-blue-500" /> صفحة تسجيل الدخول
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان الصفحة</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="تسجيل الدخول"
+                                        value={settings.authPageTexts?.loginTitle || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginTitle: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">العنوان الفرعي</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="أدخل بيانات الدخول"
+                                        value={settings.authPageTexts?.loginSubtitle || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginSubtitle: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل رقم العميل</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="رقم العميل"
+                                        value={settings.authPageTexts?.loginClientIdLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginClientIdLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder رقم العميل</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="أدخل رقم العميل"
+                                        value={settings.authPageTexts?.loginClientIdPlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginClientIdPlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل كلمة المرور</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="كلمة المرور"
+                                        value={settings.authPageTexts?.loginPasswordLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginPasswordLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder كلمة المرور</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="أدخل كلمة المرور"
+                                        value={settings.authPageTexts?.loginPasswordPlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginPasswordPlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص زر الدخول</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="دخول"
+                                        value={settings.authPageTexts?.loginButtonText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginButtonText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص نسيت كلمة المرور</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="نسيت كلمة المرور؟"
+                                        value={settings.authPageTexts?.loginForgotPasswordText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginForgotPasswordText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص ليس لديك حساب</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="ليس لديك حساب؟"
+                                        value={settings.authPageTexts?.loginNoAccountText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginNoAccountText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص رابط التسجيل</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="طلب فتح حساب"
+                                        value={settings.authPageTexts?.loginRegisterLinkText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, loginRegisterLinkText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Register Page Texts */}
+                        <div className="space-y-4 pt-6 border-t">
+                            <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2 border-b pb-2">
+                                <Users size={18} className="text-green-500" /> صفحة طلب فتح حساب
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان الصفحة</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="طلب فتح حساب"
+                                        value={settings.authPageTexts?.registerTitle || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerTitle: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">العنوان الفرعي</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="قدّم طلباً لفتح حساب جديد"
+                                        value={settings.authPageTexts?.registerSubtitle || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerSubtitle: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل اسم المنشأة</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="اسم المنشأة"
+                                        value={settings.authPageTexts?.registerBusinessNameLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerBusinessNameLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder اسم المنشأة</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="مثال: شركة النجوم لقطع الغيار"
+                                        value={settings.authPageTexts?.registerBusinessNamePlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerBusinessNamePlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل اسم المسؤول</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="اسم المسؤول"
+                                        value={settings.authPageTexts?.registerOwnerNameLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerOwnerNameLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder اسم المسؤول</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="الاسم الثلاثي"
+                                        value={settings.authPageTexts?.registerOwnerNamePlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerOwnerNamePlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل الهاتف</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="رقم الجوال"
+                                        value={settings.authPageTexts?.registerPhoneLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerPhoneLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder الهاتف</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="05xxxxxxxx"
+                                        value={settings.authPageTexts?.registerPhonePlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerPhonePlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل البريد</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="البريد الإلكتروني"
+                                        value={settings.authPageTexts?.registerEmailLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerEmailLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder البريد</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="example@email.com"
+                                        value={settings.authPageTexts?.registerEmailPlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerEmailPlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل المدينة</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="المدينة"
+                                        value={settings.authPageTexts?.registerCityLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerCityLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder المدينة</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="اختر المدينة"
+                                        value={settings.authPageTexts?.registerCityPlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerCityPlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل نوع النشاط</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="نوع النشاط"
+                                        value={settings.authPageTexts?.registerBusinessTypeLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerBusinessTypeLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">عنوان حقل الملاحظات</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="ملاحظات إضافية"
+                                        value={settings.authPageTexts?.registerNotesLabel || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerNotesLabel: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">placeholder الملاحظات</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="أي معلومات إضافية تود مشاركتها..."
+                                        value={settings.authPageTexts?.registerNotesPlaceholder || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerNotesPlaceholder: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص زر إرسال الطلب</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="إرسال الطلب"
+                                        value={settings.authPageTexts?.registerButtonText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerButtonText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص لديك حساب بالفعل</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="لديك حساب بالفعل؟"
+                                        value={settings.authPageTexts?.registerHaveAccountText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerHaveAccountText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">نص رابط تسجيل الدخول</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="تسجيل الدخول"
+                                        value={settings.authPageTexts?.registerLoginLinkText || ''}
+                                        onChange={e => setSettings({...settings, authPageTexts: {...settings.authPageTexts, registerLoginLinkText: e.target.value}})}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Quantity Modal Settings */}
+                {activeTab === 'QUANTITY_MODAL' && (
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Move className="text-brand-600" /> إعدادات شاشة تحديد الكميات
+                                </h2>
+                                <p className="text-sm text-slate-500 mt-1">تخصيص سلوك الشاشة المنبثقة لتحديد الكميات عند إضافة المنتجات</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => {
+                                        setSettings({...settings, quantityModalSettings: { mode: 'hideSearch' }});
+                                        addToast('تم استعادة الإعدادات الافتراضية', 'success');
+                                    }} 
+                                    className="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg font-bold hover:bg-slate-200 flex items-center gap-2"
+                                >
+                                    <RefreshCcw size={16} /> استعادة الافتراضي
+                                </button>
+                                <button onClick={handleSaveGeneral} disabled={saving} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2">
+                                    <Save size={18} /> {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                                    <Info size={18} /> كيف تعمل هذه الإعدادات؟
+                                </h4>
+                                <p className="text-sm text-blue-700">
+                                    عند النقر على إضافة منتج للسلة، تظهر شاشة منبثقة لتحديد الكمية. يمكنك اختيار سلوك هذه الشاشة:
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Option 1: Hide Search */}
+                                <div 
+                                    onClick={() => setSettings({...settings, quantityModalSettings: { ...settings.quantityModalSettings, mode: 'hideSearch' }})}
+                                    className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${settings.quantityModalSettings?.mode === 'hideSearch' || !settings.quantityModalSettings?.mode ? 'border-brand-500 bg-brand-50' : 'border-slate-200 hover:border-slate-300'}`}
+                                >
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${settings.quantityModalSettings?.mode === 'hideSearch' || !settings.quantityModalSettings?.mode ? 'border-brand-500 bg-brand-500' : 'border-slate-300'}`}>
+                                            {(settings.quantityModalSettings?.mode === 'hideSearch' || !settings.quantityModalSettings?.mode) && <Check size={12} className="text-white" />}
+                                        </div>
+                                        <h4 className="font-bold text-slate-800">إخفاء نتائج البحث</h4>
+                                    </div>
+                                    <p className="text-sm text-slate-600">
+                                        عند ظهور شاشة تحديد الكمية، يتم إخفاء قائمة نتائج البحث تلقائياً لتركيز العميل على اختيار الكمية
+                                    </p>
+                                </div>
+
+                                {/* Option 2: Draggable */}
+                                <div 
+                                    onClick={() => setSettings({...settings, quantityModalSettings: { ...settings.quantityModalSettings, mode: 'draggable' }})}
+                                    className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${settings.quantityModalSettings?.mode === 'draggable' ? 'border-brand-500 bg-brand-50' : 'border-slate-200 hover:border-slate-300'}`}
+                                >
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${settings.quantityModalSettings?.mode === 'draggable' ? 'border-brand-500 bg-brand-500' : 'border-slate-300'}`}>
+                                            {settings.quantityModalSettings?.mode === 'draggable' && <Check size={12} className="text-white" />}
+                                        </div>
+                                        <h4 className="font-bold text-slate-800">شاشة قابلة للسحب</h4>
+                                    </div>
+                                    <p className="text-sm text-slate-600">
+                                        يمكن للعميل سحب الشاشة المنبثقة بالماوس ووضعها في أي مكان، ويتم حفظ موقعها حتى بعد الخروج من الموقع
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Data Management */}
+                {activeTab === 'DATA_MANAGEMENT' && (
+                    <DataManagementSection 
+                        settings={settings}
+                        onUpdate={(newSettings) => setSettings(newSettings)}
+                        onSave={handleSaveGeneral}
+                        saving={saving}
+                    />
+                )}
             </div>
         </div>
     );
@@ -2626,4 +3038,265 @@ const PrintTemplatesDesigner: React.FC<{t: (key: string, fallback?: string) => s
                 </div>
             </div>
         );
+};
+
+// Data Management Section Component
+interface DataManagementSectionProps {
+    settings: SiteSettings;
+    onUpdate: (settings: SiteSettings) => void;
+    onSave: () => void;
+    saving: boolean;
+}
+
+const DataManagementSection: React.FC<DataManagementSectionProps> = ({ settings, onUpdate, onSave, saving }) => {
+    const [backupUploaded, setBackupUploaded] = useState(false);
+    const [backupFile, setBackupFile] = useState<File | null>(null);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [resetStep, setResetStep] = useState<'initial' | 'confirm' | 'final'>('initial');
+    const [resetLoading, setResetLoading] = useState(false);
+    const { addToast } = useToast();
+    const { t } = useLanguage();
+
+    const handleBackupUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            try {
+                const fileContent = await file.text();
+                const data = JSON.parse(fileContent);
+                
+                // التحقق من صحة بنية ملف الباك أب
+                const requiredKeys = ['products', 'orders', 'customers', 'settings'];
+                const missingKeys = requiredKeys.filter(key => !(key in data));
+                
+                if (missingKeys.length > 0) {
+                    addToast(`ملف النسخة الاحتياطية غير صالح. المفاتيح المفقودة: ${missingKeys.join(', ')}`, 'error');
+                    return;
+                }
+                
+                // التحقق من أن البيانات ليست فارغة بالكامل
+                const hasData = 
+                    (Array.isArray(data.products) && data.products.length > 0) ||
+                    (Array.isArray(data.orders) && data.orders.length > 0) ||
+                    (Array.isArray(data.customers) && data.customers.length > 0);
+                
+                if (!hasData) {
+                    addToast('ملف النسخة الاحتياطية فارغ أو لا يحتوي على بيانات كافية', 'error');
+                    return;
+                }
+                
+                // التحقق من وجود حقل exportDate (علامة على أنه ملف باك أب صحيح)
+                if (!data.exportDate) {
+                    addToast('ملف النسخة الاحتياطية غير صالح - يجب أن يكون ملف مصدر من النظام', 'error');
+                    return;
+                }
+                
+                setBackupFile(file);
+                setBackupUploaded(true);
+                addToast('تم التحقق من ملف النسخة الاحتياطية وقبوله بنجاح', 'success');
+            } catch (error) {
+                addToast('ملف النسخة الاحتياطية غير صالح - تأكد من أنه ملف JSON صحيح', 'error');
+            }
+        }
+    };
+
+    const handleExportBackup = async () => {
+        try {
+            const backup = await MockApi.exportAllData();
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sinicar_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            addToast('تم تصدير النسخة الاحتياطية بنجاح', 'success');
+        } catch (error) {
+            addToast('حدث خطأ أثناء تصدير النسخة الاحتياطية', 'error');
+        }
+    };
+
+    const handleResetAllData = async () => {
+        if (!backupUploaded) {
+            addToast('يجب رفع نسخة احتياطية أولاً قبل الفورمات', 'error');
+            return;
+        }
+
+        setResetLoading(true);
+        try {
+            await MockApi.resetAllData();
+            addToast('تم مسح جميع البيانات بنجاح', 'success');
+            setShowResetConfirm(false);
+            setResetStep('initial');
+            setBackupUploaded(false);
+            setBackupFile(null);
+            window.location.reload();
+        } catch (error) {
+            addToast('حدث خطأ أثناء مسح البيانات', 'error');
+        } finally {
+            setResetLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6 animate-slide-up">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <Database className="text-brand-600" /> إدارة البيانات
+                    </h2>
+                    <p className="text-sm text-slate-500 mt-1">النسخ الاحتياطي وإعادة ضبط البيانات</p>
+                </div>
+            </div>
+
+            {/* Backup Section */}
+            <div className="space-y-4">
+                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <ArrowUpCircle size={20} className="text-green-500" /> النسخ الاحتياطي
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button 
+                        onClick={handleExportBackup}
+                        className="p-6 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-all text-right"
+                    >
+                        <div className="flex items-center gap-3 mb-2">
+                            <ArrowDownCircle size={24} className="text-green-600" />
+                            <span className="font-bold text-green-800">تصدير نسخة احتياطية</span>
+                        </div>
+                        <p className="text-sm text-green-600">حفظ جميع البيانات في ملف JSON</p>
+                    </button>
+
+                    <label className="p-6 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-all cursor-pointer text-right block">
+                        <div className="flex items-center gap-3 mb-2">
+                            <ArrowUpCircle size={24} className="text-blue-600" />
+                            <span className="font-bold text-blue-800">رفع نسخة احتياطية</span>
+                            {backupUploaded && <CheckCircle2 size={20} className="text-green-500" />}
+                        </div>
+                        <p className="text-sm text-blue-600">
+                            {backupFile ? `تم رفع: ${backupFile.name}` : 'استيراد البيانات من ملف JSON'}
+                        </p>
+                        <input 
+                            type="file" 
+                            accept=".json"
+                            onChange={handleBackupUpload}
+                            className="hidden"
+                        />
+                    </label>
+                </div>
+            </div>
+
+            {/* Reset Section */}
+            <div className="space-y-4 pt-6 border-t">
+                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <AlertTriangle size={20} className="text-red-500" /> إعادة ضبط البيانات (فورمات)
+                </h3>
+
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-start gap-3">
+                        <ShieldAlert size={24} className="text-red-500 flex-shrink-0 mt-1" />
+                        <div>
+                            <h4 className="font-bold text-red-800">تحذير: هذا الإجراء لا يمكن التراجع عنه!</h4>
+                            <p className="text-sm text-red-600 mt-1">
+                                سيتم مسح جميع البيانات بشكل نهائي: الطلبات، الأصناف، العملاء، السجلات، وجميع المعاملات.
+                            </p>
+                            <p className="text-sm text-red-700 font-bold mt-2">
+                                يجب رفع نسخة احتياطية أولاً قبل السماح بالفورمات.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {!showResetConfirm ? (
+                    <button 
+                        onClick={() => setShowResetConfirm(true)}
+                        disabled={!backupUploaded}
+                        className={`w-full p-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+                            backupUploaded 
+                                ? 'bg-red-600 text-white hover:bg-red-700' 
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
+                    >
+                        <Trash2 size={20} />
+                        {backupUploaded ? 'بدء عملية الفورمات' : 'ارفع نسخة احتياطية أولاً'}
+                    </button>
+                ) : (
+                    <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        {resetStep === 'initial' && (
+                            <div className="space-y-4">
+                                <p className="text-slate-700 font-bold">هل أنت متأكد من أنك تريد مسح جميع البيانات؟</p>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => setResetStep('confirm')}
+                                        className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700"
+                                    >
+                                        نعم، متأكد
+                                    </button>
+                                    <button 
+                                        onClick={() => {setShowResetConfirm(false); setResetStep('initial');}}
+                                        className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-300"
+                                    >
+                                        إلغاء
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {resetStep === 'confirm' && (
+                            <div className="space-y-4">
+                                <p className="text-red-700 font-bold">⚠️ تأكيد نهائي: سيتم مسح كل شيء!</p>
+                                <p className="text-sm text-slate-600">اكتب "فورمات" للتأكيد:</p>
+                                <input 
+                                    type="text" 
+                                    className="w-full p-3 border border-slate-300 rounded-lg text-center font-bold"
+                                    placeholder="اكتب فورمات"
+                                    onChange={(e) => {
+                                        if (e.target.value === 'فورمات') {
+                                            setResetStep('final');
+                                        }
+                                    }}
+                                />
+                                <button 
+                                    onClick={() => {setShowResetConfirm(false); setResetStep('initial');}}
+                                    className="w-full bg-slate-200 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-300"
+                                >
+                                    إلغاء
+                                </button>
+                            </div>
+                        )}
+
+                        {resetStep === 'final' && (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-red-100 border border-red-300 rounded-lg text-center">
+                                    <AlertTriangle size={48} className="text-red-600 mx-auto mb-2" />
+                                    <p className="text-red-800 font-bold">آخر فرصة للتراجع!</p>
+                                </div>
+                                <button 
+                                    onClick={handleResetAllData}
+                                    disabled={resetLoading}
+                                    className="w-full bg-red-700 text-white py-4 rounded-lg font-bold hover:bg-red-800 disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {resetLoading ? (
+                                        <>
+                                            <RefreshCcw size={20} className="animate-spin" />
+                                            جاري المسح...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 size={20} />
+                                            تنفيذ الفورمات النهائي
+                                        </>
+                                    )}
+                                </button>
+                                <button 
+                                    onClick={() => {setShowResetConfirm(false); setResetStep('initial');}}
+                                    className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700"
+                                >
+                                    ألغيت رأيي - لا تمسح
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 };

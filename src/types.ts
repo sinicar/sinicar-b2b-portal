@@ -737,6 +737,53 @@ export interface SiteSettings {
   
   // --- إعدادات نقاط البحث التلقائية حسب حالة الطلب ---
   orderStatusPointsConfig?: OrderStatusPointsConfig;
+  
+  // --- نصوص صفحات الدخول والتسجيل ---
+  authPageTexts?: AuthPageTexts;
+  
+  // --- إعدادات الشاشة المنبثقة للكميات ---
+  quantityModalSettings?: QuantityModalSettings;
+}
+
+// نصوص صفحات الدخول والتسجيل القابلة للتعديل
+export interface AuthPageTexts {
+  // صفحة تسجيل الدخول
+  loginTitle?: string;
+  loginSubtitle?: string;
+  loginClientIdLabel?: string;
+  loginClientIdPlaceholder?: string;
+  loginPasswordLabel?: string;
+  loginPasswordPlaceholder?: string;
+  loginButtonText?: string;
+  loginForgotPasswordText?: string;
+  loginNoAccountText?: string;
+  loginRegisterLinkText?: string;
+  
+  // صفحة طلب فتح حساب
+  registerTitle?: string;
+  registerSubtitle?: string;
+  registerBusinessNameLabel?: string;
+  registerBusinessNamePlaceholder?: string;
+  registerOwnerNameLabel?: string;
+  registerOwnerNamePlaceholder?: string;
+  registerPhoneLabel?: string;
+  registerPhonePlaceholder?: string;
+  registerEmailLabel?: string;
+  registerEmailPlaceholder?: string;
+  registerCityLabel?: string;
+  registerCityPlaceholder?: string;
+  registerBusinessTypeLabel?: string;
+  registerNotesLabel?: string;
+  registerNotesPlaceholder?: string;
+  registerButtonText?: string;
+  registerHaveAccountText?: string;
+  registerLoginLinkText?: string;
+}
+
+// إعدادات الشاشة المنبثقة للكميات
+export interface QuantityModalSettings {
+  mode: 'draggable' | 'hideSearch'; // وضع السحب أو إخفاء نتائج البحث
+  defaultPosition?: { x: number; y: number }; // الموقع الافتراضي للنافذة
 }
 
 // إعدادات النقاط المضافة تلقائياً عند تغيير حالة الطلب

@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { CustomerCategory, AccountOpeningRequest, UploadedDocument } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { CustomerCategory, AccountOpeningRequest, UploadedDocument, SiteSettings } from '../types';
 import { MockApi } from '../services/mockApi';
 import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send, Upload, X, File, Image, AlertCircle, Wrench } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
@@ -30,11 +30,17 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
   const [category, setCategory] = useState<CustomerCategory>('SPARE_PARTS_SHOP');
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDocument[]>([]);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
 
   const { addToast } = useToast();
   const { t, i18n } = useTranslation();
   const { dir } = useLanguage();
   const isRTL = i18n.language === 'ar';
+
+  // Load site settings for customizable texts
+  useEffect(() => {
+    MockApi.getSettings().then(setSiteSettings);
+  }, []);
 
   const [formData, setFormData] = useState<Partial<AccountOpeningRequest>>({
       // Common Defaults
@@ -244,9 +250,9 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                 <div className="bg-slate-900 text-white p-8 md:w-1/3 flex flex-col justify-between relative overflow-hidden">
                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                      <div className="relative z-10">
-                         <h2 className="text-2xl font-black mb-6">فتح حساب جديد</h2>
+                         <h2 className="text-2xl font-black mb-6">{siteSettings?.authPageTexts?.registerTitle || 'فتح حساب جديد'}</h2>
                          <p className="text-slate-300 text-sm leading-relaxed mb-6">
-                             انضم إلى شبكة صيني كار المعتمدة واستفد من أسعار الجملة، خدمات الشحن السريع، والدعم الفني المتخصص.
+                             {siteSettings?.authPageTexts?.registerSubtitle || 'انضم إلى شبكة صيني كار المعتمدة واستفد من أسعار الجملة، خدمات الشحن السريع، والدعم الفني المتخصص.'}
                          </p>
                          <div className="space-y-4">
                              <div className="flex items-center gap-3 text-sm font-medium text-slate-200">
@@ -265,7 +271,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                      </div>
                      <div className="relative z-10 mt-8 pt-8 border-t border-slate-800">
                          <button onClick={onSwitchToLogin} className="text-sm font-bold text-slate-400 hover:text-white flex items-center gap-2 transition-colors">
-                             <ArrowRight size={16} /> العودة لتسجيل الدخول
+                             <ArrowRight size={16} /> {siteSettings?.authPageTexts?.registerLoginLinkText || 'العودة لتسجيل الدخول'}
                          </button>
                      </div>
                 </div>
@@ -273,7 +279,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                 {/* Main Form */}
                 <div className="p-8 md:p-10 md:w-2/3">
                     <div className="mb-8">
-                        <label className="block text-sm font-bold text-slate-700 mb-3">اختر نوع النشاط <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 mb-3">{siteSettings?.authPageTexts?.registerBusinessTypeLabel || 'اختر نوع النشاط'} <span className="text-red-500">*</span></label>
                         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                             <button 
                                 onClick={() => setCategory('SPARE_PARTS_SHOP')}
@@ -338,11 +344,11 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                              // Shop / Company Fields
                              <>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="اسم المنشأة" name="businessName" value={formData.businessName} onChange={handleChange} required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerBusinessNameLabel || "اسم المنشأة"} name="businessName" value={formData.businessName} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerBusinessNamePlaceholder || ''} required />
                                     <InputField label="عدد الفروع" name="branchesCount" type="number" min={1} value={formData.branchesCount} onChange={handleChange} required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="المدينة" name="city" value={formData.city} onChange={handleChange} required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerCityLabel || "المدينة"} name="city" value={formData.city} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerCityPlaceholder || ''} required />
                                     <InputField label="العنوان الوطني المختصر" name="nationalAddress" value={formData.nationalAddress} onChange={handleChange} placeholder="مثال: RDJ2929" required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
@@ -350,10 +356,10 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                     <InputField label="الرقم الضريبي" name="vatNumber" value={formData.vatNumber} onChange={handleChange} required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="اسم المسؤول" name="contactPerson" value={formData.contactPerson} onChange={handleChange} required />
-                                    <InputField label="رقم الجوال" name="phone" value={formData.phone} onChange={handleChange} placeholder="05xxxxxxxx" required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerOwnerNameLabel || "اسم المسؤول"} name="contactPerson" value={formData.contactPerson} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerOwnerNamePlaceholder || ''} required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerPhoneLabel || "رقم الجوال"} name="phone" value={formData.phone} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerPhonePlaceholder || "05xxxxxxxx"} required />
                                 </div>
-                                <InputField label="البريد الإلكتروني (اختياري)" name="email" type="email" value={formData.email} onChange={handleChange} />
+                                <InputField label={siteSettings?.authPageTexts?.registerEmailLabel || "البريد الإلكتروني (اختياري)"} name="email" type="email" value={formData.email} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerEmailPlaceholder || ''} />
                              </>
                         )}
 
@@ -383,13 +389,14 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1.5">ملاحظات إضافية</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1.5">{siteSettings?.authPageTexts?.registerNotesLabel || 'ملاحظات إضافية'}</label>
                             <textarea 
                                 name="notes"
                                 className="w-full p-3 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-medium"
                                 rows={3}
                                 value={formData.notes}
                                 onChange={handleChange}
+                                placeholder={siteSettings?.authPageTexts?.registerNotesPlaceholder || ''}
                             />
                         </div>
 
@@ -398,7 +405,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                             disabled={loading} 
                             className="w-full py-4 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-200 flex items-center justify-center gap-2 transition-all"
                         >
-                            {loading ? 'جاري الإرسال...' : 'إرسال طلب فتح الحساب'} <Send size={18} className="rtl:rotate-180" />
+                            {loading ? 'جاري الإرسال...' : (siteSettings?.authPageTexts?.registerButtonText || 'إرسال طلب فتح الحساب')} <Send size={18} className="rtl:rotate-180" />
                         </button>
                     </form>
                 </div>
