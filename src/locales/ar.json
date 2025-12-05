@@ -3,7 +3,7 @@
     "appName": "صيني كار",
     "siniCar": "صيني كار",
     "appSlogan": "بوابة الجملة للسيارات",
-    "loading": "جارٍ التحميل...",
+    "loading": "جاري التحميل...",
     "save": "حفظ",
     "cancel": "إلغاء",
     "confirm": "تأكيد",
@@ -60,7 +60,16 @@
     "welcome": "مرحباً",
     "page": "صفحة",
     "of": "من",
-    "currency": "ر.س"
+    "currency": "ر.س",
+    "order": "طلب",
+    "notSpecified": "غير محدد",
+    "sort": "ترتيب",
+    "download": "تحميل",
+    "upload": "رفع",
+    "first": "الأول",
+    "last": "الأخير",
+    "selectAll": "تحديد الكل",
+    "deselectAll": "إلغاء التحديد"
   },
   "login": {
     "wholesaleLogin": "تسجيل الدخول لعملاء الجملة",
@@ -83,26 +92,42 @@
     "logoutSuccess": "تم تسجيل الخروج بنجاح",
     "enterAsGuest": "تصفح كزائر",
     "guest": "زائر",
-    "guestWelcome": "أهلاً بك كزائر! يمكنك تصفح المنتجات فقط"
+    "guestWelcome": "أهلاً بك كزائر! يمكنك تصفح المنتجات فقط",
+    "title": "تسجيل الدخول",
+    "subtitle": "أدخل بيانات الدخول للمتابعة",
+    "phone": "رقم الجوال",
+    "phonePlaceholder": "أدخل رقم الجوال",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "loginButton": "دخول",
+    "loggingIn": "جاري الدخول...",
+    "noAccount": "ليس لديك حساب؟",
+    "registerHere": "سجل هنا",
+    "errors": {
+      "phoneRequired": "رقم الجوال مطلوب",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "invalidCredentials": "بيانات الدخول غير صحيحة",
+      "accountSuspended": "الحساب موقوف",
+      "tooManyAttempts": "محاولات كثيرة. حاول لاحقاً"
+    },
+    "success": "تم تسجيل الدخول بنجاح"
   },
   "loading": {
     "verifyingCredentials": "التحقق من بيانات الاعتماد...",
     "connectingWarehouse": "الاتصال بالمستودع المركزي...",
-    "loadingCatalog": "جاري تحميل كتالوج المنتجات (20,000+ صنف)...",
+    "loadingCatalog": "جاري تحميل كتالوج المنتجات...",
     "applyingDiscounts": "تطبيق خصومات الجملة الخاصة بحسابك...",
     "syncingInventory": "مزامنة المخزون والأسعار الحية...",
     "optimizingLogistics": "تهيئة مسارات الشحن واللوجستيات...",
     "finalizingSetup": "إعداد لوحة التحكم الذكية...",
-    "accessGranted": "اكتمل الإعداد، أهلاً بك!",
-    "systemInitialization": "تهيئة النظام"
+    "accessGranted": "اكتمل الإعداد، أهلاً بك!"
   },
   "intro": {
     "mainServer": "الخادم الرئيسي",
-    "connectingServer": "جارِ الاتصال وتأكيد الهوية...",
+    "connectingServer": "جارٍ الاتصال وتأكيد الهوية...",
     "dataSync": "مزامنة البيانات",
-    "syncingData": "جارِ تحديث قوائم الأسعار والمخزون...",
+    "syncingData": "جارٍ تحديث قوائم الأسعار والمخزون...",
     "logistics": "الربط اللوجستي",
-    "connectingWarehouses": "جارِ الاتصال بالمستودعات المركزية لشركة صيني كار..."
+    "connectingWarehouses": "جارٍ الاتصال بالمستودعات المركزية لشركة صيني كار..."
   },
   "marketing": {
     "dismiss": "إخفاء",
@@ -641,24 +666,6 @@
     "discardChanges": "هل أنت متأكد من تجاهل التغييرات؟",
     "actionCannotBeUndone": "هذا الإجراء لا يمكن التراجع عنه"
   },
-  "intro": {
-    "mainServer": "الخادم الرئيسي",
-    "connectingServer": "جارٍ الاتصال وتأكيد الهوية...",
-    "dataSync": "مزامنة البيانات",
-    "syncingData": "جارٍ تحديث قوائم الأسعار والمخزون...",
-    "logistics": "الربط اللوجستي",
-    "connectingWarehouses": "جارٍ الاتصال بالمستودعات المركزية لشركة صيني كار..."
-  },
-  "loading": {
-    "verifyingCredentials": "التحقق من بيانات الاعتماد...",
-    "connectingWarehouse": "الاتصال بالمستودع المركزي...",
-    "loadingCatalog": "جاري تحميل كتالوج المنتجات...",
-    "applyingDiscounts": "تطبيق خصومات الجملة الخاصة بحسابك...",
-    "syncingInventory": "مزامنة المخزون والأسعار الحية...",
-    "optimizingLogistics": "تهيئة مسارات الشحن واللوجستيات...",
-    "finalizingSetup": "إعداد لوحة التحكم الذكية...",
-    "accessGranted": "اكتمل الإعداد، أهلاً بك!"
-  },
   "admin": {
     "panel": "لوحة الإدارة",
     "systemSettings": "إعدادات النظام",
@@ -688,7 +695,7 @@
     "heroTitle": "منظومة صيني كار لعملاء الجملة",
     "heroSubtitle": "نظام موحّد لطلب وتسعير قطع غيار السيارات الصينية لعملاء الجملة، شركات التأمين، شركات التأجير، ومحلات قطع الغيار.",
     "searchTip": "أفضل نتيجة تحصل عليها عند البحث برقم القطعة",
-    "searchPlaceholder": "بحث سريع: رقم القطعة (OO) أو اسم الصنف...",
+    "searchPlaceholder": "أدخل رقم القطعة أو الوصف...",
     "searching": "جاري البحث...",
     "noResults": "لا توجد نتائج",
     "pressSearch": "اضغط على زر البحث للبحث الدقيق عن:",
@@ -778,7 +785,32 @@
     "orderSuccess": {
       "title": "تم إرسال الطلب بنجاح!",
       "message": "سيتم التواصل معك قريباً لإتمام الطلب"
-    }
+    },
+    "welcome": "مرحباً",
+    "dashboard": "لوحة التحكم",
+    "searchProducts": "البحث عن منتجات",
+    "search": "بحث",
+    "recentOrders": "الطلبات الأخيرة",
+    "viewAll": "عرض الكل",
+    "noRecentOrders": "لا توجد طلبات حديثة",
+    "recentQuotes": "طلبات التسعير الأخيرة",
+    "noRecentQuotes": "لا توجد طلبات تسعير حديثة",
+    "quickActions": "الإجراءات السريعة",
+    "newOrder": "طلب جديد",
+    "newQuote": "طلب تسعير",
+    "myAccount": "حسابي",
+    "support": "الدعم",
+    "stats": {
+      "totalOrders": "إجمالي الطلبات",
+      "pendingOrders": "طلبات قيد الانتظار",
+      "totalSpent": "إجمالي الإنفاق",
+      "searchPoints": "نقاط البحث"
+    },
+    "searchResults": "نتائج البحث",
+    "cart": "السلة",
+    "checkout": "إتمام الطلب",
+    "total": "الإجمالي",
+    "currency": "ر.س"
   },
   "adminDashboard": {
     "mainSection": "الرئيسية",
@@ -899,6 +931,215 @@
     "generalManager": "المدير العام",
     "teamSettings": "المنظمات والفرق"
   },
+  "adminCustomers": {
+    "title": "قاعدة بيانات العملاء (CRM)",
+    "loading": "جاري تحميل البيانات...",
+    "stats": {
+      "totalCustomers": "إجمالي العملاء",
+      "activeCustomers": "عملاء نشطين",
+      "suspendedBlocked": "موقوفين/محظورين"
+    },
+    "searchPlaceholder": "بحث باسم المنشأة أو الجوال أو المدينة...",
+    "allStatuses": "كل الحالات",
+    "table": {
+      "customer": "العميل",
+      "city": "المدينة",
+      "priceLevel": "مستوى السعر",
+      "ordersCount": "عدد الطلبات",
+      "totalPurchases": "إجمالي المشتريات",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "view": "عرض",
+    "noMatchingCustomers": "لا يوجد عملاء مطابقين",
+    "status": {
+      "active": "نشط",
+      "suspended": "موقوف",
+      "blocked": "محظور",
+      "pending": "قيد التفعيل",
+      "inactive": "غير نشط"
+    },
+    "panel": {
+      "title": "ملف العميل",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "orders": "الطلبات",
+        "activity": "النشاط"
+      },
+      "businessInfo": "معلومات المنشأة",
+      "companyName": "اسم المنشأة",
+      "city": "المدينة",
+      "phone": "الجوال",
+      "crNumber": "السجل التجاري",
+      "priceLevel": "مستوى التسعير",
+      "customerType": "نوع العميل",
+      "accountStatus": "حالة الحساب",
+      "searchBalance": "رصيد البحث",
+      "staffUsers": "الموظفين",
+      "accessValidity": "صلاحية الدخول",
+      "ordersHistory": "سجل الطلبات",
+      "activityLog": "سجل النشاط"
+    },
+    "toast": {
+      "loadError": "فشل في تحميل قاعدة البيانات"
+    },
+    "detail": {
+      "tabs": {
+        "overview": "نظرة عامة",
+        "orders": "الطلبات",
+        "quotes": "التسعير",
+        "staff": "الموظفين",
+        "security": "الأمان والدخول",
+        "notes": "ملاحظات"
+      },
+      "accountManagement": "إدارة الحساب",
+      "changeStatus": "تغيير الحالة",
+      "statusActive": "نشط (Active)",
+      "statusSuspended": "إيقاف مؤقت (Suspend)",
+      "statusBlocked": "حظر نهائي (Block)",
+      "suspendUntil": "إيقاف حتى تاريخ",
+      "saving": "جاري الحفظ...",
+      "saveChanges": "حفظ التغييرات",
+      "statusUpdated": "تم تحديث حالة العميل",
+      "errorOccurred": "حدث خطأ",
+      "priceDisplayType": "نوع عرض الأسعار",
+      "pricesVisible": "الأسعار ظاهرة دائماً - بدون نظام نقاط",
+      "pricesHidden": "الأسعار مخفية - يحتاج نقاط بحث للكشف",
+      "visibleNoPoints": "أسعار ظاهرة (بدون نقاط)",
+      "hiddenWithPoints": "أسعار مخفية (بنقاط)",
+      "visible": "ظاهرة",
+      "hidden": "مخفية",
+      "priceDisplayChanged": "تم تغيير نوع عرض الأسعار إلى",
+      "searchWallet": "محفظة البحث",
+      "addBalance": "إضافة رصيد",
+      "deductBalance": "خصم رصيد",
+      "totalBalance": "الرصيد الكلي",
+      "used": "المستخدم",
+      "remaining": "المتبقي",
+      "joinDate": "تاريخ الانضمام",
+      "lastLogin": "آخر تسجيل دخول",
+      "customerDocs": "وثائق العميل",
+      "commercialRegistration": "السجل التجاري",
+      "vatCertificate": "شهادة الضريبة",
+      "nationalId": "الهوية الوطنية",
+      "notAttached": "غير مرفق",
+      "noDocument": "لا يوجد",
+      "enterPointsToAdd": "أدخل عدد النقاط للإضافة:",
+      "pointsAddedSuccess": "تم إضافة {{points}} نقطة بنجاح",
+      "currentBalance": "الرصيد الحالي:",
+      "points": "نقطة",
+      "enterPointsToDeduct": "أدخل عدد النقاط للخصم:",
+      "cannotDeductMoreThan": "لا يمكن خصم أكثر من الرصيد المتبقي",
+      "pointsDeductedSuccess": "تم خصم {{points}} نقطة بنجاح",
+      "errorDeductingPoints": "حدث خطأ أثناء خصم النقاط",
+      "staffStatusUpdated": "تم تحديث حالة الموظف",
+      "customerOrders": "طلبات العميل",
+      "noOrders": "لا توجد طلبات",
+      "orderNumber": "رقم الطلب",
+      "date": "التاريخ",
+      "amount": "المبلغ",
+      "orderStatus": "الحالة",
+      "priceQuotes": "طلبات التسعير",
+      "noQuotes": "لا توجد طلبات تسعير",
+      "quoteNumber": "رقم الطلب",
+      "items": "العناصر",
+      "staffMembers": "موظفي العميل",
+      "noStaff": "لا يوجد موظفين مسجلين",
+      "staffName": "اسم الموظف",
+      "role": "الدور",
+      "lastActive": "آخر نشاط",
+      "action": "إجراء",
+      "suspend": "تعليق",
+      "activate": "تفعيل",
+      "securityAccessLogs": "سجلات الأمان والوصول",
+      "loginHistory": "سجل الدخول",
+      "device": "الجهاز",
+      "ipAddress": "IP",
+      "location": "الموقع",
+      "adminNotes": "ملاحظات المدير",
+      "noNotes": "لا توجد ملاحظات",
+      "addNote": "أضف ملاحظة...",
+      "writeNote": "اكتب ملاحظة جديدة...",
+      "notePlaceholder": "اكتب ملاحظتك هنا...",
+      "addNoteBtn": "إضافة ملاحظة",
+      "docs": {
+        "commercialReg": "السجل التجاري",
+        "taxNumber": "الرقم الضريبي",
+        "nationalAddress": "العنوان الوطني",
+        "notAttached": "غير مرفق",
+        "notAvailable": "غير متوفر"
+      },
+      "staff": {
+        "staffMembers": "المستخدمين التابعين",
+        "maxLimit": "الحد الأقصى",
+        "owner": "مالك",
+        "active": "نشط",
+        "suspended": "معلق",
+        "suspendBtn": "تعليق",
+        "activateBtn": "تفعيل"
+      },
+      "orders": {
+        "customerOrders": "طلبات العميل",
+        "completed": "المكتملة",
+        "ongoing": "الجارية",
+        "loadingOrders": "جاري تحميل الطلبات...",
+        "noOrders": "لا توجد طلبات لهذا العميل",
+        "unspecified": "غير محدد",
+        "products": "المنتجات",
+        "item": "صنف",
+        "total": "الإجمالي",
+        "date": "التاريخ",
+        "currency": "ر.س",
+        "showingOf": "عرض {{shown}} من {{total}} طلب"
+      },
+      "quotes": {
+        "pricingRequests": "طلبات التسعير",
+        "approved": "معتمد",
+        "new": "الجديدة",
+        "loadingQuotes": "جاري تحميل طلبات التسعير...",
+        "noQuotes": "لا توجد طلبات تسعير لهذا العميل",
+        "unspecified": "غير محدد",
+        "items": "الأصناف",
+        "item": "صنف",
+        "total": "الإجمالي",
+        "date": "التاريخ",
+        "currency": "ر.س",
+        "pendingPricing": "قيد التسعير",
+        "showingOf": "عرض {{shown}} من {{total}} طلب تسعير",
+        "missing": "ناقص",
+        "reviewedBy": "بواسطة"
+      },
+      "security": {
+        "securityIndicators": "مؤشرات الأمان",
+        "failedLoginAttempts": "محاولات دخول فاشلة",
+        "suspiciousBehavior": "سلوك مريب (Flag)",
+        "yes": "نعم",
+        "no": "لا",
+        "resetCounter": "إعادة تعيين عداد الفشل (Reset)",
+        "counterReset": "تم تصفير العداد",
+        "passwordReset": "إعادة تعيين كلمة المرور",
+        "passwordResetDesc": "يمكنك إعادة تعيين كلمة مرور صاحب الحساب من هنا. سيتم إنشاء كلمة مرور جديدة وإرسال إشعار للعميل.",
+        "enterNewPassword": "أدخل كلمة المرور الجديدة (4 أحرف على الأقل):",
+        "adminNotFound": "خطأ: لم يتم العثور على بيانات المسؤول",
+        "passwordResetError": "حدث خطأ أثناء إعادة تعيين كلمة المرور",
+        "passwordMinLength": "كلمة المرور يجب أن تكون 4 أحرف على الأقل",
+        "resetPasswordBtn": "إعادة تعيين كلمة المرور",
+        "recentLoginHistory": "سجل الدخول الأخير",
+        "successfulLogin": "دخول ناجح",
+        "failedLogin": "فشل دخول",
+        "passwordChanged": "تغيير كلمة المرور",
+        "passwordResetAdmin": "إعادة تعيين (Admin)",
+        "noLogsAvailable": "لا يوجد سجلات محفوظة"
+      },
+      "notes": {
+        "adminNotes": "ملاحظات المدير",
+        "noNotes": "لا توجد ملاحظات داخلية",
+        "addNote": "أضف ملاحظة جديدة...",
+        "placeholder": "اكتب ملاحظات إدارية هنا...",
+        "saveNote": "حفظ الملاحظة"
+      }
+    }
+  },
   "adminSettings": {
     "systemSettings": "إعدادات النظام",
     "generalSettings": "الإعدادات العامة",
@@ -1014,7 +1255,7 @@
     "fillAllFields": "يرجى تعبئة جميع الحقول",
     "featureAdded": "تمت إضافة الميزة بنجاح",
     "featureDeleted": "تم حذف الميزة",
-    "title": "العنوان",
+    "title": "الإعدادات",
     "description": "الوصف",
     "icon": "الأيقونة",
     "iconBox": "صندوق",
@@ -1108,16 +1349,47 @@
     "allowSearchDesc": "يمكن للضيوف استخدام البحث (النتائج مشوشة)",
     "showSearchResults": "إظهار نتائج البحث",
     "showSearchResultsDesc": "عرض نتائج البحث مع تشويش التفاصيل",
-    "guestSettingsSaved": "تم حفظ إعدادات وضع الضيف بنجاح"
+    "guestSettingsSaved": "تم حفظ إعدادات وضع الضيف بنجاح",
+    "general": {
+      "title": "الإعدادات العامة",
+      "siteName": "اسم الموقع",
+      "siteDescription": "وصف الموقع",
+      "contactEmail": "البريد الإلكتروني للتواصل",
+      "contactPhone": "رقم التواصل",
+      "currency": "العملة",
+      "language": "اللغة",
+      "timezone": "المنطقة الزمنية",
+      "save": "حفظ",
+      "saved": "تم حفظ الإعدادات"
+    },
+    "business": {
+      "title": "إعدادات العمل",
+      "minOrderAmount": "الحد الأدنى للطلب",
+      "maxOrderAmount": "الحد الأقصى للطلب",
+      "deliveryFee": "رسوم التوصيل",
+      "taxRate": "نسبة الضريبة"
+    },
+    "notifications": {
+      "title": "إعدادات الإشعارات",
+      "emailNotifications": "إشعارات البريد",
+      "smsNotifications": "إشعارات الرسائل",
+      "pushNotifications": "الإشعارات الفورية"
+    },
+    "security": {
+      "title": "إعدادات الأمان",
+      "twoFactorAuth": "المصادقة الثنائية",
+      "sessionTimeout": "مهلة الجلسة",
+      "maxLoginAttempts": "أقصى محاولات تسجيل الدخول"
+    }
   },
   "adminOrders": {
-    "title": "إدارة طلبات العملاء",
+    "title": "إدارة الطلبات",
     "newOrders": "الطلبات الجديدة",
     "inProgress": "قيد المعالجة",
     "readyToShip": "جاهزة للشحن",
     "totalOrders": "إجمالي الطلبات",
     "searchOrder": "بحث برقم الطلب أو اسم العميل...",
-    "allStatuses": "كل الحالات",
+    "allStatuses": "جميع الحالات",
     "allInternalStatuses": "كل الحالات الداخلية",
     "orderNumber": "رقم الطلب",
     "customer": "العميل",
@@ -1129,7 +1401,7 @@
     "noOrders": "لا توجد طلبات",
     "orderDetails": "تفاصيل الطلب",
     "customerInfo": "معلومات العميل",
-    "orderItems": "عناصر الطلب",
+    "orderItems": "أصناف الطلب",
     "statusHistory": "تاريخ الحالات",
     "internalNotes": "ملاحظات داخلية",
     "updateStatus": "تحديث الحالة",
@@ -1175,7 +1447,32 @@
     "noInternalPermission": "ليس لديك صلاحية تعديل الحالة الداخلية",
     "dangerZone": "منطقة الخطر",
     "cancelOrder": "إلغاء الطلب نهائياً",
-    "noPermission": "ليس لديك صلاحية"
+    "noPermission": "ليس لديك صلاحية",
+    "stats": {
+      "pending": "قيد الانتظار",
+      "processing": "جاري المعالجة",
+      "shipped": "تم الشحن",
+      "delivered": "تم التوصيل",
+      "cancelled": "ملغاة"
+    },
+    "searchPlaceholder": "بحث برقم الطلب، اسم العميل...",
+    "table": {
+      "orderId": "رقم الطلب",
+      "customer": "العميل",
+      "items": "الأصناف",
+      "total": "الإجمالي",
+      "date": "التاريخ",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "view": "عرض",
+    "approve": "موافقة",
+    "ship": "شحن",
+    "deliver": "تسليم",
+    "cancel": "إلغاء",
+    "orderUpdated": "تم تحديث الطلب",
+    "shippingInfo": "معلومات الشحن",
+    "paymentInfo": "معلومات الدفع"
   },
   "adminAccounts": {
     "title": "إدارة طلبات فتح الحساب",
@@ -1322,7 +1619,7 @@
     "pendingQuotes": "تسعيرات معلقة",
     "completedQuotes": "تسعيرات مكتملة",
     "searchQuote": "بحث برقم الطلب أو اسم العميل...",
-    "allStatuses": "كل الحالات",
+    "allStatuses": "جميع الحالات",
     "quoteNumber": "رقم الطلب",
     "customer": "العميل",
     "date": "التاريخ",
@@ -1333,71 +1630,288 @@
     "quoteDetails": "تفاصيل طلب التسعير",
     "requestedItems": "الأصناف المطلوبة",
     "response": "الرد",
-    "sendResponse": "إرسال الرد"
-  },
-  "adminCustomers": {
-    "title": "قاعدة بيانات العملاء (CRM)",
-    "totalCustomers": "إجمالي العملاء",
-    "activeCustomers": "عملاء نشطين",
-    "searchCustomer": "بحث باسم المنشأة أو رقم العميل...",
-    "allTypes": "كل الأنواع",
-    "allLevels": "كل المستويات",
-    "customerNumber": "رقم العميل",
-    "businessName": "اسم المنشأة",
-    "type": "النوع",
-    "priceLevel": "مستوى التسعير",
-    "ordersCount": "عدد الطلبات",
-    "totalSpent": "إجمالي المشتريات",
-    "status": "الحالة",
-    "actions": "الإجراءات",
-    "noCustomers": "لا يوجد عملاء",
-    "customerDetails": "تفاصيل العميل",
-    "orderHistory": "سجل الطلبات",
-    "searchHistory": "سجل البحث"
+    "sendResponse": "إرسال الرد",
+    "stats": {
+      "new": "جديد",
+      "inProgress": "قيد المعالجة",
+      "completed": "مكتمل",
+      "approved": "معتمد"
+    },
+    "searchPlaceholder": "بحث برقم الطلب، اسم العميل...",
+    "table": {
+      "quoteId": "رقم طلب التسعير",
+      "customer": "العميل",
+      "items": "الأصناف",
+      "priceType": "نوع السعر",
+      "date": "التاريخ",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "view": "عرض",
+    "process": "معالجة",
+    "complete": "إتمام",
+    "approve": "اعتماد",
+    "quoteUpdated": "تم تحديث طلب التسعير",
+    "pricedItems": "الأصناف المسعرة",
+    "missingItems": "الأصناف الناقصة"
   },
   "adminProducts": {
     "title": "إدارة المنتجات",
-    "totalProducts": "إجمالي المنتجات",
-    "activeProducts": "منتجات نشطة",
-    "outOfStock": "نفاد المخزون",
-    "searchProduct": "بحث باسم المنتج أو رقم القطعة...",
-    "allCategories": "كل التصنيفات",
-    "allBrands": "كل العلامات",
+    "subtitle": "إدارة كتالوج المنتجات والأسعار والمخزون",
+    "searchPlaceholder": "البحث عن منتج...",
     "addProduct": "إضافة منتج",
-    "importProducts": "استيراد المنتجات",
-    "exportProducts": "تصدير المنتجات",
+    "importExcel": "استيراد Excel",
+    "exportExcel": "تصدير Excel",
+    "columnSettings": "إعدادات الأعمدة",
+    "visibilitySettings": "إعدادات الرؤية",
+    "stats": {
+      "totalProducts": "إجمالي المنتجات",
+      "inStock": "متوفر",
+      "outOfStock": "غير متوفر",
+      "hidden": "مخفي"
+    },
+    "table": {
+      "partNumber": "رقم الصنف",
+      "name": "اسم المنتج",
+      "brand": "الماركة",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "visibility": "الرؤية",
+      "actions": "إجراءات"
+    },
+    "modal": {
+      "addTitle": "إضافة منتج جديد",
+      "editTitle": "تعديل المنتج",
+      "deleteConfirm": "تأكيد الحذف",
+      "deleteMessage": "هل أنت متأكد من حذف هذا المنتج؟",
+      "importTitle": "استيراد من Excel",
+      "columnSettingsTitle": "إعدادات أعمدة Excel"
+    },
+    "form": {
+      "partNumber": "رقم الصنف",
+      "name": "اسم المنتج",
+      "brand": "الماركة",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "costPrice": "سعر التكلفة",
+      "description": "الوصف",
+      "isVisible": "مرئي للعملاء",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "import": {
+      "selectFile": "اختر ملف Excel",
+      "dragDrop": "أو اسحب وأفلت الملف هنا",
+      "processing": "جاري المعالجة...",
+      "success": "تم الاستيراد بنجاح",
+      "imported": "تم استيراد",
+      "updated": "تم تحديث",
+      "skipped": "تم تخطي",
+      "errors": "أخطاء"
+    },
+    "validation": {
+      "partNumberRequired": "رقم الصنف مطلوب",
+      "nameRequired": "اسم المنتج مطلوب",
+      "priceInvalid": "السعر غير صالح",
+      "quantityInvalid": "الكمية غير صالحة"
+    },
+    "toast": {
+      "productCreated": "تم إضافة المنتج بنجاح",
+      "productUpdated": "تم تحديث المنتج بنجاح",
+      "productDeleted": "تم حذف المنتج بنجاح",
+      "importSuccess": "تم استيراد المنتجات بنجاح",
+      "createError": "فشل في إضافة المنتج",
+      "updateError": "فشل في تحديث المنتج",
+      "deleteError": "فشل في حذف المنتج",
+      "importError": "فشل في استيراد الملف",
+      "loadError": "فشل في تحميل المنتجات",
+      "visibilityThresholdSaved": "تم حفظ الحد الأدنى لعرض الكمية"
+    },
+    "presets": {
+      "title": "إعدادات أعمدة الاستيراد",
+      "name": "اسم الإعداد",
+      "isDefault": "افتراضي",
+      "mappings": "ربط الأعمدة",
+      "internalField": "الحقل الداخلي",
+      "excelHeader": "عمود Excel",
+      "enabled": "مفعل",
+      "required": "مطلوب",
+      "addPreset": "إضافة إعداد جديد",
+      "editPreset": "تعديل الإعداد",
+      "deletePreset": "حذف الإعداد",
+      "savePreset": "حفظ الإعداد",
+      "toast": {
+        "presetCreated": "تم إنشاء الإعداد بنجاح",
+        "presetUpdated": "تم تحديث الإعداد بنجاح",
+        "presetDeleted": "تم حذف الإعداد بنجاح",
+        "presetSetDefault": "تم تعيين الإعداد كافتراضي"
+      }
+    },
+    "uploadExcel": "رفع Excel",
+    "downloadTemplate": "تحميل قالب",
+    "loading": "جاري التحميل...",
+    "noProducts": "لا توجد منتجات",
+    "noMatchingProducts": "لا توجد منتجات مطابقة",
     "partNumber": "رقم القطعة",
     "productName": "اسم المنتج",
-    "category": "التصنيف",
-    "brand": "العلامة",
+    "quantity": "الكمية",
     "price": "السعر",
-    "stock": "المخزون",
-    "status": "الحالة",
-    "actions": "الإجراءات",
-    "noProducts": "لا توجد منتجات",
-    "productDetails": "تفاصيل المنتج",
-    "editProduct": "تعديل المنتج",
-    "deleteProduct": "حذف المنتج"
+    "category": "الفئة",
+    "actions": "إجراءات",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "deleteConfirm": "هل أنت متأكد من حذف هذا المنتج؟",
+    "productDeleted": "تم حذف المنتج",
+    "productSaved": "تم حفظ المنتج",
+    "productCreated": "تم إنشاء المنتج",
+    "importModal": {
+      "title": "استيراد منتجات",
+      "selectFile": "اختر ملف Excel",
+      "importing": "جاري الاستيراد...",
+      "importSuccess": "تم الاستيراد بنجاح",
+      "imported": "تم إضافة",
+      "updated": "تم تحديث",
+      "skipped": "تم تخطي",
+      "errors": "أخطاء"
+    },
+    "productModal": {
+      "editTitle": "تعديل المنتج",
+      "addTitle": "إضافة منتج جديد",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "columnPresets": {
+      "title": "إعدادات أعمدة Excel",
+      "presetName": "اسم الإعداد",
+      "enterPresetName": "الرجاء إدخال اسم الإعداد",
+      "created": "تم إنشاء الإعداد بنجاح",
+      "saved": "تم حفظ التعديلات",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا الإعداد؟",
+      "deleted": "تم حذف الإعداد",
+      "setDefault": "تعيين كافتراضي",
+      "isDefault": "الافتراضي"
+    },
+    "visibility": {
+      "title": "إعدادات الظهور",
+      "threshold": "الحد الأدنى للظهور",
+      "saved": "تم حفظ إعدادات الظهور"
+    },
+    "pagination": {
+      "showing": "عرض",
+      "of": "من",
+      "products": "منتج",
+      "previous": "السابق",
+      "next": "التالي"
+    }
   },
   "adminUsers": {
     "title": "إدارة المستخدمين",
-    "totalUsers": "إجمالي المستخدمين",
-    "activeUsers": "مستخدمين نشطين",
-    "searchUser": "بحث باسم المستخدم أو البريد الإلكتروني...",
-    "allRoles": "كل الأدوار",
+    "subtitle": "إدارة حسابات المستخدمين الإداريين والأدوار والصلاحيات",
+    "tabs": {
+      "users": "المستخدمون",
+      "roles": "الأدوار والصلاحيات"
+    },
+    "searchPlaceholder": "بحث بالاسم، البريد...",
+    "allRoles": "جميع الأدوار",
+    "allStatuses": "جميع الحالات",
     "addUser": "إضافة مستخدم",
-    "userName": "اسم المستخدم",
-    "email": "البريد الإلكتروني",
-    "role": "الدور",
-    "lastLogin": "آخر دخول",
-    "status": "الحالة",
-    "actions": "الإجراءات",
+    "exportUsers": "تصدير البيانات",
+    "table": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "contact": "التواصل",
+      "lastLogin": "آخر دخول",
+      "status": "الحالة",
+      "actions": "إجراءات",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الجوال"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "ACTIVE": "نشط",
+      "SUSPENDED": "موقوف",
+      "PENDING": "قيد الانتظار"
+    },
+    "modal": {
+      "addTitle": "إضافة مستخدم جديد",
+      "editTitle": "تعديل المستخدم",
+      "deleteConfirm": "تأكيد الحذف",
+      "deleteMessage": "هل أنت متأكد من حذف هذا المستخدم؟",
+      "resetPassword": "إعادة تعيين كلمة المرور",
+      "toggleStatus": "تغيير الحالة"
+    },
+    "form": {
+      "fullName": "الاسم الكامل",
+      "username": "اسم المستخدم",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الجوال",
+      "role": "الدور",
+      "password": "كلمة المرور",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "validation": {
+      "nameRequired": "الاسم مطلوب",
+      "usernameRequired": "اسم المستخدم مطلوب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "البريد الإلكتروني غير صالح",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordMinLength": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "roleRequired": "الدور مطلوب"
+    },
+    "toast": {
+      "userCreated": "تم إنشاء المستخدم بنجاح",
+      "userUpdated": "تم تحديث المستخدم بنجاح",
+      "userDeleted": "تم حذف المستخدم بنجاح",
+      "passwordReset": "تم إعادة تعيين كلمة المرور",
+      "statusChanged": "تم تغيير حالة المستخدم",
+      "createError": "فشل في إنشاء المستخدم",
+      "updateError": "فشل في تحديث المستخدم",
+      "deleteError": "فشل في حذف المستخدم",
+      "loadError": "فشل في تحميل المستخدمين"
+    },
+    "roles": {
+      "title": "إدارة الأدوار",
+      "addRole": "إضافة دور جديد",
+      "editRole": "تعديل الدور",
+      "deleteRole": "حذف الدور",
+      "roleName": "اسم الدور",
+      "roleDescription": "وصف الدور",
+      "permissions": "الصلاحيات",
+      "usersCount": "عدد المستخدمين",
+      "isSystemRole": "دور نظام",
+      "noRoles": "لا توجد أدوار",
+      "toast": {
+        "roleCreated": "تم إنشاء الدور بنجاح",
+        "roleUpdated": "تم تحديث الدور بنجاح",
+        "roleDeleted": "تم حذف الدور بنجاح"
+      },
+      "SUPER_ADMIN": "مدير النظام",
+      "ADMIN": "مشرف",
+      "MANAGER": "مدير",
+      "STAFF": "موظف",
+      "CUSTOMER_OWNER": "صاحب حساب",
+      "CUSTOMER_STAFF": "موظف عميل"
+    },
+    "stats": {
+      "total": "إجمالي المستخدمين",
+      "admins": "المشرفين",
+      "staff": "الموظفين",
+      "active": "نشط"
+    },
     "noUsers": "لا يوجد مستخدمين",
-    "userDetails": "تفاصيل المستخدم",
     "editUser": "تعديل المستخدم",
     "deleteUser": "حذف المستخدم",
-    "permissions": "الصلاحيات",
-    "resetPassword": "إعادة تعيين كلمة المرور"
+    "deleteConfirm": "هل أنت متأكد من حذف هذا المستخدم؟",
+    "userCreated": "تم إنشاء المستخدم",
+    "userUpdated": "تم تحديث المستخدم",
+    "userDeleted": "تم حذف المستخدم",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "passwordReset": "تم إعادة تعيين كلمة المرور"
   },
   "accessDenied": {
     "title": "لا تملك صلاحية للوصول",
@@ -1669,234 +2183,6 @@
       "sendFailed": "فشل الإرسال"
     }
   },
-  "adminCustomers": {
-    "title": "قاعدة بيانات العملاء (CRM)",
-    "loading": "جاري تحميل البيانات...",
-    "stats": {
-      "totalCustomers": "إجمالي العملاء",
-      "activeCustomers": "عملاء نشطين",
-      "suspendedBlocked": "موقوفين/محظورين"
-    },
-    "searchPlaceholder": "بحث باسم المنشأة أو الجوال أو المدينة...",
-    "allStatuses": "كل الحالات",
-    "table": {
-      "customer": "العميل",
-      "city": "المدينة",
-      "priceLevel": "مستوى السعر",
-      "ordersCount": "عدد الطلبات",
-      "totalPurchases": "إجمالي المشتريات",
-      "status": "الحالة",
-      "actions": "إجراءات"
-    },
-    "view": "عرض",
-    "noMatchingCustomers": "لا يوجد عملاء مطابقين",
-    "status": {
-      "active": "نشط",
-      "suspended": "موقوف",
-      "blocked": "محظور",
-      "pending": "قيد التفعيل",
-      "inactive": "غير نشط"
-    },
-    "panel": {
-      "title": "ملف العميل",
-      "tabs": {
-        "overview": "نظرة عامة",
-        "orders": "الطلبات",
-        "activity": "النشاط"
-      },
-      "businessInfo": "معلومات المنشأة",
-      "companyName": "اسم المنشأة",
-      "city": "المدينة",
-      "phone": "الجوال",
-      "crNumber": "السجل التجاري",
-      "priceLevel": "مستوى التسعير",
-      "customerType": "نوع العميل",
-      "accountStatus": "حالة الحساب",
-      "searchBalance": "رصيد البحث",
-      "staffUsers": "الموظفين",
-      "accessValidity": "صلاحية الدخول",
-      "ordersHistory": "سجل الطلبات",
-      "activityLog": "سجل النشاط"
-    },
-    "toast": {
-      "loadError": "فشل في تحميل قاعدة البيانات"
-    }
-  },
-  "adminUsers": {
-    "title": "إدارة المستخدمين والأدوار",
-    "subtitle": "إدارة حسابات المستخدمين الإداريين والأدوار والصلاحيات",
-    "tabs": {
-      "users": "المستخدمون",
-      "roles": "الأدوار والصلاحيات"
-    },
-    "searchPlaceholder": "بحث باسم المستخدم أو البريد...",
-    "allRoles": "جميع الأدوار",
-    "allStatuses": "جميع الحالات",
-    "addUser": "إضافة مستخدم",
-    "exportUsers": "تصدير البيانات",
-    "table": {
-      "user": "المستخدم",
-      "role": "الدور",
-      "contact": "التواصل",
-      "lastLogin": "آخر دخول",
-      "status": "الحالة",
-      "actions": "إجراءات"
-    },
-    "status": {
-      "active": "نشط",
-      "inactive": "غير نشط"
-    },
-    "modal": {
-      "addTitle": "إضافة مستخدم جديد",
-      "editTitle": "تعديل المستخدم",
-      "deleteConfirm": "تأكيد الحذف",
-      "deleteMessage": "هل أنت متأكد من حذف هذا المستخدم؟",
-      "resetPassword": "إعادة تعيين كلمة المرور",
-      "toggleStatus": "تغيير الحالة"
-    },
-    "form": {
-      "fullName": "الاسم الكامل",
-      "username": "اسم المستخدم",
-      "email": "البريد الإلكتروني",
-      "phone": "رقم الجوال",
-      "role": "الدور",
-      "password": "كلمة المرور",
-      "newPassword": "كلمة المرور الجديدة",
-      "confirmPassword": "تأكيد كلمة المرور",
-      "save": "حفظ",
-      "cancel": "إلغاء"
-    },
-    "validation": {
-      "nameRequired": "الاسم مطلوب",
-      "usernameRequired": "اسم المستخدم مطلوب",
-      "emailRequired": "البريد الإلكتروني مطلوب",
-      "emailInvalid": "البريد الإلكتروني غير صالح",
-      "passwordRequired": "كلمة المرور مطلوبة",
-      "passwordMinLength": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
-      "roleRequired": "الدور مطلوب"
-    },
-    "toast": {
-      "userCreated": "تم إنشاء المستخدم بنجاح",
-      "userUpdated": "تم تحديث المستخدم بنجاح",
-      "userDeleted": "تم حذف المستخدم بنجاح",
-      "passwordReset": "تم إعادة تعيين كلمة المرور",
-      "statusChanged": "تم تغيير حالة المستخدم",
-      "createError": "فشل في إنشاء المستخدم",
-      "updateError": "فشل في تحديث المستخدم",
-      "deleteError": "فشل في حذف المستخدم",
-      "loadError": "فشل في تحميل المستخدمين"
-    },
-    "roles": {
-      "title": "إدارة الأدوار",
-      "addRole": "إضافة دور جديد",
-      "editRole": "تعديل الدور",
-      "deleteRole": "حذف الدور",
-      "roleName": "اسم الدور",
-      "roleDescription": "وصف الدور",
-      "permissions": "الصلاحيات",
-      "usersCount": "عدد المستخدمين",
-      "isSystemRole": "دور نظام",
-      "noRoles": "لا توجد أدوار",
-      "toast": {
-        "roleCreated": "تم إنشاء الدور بنجاح",
-        "roleUpdated": "تم تحديث الدور بنجاح",
-        "roleDeleted": "تم حذف الدور بنجاح"
-      }
-    }
-  },
-  "adminProducts": {
-    "title": "إدارة المنتجات",
-    "subtitle": "إدارة كتالوج المنتجات والأسعار والمخزون",
-    "searchPlaceholder": "بحث برقم الصنف أو الاسم...",
-    "addProduct": "إضافة منتج",
-    "importExcel": "استيراد Excel",
-    "exportExcel": "تصدير Excel",
-    "columnSettings": "إعدادات الأعمدة",
-    "visibilitySettings": "إعدادات الرؤية",
-    "stats": {
-      "totalProducts": "إجمالي المنتجات",
-      "inStock": "متوفر",
-      "outOfStock": "غير متوفر",
-      "hidden": "مخفي"
-    },
-    "table": {
-      "partNumber": "رقم الصنف",
-      "name": "اسم المنتج",
-      "brand": "الماركة",
-      "quantity": "الكمية",
-      "price": "السعر",
-      "visibility": "الرؤية",
-      "actions": "إجراءات"
-    },
-    "modal": {
-      "addTitle": "إضافة منتج جديد",
-      "editTitle": "تعديل المنتج",
-      "deleteConfirm": "تأكيد الحذف",
-      "deleteMessage": "هل أنت متأكد من حذف هذا المنتج؟",
-      "importTitle": "استيراد من Excel",
-      "columnSettingsTitle": "إعدادات أعمدة Excel"
-    },
-    "form": {
-      "partNumber": "رقم الصنف",
-      "name": "اسم المنتج",
-      "brand": "الماركة",
-      "quantity": "الكمية",
-      "price": "السعر",
-      "costPrice": "سعر التكلفة",
-      "description": "الوصف",
-      "isVisible": "مرئي للعملاء",
-      "save": "حفظ",
-      "cancel": "إلغاء"
-    },
-    "import": {
-      "selectFile": "اختر ملف Excel",
-      "dragDrop": "أو اسحب وأفلت الملف هنا",
-      "processing": "جاري المعالجة...",
-      "success": "تم الاستيراد بنجاح",
-      "imported": "تم استيراد",
-      "updated": "تم تحديث",
-      "skipped": "تم تخطي",
-      "errors": "أخطاء"
-    },
-    "validation": {
-      "partNumberRequired": "رقم الصنف مطلوب",
-      "nameRequired": "اسم المنتج مطلوب",
-      "priceInvalid": "السعر غير صالح",
-      "quantityInvalid": "الكمية غير صالحة"
-    },
-    "toast": {
-      "productCreated": "تم إضافة المنتج بنجاح",
-      "productUpdated": "تم تحديث المنتج بنجاح",
-      "productDeleted": "تم حذف المنتج بنجاح",
-      "importSuccess": "تم استيراد المنتجات بنجاح",
-      "createError": "فشل في إضافة المنتج",
-      "updateError": "فشل في تحديث المنتج",
-      "deleteError": "فشل في حذف المنتج",
-      "importError": "فشل في استيراد الملف",
-      "loadError": "فشل في تحميل المنتجات",
-      "visibilityThresholdSaved": "تم حفظ الحد الأدنى لعرض الكمية"
-    },
-    "presets": {
-      "title": "إعدادات أعمدة الاستيراد",
-      "name": "اسم الإعداد",
-      "isDefault": "افتراضي",
-      "mappings": "ربط الأعمدة",
-      "internalField": "الحقل الداخلي",
-      "excelHeader": "عمود Excel",
-      "enabled": "مفعل",
-      "required": "مطلوب",
-      "addPreset": "إضافة إعداد جديد",
-      "editPreset": "تعديل الإعداد",
-      "deletePreset": "حذف الإعداد",
-      "savePreset": "حفظ الإعداد",
-      "toast": {
-        "presetCreated": "تم إنشاء الإعداد بنجاح",
-        "presetUpdated": "تم تحديث الإعداد بنجاح",
-        "presetDeleted": "تم حذف الإعداد بنجاح",
-        "presetSetDefault": "تم تعيين الإعداد كافتراضي"
-      }
-    }
-  },
   "installment": {
     "title": "طلبات الشراء بالتقسيط",
     "subtitle": "تقديم ومتابعة طلبات الشراء بالتقسيط",
@@ -2047,5 +2333,124 @@
     "offerSubmitted": "تم تقديم العرض بنجاح",
     "offerError": "حدث خطأ في تقديم العرض",
     "invalidAmount": "المبلغ غير صحيح"
+  },
+  "adminMarketers": {
+    "title": "إدارة المسوقين",
+    "stats": {
+      "total": "إجمالي المسوقين",
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "suspended": "موقوف"
+    },
+    "searchPlaceholder": "بحث بالاسم، رقم الجوال...",
+    "allStatuses": "جميع الحالات",
+    "table": {
+      "name": "الاسم",
+      "phone": "الجوال",
+      "referralCode": "كود الإحالة",
+      "referrals": "الإحالات",
+      "earnings": "الأرباح",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "ACTIVE": "نشط",
+      "PENDING": "قيد الانتظار",
+      "SUSPENDED": "موقوف"
+    },
+    "noMarketers": "لا يوجد مسوقين",
+    "view": "عرض",
+    "activate": "تفعيل",
+    "suspend": "إيقاف",
+    "delete": "حذف",
+    "addMarketer": "إضافة مسوق",
+    "marketerDetails": "تفاصيل المسوق",
+    "referralHistory": "سجل الإحالات",
+    "commissionHistory": "سجل العمولات",
+    "payoutHistory": "سجل المدفوعات",
+    "pendingPayout": "مبلغ معلق",
+    "totalEarnings": "إجمالي الأرباح",
+    "marketerUpdated": "تم تحديث المسوق",
+    "marketerCreated": "تم إنشاء المسوق"
+  },
+  "adminAdvertising": {
+    "title": "إدارة الإعلانات",
+    "stats": {
+      "total": "إجمالي الإعلانات",
+      "active": "نشطة",
+      "scheduled": "مجدولة",
+      "expired": "منتهية"
+    },
+    "searchPlaceholder": "بحث في الإعلانات...",
+    "allStatuses": "جميع الحالات",
+    "table": {
+      "title": "العنوان",
+      "type": "النوع",
+      "placement": "الموضع",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "ACTIVE": "نشط",
+      "SCHEDULED": "مجدول",
+      "PAUSED": "موقوف مؤقتاً",
+      "EXPIRED": "منتهي"
+    },
+    "noAds": "لا توجد إعلانات",
+    "addAd": "إضافة إعلان",
+    "editAd": "تعديل الإعلان",
+    "deleteAd": "حذف الإعلان",
+    "deleteConfirm": "هل أنت متأكد من حذف هذا الإعلان؟",
+    "adCreated": "تم إنشاء الإعلان",
+    "adUpdated": "تم تحديث الإعلان",
+    "adDeleted": "تم حذف الإعلان",
+    "uploadImage": "رفع صورة",
+    "adDetails": "تفاصيل الإعلان"
+  },
+  "adminInstallments": {
+    "title": "إدارة التقسيط",
+    "stats": {
+      "totalRequests": "إجمالي الطلبات",
+      "pending": "قيد الانتظار",
+      "approved": "معتمدة",
+      "rejected": "مرفوضة",
+      "active": "نشطة"
+    },
+    "searchPlaceholder": "بحث بالاسم، رقم الطلب...",
+    "allStatuses": "جميع الحالات",
+    "table": {
+      "requestId": "رقم الطلب",
+      "customer": "العميل",
+      "product": "المنتج",
+      "amount": "المبلغ",
+      "installments": "الأقساط",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "PENDING": "قيد الانتظار",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض",
+      "ACTIVE": "نشط",
+      "COMPLETED": "مكتمل",
+      "DEFAULTED": "متعثر"
+    },
+    "noRequests": "لا توجد طلبات تقسيط",
+    "view": "عرض",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "requestDetails": "تفاصيل الطلب",
+    "customerInfo": "معلومات العميل",
+    "productInfo": "معلومات المنتج",
+    "paymentSchedule": "جدول السداد",
+    "paymentHistory": "سجل المدفوعات",
+    "monthlyPayment": "القسط الشهري",
+    "totalAmount": "المبلغ الإجمالي",
+    "remainingAmount": "المبلغ المتبقي",
+    "dueDate": "تاريخ الاستحقاق",
+    "requestApproved": "تمت الموافقة على الطلب",
+    "requestRejected": "تم رفض الطلب"
   }
 }

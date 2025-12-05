@@ -51,7 +51,7 @@
     "error": "Error",
     "warning": "Warning",
     "info": "Info",
-    "noData": "No data available",
+    "noData": "No data",
     "noResults": "No results found",
     "selectOption": "Select an option",
     "required": "Required",
@@ -60,7 +60,16 @@
     "welcome": "Welcome",
     "page": "Page",
     "of": "of",
-    "currency": "SAR"
+    "currency": "SAR",
+    "order": "Order",
+    "notSpecified": "Not specified",
+    "sort": "Sort",
+    "download": "Download",
+    "upload": "Upload",
+    "first": "First",
+    "last": "Last",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All"
   },
   "login": {
     "wholesaleLogin": "Wholesale Customer Login",
@@ -83,18 +92,34 @@
     "logoutSuccess": "Logout successful",
     "enterAsGuest": "Browse as Guest",
     "guest": "Guest",
-    "guestWelcome": "Welcome as a guest! You can browse products only"
+    "guestWelcome": "Welcome as a guest! You can browse products only",
+    "title": "Login",
+    "subtitle": "Enter your credentials to continue",
+    "phone": "Phone Number",
+    "phonePlaceholder": "Enter phone number",
+    "passwordPlaceholder": "Enter password",
+    "loginButton": "Login",
+    "loggingIn": "Logging in...",
+    "noAccount": "Don't have an account?",
+    "registerHere": "Register here",
+    "errors": {
+      "phoneRequired": "Phone number is required",
+      "passwordRequired": "Password is required",
+      "invalidCredentials": "Invalid credentials",
+      "accountSuspended": "Account is suspended",
+      "tooManyAttempts": "Too many attempts. Try later"
+    },
+    "success": "Login successful"
   },
   "loading": {
-    "verifyingCredentials": "Verifying credentials...",
-    "connectingWarehouse": "Connecting to global warehouse...",
-    "loadingCatalog": "Loading product catalog (20,000+ items)...",
-    "applyingDiscounts": "Applying your exclusive wholesale discounts...",
-    "syncingInventory": "Syncing live inventory and prices...",
-    "optimizingLogistics": "Optimizing shipping and logistics routes...",
-    "finalizingSetup": "Preparing your smart dashboard...",
-    "accessGranted": "Setup complete. Welcome!",
-    "systemInitialization": "SYSTEM INITIALIZATION"
+    "verifyingCredentials": "Verifying Secure Credentials",
+    "connectingWarehouse": "Connecting to Global Warehouse",
+    "loadingCatalog": "Fetching Product Catalog",
+    "applyingDiscounts": "Applying Exclusive Wholesale Rates",
+    "syncingInventory": "Syncing Real-time Inventory",
+    "optimizingLogistics": "Optimizing Logistics Routes",
+    "finalizingSetup": "Finalizing Dashboard Setup",
+    "accessGranted": "Access Granted"
   },
   "intro": {
     "mainServer": "Main Server",
@@ -641,24 +666,6 @@
     "discardChanges": "Are you sure you want to discard changes?",
     "actionCannotBeUndone": "This action cannot be undone"
   },
-  "intro": {
-    "mainServer": "Main Server",
-    "connectingServer": "Connecting and verifying identity...",
-    "dataSync": "Data Sync",
-    "syncingData": "Updating price lists and inventory...",
-    "logistics": "Logistics Connection",
-    "connectingWarehouses": "Connecting to Sini Car central warehouses..."
-  },
-  "loading": {
-    "verifyingCredentials": "Verifying Secure Credentials",
-    "connectingWarehouse": "Connecting to Global Warehouse",
-    "loadingCatalog": "Fetching Product Catalog",
-    "applyingDiscounts": "Applying Exclusive Wholesale Rates",
-    "syncingInventory": "Syncing Real-time Inventory",
-    "optimizingLogistics": "Optimizing Logistics Routes",
-    "finalizingSetup": "Finalizing Dashboard Setup",
-    "accessGranted": "Access Granted"
-  },
   "admin": {
     "panel": "Admin Panel",
     "systemSettings": "System Settings",
@@ -688,9 +695,9 @@
     "heroTitle": "Sini Car Wholesale Platform",
     "heroSubtitle": "Unified system for ordering and pricing Chinese auto parts for wholesale customers, insurance companies, rental companies, and parts stores.",
     "searchTip": "Best results when searching by part number",
-    "searchPlaceholder": "Quick search: Part number (OO) or item name...",
+    "searchPlaceholder": "Enter part number or description...",
     "searching": "Searching...",
-    "noResults": "No results found",
+    "noResults": "No results",
     "pressSearch": "Press search button for exact search:",
     "partNotAvailable": "Part currently unavailable",
     "noResultsFor": "No results found for:",
@@ -774,7 +781,32 @@
     "orderSuccess": {
       "title": "Order Submitted Successfully!",
       "message": "We will contact you soon to complete the order"
-    }
+    },
+    "welcome": "Welcome",
+    "dashboard": "Dashboard",
+    "searchProducts": "Search Products",
+    "search": "Search",
+    "recentOrders": "Recent Orders",
+    "viewAll": "View All",
+    "noRecentOrders": "No recent orders",
+    "recentQuotes": "Recent Quote Requests",
+    "noRecentQuotes": "No recent quote requests",
+    "quickActions": "Quick Actions",
+    "newOrder": "New Order",
+    "newQuote": "Quote Request",
+    "myAccount": "My Account",
+    "support": "Support",
+    "stats": {
+      "totalOrders": "Total Orders",
+      "pendingOrders": "Pending Orders",
+      "totalSpent": "Total Spent",
+      "searchPoints": "Search Points"
+    },
+    "searchResults": "Search Results",
+    "cart": "Cart",
+    "checkout": "Checkout",
+    "total": "Total",
+    "currency": "SAR"
   },
   "adminDashboard": {
     "mainSection": "Main",
@@ -895,6 +927,215 @@
     "generalManager": "General Manager",
     "teamSettings": "Organizations & Teams"
   },
+  "adminCustomers": {
+    "title": "Customer Database (CRM)",
+    "loading": "Loading data...",
+    "stats": {
+      "totalCustomers": "Total Customers",
+      "activeCustomers": "Active Customers",
+      "suspendedBlocked": "Suspended/Blocked"
+    },
+    "searchPlaceholder": "Search by business name, phone, or city...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "customer": "Customer",
+      "city": "City",
+      "priceLevel": "Price Level",
+      "ordersCount": "Orders Count",
+      "totalPurchases": "Total Purchases",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "noMatchingCustomers": "No matching customers found",
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "blocked": "Blocked",
+      "pending": "Pending Activation",
+      "inactive": "Inactive"
+    },
+    "panel": {
+      "title": "Customer Profile",
+      "tabs": {
+        "overview": "Overview",
+        "orders": "Orders",
+        "activity": "Activity"
+      },
+      "businessInfo": "Business Information",
+      "companyName": "Company Name",
+      "city": "City",
+      "phone": "Phone",
+      "crNumber": "Commercial Register",
+      "priceLevel": "Price Level",
+      "customerType": "Customer Type",
+      "accountStatus": "Account Status",
+      "searchBalance": "Search Balance",
+      "staffUsers": "Staff Users",
+      "accessValidity": "Access Validity",
+      "ordersHistory": "Orders History",
+      "activityLog": "Activity Log"
+    },
+    "toast": {
+      "loadError": "Failed to load database"
+    },
+    "detail": {
+      "tabs": {
+        "overview": "Overview",
+        "orders": "Orders",
+        "quotes": "Quotes",
+        "staff": "Staff",
+        "security": "Security & Access",
+        "notes": "Notes"
+      },
+      "accountManagement": "Account Management",
+      "changeStatus": "Change Status",
+      "statusActive": "Active",
+      "statusSuspended": "Suspend",
+      "statusBlocked": "Block",
+      "suspendUntil": "Suspend Until Date",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "statusUpdated": "Customer status updated",
+      "errorOccurred": "An error occurred",
+      "priceDisplayType": "Price Display Type",
+      "pricesVisible": "Prices always visible - No points system",
+      "pricesHidden": "Prices hidden - Requires search points to reveal",
+      "visibleNoPoints": "Visible prices (No points)",
+      "hiddenWithPoints": "Hidden prices (With points)",
+      "visible": "visible",
+      "hidden": "hidden",
+      "priceDisplayChanged": "Price display changed to",
+      "searchWallet": "Search Wallet",
+      "addBalance": "Add Balance",
+      "deductBalance": "Deduct Balance",
+      "totalBalance": "Total Balance",
+      "used": "Used",
+      "remaining": "Remaining",
+      "joinDate": "Join Date",
+      "lastLogin": "Last Login",
+      "customerDocs": "Customer Documents",
+      "commercialRegistration": "Commercial Registration",
+      "vatCertificate": "VAT Certificate",
+      "nationalId": "National ID",
+      "notAttached": "Not attached",
+      "noDocument": "No document",
+      "enterPointsToAdd": "Enter points to add:",
+      "pointsAddedSuccess": "{{points}} points added successfully",
+      "currentBalance": "Current balance:",
+      "points": "points",
+      "enterPointsToDeduct": "Enter points to deduct:",
+      "cannotDeductMoreThan": "Cannot deduct more than remaining balance",
+      "pointsDeductedSuccess": "{{points}} points deducted successfully",
+      "errorDeductingPoints": "Error deducting points",
+      "staffStatusUpdated": "Staff status updated",
+      "customerOrders": "Customer Orders",
+      "noOrders": "No orders",
+      "orderNumber": "Order #",
+      "date": "Date",
+      "amount": "Amount",
+      "orderStatus": "Status",
+      "priceQuotes": "Price Quote Requests",
+      "noQuotes": "No quote requests",
+      "quoteNumber": "Quote #",
+      "items": "Items",
+      "staffMembers": "Customer Staff",
+      "noStaff": "No registered staff",
+      "staffName": "Staff Name",
+      "role": "Role",
+      "lastActive": "Last Active",
+      "action": "Action",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "securityAccessLogs": "Security & Access Logs",
+      "loginHistory": "Login History",
+      "device": "Device",
+      "ipAddress": "IP",
+      "location": "Location",
+      "adminNotes": "Admin Notes",
+      "noNotes": "No notes",
+      "addNote": "Add a note...",
+      "writeNote": "Write a new note...",
+      "notePlaceholder": "Write your note here...",
+      "addNoteBtn": "Add Note",
+      "docs": {
+        "commercialReg": "Commercial Registration",
+        "taxNumber": "Tax Number",
+        "nationalAddress": "National Address",
+        "notAttached": "Not attached",
+        "notAvailable": "Not available"
+      },
+      "staff": {
+        "staffMembers": "Staff Members",
+        "maxLimit": "Max Limit",
+        "owner": "Owner",
+        "active": "Active",
+        "suspended": "Suspended",
+        "suspendBtn": "Suspend",
+        "activateBtn": "Activate"
+      },
+      "orders": {
+        "customerOrders": "Customer Orders",
+        "completed": "Completed",
+        "ongoing": "Ongoing",
+        "loadingOrders": "Loading orders...",
+        "noOrders": "No orders for this customer",
+        "unspecified": "Unspecified",
+        "products": "Products",
+        "item": "item",
+        "total": "Total",
+        "date": "Date",
+        "currency": "SAR",
+        "showingOf": "Showing {{shown}} of {{total}} orders"
+      },
+      "quotes": {
+        "pricingRequests": "Quote Requests",
+        "approved": "Approved",
+        "new": "New",
+        "loadingQuotes": "Loading quote requests...",
+        "noQuotes": "No quote requests for this customer",
+        "unspecified": "Unspecified",
+        "items": "Items",
+        "item": "item",
+        "total": "Total",
+        "date": "Date",
+        "currency": "SAR",
+        "pendingPricing": "Pending Pricing",
+        "showingOf": "Showing {{shown}} of {{total}} quote requests",
+        "missing": "Missing",
+        "reviewedBy": "By"
+      },
+      "security": {
+        "securityIndicators": "Security Indicators",
+        "failedLoginAttempts": "Failed Login Attempts",
+        "suspiciousBehavior": "Suspicious Behavior (Flag)",
+        "yes": "Yes",
+        "no": "No",
+        "resetCounter": "Reset Failure Counter",
+        "counterReset": "Counter reset",
+        "passwordReset": "Password Reset",
+        "passwordResetDesc": "You can reset the account owner's password here. A new password will be generated and the customer will be notified.",
+        "enterNewPassword": "Enter new password (at least 4 characters):",
+        "adminNotFound": "Error: Admin data not found",
+        "passwordResetError": "Error resetting password",
+        "passwordMinLength": "Password must be at least 4 characters",
+        "resetPasswordBtn": "Reset Password",
+        "recentLoginHistory": "Recent Login History",
+        "successfulLogin": "Successful Login",
+        "failedLogin": "Failed Login",
+        "passwordChanged": "Password Changed",
+        "passwordResetAdmin": "Reset (Admin)",
+        "noLogsAvailable": "No logs available"
+      },
+      "notes": {
+        "adminNotes": "Admin Notes",
+        "noNotes": "No internal notes",
+        "addNote": "Add a new note...",
+        "placeholder": "Write admin notes here...",
+        "saveNote": "Save Note"
+      }
+    }
+  },
   "adminSettings": {
     "systemSettings": "System Settings",
     "generalSettings": "General Settings",
@@ -1010,7 +1251,7 @@
     "fillAllFields": "Please fill all fields",
     "featureAdded": "Feature added successfully",
     "featureDeleted": "Feature deleted",
-    "title": "Title",
+    "title": "Settings",
     "description": "Description",
     "icon": "Icon",
     "iconBox": "Box",
@@ -1104,10 +1345,41 @@
     "allowSearchDesc": "Guests can use search (results are blurred)",
     "showSearchResults": "Show Search Results",
     "showSearchResultsDesc": "Display search results with blurred details",
-    "guestSettingsSaved": "Guest mode settings saved successfully"
+    "guestSettingsSaved": "Guest mode settings saved successfully",
+    "general": {
+      "title": "General Settings",
+      "siteName": "Site Name",
+      "siteDescription": "Site Description",
+      "contactEmail": "Contact Email",
+      "contactPhone": "Contact Phone",
+      "currency": "Currency",
+      "language": "Language",
+      "timezone": "Timezone",
+      "save": "Save",
+      "saved": "Settings saved"
+    },
+    "business": {
+      "title": "Business Settings",
+      "minOrderAmount": "Minimum Order Amount",
+      "maxOrderAmount": "Maximum Order Amount",
+      "deliveryFee": "Delivery Fee",
+      "taxRate": "Tax Rate"
+    },
+    "notifications": {
+      "title": "Notification Settings",
+      "emailNotifications": "Email Notifications",
+      "smsNotifications": "SMS Notifications",
+      "pushNotifications": "Push Notifications"
+    },
+    "security": {
+      "title": "Security Settings",
+      "twoFactorAuth": "Two-Factor Authentication",
+      "sessionTimeout": "Session Timeout",
+      "maxLoginAttempts": "Max Login Attempts"
+    }
   },
   "adminOrders": {
-    "title": "Customer Orders Management",
+    "title": "Order Management",
     "newOrders": "New Orders",
     "inProgress": "In Progress",
     "readyToShip": "Ready to Ship",
@@ -1122,7 +1394,7 @@
     "status": "Status",
     "internalStatus": "Internal Status",
     "actions": "Actions",
-    "noOrders": "No orders found",
+    "noOrders": "No orders",
     "orderDetails": "Order Details",
     "customerInfo": "Customer Information",
     "orderItems": "Order Items",
@@ -1171,7 +1443,32 @@
     "noInternalPermission": "You don't have permission to edit internal status",
     "dangerZone": "Danger Zone",
     "cancelOrder": "Cancel Order Permanently",
-    "noPermission": "No Permission"
+    "noPermission": "No Permission",
+    "stats": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "searchPlaceholder": "Search by order ID, customer name...",
+    "table": {
+      "orderId": "Order ID",
+      "customer": "Customer",
+      "items": "Items",
+      "total": "Total",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "approve": "Approve",
+    "ship": "Ship",
+    "deliver": "Deliver",
+    "cancel": "Cancel",
+    "orderUpdated": "Order updated",
+    "shippingInfo": "Shipping Info",
+    "paymentInfo": "Payment Info"
   },
   "adminAccounts": {
     "title": "Account Opening Requests",
@@ -1238,7 +1535,7 @@
       "onHold": "On Hold"
     },
     "docTypes": {
-      "crCertificate": "Commercial Register",
+      "crCertificate": "Commercial Registration",
       "vatCertificate": "VAT Certificate",
       "nationalId": "National ID",
       "authLetter": "Authorization Letter",
@@ -1248,12 +1545,12 @@
       "spareParts": "Spare Parts Shop",
       "rental": "Car Rental",
       "insurance": "Insurance Company",
-      "agent": "Sales Agent"
+      "agent": "Agent"
     },
     "searchPlaceholder": "Search by business name, phone...",
     "allStatuses": "All Statuses",
     "table": {
-      "businessName": "Business Name / Customer",
+      "businessName": "Business / Customer Name",
       "activityType": "Activity Type",
       "city": "City",
       "date": "Date",
@@ -1262,7 +1559,7 @@
     },
     "approvedAccount": "Approved Account",
     "view": "View",
-    "noMatchingRequests": "No matching requests found",
+    "noMatchingRequests": "No matching requests",
     "panel": {
       "title": "Approval Request Details",
       "customerData": "Customer Data",
@@ -1270,7 +1567,7 @@
       "activity": "Activity",
       "city": "City",
       "contactNumber": "Contact Number",
-      "crNumber": "Commercial Register",
+      "crNumber": "Commercial Registration",
       "vatNumber": "VAT Number",
       "customerNotes": "Customer Notes",
       "attachedDocuments": "Attached Documents",
@@ -1314,7 +1611,7 @@
     }
   },
   "adminQuotes": {
-    "title": "Quote Requests Management",
+    "title": "Quote Request Management",
     "pendingQuotes": "Pending Quotes",
     "completedQuotes": "Completed Quotes",
     "searchQuote": "Search by request number or customer...",
@@ -1325,75 +1622,292 @@
     "itemsCount": "Items Count",
     "status": "Status",
     "actions": "Actions",
-    "noQuotes": "No quote requests found",
-    "quoteDetails": "Quote Request Details",
+    "noQuotes": "No quote requests",
+    "quoteDetails": "Quote Details",
     "requestedItems": "Requested Items",
     "response": "Response",
-    "sendResponse": "Send Response"
-  },
-  "adminCustomers": {
-    "title": "Customer Database (CRM)",
-    "totalCustomers": "Total Customers",
-    "activeCustomers": "Active Customers",
-    "searchCustomer": "Search by business name or customer ID...",
-    "allTypes": "All Types",
-    "allLevels": "All Levels",
-    "customerNumber": "Customer ID",
-    "businessName": "Business Name",
-    "type": "Type",
-    "priceLevel": "Price Level",
-    "ordersCount": "Orders Count",
-    "totalSpent": "Total Spent",
-    "status": "Status",
-    "actions": "Actions",
-    "noCustomers": "No customers found",
-    "customerDetails": "Customer Details",
-    "orderHistory": "Order History",
-    "searchHistory": "Search History"
+    "sendResponse": "Send Response",
+    "stats": {
+      "new": "New",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "approved": "Approved"
+    },
+    "searchPlaceholder": "Search by quote ID, customer name...",
+    "table": {
+      "quoteId": "Quote ID",
+      "customer": "Customer",
+      "items": "Items",
+      "priceType": "Price Type",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "process": "Process",
+    "complete": "Complete",
+    "approve": "Approve",
+    "quoteUpdated": "Quote request updated",
+    "pricedItems": "Priced Items",
+    "missingItems": "Missing Items"
   },
   "adminProducts": {
-    "title": "Products Management",
-    "totalProducts": "Total Products",
-    "activeProducts": "Active Products",
-    "outOfStock": "Out of Stock",
-    "searchProduct": "Search by product name or part number...",
-    "allCategories": "All Categories",
-    "allBrands": "All Brands",
+    "title": "Product Management",
+    "subtitle": "Manage product catalog, prices and inventory",
+    "searchPlaceholder": "Search for product...",
     "addProduct": "Add Product",
-    "importProducts": "Import Products",
-    "exportProducts": "Export Products",
+    "importExcel": "Import Excel",
+    "exportExcel": "Export Excel",
+    "columnSettings": "Column Settings",
+    "visibilitySettings": "Visibility Settings",
+    "stats": {
+      "totalProducts": "Total Products",
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock",
+      "hidden": "Hidden"
+    },
+    "table": {
+      "partNumber": "Part Number",
+      "name": "Product Name",
+      "brand": "Brand",
+      "quantity": "Quantity",
+      "price": "Price",
+      "visibility": "Visibility",
+      "actions": "Actions"
+    },
+    "modal": {
+      "addTitle": "Add New Product",
+      "editTitle": "Edit Product",
+      "deleteConfirm": "Confirm Delete",
+      "deleteMessage": "Are you sure you want to delete this product?",
+      "importTitle": "Import from Excel",
+      "columnSettingsTitle": "Excel Column Settings"
+    },
+    "form": {
+      "partNumber": "Part Number",
+      "name": "Product Name",
+      "brand": "Brand",
+      "quantity": "Quantity",
+      "price": "Price",
+      "costPrice": "Cost Price",
+      "description": "Description",
+      "isVisible": "Visible to Customers",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "import": {
+      "selectFile": "Select Excel File",
+      "dragDrop": "Or drag and drop file here",
+      "processing": "Processing...",
+      "success": "Import successful",
+      "imported": "Imported",
+      "updated": "Updated",
+      "skipped": "Skipped",
+      "errors": "Errors"
+    },
+    "validation": {
+      "partNumberRequired": "Part number is required",
+      "nameRequired": "Product name is required",
+      "priceInvalid": "Price is invalid",
+      "quantityInvalid": "Quantity is invalid"
+    },
+    "toast": {
+      "productCreated": "Product added successfully",
+      "productUpdated": "Product updated successfully",
+      "productDeleted": "Product deleted successfully",
+      "importSuccess": "Products imported successfully",
+      "createError": "Failed to add product",
+      "updateError": "Failed to update product",
+      "deleteError": "Failed to delete product",
+      "importError": "Failed to import file",
+      "loadError": "Failed to load products",
+      "visibilityThresholdSaved": "Minimum display quantity saved"
+    },
+    "presets": {
+      "title": "Import Column Settings",
+      "name": "Preset Name",
+      "isDefault": "Default",
+      "mappings": "Column Mappings",
+      "internalField": "Internal Field",
+      "excelHeader": "Excel Column",
+      "enabled": "Enabled",
+      "required": "Required",
+      "addPreset": "Add New Preset",
+      "editPreset": "Edit Preset",
+      "deletePreset": "Delete Preset",
+      "savePreset": "Save Preset",
+      "toast": {
+        "presetCreated": "Preset created successfully",
+        "presetUpdated": "Preset updated successfully",
+        "presetDeleted": "Preset deleted successfully",
+        "presetSetDefault": "Preset set as default"
+      }
+    },
+    "uploadExcel": "Upload Excel",
+    "downloadTemplate": "Download Template",
+    "loading": "Loading...",
+    "noProducts": "No products",
+    "noMatchingProducts": "No matching products",
     "partNumber": "Part Number",
     "productName": "Product Name",
-    "category": "Category",
-    "brand": "Brand",
+    "quantity": "Quantity",
     "price": "Price",
-    "stock": "Stock",
-    "status": "Status",
+    "category": "Category",
     "actions": "Actions",
-    "noProducts": "No products found",
-    "productDetails": "Product Details",
-    "editProduct": "Edit Product",
-    "deleteProduct": "Delete Product"
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this product?",
+    "productDeleted": "Product deleted",
+    "productSaved": "Product saved",
+    "productCreated": "Product created",
+    "importModal": {
+      "title": "Import Products",
+      "selectFile": "Select Excel file",
+      "importing": "Importing...",
+      "importSuccess": "Import successful",
+      "imported": "Added",
+      "updated": "Updated",
+      "skipped": "Skipped",
+      "errors": "Errors"
+    },
+    "productModal": {
+      "editTitle": "Edit Product",
+      "addTitle": "Add New Product",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "columnPresets": {
+      "title": "Excel Column Settings",
+      "presetName": "Preset Name",
+      "enterPresetName": "Please enter preset name",
+      "created": "Preset created successfully",
+      "saved": "Changes saved",
+      "deleteConfirm": "Are you sure you want to delete this preset?",
+      "deleted": "Preset deleted",
+      "setDefault": "Set as Default",
+      "isDefault": "Default"
+    },
+    "visibility": {
+      "title": "Visibility Settings",
+      "threshold": "Minimum Visibility Threshold",
+      "saved": "Visibility settings saved"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "products": "products",
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "adminUsers": {
     "title": "User Management",
-    "totalUsers": "Total Users",
-    "activeUsers": "Active Users",
-    "searchUser": "Search by username or email...",
+    "subtitle": "Manage admin user accounts, roles and permissions",
+    "tabs": {
+      "users": "Users",
+      "roles": "Roles & Permissions"
+    },
+    "searchPlaceholder": "Search by name, email...",
     "allRoles": "All Roles",
+    "allStatuses": "All Statuses",
     "addUser": "Add User",
-    "userName": "Username",
-    "email": "Email",
-    "role": "Role",
-    "lastLogin": "Last Login",
-    "status": "Status",
-    "actions": "Actions",
-    "noUsers": "No users found",
-    "userDetails": "User Details",
+    "exportUsers": "Export Data",
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "contact": "Contact",
+      "lastLogin": "Last Login",
+      "status": "Status",
+      "actions": "Actions",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "PENDING": "Pending"
+    },
+    "modal": {
+      "addTitle": "Add New User",
+      "editTitle": "Edit User",
+      "deleteConfirm": "Confirm Delete",
+      "deleteMessage": "Are you sure you want to delete this user?",
+      "resetPassword": "Reset Password",
+      "toggleStatus": "Change Status"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "username": "Username",
+      "email": "Email",
+      "phone": "Phone Number",
+      "role": "Role",
+      "password": "Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "usernameRequired": "Username is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Email is invalid",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "roleRequired": "Role is required"
+    },
+    "toast": {
+      "userCreated": "User created successfully",
+      "userUpdated": "User updated successfully",
+      "userDeleted": "User deleted successfully",
+      "passwordReset": "Password reset successfully",
+      "statusChanged": "User status changed",
+      "createError": "Failed to create user",
+      "updateError": "Failed to update user",
+      "deleteError": "Failed to delete user",
+      "loadError": "Failed to load users"
+    },
+    "roles": {
+      "title": "Roles Management",
+      "addRole": "Add New Role",
+      "editRole": "Edit Role",
+      "deleteRole": "Delete Role",
+      "roleName": "Role Name",
+      "roleDescription": "Role Description",
+      "permissions": "Permissions",
+      "usersCount": "Users Count",
+      "isSystemRole": "System Role",
+      "noRoles": "No roles found",
+      "toast": {
+        "roleCreated": "Role created successfully",
+        "roleUpdated": "Role updated successfully",
+        "roleDeleted": "Role deleted successfully"
+      },
+      "SUPER_ADMIN": "Super Admin",
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "STAFF": "Staff",
+      "CUSTOMER_OWNER": "Account Owner",
+      "CUSTOMER_STAFF": "Customer Staff"
+    },
+    "stats": {
+      "total": "Total Users",
+      "admins": "Admins",
+      "staff": "Staff",
+      "active": "Active"
+    },
+    "noUsers": "No users",
     "editUser": "Edit User",
     "deleteUser": "Delete User",
-    "permissions": "Permissions",
-    "resetPassword": "Reset Password"
+    "deleteConfirm": "Are you sure you want to delete this user?",
+    "userCreated": "User created",
+    "userUpdated": "User updated",
+    "userDeleted": "User deleted",
+    "resetPassword": "Reset Password",
+    "passwordReset": "Password reset"
   },
   "accessDenied": {
     "title": "Access Denied",
@@ -1665,234 +2179,6 @@
       "sendFailed": "Failed to send"
     }
   },
-  "adminCustomers": {
-    "title": "Customer Database (CRM)",
-    "loading": "Loading data...",
-    "stats": {
-      "totalCustomers": "Total Customers",
-      "activeCustomers": "Active Customers",
-      "suspendedBlocked": "Suspended/Blocked"
-    },
-    "searchPlaceholder": "Search by business name, phone, or city...",
-    "allStatuses": "All Statuses",
-    "table": {
-      "customer": "Customer",
-      "city": "City",
-      "priceLevel": "Price Level",
-      "ordersCount": "Orders Count",
-      "totalPurchases": "Total Purchases",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "view": "View",
-    "noMatchingCustomers": "No matching customers found",
-    "status": {
-      "active": "Active",
-      "suspended": "Suspended",
-      "blocked": "Blocked",
-      "pending": "Pending Activation",
-      "inactive": "Inactive"
-    },
-    "panel": {
-      "title": "Customer Profile",
-      "tabs": {
-        "overview": "Overview",
-        "orders": "Orders",
-        "activity": "Activity"
-      },
-      "businessInfo": "Business Information",
-      "companyName": "Company Name",
-      "city": "City",
-      "phone": "Phone",
-      "crNumber": "Commercial Register",
-      "priceLevel": "Price Level",
-      "customerType": "Customer Type",
-      "accountStatus": "Account Status",
-      "searchBalance": "Search Balance",
-      "staffUsers": "Staff Users",
-      "accessValidity": "Access Validity",
-      "ordersHistory": "Orders History",
-      "activityLog": "Activity Log"
-    },
-    "toast": {
-      "loadError": "Failed to load database"
-    }
-  },
-  "adminUsers": {
-    "title": "Users & Roles Management",
-    "subtitle": "Manage admin user accounts, roles and permissions",
-    "tabs": {
-      "users": "Users",
-      "roles": "Roles & Permissions"
-    },
-    "searchPlaceholder": "Search by username or email...",
-    "allRoles": "All Roles",
-    "allStatuses": "All Statuses",
-    "addUser": "Add User",
-    "exportUsers": "Export Data",
-    "table": {
-      "user": "User",
-      "role": "Role",
-      "contact": "Contact",
-      "lastLogin": "Last Login",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
-    "modal": {
-      "addTitle": "Add New User",
-      "editTitle": "Edit User",
-      "deleteConfirm": "Confirm Delete",
-      "deleteMessage": "Are you sure you want to delete this user?",
-      "resetPassword": "Reset Password",
-      "toggleStatus": "Change Status"
-    },
-    "form": {
-      "fullName": "Full Name",
-      "username": "Username",
-      "email": "Email",
-      "phone": "Phone Number",
-      "role": "Role",
-      "password": "Password",
-      "newPassword": "New Password",
-      "confirmPassword": "Confirm Password",
-      "save": "Save",
-      "cancel": "Cancel"
-    },
-    "validation": {
-      "nameRequired": "Name is required",
-      "usernameRequired": "Username is required",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Email is invalid",
-      "passwordRequired": "Password is required",
-      "passwordMinLength": "Password must be at least 6 characters",
-      "roleRequired": "Role is required"
-    },
-    "toast": {
-      "userCreated": "User created successfully",
-      "userUpdated": "User updated successfully",
-      "userDeleted": "User deleted successfully",
-      "passwordReset": "Password reset successfully",
-      "statusChanged": "User status changed",
-      "createError": "Failed to create user",
-      "updateError": "Failed to update user",
-      "deleteError": "Failed to delete user",
-      "loadError": "Failed to load users"
-    },
-    "roles": {
-      "title": "Roles Management",
-      "addRole": "Add New Role",
-      "editRole": "Edit Role",
-      "deleteRole": "Delete Role",
-      "roleName": "Role Name",
-      "roleDescription": "Role Description",
-      "permissions": "Permissions",
-      "usersCount": "Users Count",
-      "isSystemRole": "System Role",
-      "noRoles": "No roles found",
-      "toast": {
-        "roleCreated": "Role created successfully",
-        "roleUpdated": "Role updated successfully",
-        "roleDeleted": "Role deleted successfully"
-      }
-    }
-  },
-  "adminProducts": {
-    "title": "Products Management",
-    "subtitle": "Manage product catalog, prices and inventory",
-    "searchPlaceholder": "Search by part number or name...",
-    "addProduct": "Add Product",
-    "importExcel": "Import Excel",
-    "exportExcel": "Export Excel",
-    "columnSettings": "Column Settings",
-    "visibilitySettings": "Visibility Settings",
-    "stats": {
-      "totalProducts": "Total Products",
-      "inStock": "In Stock",
-      "outOfStock": "Out of Stock",
-      "hidden": "Hidden"
-    },
-    "table": {
-      "partNumber": "Part Number",
-      "name": "Product Name",
-      "brand": "Brand",
-      "quantity": "Quantity",
-      "price": "Price",
-      "visibility": "Visibility",
-      "actions": "Actions"
-    },
-    "modal": {
-      "addTitle": "Add New Product",
-      "editTitle": "Edit Product",
-      "deleteConfirm": "Confirm Delete",
-      "deleteMessage": "Are you sure you want to delete this product?",
-      "importTitle": "Import from Excel",
-      "columnSettingsTitle": "Excel Column Settings"
-    },
-    "form": {
-      "partNumber": "Part Number",
-      "name": "Product Name",
-      "brand": "Brand",
-      "quantity": "Quantity",
-      "price": "Price",
-      "costPrice": "Cost Price",
-      "description": "Description",
-      "isVisible": "Visible to Customers",
-      "save": "Save",
-      "cancel": "Cancel"
-    },
-    "import": {
-      "selectFile": "Select Excel File",
-      "dragDrop": "Or drag and drop file here",
-      "processing": "Processing...",
-      "success": "Import successful",
-      "imported": "Imported",
-      "updated": "Updated",
-      "skipped": "Skipped",
-      "errors": "Errors"
-    },
-    "validation": {
-      "partNumberRequired": "Part number is required",
-      "nameRequired": "Product name is required",
-      "priceInvalid": "Price is invalid",
-      "quantityInvalid": "Quantity is invalid"
-    },
-    "toast": {
-      "productCreated": "Product added successfully",
-      "productUpdated": "Product updated successfully",
-      "productDeleted": "Product deleted successfully",
-      "importSuccess": "Products imported successfully",
-      "createError": "Failed to add product",
-      "updateError": "Failed to update product",
-      "deleteError": "Failed to delete product",
-      "importError": "Failed to import file",
-      "loadError": "Failed to load products",
-      "visibilityThresholdSaved": "Minimum display quantity saved"
-    },
-    "presets": {
-      "title": "Import Column Settings",
-      "name": "Preset Name",
-      "isDefault": "Default",
-      "mappings": "Column Mappings",
-      "internalField": "Internal Field",
-      "excelHeader": "Excel Column",
-      "enabled": "Enabled",
-      "required": "Required",
-      "addPreset": "Add New Preset",
-      "editPreset": "Edit Preset",
-      "deletePreset": "Delete Preset",
-      "savePreset": "Save Preset",
-      "toast": {
-        "presetCreated": "Preset created successfully",
-        "presetUpdated": "Preset updated successfully",
-        "presetDeleted": "Preset deleted successfully",
-        "presetSetDefault": "Preset set as default"
-      }
-    }
-  },
   "installment": {
     "title": "Installment Purchase Requests",
     "subtitle": "Submit and track installment purchase requests",
@@ -2043,5 +2329,124 @@
     "offerSubmitted": "Offer submitted successfully",
     "offerError": "Error submitting offer",
     "invalidAmount": "Invalid amount"
+  },
+  "adminMarketers": {
+    "title": "Marketer Management",
+    "stats": {
+      "total": "Total Marketers",
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "searchPlaceholder": "Search by name, phone...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "name": "Name",
+      "phone": "Phone",
+      "referralCode": "Referral Code",
+      "referrals": "Referrals",
+      "earnings": "Earnings",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "SUSPENDED": "Suspended"
+    },
+    "noMarketers": "No marketers",
+    "view": "View",
+    "activate": "Activate",
+    "suspend": "Suspend",
+    "delete": "Delete",
+    "addMarketer": "Add Marketer",
+    "marketerDetails": "Marketer Details",
+    "referralHistory": "Referral History",
+    "commissionHistory": "Commission History",
+    "payoutHistory": "Payout History",
+    "pendingPayout": "Pending Payout",
+    "totalEarnings": "Total Earnings",
+    "marketerUpdated": "Marketer updated",
+    "marketerCreated": "Marketer created"
+  },
+  "adminAdvertising": {
+    "title": "Advertising Management",
+    "stats": {
+      "total": "Total Ads",
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "expired": "Expired"
+    },
+    "searchPlaceholder": "Search ads...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "title": "Title",
+      "type": "Type",
+      "placement": "Placement",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "SCHEDULED": "Scheduled",
+      "PAUSED": "Paused",
+      "EXPIRED": "Expired"
+    },
+    "noAds": "No advertisements",
+    "addAd": "Add Ad",
+    "editAd": "Edit Ad",
+    "deleteAd": "Delete Ad",
+    "deleteConfirm": "Are you sure you want to delete this ad?",
+    "adCreated": "Ad created",
+    "adUpdated": "Ad updated",
+    "adDeleted": "Ad deleted",
+    "uploadImage": "Upload Image",
+    "adDetails": "Ad Details"
+  },
+  "adminInstallments": {
+    "title": "Installment Management",
+    "stats": {
+      "totalRequests": "Total Requests",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "active": "Active"
+    },
+    "searchPlaceholder": "Search by name, request ID...",
+    "allStatuses": "All Statuses",
+    "table": {
+      "requestId": "Request ID",
+      "customer": "Customer",
+      "product": "Product",
+      "amount": "Amount",
+      "installments": "Installments",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed",
+      "DEFAULTED": "Defaulted"
+    },
+    "noRequests": "No installment requests",
+    "view": "View",
+    "approve": "Approve",
+    "reject": "Reject",
+    "requestDetails": "Request Details",
+    "customerInfo": "Customer Info",
+    "productInfo": "Product Info",
+    "paymentSchedule": "Payment Schedule",
+    "paymentHistory": "Payment History",
+    "monthlyPayment": "Monthly Payment",
+    "totalAmount": "Total Amount",
+    "remainingAmount": "Remaining Amount",
+    "dueDate": "Due Date",
+    "requestApproved": "Request approved",
+    "requestRejected": "Request rejected"
   }
 }

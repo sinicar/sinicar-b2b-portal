@@ -12,12 +12,12 @@ import { formatDateTime, formatDate } from '../utils/dateUtils';
 import { useTranslation } from 'react-i18next';
 
 // Document type labels - using translation function
-const getDocTypeLabels = (t: (key: string, fallback?: string) => string): Record<string, string> => ({
-    CR_CERTIFICATE: t('adminAccountRequests.docTypes.crCertificate', 'السجل التجاري'),
-    VAT_CERTIFICATE: t('adminAccountRequests.docTypes.vatCertificate', 'شهادة الرقم الضريبي'),
-    NATIONAL_ID: t('adminAccountRequests.docTypes.nationalId', 'الهوية الوطنية'),
-    AUTHORIZATION_LETTER: t('adminAccountRequests.docTypes.authLetter', 'خطاب التفويض'),
-    OTHER: t('adminAccountRequests.docTypes.other', 'مستند آخر')
+const getDocTypeLabels = (t: (key: string, options?: { defaultValue: string }) => string): Record<string, string> => ({
+    CR_CERTIFICATE: t('adminAccountRequests.docTypes.crCertificate', { defaultValue: 'السجل التجاري' }),
+    VAT_CERTIFICATE: t('adminAccountRequests.docTypes.vatCertificate', { defaultValue: 'شهادة الرقم الضريبي' }),
+    NATIONAL_ID: t('adminAccountRequests.docTypes.nationalId', { defaultValue: 'الهوية الوطنية' }),
+    AUTHORIZATION_LETTER: t('adminAccountRequests.docTypes.authLetter', { defaultValue: 'خطاب التفويض' }),
+    OTHER: t('adminAccountRequests.docTypes.other', { defaultValue: 'مستند آخر' })
 });
 
 interface AdminAccountRequestsProps {
@@ -26,12 +26,12 @@ interface AdminAccountRequestsProps {
 }
 
 // Status labels - using translation function
-const getStatusLabels = (t: (key: string, fallback?: string) => string): Record<AccountRequestStatus, string> => ({
-    'NEW': t('adminAccountRequests.status.new', 'طلب جديد'),
-    'UNDER_REVIEW': t('adminAccountRequests.status.underReview', 'قيد المراجعة'),
-    'APPROVED': t('adminAccountRequests.status.approved', 'تم الموافقة'),
-    'REJECTED': t('adminAccountRequests.status.rejected', 'مرفوض'),
-    'ON_HOLD': t('adminAccountRequests.status.onHold', 'مؤجل')
+const getStatusLabels = (t: (key: string, options?: { defaultValue: string }) => string): Record<AccountRequestStatus, string> => ({
+    'NEW': t('adminAccountRequests.status.new', { defaultValue: 'طلب جديد' }),
+    'UNDER_REVIEW': t('adminAccountRequests.status.underReview', { defaultValue: 'قيد المراجعة' }),
+    'APPROVED': t('adminAccountRequests.status.approved', { defaultValue: 'تم الموافقة' }),
+    'REJECTED': t('adminAccountRequests.status.rejected', { defaultValue: 'مرفوض' }),
+    'ON_HOLD': t('adminAccountRequests.status.onHold', { defaultValue: 'مؤجل' })
 });
 
 const STATUS_COLORS: Record<AccountRequestStatus, string> = {
