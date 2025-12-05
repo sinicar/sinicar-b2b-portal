@@ -2435,3 +2435,148 @@ export interface OrganizationStats {
   recentActivities: number;
   membersByRole: { role: OrganizationUserRole; count: number }[];
 }
+
+// =============================================================================
+// CUSTOMER PORTAL SETTINGS - Full Portal Configuration
+// =============================================================================
+
+// Multilingual text support for content
+export interface MultilingualText {
+  ar: string;
+  en: string;
+  hi: string;
+  zh: string;
+}
+
+// Theme/Design Settings
+export interface PortalDesignSettings {
+  themeMode: 'light' | 'dark' | 'system';
+  primaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  sidebarColor: string;
+  fontFamily: string;
+  borderRadius: 'none' | 'small' | 'medium' | 'large';
+  enableAnimations: boolean;
+}
+
+// Dashboard Section Configuration
+export interface DashboardSectionConfig {
+  id: string;
+  key: string;
+  enabled: boolean;
+  order: number;
+  title: MultilingualText;
+}
+
+// Navigation Menu Item Configuration  
+export interface NavMenuItemConfig {
+  id: string;
+  key: string;  // Internal key like 'HOME', 'ORDERS', 'IMPORT_CHINA'
+  enabled: boolean;
+  order: number;
+  label: MultilingualText;
+  icon: string; // lucide-react icon name
+  requiresAuth: boolean;
+  requiredPermission?: string;
+}
+
+// Feature Toggle Configuration
+export interface PortalFeatureToggles {
+  // Core Features
+  enableSearch: boolean;
+  enableCart: boolean;
+  enableOrders: boolean;
+  enableQuoteRequests: boolean;
+  
+  // Advanced Features - Trader Tools
+  enableImportFromChina: boolean;
+  enableVinDecoder: boolean;
+  enablePdfToExcel: boolean;
+  enablePriceComparison: boolean;
+  enableSupplierMarketplace: boolean;
+  
+  // B2B Features
+  enableInstallments: boolean;
+  enableOrganization: boolean;
+  enableTeamManagement: boolean;
+  
+  // Marketing & Content
+  enableMarketingBanners: boolean;
+  enableMarketingPopups: boolean;
+  enableMarketingCards: boolean;
+  enableAnnouncementTicker: boolean;
+  
+  // Guest Mode
+  enableGuestMode: boolean;
+  guestCanSearch: boolean;
+  guestCanViewPrices: boolean;
+}
+
+// Hero Banner Configuration
+export interface HeroBannerConfig {
+  id: string;
+  enabled: boolean;
+  order: number;
+  title: MultilingualText;
+  subtitle: MultilingualText;
+  buttonText: MultilingualText;
+  buttonUrl: string;
+  colorClass: string;
+  imageUrl?: string;
+}
+
+// Announcement Configuration
+export interface AnnouncementConfig {
+  id: string;
+  enabled: boolean;
+  type: 'ticker' | 'banner' | 'popup';
+  content: MultilingualText;
+  backgroundColor: string;
+  textColor: string;
+  startDate?: string;
+  endDate?: string;
+  dismissible: boolean;
+}
+
+// Info/Marketing Card Configuration
+export interface InfoCardConfig {
+  id: string;
+  enabled: boolean;
+  order: number;
+  icon: string;
+  title: MultilingualText;
+  description: MultilingualText;
+  colorClass: string;
+  link?: string;
+}
+
+// Complete Customer Portal Settings
+export interface CustomerPortalSettings {
+  id: string;
+  
+  // Design & Theme
+  design: PortalDesignSettings;
+  
+  // Dashboard Layout
+  dashboardSections: DashboardSectionConfig[];
+  
+  // Navigation Menu
+  navigationMenu: NavMenuItemConfig[];
+  
+  // Feature Toggles
+  features: PortalFeatureToggles;
+  
+  // Content - Hero Banners
+  heroBanners: HeroBannerConfig[];
+  
+  // Content - Announcements
+  announcements: AnnouncementConfig[];
+  
+  // Content - Info/Marketing Cards
+  infoCards: InfoCardConfig[];
+  
+  // Metadata
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}

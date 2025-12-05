@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -6479,5 +6479,172 @@ export const MockApi = {
       
       // Check if user has org_manage_team permission
       return await this.hasScopedPermission(userId, orgId, 'org_manage_team');
+  },
+
+  // =============================================================================
+  // CUSTOMER PORTAL SETTINGS
+  // =============================================================================
+
+  async getCustomerPortalSettings(): Promise<CustomerPortalSettings> {
+      const stored = localStorage.getItem('b2b_customer_portal_settings_v1');
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      return this.getDefaultCustomerPortalSettings();
+  },
+
+  async saveCustomerPortalSettings(settings: CustomerPortalSettings): Promise<CustomerPortalSettings> {
+      settings.lastModifiedAt = new Date().toISOString();
+      localStorage.setItem('b2b_customer_portal_settings_v1', JSON.stringify(settings));
+      return settings;
+  },
+
+  getDefaultCustomerPortalSettings(): CustomerPortalSettings {
+      return {
+          id: 'portal-settings-1',
+          
+          design: {
+              themeMode: 'light',
+              primaryColor: '#0B1B3A',
+              accentColor: '#C8A04F',
+              backgroundColor: '#f8fafc',
+              sidebarColor: '#0B1B3A',
+              fontFamily: 'Cairo',
+              borderRadius: 'medium',
+              enableAnimations: true
+          },
+          
+          dashboardSections: [
+              { id: 'hero', key: 'HERO_BANNERS', enabled: true, order: 1, title: { ar: 'البانرات الرئيسية', en: 'Hero Banners', hi: 'हीरो बैनर', zh: '主横幅' } },
+              { id: 'search', key: 'SEARCH_BAR', enabled: true, order: 2, title: { ar: 'شريط البحث', en: 'Search Bar', hi: 'सर्च बार', zh: '搜索栏' } },
+              { id: 'business-types', key: 'BUSINESS_TYPES', enabled: true, order: 3, title: { ar: 'من نخدم', en: 'Who We Serve', hi: 'हम किसकी सेवा करते हैं', zh: '我们服务谁' } },
+              { id: 'services', key: 'MAIN_SERVICES', enabled: true, order: 4, title: { ar: 'خدماتنا الرئيسية', en: 'Our Main Services', hi: 'हमारी मुख्य सेवाएं', zh: '我们的主要服务' } },
+              { id: 'how-it-works', key: 'HOW_IT_WORKS', enabled: true, order: 5, title: { ar: 'كيف تعمل المنظومة', en: 'How It Works', hi: 'यह कैसे काम करता है', zh: '如何运作' } },
+              { id: 'why-sinicar', key: 'WHY_SINICAR', enabled: true, order: 6, title: { ar: 'لماذا صيني كار', en: 'Why SINI CAR', hi: 'सिनी कार क्यों', zh: '为什么选择SINI CAR' } },
+              { id: 'marketing-cards', key: 'MARKETING_CARDS', enabled: true, order: 7, title: { ar: 'بطاقات التسويق', en: 'Marketing Cards', hi: 'मार्केटिंग कार्ड', zh: '营销卡片' } }
+          ],
+          
+          navigationMenu: [
+              { id: 'nav-home', key: 'HOME', enabled: true, order: 1, label: { ar: 'الرئيسية', en: 'Home', hi: 'होम', zh: '首页' }, icon: 'Home', requiresAuth: false },
+              { id: 'nav-orders', key: 'ORDERS', enabled: true, order: 2, label: { ar: 'سجل الطلبات', en: 'Order History', hi: 'ऑर्डर इतिहास', zh: '订单历史' }, icon: 'ShoppingBag', requiresAuth: true },
+              { id: 'nav-quotes', key: 'QUOTE_REQUEST', enabled: true, order: 3, label: { ar: 'طلبات التسعير', en: 'Quote Requests', hi: 'उद्धरण अनुरोध', zh: '报价请求' }, icon: 'FileText', requiresAuth: true },
+              { id: 'nav-import', key: 'IMPORT_CHINA', enabled: true, order: 4, label: { ar: 'الاستيراد من الصين', en: 'Import from China', hi: 'चीन से आयात', zh: '从中国进口' }, icon: 'Globe', requiresAuth: true },
+              { id: 'nav-tools', key: 'TRADER_TOOLS', enabled: true, order: 5, label: { ar: 'أدوات التاجر', en: 'Trader Tools', hi: 'व्यापारी उपकरण', zh: '交易工具' }, icon: 'Wrench', requiresAuth: true },
+              { id: 'nav-org', key: 'ORGANIZATION', enabled: true, order: 6, label: { ar: 'إدارة المنشأة', en: 'Organization', hi: 'संगठन', zh: '组织管理' }, icon: 'Building2', requiresAuth: true, requiredPermission: 'org_view_dashboard' },
+              { id: 'nav-team', key: 'TEAM_MANAGEMENT', enabled: true, order: 7, label: { ar: 'إدارة الفريق', en: 'Team Management', hi: 'टीम प्रबंधन', zh: '团队管理' }, icon: 'Users', requiresAuth: true, requiredPermission: 'org_manage_team' },
+              { id: 'nav-history', key: 'HISTORY', enabled: true, order: 8, label: { ar: 'سجل البحث', en: 'Search History', hi: 'खोज इतिहास', zh: '搜索历史' }, icon: 'Clock', requiresAuth: true },
+              { id: 'nav-about', key: 'ABOUT', enabled: true, order: 9, label: { ar: 'من نحن', en: 'About Us', hi: 'हमारे बारे में', zh: '关于我们' }, icon: 'Info', requiresAuth: false }
+          ],
+          
+          features: {
+              enableSearch: true,
+              enableCart: true,
+              enableOrders: true,
+              enableQuoteRequests: true,
+              enableImportFromChina: true,
+              enableVinDecoder: true,
+              enablePdfToExcel: true,
+              enablePriceComparison: true,
+              enableSupplierMarketplace: true,
+              enableInstallments: true,
+              enableOrganization: true,
+              enableTeamManagement: true,
+              enableMarketingBanners: true,
+              enableMarketingPopups: true,
+              enableMarketingCards: true,
+              enableAnnouncementTicker: true,
+              enableGuestMode: true,
+              guestCanSearch: true,
+              guestCanViewPrices: false
+          },
+          
+          heroBanners: [
+              {
+                  id: 'banner-1',
+                  enabled: true,
+                  order: 1,
+                  title: { ar: 'صيني كار.. بوابتك للمستودع', en: 'SINI CAR.. Your Gateway to Warehouse', hi: 'सिनी कार.. गोदाम का आपका प्रवेश द्वार', zh: 'SINI CAR..您的仓库门户' },
+                  subtitle: { ar: 'اطلب قطع غيار شانجان و MG مباشرة من الموقع ووفر وقت الانتظار', en: 'Order Changan & MG parts directly and save waiting time', hi: 'चांगान और एमजी पार्ट्स सीधे ऑर्डर करें', zh: '直接订购长安和MG零件，节省等待时间' },
+                  buttonText: { ar: 'ابدأ الطلب الآن', en: 'Start Ordering Now', hi: 'अभी ऑर्डर करें', zh: '立即开始订购' },
+                  buttonUrl: '#search',
+                  colorClass: 'from-primary-700 to-primary-900'
+              },
+              {
+                  id: 'banner-2',
+                  enabled: true,
+                  order: 2,
+                  title: { ar: 'وصل حديثاً: قطع جيلي وهافال', en: 'New Arrivals: Geely & Haval Parts', hi: 'नई आवक: जीली और हावल पार्ट्स', zh: '新品：吉利和哈弗零件' },
+                  subtitle: { ar: 'تغطية شاملة لموديلات جيلي مونجارو وهافال H6 الجديدة', en: 'Comprehensive coverage for new Geely Monjaro and Haval H6 models', hi: 'नए जीली मोंजारो और हावल H6 मॉडल के लिए व्यापक कवरेज', zh: '全面覆盖吉利Monjaro和哈弗H6新车型' },
+                  buttonText: { ar: 'تصفح القطع', en: 'Browse Parts', hi: 'पार्ट्स ब्राउज़ करें', zh: '浏览零件' },
+                  buttonUrl: '#search',
+                  colorClass: 'from-slate-700 to-slate-900'
+              },
+              {
+                  id: 'banner-3',
+                  enabled: true,
+                  order: 3,
+                  title: { ar: 'عروض الجملة الخاصة', en: 'Special Wholesale Offers', hi: 'विशेष थोक ऑफर', zh: '特别批发优惠' },
+                  subtitle: { ar: 'أسعار خاصة لطلبات الجملة ومراكز الصيانة المعتمدة', en: 'Special prices for wholesale orders and authorized service centers', hi: 'थोक ऑर्डर और अधिकृत सर्विस सेंटर के लिए विशेष कीमतें', zh: '批发订单和授权服务中心的特别价格' },
+                  buttonText: { ar: 'عروض الكميات', en: 'Bulk Offers', hi: 'बल्क ऑफर', zh: '批量优惠' },
+                  buttonUrl: '#offers',
+                  colorClass: 'from-secondary-600 to-secondary-800'
+              }
+          ],
+          
+          announcements: [
+              {
+                  id: 'announcement-1',
+                  enabled: true,
+                  type: 'ticker',
+                  content: { 
+                      ar: 'مرحباً بكم في بوابة عملاء الجملة - صيني كار لقطع غيار السيارات الصينية. شحن مجاني للطلبات فوق 5000 ريال.', 
+                      en: 'Welcome to SINI CAR B2B Portal - Your trusted source for Chinese auto parts. Free shipping for orders over 5000 SAR.', 
+                      hi: 'सिनी कार B2B पोर्टल में आपका स्वागत है - चीनी ऑटो पार्ट्स के लिए आपका विश्वसनीय स्रोत।', 
+                      zh: '欢迎来到SINI CAR B2B门户 - 您值得信赖的中国汽车零件来源。' 
+                  },
+                  backgroundColor: '#0f172a',
+                  textColor: '#fb923c',
+                  dismissible: false
+              }
+          ],
+          
+          infoCards: [
+              {
+                  id: 'card-1',
+                  enabled: true,
+                  order: 1,
+                  icon: 'Shield',
+                  title: { ar: 'قطع أصلية ومضمونة', en: 'Genuine & Guaranteed Parts', hi: 'असली और गारंटीकृत पार्ट्स', zh: '正品保证零件' },
+                  description: { ar: 'موزع معتمد لقطع غيار شانجان، إم جي، جيلي، وهافال.', en: 'Authorized distributor for Changan, MG, Geely, and Haval parts.', hi: 'चांगान, एमजी, जीली और हावल पार्ट्स के अधिकृत वितरक।', zh: '长安、MG、吉利和哈弗零件的授权经销商。' },
+                  colorClass: 'bg-green-50 text-green-600'
+              },
+              {
+                  id: 'card-2',
+                  enabled: true,
+                  order: 2,
+                  icon: 'Truck',
+                  title: { ar: 'شحن سريع للمناطق', en: 'Fast Regional Shipping', hi: 'तेज़ क्षेत्रीय शिपिंग', zh: '快速区域配送' },
+                  description: { ar: 'شحن خلال 24 ساعة للمدن الرئيسية وشحن مبرد للمناطق البعيدة.', en: '24-hour shipping to major cities with refrigerated shipping for remote areas.', hi: 'प्रमुख शहरों में 24 घंटे की शिपिंग।', zh: '主要城市24小时送货。' },
+                  colorClass: 'bg-blue-50 text-blue-600'
+              },
+              {
+                  id: 'card-3',
+                  enabled: true,
+                  order: 3,
+                  icon: 'BadgeDollarSign',
+                  title: { ar: 'أسعار جملة تنافسية', en: 'Competitive Wholesale Prices', hi: 'प्रतिस्पर्धी थोक कीमतें', zh: '有竞争力的批发价格' },
+                  description: { ar: 'نظام تسعير ذكي يعتمد على حجم مشترياتك.', en: 'Smart pricing system based on your purchase volume.', hi: 'आपकी खरीद मात्रा पर आधारित स्मार्ट मूल्य निर्धारण प्रणाली।', zh: '基于您的采购量的智能定价系统。' },
+                  colorClass: 'bg-amber-50 text-amber-600'
+              }
+          ],
+          
+          lastModifiedAt: new Date().toISOString()
+      };
+  },
+
+  async resetCustomerPortalSettings(): Promise<CustomerPortalSettings> {
+      const defaults = this.getDefaultCustomerPortalSettings();
+      localStorage.setItem('b2b_customer_portal_settings_v1', JSON.stringify(defaults));
+      return defaults;
   }
 };
