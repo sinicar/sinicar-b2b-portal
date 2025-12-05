@@ -3975,7 +3975,7 @@ export const MockApi = {
           {
               toolKey: 'PDF_TO_EXCEL',
               enabled: true,
-              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'SALES_AGENT', 'FLEET_CUSTOMER'],
+              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'SALES_AGENT', 'FLEET_CUSTOMER', 'محل قطع غيار', 'شركة تأجير سيارات', 'شركة تأمين', 'وكيل مبيعات', 'عميل أسطول'],
               blockedCustomerIds: [],
               maxFilesPerDay: 10,
               maxFilesPerMonth: 100,
@@ -3991,7 +3991,7 @@ export const MockApi = {
           {
               toolKey: 'VIN_EXTRACTOR',
               enabled: true,
-              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'MAINTENANCE_CENTER'],
+              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'MAINTENANCE_CENTER', 'محل قطع غيار', 'شركة تأجير سيارات', 'شركة تأمين', 'مركز صيانة'],
               blockedCustomerIds: [],
               maxFilesPerDay: 20,
               maxFilesPerMonth: 200,
@@ -4007,7 +4007,7 @@ export const MockApi = {
           {
               toolKey: 'PRICE_COMPARISON',
               enabled: true,
-              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'SALES_AGENT'],
+              allowedCustomerTypes: ['PARTS_SHOP', 'RENTAL_COMPANY', 'INSURANCE_COMPANY', 'SALES_AGENT', 'محل قطع غيار', 'شركة تأجير سيارات', 'شركة تأمين', 'وكيل مبيعات'],
               blockedCustomerIds: [],
               maxFilesPerDay: 5,
               maxFilesPerMonth: 50,

@@ -33,7 +33,7 @@ import {
   Clock, CheckCircle, ChevronLeft,
   Building2, Trash2, Menu, X,
   ShieldCheck, Headphones, History, AlertTriangle, Loader2, Plus, Globe, Lock,
-  FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX
+  FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX, Wrench
 } from 'lucide-react';
 import { OrdersPage } from './OrdersPage';
 import { QuoteRequestPage } from './QuoteRequestPage';
@@ -50,6 +50,7 @@ import { UsageIntroModal } from './UsageIntroModal';
 import { NotificationBell } from './NotificationBell';
 import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
+import { TraderToolsHub } from './TraderToolsHub';
 
 interface DashboardProps {
   user: User;
@@ -542,6 +543,7 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                     collapsed={collapsed}
                 />
                 <CollapsibleSidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('IMPORT_CHINA')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
                 <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
                 
                 {!collapsed && (
@@ -615,6 +617,7 @@ const DashboardHeader = memo(({
                     {view === 'ORDERS' && tDynamic('sidebar.orders', 'سجل الطلبات')}
                     {view === 'QUOTE_REQUEST' && tDynamic('sidebar.quotes', 'طلبات التسعير')}
                     {view === 'IMPORT_CHINA' && tDynamic('sidebar.import', 'الاستيراد من الصين')}
+                    {view === 'TRADER_TOOLS' && tDynamic('sidebar.traderTools', 'أدوات التاجر')}
                     {view === 'ORGANIZATION' && tDynamic('sidebar.organization', 'إدارة المنشأة')}
                     {view === 'HISTORY' && tDynamic('sidebar.history', 'سجل البحث')}
                     {view === 'ABOUT' && tDynamic('sidebar.support', 'عن الشركة / الدعم')}
@@ -650,8 +653,8 @@ const DashboardHeader = memo(({
 
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, onRefreshUser }) => {
-    // Add IMPORT_CHINA to view state
-    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA'>('HOME');
+    // Add IMPORT_CHINA and TRADER_TOOLS to view state
+    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -1976,6 +1979,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         {view === 'ORDERS' && <OrdersPage orders={orders} quoteRequests={quoteRequests} />}
                         {view === 'QUOTE_REQUEST' && <QuoteRequestPage user={user} onSuccess={() => {}} />}
                         {view === 'IMPORT_CHINA' && <ImportFromChinaPage user={user} userProfile={profile} />}
+                        {view === 'TRADER_TOOLS' && <TraderToolsHub user={user} profile={profile} />}
                         {view === 'ORGANIZATION' && <OrganizationPage user={user} mainProfileUserId={user.role === 'CUSTOMER_STAFF' ? user.parentId! : user.id} />}
                         {view === 'ABOUT' && <AboutPage />}
                         {view === 'HISTORY' && (
