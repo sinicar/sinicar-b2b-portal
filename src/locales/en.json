@@ -2468,5 +2468,47 @@
     "dueDate": "Due Date",
     "requestApproved": "Request approved",
     "requestRejected": "Request rejected"
+  },
+  "adminPortalSettings": {
+    "title": "Customer Portal Settings",
+    "description": "Configure the appearance, layout, and features of the customer portal",
+    "resetDefaults": "Reset Defaults",
+    "saveChanges": "Save Changes",
+    "confirmReset": "Are you sure you want to reset all settings to defaults?",
+    "unsavedChanges": "You have unsaved changes",
+    "savedSuccess": "Settings saved successfully",
+    "tabs": {
+      "design": "Design & Theme",
+      "layout": "Dashboard Layout",
+      "navigation": "Navigation Menu",
+      "features": "Features",
+      "content": "Content"
+    },
+    "design": {
+      "themeMode": "Theme Mode",
+      "colors": "Color Scheme"
+    },
+    "layout": {
+      "sections": "Dashboard Sections",
+      "reorder": "Drag to reorder"
+    },
+    "navigation": {
+      "menu": "Navigation Menu Items"
+    },
+    "features": {
+      "tools": "Tools & Features",
+      "ordering": "Ordering",
+      "marketing": "Marketing",
+      "guest": "Guest Mode"
+    },
+    "banners": {
+      "hero": "Hero Banners"
+    },
+    "announcements": {
+      "title": "Announcements"
+    },
+    "cards": {
+      "info": "Info Cards"
+    }
   }
 }

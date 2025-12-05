@@ -2317,5 +2317,47 @@
     "dueDate": "देय तारीख",
     "requestApproved": "अनुरोध स्वीकृत",
     "requestRejected": "अनुरोध अस्वीकृत"
+  },
+  "adminPortalSettings": {
+    "title": "ग्राहक पोर्टल सेटिंग्स",
+    "description": "ग्राहक पोर्टल का रूप, लेआउट और सुविधाएं कॉन्फ़िगर करें",
+    "resetDefaults": "डिफॉल्ट रीसेट करें",
+    "saveChanges": "परिवर्तन सहेजें",
+    "confirmReset": "क्या आप वाकई सभी सेटिंग्स को डिफ़ॉल्ट पर रीसेट करना चाहते हैं?",
+    "unsavedChanges": "आपके पास असहेजे गए परिवर्तन हैं",
+    "savedSuccess": "सेटिंग्स सफलतापूर्वक सहेजी गईं",
+    "tabs": {
+      "design": "डिज़ाइन और थीम",
+      "layout": "डैशबोर्ड लेआउट",
+      "navigation": "नेविगेशन मेनू",
+      "features": "सुविधाएं",
+      "content": "कंटेंट"
+    },
+    "design": {
+      "themeMode": "थीम मोड",
+      "colors": "रंग योजना"
+    },
+    "layout": {
+      "sections": "डैशबोर्ड सेक्शन",
+      "reorder": "पुनर्क्रमित करने के लिए खींचें"
+    },
+    "navigation": {
+      "menu": "नेविगेशन मेनू आइटम"
+    },
+    "features": {
+      "tools": "टूल्स और सुविधाएं",
+      "ordering": "ऑर्डरिंग",
+      "marketing": "मार्केटिंग",
+      "guest": "गेस्ट मोड"
+    },
+    "banners": {
+      "hero": "हीरो बैनर"
+    },
+    "announcements": {
+      "title": "घोषणाएं"
+    },
+    "cards": {
+      "info": "जानकारी कार्ड"
+    }
   }
 }

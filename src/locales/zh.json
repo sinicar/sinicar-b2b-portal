@@ -2317,5 +2317,47 @@
     "dueDate": "到期日",
     "requestApproved": "请求已批准",
     "requestRejected": "请求已拒绝"
+  },
+  "adminPortalSettings": {
+    "title": "客户门户设置",
+    "description": "配置客户门户的外观、布局和功能",
+    "resetDefaults": "重置默认",
+    "saveChanges": "保存更改",
+    "confirmReset": "您确定要将所有设置重置为默认值吗？",
+    "unsavedChanges": "您有未保存的更改",
+    "savedSuccess": "设置保存成功",
+    "tabs": {
+      "design": "设计和主题",
+      "layout": "仪表板布局",
+      "navigation": "导航菜单",
+      "features": "功能",
+      "content": "内容"
+    },
+    "design": {
+      "themeMode": "主题模式",
+      "colors": "配色方案"
+    },
+    "layout": {
+      "sections": "仪表板部分",
+      "reorder": "拖动重新排序"
+    },
+    "navigation": {
+      "menu": "导航菜单项"
+    },
+    "features": {
+      "tools": "工具和功能",
+      "ordering": "订购",
+      "marketing": "营销",
+      "guest": "访客模式"
+    },
+    "banners": {
+      "hero": "主横幅"
+    },
+    "announcements": {
+      "title": "公告"
+    },
+    "cards": {
+      "info": "信息卡"
+    }
   }
 }

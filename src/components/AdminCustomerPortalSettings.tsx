@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 
-type TabType = 'design' | 'layout' | 'navigation' | 'features' | 'banners' | 'announcements' | 'cards';
+type TabType = 'design' | 'layout' | 'navigation' | 'features' | 'content';
 
 const LANGUAGES = [
     { code: 'ar', label: 'العربية', flag: '🇸🇦' },
@@ -397,7 +397,7 @@ export const AdminCustomerPortalSettings = memo(() => {
                 </div>
             )}
             
-            {/* Tabs */}
+            {/* Tabs - 5 Main Configuration Areas */}
             <div className="flex flex-wrap gap-2">
                 <TabButton 
                     active={activeTab === 'design'} 
@@ -428,25 +428,11 @@ export const AdminCustomerPortalSettings = memo(() => {
                     testId="tab-features"
                 />
                 <TabButton 
-                    active={activeTab === 'banners'} 
+                    active={activeTab === 'content'} 
                     icon={<FileText size={18} />} 
-                    label={t('adminPortalSettings.tabs.banners') || 'Hero Banners'} 
-                    onClick={() => setActiveTab('banners')}
-                    testId="tab-banners"
-                />
-                <TabButton 
-                    active={activeTab === 'announcements'} 
-                    icon={<Bell size={18} />} 
-                    label={t('adminPortalSettings.tabs.announcements') || 'Announcements'} 
-                    onClick={() => setActiveTab('announcements')}
-                    testId="tab-announcements"
-                />
-                <TabButton 
-                    active={activeTab === 'cards'} 
-                    icon={<CreditCard size={18} />} 
-                    label={t('adminPortalSettings.tabs.cards') || 'Info Cards'} 
-                    onClick={() => setActiveTab('cards')}
-                    testId="tab-cards"
+                    label={t('adminPortalSettings.tabs.content') || 'Content'} 
+                    onClick={() => setActiveTab('content')}
+                    testId="tab-content"
                 />
             </div>
             
@@ -901,276 +887,275 @@ export const AdminCustomerPortalSettings = memo(() => {
                     </div>
                 )}
                 
-                {/* Banners Tab */}
-                {activeTab === 'banners' && (
-                    <SectionCard title={t('adminPortalSettings.banners.hero') || 'Hero Banners'} icon={<FileText size={20} />}>
-                        <div className="flex justify-between items-center mb-4">
-                            <p className="text-sm text-slate-500">
-                                Configure the rotating hero banners on the dashboard.
-                            </p>
-                            <button
-                                onClick={addBanner}
-                                data-testid="button-add-banner"
-                                className="flex items-center gap-2 px-4 py-2 bg-[#C8A04F] text-white rounded-xl hover:bg-[#b8903f] transition-colors"
-                            >
-                                <Plus size={18} />
-                                Add Banner
-                            </button>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            {settings.heroBanners.sort((a, b) => a.order - b.order).map((banner) => (
-                                <div 
-                                    key={banner.id}
-                                    className={`p-4 rounded-xl border ${banner.enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50'}`}
+                {/* Content Tab - Unified Content Management (Banners, Announcements, Info Cards) */}
+                {activeTab === 'content' && (
+                    <div className="space-y-8">
+                        {/* Hero Banners Section */}
+                        <SectionCard title={t('adminPortalSettings.banners.hero') || 'Hero Banners'} icon={<FileText size={20} />}>
+                            <div className="flex justify-between items-center mb-4">
+                                <p className="text-sm text-slate-500">
+                                    Configure the rotating hero banners on the dashboard.
+                                </p>
+                                <button
+                                    onClick={addBanner}
+                                    data-testid="button-add-banner"
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#C8A04F] text-white rounded-xl hover:bg-[#b8903f] transition-colors"
                                 >
-                                    <div className="flex items-start justify-between gap-4 mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div 
-                                                className={`w-12 h-12 rounded-xl bg-gradient-to-r ${banner.colorClass} flex items-center justify-center`}
-                                            >
-                                                <Megaphone className="text-white" size={20} />
+                                    <Plus size={18} />
+                                    Add Banner
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {settings.heroBanners.sort((a, b) => a.order - b.order).map((banner) => (
+                                    <div 
+                                        key={banner.id}
+                                        className={`p-4 rounded-xl border ${banner.enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50'}`}
+                                    >
+                                        <div className="flex items-start justify-between gap-4 mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div 
+                                                    className={`w-12 h-12 rounded-xl bg-gradient-to-r ${banner.colorClass} flex items-center justify-center`}
+                                                >
+                                                    <Megaphone className="text-white" size={20} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-slate-700">{banner.title.en}</p>
+                                                    <p className="text-xs text-slate-500">Order: {banner.order}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-slate-700">{banner.title.en}</p>
-                                                <p className="text-xs text-slate-500">Order: {banner.order}</p>
+                                            
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => updateBanner(banner.id, { enabled: !banner.enabled })}
+                                                    data-testid={`toggle-banner-${banner.id}`}
+                                                    className={`p-2 rounded-lg transition-colors ${
+                                                        banner.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
+                                                    }`}
+                                                >
+                                                    {banner.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteBanner(banner.id)}
+                                                    data-testid={`button-delete-banner-${banner.id}`}
+                                                    className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                         </div>
                                         
-                                        <div className="flex items-center gap-2">
+                                        {banner.enabled && (
+                                            <div className="space-y-3 pt-3 border-t border-slate-100">
+                                                <MultilingualInput
+                                                    value={banner.title}
+                                                    onChange={(val) => updateBanner(banner.id, { title: val })}
+                                                    label="Title"
+                                                    placeholder="Banner title..."
+                                                    testIdPrefix={`banner-title-${banner.id}`}
+                                                />
+                                                <MultilingualInput
+                                                    value={banner.subtitle}
+                                                    onChange={(val) => updateBanner(banner.id, { subtitle: val })}
+                                                    label="Subtitle"
+                                                    placeholder="Banner subtitle..."
+                                                    testIdPrefix={`banner-subtitle-${banner.id}`}
+                                                />
+                                                <MultilingualInput
+                                                    value={banner.buttonText}
+                                                    onChange={(val) => updateBanner(banner.id, { buttonText: val })}
+                                                    label="Button Text"
+                                                    placeholder="Button text..."
+                                                    testIdPrefix={`banner-button-${banner.id}`}
+                                                />
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-700 mb-2 block">Button URL</label>
+                                                    <input
+                                                        type="text"
+                                                        value={banner.buttonUrl}
+                                                        onChange={(e) => updateBanner(banner.id, { buttonUrl: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                        data-testid={`input-banner-url-${banner.id}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </SectionCard>
+                        
+                        {/* Announcements Section */}
+                        <SectionCard title={t('adminPortalSettings.announcements.title') || 'Announcements'} icon={<Bell size={20} />}>
+                            <p className="text-sm text-slate-500 mb-4">
+                                Configure ticker, banner, and popup announcements.
+                            </p>
+                            
+                            <div className="space-y-4">
+                                {settings.announcements.map((announcement) => (
+                                    <div 
+                                        key={announcement.id}
+                                        className="p-4 rounded-xl border border-slate-200 bg-white"
+                                    >
+                                        <div className="flex items-start justify-between gap-4 mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div 
+                                                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                                    style={{ backgroundColor: announcement.backgroundColor, color: announcement.textColor }}
+                                                >
+                                                    <Bell size={20} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-slate-700 capitalize">{announcement.type} Announcement</p>
+                                                    <p className="text-xs text-slate-500 truncate max-w-xs">{announcement.content.en}</p>
+                                                </div>
+                                            </div>
+                                            
                                             <button
-                                                onClick={() => updateBanner(banner.id, { enabled: !banner.enabled })}
-                                                data-testid={`toggle-banner-${banner.id}`}
+                                                onClick={() => updateAnnouncement(announcement.id, { enabled: !announcement.enabled })}
+                                                data-testid={`toggle-announcement-${announcement.id}`}
                                                 className={`p-2 rounded-lg transition-colors ${
-                                                    banner.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
+                                                    announcement.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
                                                 }`}
                                             >
-                                                {banner.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
-                                            </button>
-                                            <button
-                                                onClick={() => deleteBanner(banner.id)}
-                                                data-testid={`button-delete-banner-${banner.id}`}
-                                                className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                            >
-                                                <Trash2 size={18} />
+                                                {announcement.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
                                             </button>
                                         </div>
+                                        
+                                        {announcement.enabled && (
+                                            <div className="space-y-3 pt-3 border-t border-slate-100">
+                                                <MultilingualInput
+                                                    value={announcement.content}
+                                                    onChange={(val) => updateAnnouncement(announcement.id, { content: val })}
+                                                    label="Content"
+                                                    placeholder="Announcement text..."
+                                                    testIdPrefix={`announcement-content-${announcement.id}`}
+                                                />
+                                                
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-700 mb-2 block">Background Color</label>
+                                                        <input
+                                                            type="color"
+                                                            value={announcement.backgroundColor}
+                                                            onChange={(e) => updateAnnouncement(announcement.id, { backgroundColor: e.target.value })}
+                                                            className="w-full h-10 rounded-lg border border-slate-200 cursor-pointer"
+                                                            data-testid={`input-announcement-bg-${announcement.id}`}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-slate-700 mb-2 block">Text Color</label>
+                                                        <input
+                                                            type="color"
+                                                            value={announcement.textColor}
+                                                            onChange={(e) => updateAnnouncement(announcement.id, { textColor: e.target.value })}
+                                                            className="w-full h-10 rounded-lg border border-slate-200 cursor-pointer"
+                                                            data-testid={`input-announcement-text-${announcement.id}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    
-                                    {banner.enabled && (
-                                        <div className="space-y-3 pt-3 border-t border-slate-100">
-                                            <MultilingualInput
-                                                value={banner.title}
-                                                onChange={(val) => updateBanner(banner.id, { title: val })}
-                                                label="Title"
-                                                placeholder="Banner title..."
-                                                testIdPrefix={`banner-title-${banner.id}`}
-                                            />
-                                            <MultilingualInput
-                                                value={banner.subtitle}
-                                                onChange={(val) => updateBanner(banner.id, { subtitle: val })}
-                                                label="Subtitle"
-                                                placeholder="Banner subtitle..."
-                                                testIdPrefix={`banner-subtitle-${banner.id}`}
-                                            />
-                                            <MultilingualInput
-                                                value={banner.buttonText}
-                                                onChange={(val) => updateBanner(banner.id, { buttonText: val })}
-                                                label="Button Text"
-                                                placeholder="Button text..."
-                                                testIdPrefix={`banner-button-${banner.id}`}
-                                            />
-                                            <div>
-                                                <label className="text-sm font-medium text-slate-700 mb-2 block">Button URL</label>
-                                                <input
-                                                    type="text"
-                                                    value={banner.buttonUrl}
-                                                    onChange={(e) => updateBanner(banner.id, { buttonUrl: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                                                    data-testid={`input-banner-url-${banner.id}`}
+                                ))}
+                            </div>
+                        </SectionCard>
+                        
+                        {/* Info Cards Section */}
+                        <SectionCard title={t('adminPortalSettings.cards.info') || 'Info Cards'} icon={<CreditCard size={20} />}>
+                            <div className="flex justify-between items-center mb-4">
+                                <p className="text-sm text-slate-500">
+                                    Configure the info/marketing cards displayed on the dashboard.
+                                </p>
+                                <button
+                                    onClick={addInfoCard}
+                                    data-testid="button-add-card"
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#C8A04F] text-white rounded-xl hover:bg-[#b8903f] transition-colors"
+                                >
+                                    <Plus size={18} />
+                                    Add Card
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {settings.infoCards.sort((a, b) => a.order - b.order).map((card) => (
+                                    <div 
+                                        key={card.id}
+                                        className={`p-4 rounded-xl border ${card.enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50'}`}
+                                    >
+                                        <div className="flex items-start justify-between gap-4 mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-xl ${card.colorClass} flex items-center justify-center`}>
+                                                    {ICON_MAP[card.icon] || <Shield size={20} />}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-slate-700">{card.title.en}</p>
+                                                    <p className="text-xs text-slate-500">Order: {card.order}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => updateInfoCard(card.id, { enabled: !card.enabled })}
+                                                    data-testid={`toggle-card-${card.id}`}
+                                                    className={`p-2 rounded-lg transition-colors ${
+                                                        card.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
+                                                    }`}
+                                                >
+                                                    {card.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteInfoCard(card.id)}
+                                                    data-testid={`button-delete-card-${card.id}`}
+                                                    className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        {card.enabled && (
+                                            <div className="space-y-3 pt-3 border-t border-slate-100">
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-700 mb-2 block">Icon</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {AVAILABLE_ICONS.map(iconName => (
+                                                            <button
+                                                                key={iconName}
+                                                                onClick={() => updateInfoCard(card.id, { icon: iconName })}
+                                                                className={`p-2 rounded-lg border transition-all ${
+                                                                    card.icon === iconName 
+                                                                        ? 'border-[#C8A04F] bg-[#C8A04F]/10' 
+                                                                        : 'border-slate-200 hover:border-slate-300'
+                                                                }`}
+                                                            >
+                                                                {ICON_MAP[iconName]}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                <MultilingualInput
+                                                    value={card.title}
+                                                    onChange={(val) => updateInfoCard(card.id, { title: val })}
+                                                    label="Title"
+                                                    placeholder="Card title..."
+                                                    testIdPrefix={`card-title-${card.id}`}
+                                                />
+                                                <MultilingualInput
+                                                    value={card.description}
+                                                    onChange={(val) => updateInfoCard(card.id, { description: val })}
+                                                    label="Description"
+                                                    placeholder="Card description..."
+                                                    testIdPrefix={`card-desc-${card.id}`}
                                                 />
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </SectionCard>
-                )}
-                
-                {/* Announcements Tab */}
-                {activeTab === 'announcements' && (
-                    <SectionCard title={t('adminPortalSettings.announcements.title') || 'Announcements'} icon={<Bell size={20} />}>
-                        <p className="text-sm text-slate-500 mb-4">
-                            Configure ticker, banner, and popup announcements.
-                        </p>
-                        
-                        <div className="space-y-4">
-                            {settings.announcements.map((announcement) => (
-                                <div 
-                                    key={announcement.id}
-                                    className="p-4 rounded-xl border border-slate-200 bg-white"
-                                >
-                                    <div className="flex items-start justify-between gap-4 mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div 
-                                                className="w-12 h-12 rounded-xl flex items-center justify-center"
-                                                style={{ backgroundColor: announcement.backgroundColor, color: announcement.textColor }}
-                                            >
-                                                <Bell size={20} />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-slate-700 capitalize">{announcement.type} Announcement</p>
-                                                <p className="text-xs text-slate-500 truncate max-w-xs">{announcement.content.en}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <button
-                                            onClick={() => updateAnnouncement(announcement.id, { enabled: !announcement.enabled })}
-                                            data-testid={`toggle-announcement-${announcement.id}`}
-                                            className={`p-2 rounded-lg transition-colors ${
-                                                announcement.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
-                                            }`}
-                                        >
-                                            {announcement.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
-                                        </button>
+                                        )}
                                     </div>
-                                    
-                                    {announcement.enabled && (
-                                        <div className="space-y-3 pt-3 border-t border-slate-100">
-                                            <MultilingualInput
-                                                value={announcement.content}
-                                                onChange={(val) => updateAnnouncement(announcement.id, { content: val })}
-                                                label="Content"
-                                                placeholder="Announcement text..."
-                                                testIdPrefix={`announcement-content-${announcement.id}`}
-                                            />
-                                            
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-700 mb-2 block">Background Color</label>
-                                                    <input
-                                                        type="color"
-                                                        value={announcement.backgroundColor}
-                                                        onChange={(e) => updateAnnouncement(announcement.id, { backgroundColor: e.target.value })}
-                                                        className="w-full h-10 rounded-lg border border-slate-200 cursor-pointer"
-                                                        data-testid={`input-announcement-bg-${announcement.id}`}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-slate-700 mb-2 block">Text Color</label>
-                                                    <input
-                                                        type="color"
-                                                        value={announcement.textColor}
-                                                        onChange={(e) => updateAnnouncement(announcement.id, { textColor: e.target.value })}
-                                                        className="w-full h-10 rounded-lg border border-slate-200 cursor-pointer"
-                                                        data-testid={`input-announcement-text-${announcement.id}`}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </SectionCard>
-                )}
-                
-                {/* Info Cards Tab */}
-                {activeTab === 'cards' && (
-                    <SectionCard title={t('adminPortalSettings.cards.info') || 'Info Cards'} icon={<CreditCard size={20} />}>
-                        <div className="flex justify-between items-center mb-4">
-                            <p className="text-sm text-slate-500">
-                                Configure the info/marketing cards displayed on the dashboard.
-                            </p>
-                            <button
-                                onClick={addInfoCard}
-                                data-testid="button-add-card"
-                                className="flex items-center gap-2 px-4 py-2 bg-[#C8A04F] text-white rounded-xl hover:bg-[#b8903f] transition-colors"
-                            >
-                                <Plus size={18} />
-                                Add Card
-                            </button>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            {settings.infoCards.sort((a, b) => a.order - b.order).map((card) => (
-                                <div 
-                                    key={card.id}
-                                    className={`p-4 rounded-xl border ${card.enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50'}`}
-                                >
-                                    <div className="flex items-start justify-between gap-4 mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-12 h-12 rounded-xl ${card.colorClass} flex items-center justify-center`}>
-                                                {ICON_MAP[card.icon] || <Shield size={20} />}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-slate-700">{card.title.en}</p>
-                                                <p className="text-xs text-slate-500">Order: {card.order}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => updateInfoCard(card.id, { enabled: !card.enabled })}
-                                                data-testid={`toggle-card-${card.id}`}
-                                                className={`p-2 rounded-lg transition-colors ${
-                                                    card.enabled ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
-                                                }`}
-                                            >
-                                                {card.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
-                                            </button>
-                                            <button
-                                                onClick={() => deleteInfoCard(card.id)}
-                                                data-testid={`button-delete-card-${card.id}`}
-                                                className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    {card.enabled && (
-                                        <div className="space-y-3 pt-3 border-t border-slate-100">
-                                            <div>
-                                                <label className="text-sm font-medium text-slate-700 mb-2 block">Icon</label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {AVAILABLE_ICONS.map(iconName => (
-                                                        <button
-                                                            key={iconName}
-                                                            onClick={() => updateInfoCard(card.id, { icon: iconName })}
-                                                            className={`p-2 rounded-lg border transition-all ${
-                                                                card.icon === iconName 
-                                                                    ? 'border-[#C8A04F] bg-[#C8A04F]/10' 
-                                                                    : 'border-slate-200 hover:border-slate-300'
-                                                            }`}
-                                                        >
-                                                            {ICON_MAP[iconName]}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            
-                                            <MultilingualInput
-                                                value={card.title}
-                                                onChange={(val) => updateInfoCard(card.id, { title: val })}
-                                                label="Title"
-                                                placeholder="Card title..."
-                                                testIdPrefix={`card-title-${card.id}`}
-                                            />
-                                            <MultilingualInput
-                                                value={card.description}
-                                                onChange={(val) => updateInfoCard(card.id, { description: val })}
-                                                label="Description"
-                                                placeholder="Card description..."
-                                                testIdPrefix={`card-desc-${card.id}`}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </SectionCard>
+                                ))}
+                            </div>
+                        </SectionCard>
+                    </div>
                 )}
             </div>
         </div>

@@ -2472,5 +2472,47 @@
     "dueDate": "تاريخ الاستحقاق",
     "requestApproved": "تمت الموافقة على الطلب",
     "requestRejected": "تم رفض الطلب"
+  },
+  "adminPortalSettings": {
+    "title": "إعدادات بوابة العملاء",
+    "description": "تخصيص مظهر وتخطيط وميزات بوابة العملاء",
+    "resetDefaults": "إعادة التعيين",
+    "saveChanges": "حفظ التغييرات",
+    "confirmReset": "هل أنت متأكد من إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟",
+    "unsavedChanges": "لديك تغييرات غير محفوظة",
+    "savedSuccess": "تم حفظ الإعدادات بنجاح",
+    "tabs": {
+      "design": "التصميم والمظهر",
+      "layout": "تخطيط لوحة التحكم",
+      "navigation": "قائمة التنقل",
+      "features": "الميزات",
+      "content": "المحتوى"
+    },
+    "design": {
+      "themeMode": "وضع السمة",
+      "colors": "نظام الألوان"
+    },
+    "layout": {
+      "sections": "أقسام لوحة التحكم",
+      "reorder": "اسحب لإعادة الترتيب"
+    },
+    "navigation": {
+      "menu": "عناصر قائمة التنقل"
+    },
+    "features": {
+      "tools": "الأدوات والميزات",
+      "ordering": "الطلبات",
+      "marketing": "التسويق",
+      "guest": "وضع الضيف"
+    },
+    "banners": {
+      "hero": "بانرات الصفحة الرئيسية"
+    },
+    "announcements": {
+      "title": "الإعلانات"
+    },
+    "cards": {
+      "info": "بطاقات المعلومات"
+    }
   }
 }
