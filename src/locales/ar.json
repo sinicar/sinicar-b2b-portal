@@ -703,6 +703,7 @@
     "users": "المستخدمون",
     "systemSettings": "إعدادات النظام",
     "marketingCenter": "مركز التسويق",
+    "pricingCenter": "مركز التسعيرات",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -718,7 +719,8 @@
       "settings": "الإعدادات العامة",
       "users": "إدارة المستخدمين",
       "products": "إدارة المنتجات",
-      "marketing": "مركز التسويق"
+      "marketing": "مركز التسويق",
+      "pricing": "مركز التسعيرات"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",

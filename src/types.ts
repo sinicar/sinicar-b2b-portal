@@ -1314,3 +1314,165 @@ export interface MarketingCampaign {
   startsAt?: string;
   expiresAt?: string;
 }
+
+// ============================================================
+// --- PRICING CENTER TYPES (مركز التسعيرات) ---
+// ============================================================
+
+// Adjustment type for derived price levels
+export type PriceLevelAdjustmentType = 'PERCENT' | 'FIXED';
+
+// Rounding mode for final price calculation
+export type PricingRoundingMode = 'NONE' | 'ROUND' | 'CEIL' | 'FLOOR';
+
+// Precedence options for price calculation
+export type PricePrecedenceOption = 'CUSTOM_RULE' | 'LEVEL_EXPLICIT' | 'LEVEL_DERIVED';
+
+// Price Level - defines each pricing tier (fully configurable)
+export interface ConfigurablePriceLevel {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  isBaseLevel: boolean;
+  baseLevelId?: string;
+  adjustmentType?: PriceLevelAdjustmentType;
+  adjustmentValue?: number;
+  isActive: boolean;
+  sortOrder: number;
+  color?: string;
+  minOrderValue?: number;
+  maxDiscountPercent?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Product Price Entry - explicit price per product per level
+export interface ProductPriceEntry {
+  id: string;
+  productId: string;
+  priceLevelId: string;
+  price: number;
+  currency?: string;
+  minQty?: number;
+  maxQty?: number;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Customer Custom Price Rule - overrides for specific products/categories
+export interface CustomerCustomPriceRule {
+  id: string;
+  productId?: string;
+  categoryId?: string;
+  brandId?: string;
+  useFixedPrice?: boolean;
+  fixedPrice?: number;
+  usePercentOfLevel?: boolean;
+  percentOfLevel?: number;
+  priceLevelIdForPercent?: string;
+  minQty?: number;
+  maxQty?: number;
+  validFrom?: string;
+  validTo?: string;
+  notes?: string;
+}
+
+// Customer Pricing Profile - per-customer pricing configuration
+export interface CustomerPricingProfile {
+  customerId: string;
+  defaultPriceLevelId: string;
+  extraMarkupPercent?: number;
+  extraDiscountPercent?: number;
+  allowCustomRules: boolean;
+  customRules?: CustomerCustomPriceRule[];
+  priceFloor?: number;
+  priceCeiling?: number;
+  lastModifiedBy?: string;
+  lastModifiedAt?: string;
+  notes?: string;
+}
+
+// Volume Discount Rule - quantity-based discounts
+export interface VolumeDiscountRule {
+  id: string;
+  minQty: number;
+  maxQty?: number;
+  discountType: 'PERCENT' | 'FIXED';
+  discountValue: number;
+  appliesToAllProducts: boolean;
+  productIds?: string[];
+  categoryIds?: string[];
+  isActive: boolean;
+}
+
+// Time-Based Promotion - scheduled price adjustments
+export interface TimeBasedPromotion {
+  id: string;
+  name: string;
+  description?: string;
+  discountType: 'PERCENT' | 'FIXED';
+  discountValue: number;
+  startsAt: string;
+  endsAt: string;
+  appliesToAllProducts: boolean;
+  productIds?: string[];
+  categoryIds?: string[];
+  priceLevelIds?: string[];
+  isActive: boolean;
+  createdAt?: string;
+}
+
+// Global Pricing Settings - master configuration
+export interface GlobalPricingSettings {
+  defaultPriceLevelId: string | null;
+  currency: string;
+  currencySymbol?: string;
+  roundingMode: PricingRoundingMode;
+  roundingDecimals: number;
+  pricePrecedenceOrder: PricePrecedenceOption[];
+  allowNegativeDiscounts: boolean;
+  allowFallbackToOtherLevels: boolean;
+  fallbackLevelId?: string | null;
+  enableVolumeDiscounts?: boolean;
+  volumeDiscountRules?: VolumeDiscountRule[];
+  enableTimePromotions?: boolean;
+  timePromotions?: TimeBasedPromotion[];
+  minPriceFloor?: number;
+  maxPriceCeiling?: number;
+  showPriceBreakdown?: boolean;
+  taxRate?: number;
+  taxIncluded?: boolean;
+  lastModifiedBy?: string;
+  lastModifiedAt?: string;
+}
+
+// Price Calculation Result - for simulation/debugging
+export interface PriceCalculationResult {
+  finalPrice: number | null;
+  basePrice: number | null;
+  sourcePrecedence: PricePrecedenceOption | null;
+  sourceLevelId: string | null;
+  sourceLevelName?: string;
+  appliedMarkup?: number;
+  appliedDiscount?: number;
+  appliedVolumeDiscount?: number;
+  appliedPromotion?: string;
+  roundingApplied: boolean;
+  calculationSteps: string[];
+  errors?: string[];
+}
+
+// Pricing Audit Log Entry
+export interface PricingAuditLogEntry {
+  id: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  entityType: 'LEVEL' | 'MATRIX' | 'PROFILE' | 'SETTINGS' | 'RULE';
+  entityId: string;
+  previousValue?: any;
+  newValue?: any;
+  changedBy: string;
+  changedAt: string;
+  reason?: string;
+}

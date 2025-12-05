@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -327,7 +327,12 @@ const STORAGE_KEYS = {
   STATUS_LABELS: 'siniCar_status_labels_v1',
   ADMIN_USERS: 'siniCar_admin_users_v2',
   ADMIN_ROLES: 'siniCar_admin_roles_v1',
-  CAMPAIGNS: 'siniCar_marketing_campaigns'
+  CAMPAIGNS: 'siniCar_marketing_campaigns',
+  PRICE_LEVELS: 'sini_price_levels',
+  PRODUCT_PRICE_MATRIX: 'sini_price_matrix',
+  GLOBAL_PRICING_SETTINGS: 'sini_global_pricing_settings',
+  CUSTOMER_PRICING_PROFILES: 'sini_customer_pricing_profiles',
+  PRICING_AUDIT_LOG: 'sini_pricing_audit_log'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -3530,6 +3535,416 @@ export const MockApi = {
           }).sort((a, b) => b.priority - a.priority);
       } catch (error) {
           console.error('Error getting active campaigns:', error);
+          return [];
+      }
+  },
+
+  // ============================================================
+  // PRICING CENTER API (مركز التسعيرات)
+  // ============================================================
+
+  // --- Price Levels ---
+  async getPriceLevels(): Promise<ConfigurablePriceLevel[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.PRICE_LEVELS);
+          if (stored) {
+              return JSON.parse(stored);
+          }
+          // Initialize with default base level
+          const defaultLevel: ConfigurablePriceLevel = {
+              id: 'L1',
+              code: '1',
+              name: 'المستوى 1 الافتراضي',
+              description: 'المستوى الأساسي للتسعير',
+              isBaseLevel: true,
+              isActive: true,
+              sortOrder: 1,
+              color: '#2563eb',
+              createdAt: new Date().toISOString()
+          };
+          localStorage.setItem(STORAGE_KEYS.PRICE_LEVELS, JSON.stringify([defaultLevel]));
+          return [defaultLevel];
+      } catch (error) {
+          console.error('Error getting price levels:', error);
+          return [];
+      }
+  },
+
+  async savePriceLevels(levels: ConfigurablePriceLevel[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.PRICE_LEVELS, JSON.stringify(levels));
+          internalRecordActivity({
+              userId: 'admin',
+              userName: 'المدير',
+              eventType: 'OTHER',
+              description: 'تم تحديث مستويات التسعير',
+              metadata: { action: 'update_price_levels', count: levels.length }
+          });
+      } catch (error) {
+          console.error('Error saving price levels:', error);
+          throw error;
+      }
+  },
+
+  async addPriceLevel(level: Omit<ConfigurablePriceLevel, 'id' | 'createdAt'>): Promise<ConfigurablePriceLevel> {
+      try {
+          const levels = await this.getPriceLevels();
+          const newLevel: ConfigurablePriceLevel = {
+              ...level,
+              id: `L${Date.now()}`,
+              createdAt: new Date().toISOString()
+          };
+          levels.push(newLevel);
+          await this.savePriceLevels(levels);
+          return newLevel;
+      } catch (error) {
+          console.error('Error adding price level:', error);
+          throw error;
+      }
+  },
+
+  async updatePriceLevel(id: string, updates: Partial<ConfigurablePriceLevel>): Promise<ConfigurablePriceLevel | null> {
+      try {
+          const levels = await this.getPriceLevels();
+          const index = levels.findIndex(l => l.id === id);
+          if (index === -1) return null;
+          
+          levels[index] = { ...levels[index], ...updates, updatedAt: new Date().toISOString() };
+          await this.savePriceLevels(levels);
+          return levels[index];
+      } catch (error) {
+          console.error('Error updating price level:', error);
+          throw error;
+      }
+  },
+
+  async deletePriceLevel(id: string): Promise<boolean> {
+      try {
+          const levels = await this.getPriceLevels();
+          const filtered = levels.filter(l => l.id !== id);
+          if (filtered.length === levels.length) return false;
+          await this.savePriceLevels(filtered);
+          return true;
+      } catch (error) {
+          console.error('Error deleting price level:', error);
+          return false;
+      }
+  },
+
+  // --- Product Price Matrix ---
+  async getProductPriceMatrix(): Promise<ProductPriceEntry[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.PRODUCT_PRICE_MATRIX);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting price matrix:', error);
+          return [];
+      }
+  },
+
+  async saveProductPriceMatrix(entries: ProductPriceEntry[]): Promise<void> {
+      try {
+          localStorage.setItem(STORAGE_KEYS.PRODUCT_PRICE_MATRIX, JSON.stringify(entries));
+          internalRecordActivity({
+              userId: 'admin',
+              userName: 'المدير',
+              eventType: 'OTHER',
+              description: 'تم تحديث مصفوفة الأسعار',
+              metadata: { action: 'update_price_matrix', count: entries.length }
+          });
+      } catch (error) {
+          console.error('Error saving price matrix:', error);
+          throw error;
+      }
+  },
+
+  async addProductPriceEntry(entry: Omit<ProductPriceEntry, 'id' | 'createdAt'>): Promise<ProductPriceEntry> {
+      try {
+          const matrix = await this.getProductPriceMatrix();
+          const newEntry: ProductPriceEntry = {
+              ...entry,
+              id: `PE${Date.now()}`,
+              createdAt: new Date().toISOString()
+          };
+          matrix.push(newEntry);
+          await this.saveProductPriceMatrix(matrix);
+          return newEntry;
+      } catch (error) {
+          console.error('Error adding price entry:', error);
+          throw error;
+      }
+  },
+
+  async updateProductPriceEntry(id: string, updates: Partial<ProductPriceEntry>): Promise<ProductPriceEntry | null> {
+      try {
+          const matrix = await this.getProductPriceMatrix();
+          const index = matrix.findIndex(e => e.id === id);
+          if (index === -1) return null;
+          
+          matrix[index] = { ...matrix[index], ...updates, updatedAt: new Date().toISOString() };
+          await this.saveProductPriceMatrix(matrix);
+          return matrix[index];
+      } catch (error) {
+          console.error('Error updating price entry:', error);
+          throw error;
+      }
+  },
+
+  async deleteProductPriceEntry(id: string): Promise<boolean> {
+      try {
+          const matrix = await this.getProductPriceMatrix();
+          const filtered = matrix.filter(e => e.id !== id);
+          if (filtered.length === matrix.length) return false;
+          await this.saveProductPriceMatrix(filtered);
+          return true;
+      } catch (error) {
+          console.error('Error deleting price entry:', error);
+          return false;
+      }
+  },
+
+  async getProductPriceForLevel(productId: string, levelId: string): Promise<number | null> {
+      try {
+          const matrix = await this.getProductPriceMatrix();
+          const entry = matrix.find(e => e.productId === productId && e.priceLevelId === levelId);
+          return entry ? entry.price : null;
+      } catch (error) {
+          console.error('Error getting product price for level:', error);
+          return null;
+      }
+  },
+
+  // --- Global Pricing Settings ---
+  async getGlobalPricingSettings(): Promise<GlobalPricingSettings> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.GLOBAL_PRICING_SETTINGS);
+          if (stored) {
+              return JSON.parse(stored);
+          }
+          // Initialize with defaults
+          const levels = await this.getPriceLevels();
+          const defaultSettings: GlobalPricingSettings = {
+              defaultPriceLevelId: levels.length > 0 ? levels[0].id : null,
+              currency: 'SAR',
+              currencySymbol: 'ر.س',
+              roundingMode: 'ROUND',
+              roundingDecimals: 2,
+              pricePrecedenceOrder: ['CUSTOM_RULE', 'LEVEL_EXPLICIT', 'LEVEL_DERIVED'],
+              allowNegativeDiscounts: false,
+              allowFallbackToOtherLevels: true,
+              fallbackLevelId: null,
+              enableVolumeDiscounts: false,
+              volumeDiscountRules: [],
+              enableTimePromotions: false,
+              timePromotions: [],
+              showPriceBreakdown: false,
+              taxRate: 15,
+              taxIncluded: true
+          };
+          localStorage.setItem(STORAGE_KEYS.GLOBAL_PRICING_SETTINGS, JSON.stringify(defaultSettings));
+          return defaultSettings;
+      } catch (error) {
+          console.error('Error getting global pricing settings:', error);
+          // Return safe defaults
+          return {
+              defaultPriceLevelId: null,
+              currency: 'SAR',
+              currencySymbol: 'ر.س',
+              roundingMode: 'ROUND',
+              roundingDecimals: 2,
+              pricePrecedenceOrder: ['CUSTOM_RULE', 'LEVEL_EXPLICIT', 'LEVEL_DERIVED'],
+              allowNegativeDiscounts: false,
+              allowFallbackToOtherLevels: true
+          };
+      }
+  },
+
+  async saveGlobalPricingSettings(settings: GlobalPricingSettings): Promise<void> {
+      try {
+          settings.lastModifiedAt = new Date().toISOString();
+          localStorage.setItem(STORAGE_KEYS.GLOBAL_PRICING_SETTINGS, JSON.stringify(settings));
+          internalRecordActivity({
+              userId: 'admin',
+              userName: 'المدير',
+              eventType: 'OTHER',
+              description: 'تم تحديث إعدادات التسعير العامة',
+              metadata: { action: 'update_pricing_settings' }
+          });
+      } catch (error) {
+          console.error('Error saving global pricing settings:', error);
+          throw error;
+      }
+  },
+
+  // --- Customer Pricing Profiles ---
+  async getAllCustomerPricingProfiles(): Promise<CustomerPricingProfile[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMER_PRICING_PROFILES);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting customer pricing profiles:', error);
+          return [];
+      }
+  },
+
+  async getCustomerPricingProfile(customerId: string): Promise<CustomerPricingProfile | null> {
+      try {
+          const profiles = await this.getAllCustomerPricingProfiles();
+          return profiles.find(p => p.customerId === customerId) || null;
+      } catch (error) {
+          console.error('Error getting customer pricing profile:', error);
+          return null;
+      }
+  },
+
+  async upsertCustomerPricingProfile(profile: CustomerPricingProfile): Promise<void> {
+      try {
+          const profiles = await this.getAllCustomerPricingProfiles();
+          const index = profiles.findIndex(p => p.customerId === profile.customerId);
+          
+          profile.lastModifiedAt = new Date().toISOString();
+          
+          if (index === -1) {
+              profiles.push(profile);
+          } else {
+              profiles[index] = profile;
+          }
+          
+          localStorage.setItem(STORAGE_KEYS.CUSTOMER_PRICING_PROFILES, JSON.stringify(profiles));
+          internalRecordActivity({
+              userId: 'admin',
+              userName: 'المدير',
+              eventType: 'OTHER',
+              description: `تم تحديث ملف تسعير العميل: ${profile.customerId}`,
+              metadata: { action: 'upsert_customer_pricing', customerId: profile.customerId }
+          });
+      } catch (error) {
+          console.error('Error upserting customer pricing profile:', error);
+          throw error;
+      }
+  },
+
+  async deleteCustomerPricingProfile(customerId: string): Promise<boolean> {
+      try {
+          const profiles = await this.getAllCustomerPricingProfiles();
+          const filtered = profiles.filter(p => p.customerId !== customerId);
+          if (filtered.length === profiles.length) return false;
+          localStorage.setItem(STORAGE_KEYS.CUSTOMER_PRICING_PROFILES, JSON.stringify(filtered));
+          return true;
+      } catch (error) {
+          console.error('Error deleting customer pricing profile:', error);
+          return false;
+      }
+  },
+
+  async copyCustomerPricingProfile(fromCustomerId: string, toCustomerId: string): Promise<boolean> {
+      try {
+          const sourceProfile = await this.getCustomerPricingProfile(fromCustomerId);
+          if (!sourceProfile) return false;
+          
+          const newProfile: CustomerPricingProfile = {
+              ...sourceProfile,
+              customerId: toCustomerId,
+              lastModifiedAt: new Date().toISOString(),
+              notes: `نُسخ من العميل ${fromCustomerId}`
+          };
+          
+          await this.upsertCustomerPricingProfile(newProfile);
+          return true;
+      } catch (error) {
+          console.error('Error copying customer pricing profile:', error);
+          return false;
+      }
+  },
+
+  // --- Pricing Audit Log ---
+  async getPricingAuditLog(): Promise<PricingAuditLogEntry[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.PRICING_AUDIT_LOG);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting pricing audit log:', error);
+          return [];
+      }
+  },
+
+  async addPricingAuditEntry(entry: Omit<PricingAuditLogEntry, 'id' | 'changedAt'>): Promise<void> {
+      try {
+          const logs = await this.getPricingAuditLog();
+          const newEntry: PricingAuditLogEntry = {
+              ...entry,
+              id: `PAL${Date.now()}`,
+              changedAt: new Date().toISOString()
+          };
+          logs.unshift(newEntry);
+          // Keep only last 500 entries
+          if (logs.length > 500) logs.length = 500;
+          localStorage.setItem(STORAGE_KEYS.PRICING_AUDIT_LOG, JSON.stringify(logs));
+      } catch (error) {
+          console.error('Error adding pricing audit entry:', error);
+      }
+  },
+
+  // --- Bulk Operations ---
+  async bulkImportPriceMatrix(entries: Array<{ productId: string; priceLevelId: string; price: number }>): Promise<{ imported: number; updated: number; errors: string[] }> {
+      try {
+          const matrix = await this.getProductPriceMatrix();
+          let imported = 0;
+          let updated = 0;
+          const errors: string[] = [];
+          
+          for (const entry of entries) {
+              if (!entry.productId || !entry.priceLevelId || typeof entry.price !== 'number') {
+                  errors.push(`بيانات غير صالحة: ${JSON.stringify(entry)}`);
+                  continue;
+              }
+              
+              const existingIndex = matrix.findIndex(
+                  e => e.productId === entry.productId && e.priceLevelId === entry.priceLevelId
+              );
+              
+              if (existingIndex !== -1) {
+                  matrix[existingIndex].price = entry.price;
+                  matrix[existingIndex].updatedAt = new Date().toISOString();
+                  updated++;
+              } else {
+                  matrix.push({
+                      id: `PE${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                      productId: entry.productId,
+                      priceLevelId: entry.priceLevelId,
+                      price: entry.price,
+                      createdAt: new Date().toISOString()
+                  });
+                  imported++;
+              }
+          }
+          
+          await this.saveProductPriceMatrix(matrix);
+          return { imported, updated, errors };
+      } catch (error) {
+          console.error('Error bulk importing price matrix:', error);
+          throw error;
+      }
+  },
+
+  async exportPriceMatrixForLevel(levelId: string): Promise<Array<{ productId: string; productName: string; partNumber: string; price: number }>> {
+      try {
+          const matrix = await this.getProductPriceMatrix();
+          const products = await this.searchProducts('');
+          
+          const levelEntries = matrix.filter(e => e.priceLevelId === levelId);
+          
+          return levelEntries.map(entry => {
+              const product = products.find(p => p.id === entry.productId);
+              return {
+                  productId: entry.productId,
+                  productName: product?.name || 'غير معروف',
+                  partNumber: product?.partNumber || '',
+                  price: entry.price
+              };
+          });
+      } catch (error) {
+          console.error('Error exporting price matrix:', error);
           return [];
       }
   }

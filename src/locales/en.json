@@ -699,6 +699,7 @@
     "users": "Users",
     "systemSettings": "System Settings",
     "marketingCenter": "Marketing Center",
+    "pricingCenter": "Pricing Center",
     "connected": "System Connected",
     "slowConnection": "Slow Connection",
     "disconnected": "Disconnected",
@@ -714,7 +715,8 @@
       "settings": "General Settings",
       "users": "User Management",
       "products": "Products Management",
-      "marketing": "Marketing Center"
+      "marketing": "Marketing Center",
+      "pricing": "Pricing Center"
     },
     "stats": {
       "totalRevenue": "Total Revenue",
