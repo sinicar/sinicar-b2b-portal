@@ -1,0 +1,447 @@
+You are working on an existing project:
+
+SINI CAR – B2B Wholesale Customer Portal
+(React + Vite + TypeScript + Tailwind + mockApi + LocalStorage + i18n AR/EN/HI/ZH)
+
+IMPORTANT:
+
+Do NOT delete, rewrite, or refactor any code yet.
+
+Your job in this task is ANALYSIS and DOCUMENTATION only.
+
+Read the entire project first, then produce a complete technical map and report.
+
+Your goal is to:
+
+Generate a FULL TECHNICAL MAP of the project (frontend only, current version with mockApi + LocalStorage).
+
+Perform a FULL STATIC CHECK of the project (code structure, TypeScript errors, imports, routes, etc.).
+
+Produce the documentation and data that we can give to backend developers and other programmers later.
+
+Think like a senior lead engineer who is documenting an existing system.
+
+PHASE 1 — READ AND UNDERSTAND THE PROJECT
+
+Scan ALL source files:
+
+src/
+
+components, pages, layouts
+
+models / types
+
+mockApi / services / db.ts
+
+hooks, context
+
+i18n files
+
+any docs or config files related to routes or data.
+
+Identify:
+
+The main entry points (e.g., main.tsx, App.tsx, router files).
+
+How routing is organized (React Router or custom).
+
+How state management is done (Context, hooks, any global store).
+
+How mockApi and LocalStorage are wired into the app.
+
+Where roles/permissions are defined and used.
+
+Where major modules live (Trader Tools, Supplier Marketplace, Advertising, Installments, Teams/Organizations, etc.).
+
+Do not modify any files yet. Just read and understand.
+
+PHASE 2 — PROJECT OVERVIEW DOCUMENT
+
+Create a detailed System Overview (in English) covering at least:
+
+Tech Stack:
+
+Framework (React + Vite)
+
+Language (TypeScript)
+
+Styling (Tailwind via CDN)
+
+Data layer (mockApi + LocalStorage)
+
+i18n implementation (AR/EN/HI/ZH)
+
+Main Modules / Domains:
+At minimum, describe each of these (if present in the code):
+
+Admin Portal
+
+Customer Portal (Wholesale Customers)
+
+Supplier Marketplace
+
+Advertising System (Advertisers, Campaigns, AdSlots)
+
+Trader Tools (PDF→Excel, VIN extraction, Price Comparison)
+
+Installment Wholesale Requests (credit/instalments)
+
+Team & Sub-Users per Organization (Customers, Suppliers, Advertisers, Affiliates)
+
+Settings / Configuration Hub
+
+Authentication / User Management
+
+Logging / Activity (if any implemented)
+
+For each module:
+
+What it does.
+
+Which files/folders it lives in.
+
+How it connects to other modules.
+
+User Roles and Portals:
+
+List all user types that the system currently supports in code:
+
+Admin / SINI CAR owner
+
+Wholesale Customer
+
+Supplier
+
+Advertiser
+
+Affiliate / Marketer
+
+Employees / Sub-Users (organization team members)
+
+Explain how each role enters the system (login, portal).
+
+Explain what each role can see/do based on the current implementation.
+
+Output this as a structured text document with headings and bullet points.
+
+PHASE 3 — FILE & ROUTE MAP
+
+Generate a detailed file and route map of the project:
+
+Folder and file tree:
+
+Provide a tree-like view of src/ with:
+
+pages
+
+components
+
+models/types
+
+api/mockApi
+
+hooks
+
+context
+
+i18n
+
+For each MAIN folder, explain its purpose in one or two sentences.
+
+Routes:
+
+List all routes in the application (e.g., /admin/..., /customer/..., /supplier/..., /advertiser/..., etc.).
+
+For each route:
+
+path
+
+component file
+
+main features on that page
+
+which role(s) are allowed to access it (if enforced in code)
+
+related models / data used on that page
+
+Components:
+
+Identify key shared components (tables, forms, layouts, tabs, modal components).
+
+Briefly explain what each reusable component is used for.
+
+PHASE 4 — DATA MODELS AND LOCALSTORAGE KEYS
+
+Extract and document ALL important TypeScript interfaces/types and LocalStorage keys:
+
+Models / Interfaces:
+
+List all core business models, such as:
+
+Customer
+
+Supplier
+
+Product
+
+Quote / Order
+
+InstallmentRequest / InstallmentOffer / PaymentSchedule
+
+Advertiser / AdCampaign / AdSlot
+
+Organization / OrganizationUser / Permissions
+
+User / Role
+
+Any others you find.
+
+For each model:
+
+Show the interface definition.
+
+Explain the meaning of each field in simple terms.
+
+Explain how and where this model is used in the app.
+
+LocalStorage usage:
+
+List all LocalStorage keys used (e.g., "customers", "suppliers", "adCampaigns", "installmentRequests", "organizations", "auth", etc.).
+
+For each key:
+
+What type of data is stored (which interface).
+
+Which components/pages read/write this data.
+
+How the data lifecycle works (create, update, delete).
+
+mockApi:
+
+Document all mockApi functions:
+
+e.g., getCustomers, createCustomer, updateCustomer, getInstallmentRequests, createAdCampaign, etc.
+
+For each function:
+
+Input parameters
+
+Return type
+
+Which LocalStorage key it uses
+
+Which pages call it
+
+Produce this as a section called “Data Model & Storage Reference” — this is crucial for backend developers.
+
+PHASE 5 — WORKFLOW DOCUMENTATION (BUSINESS FLOWS)
+
+For each major business flow that is already implemented in code, write a clear step-by-step description.
+
+At minimum cover:
+
+Installment Wholesale Request Flow:
+
+How a customer creates an installment request.
+
+What status values exist in the code.
+
+How SINI CAR sees and handles the request (approve full, approve partial, reject).
+
+How/if forwarding to suppliers is wired right now.
+
+How offers are stored and how the customer accepts/rejects them (if implemented).
+
+Where in the code this logic lives (files, components, functions).
+
+Advertising Flow:
+
+How advertisers and campaigns are created/managed.
+
+How AdSlots are configured.
+
+How ads are selected for display (if any logic exists).
+
+Where it connects to the customer portal UI.
+
+Trader Tools Flow:
+
+Which tools are implemented (PDF→Excel, VIN, Price Comparison).
+
+Where their settings and usage logs are stored.
+
+How they are exposed to customers.
+
+Supplier Marketplace Flow:
+
+How suppliers are managed.
+
+How requests/offers pass through suppliers (if implemented).
+
+Team & Permissions Flow:
+
+How organizations and sub-users are represented.
+
+How scoped permissions are used in code to hide/show features.
+
+How teams are managed per organization type (if implemented).
+
+For each flow:
+
+List the main TSX/TS files involved.
+
+Describe the sequence of calls (UI → mockApi → LocalStorage).
+
+This documentation should be suitable for a backend developer to understand how to mirror this logic in a real API.
+
+PHASE 6 — FULL STATIC CHECK & CODE HEALTH REPORT
+
+Perform a complete static check of the project:
+
+TypeScript / Compilation:
+
+Check for any TypeScript errors.
+
+Check for any obvious type mismatches or implicit any where it should be stricter.
+
+List any compilation warnings or errors.
+
+Imports and Dead Code:
+
+Identify unused imports.
+
+Identify unused components, types, or functions.
+
+Identify any duplicate logic that could be reused or centralized later (just note; do not refactor now).
+
+Routing and Navigation:
+
+Check for routes that exist in code but are not reachable.
+
+Check for components with buttons/links that don’t trigger any handler or route.
+
+Note any broken navigation patterns.
+
+Performance / Structure (High-Level):
+
+Without changing code, give a short analysis:
+
+Where the app might be doing too many re-renders.
+
+Where very large components could be split (just suggestions).
+
+Any obvious heavy operations in UI (e.g., parsing huge data in render).
+
+Produce a Code Health Report with:
+
+Issues found
+
+Their location (file/line if possible)
+
+Suggested high-level fixes (for future work, not to implement now)
+
+PHASE 7 — WHAT TO HAND TO BACKEND DEVELOPERS (DELIVERABLES LIST)
+
+From everything you analysed, produce a final section called:
+
+“PACKAGE FOR BACKEND DEVELOPERS”
+
+This must include a clear list of what we can hand over to backend/architecture engineers, including:
+
+System Overview:
+
+Summary of modules, roles, and flows.
+
+Data Models Summary:
+
+List of all core interfaces and what they represent.
+
+Suggest which of these should become database tables.
+
+Suggest relationships (e.g., one InstallmentRequest has many InstallmentOffer, one Organization has many OrganizationUser, etc.).
+
+Potential Database Schema Sketch:
+
+A high-level proposal of tables and relationships based on current models.
+
+This is not actual SQL, but a conceptual map:
+
+users
+
+organizations
+
+organization_users
+
+customers
+
+suppliers
+
+advertisers
+
+affiliates
+
+installment_requests
+
+installment_offers
+
+ad_campaigns
+
+ad_slots
+
+etc.
+
+Potential API Endpoints (List Only):
+
+For each major model/flow, list what REST endpoints would likely be needed, e.g.:
+
+/api/customers
+
+/api/suppliers
+
+/api/installment-requests
+
+/api/installment-offers
+
+/api/ad-campaigns
+
+/api/organizations
+
+Include the basic operations (GET/POST/PUT/DELETE) at a conceptual level.
+
+Notes/Assumptions:
+
+Any assumptions you had to make while documenting (e.g. incomplete flows).
+
+Any TODOs or gaps in the current app that backend developers should be aware of.
+
+The goal: after reading this “PACKAGE FOR BACKEND DEVELOPERS”, a backend engineer should understand:
+
+What data exists.
+
+How it is used in the UI.
+
+What flows they need to support.
+
+How to design DB + API to replace mockApi + LocalStorage.
+
+FINAL INSTRUCTIONS
+
+Do NOT modify or refactor the project in this task.
+
+Do NOT remove mockApi or LocalStorage — only document them.
+
+Focus on producing:
+
+A complete system overview
+
+A clear file and route map
+
+A thorough data model reference
+
+A code health report
+
+A backend handover package (data models, flows, possible DB + API outline)
+
+Output everything as structured text (with headings and lists) so it can be copied and shared with other developers.
+
+END OF SPECIFICATION.
