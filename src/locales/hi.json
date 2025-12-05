@@ -85,6 +85,25 @@
     "guest": "अतिथि",
     "guestWelcome": "अतिथि के रूप में स्वागत है! आप केवल उत्पाद देख सकते हैं"
   },
+  "loading": {
+    "verifyingCredentials": "क्रेडेंशियल सत्यापित हो रहे हैं...",
+    "connectingWarehouse": "वैश्विक वेयरहाउस से कनेक्ट हो रहा है...",
+    "loadingCatalog": "उत्पाद कैटलॉग लोड हो रहा है (20,000+ आइटम)...",
+    "applyingDiscounts": "आपकी विशेष थोक छूट लागू हो रही है...",
+    "syncingInventory": "लाइव इन्वेंट्री और कीमतें सिंक हो रही हैं...",
+    "optimizingLogistics": "शिपिंग और लॉजिस्टिक्स रूट ऑप्टिमाइज़ हो रहे हैं...",
+    "finalizingSetup": "आपका स्मार्ट डैशबोर्ड तैयार हो रहा है...",
+    "accessGranted": "सेटअप पूर्ण। स्वागत है!",
+    "systemInitialization": "सिस्टम इनिशियलाइज़ेशन"
+  },
+  "intro": {
+    "mainServer": "मुख्य सर्वर",
+    "connectingServer": "कनेक्ट और पहचान सत्यापित हो रही है...",
+    "dataSync": "डेटा सिंक",
+    "syncingData": "मूल्य सूची और इन्वेंट्री अपडेट हो रही है...",
+    "logistics": "लॉजिस्टिक्स कनेक्शन",
+    "connectingWarehouses": "सिनी कार केंद्रीय वेयरहाउस से कनेक्ट हो रहा है..."
+  },
   "marketing": {
     "dismiss": "बंद करें",
     "campaignOf": "अभियान {{current}} में से {{total}}",
@@ -118,7 +137,8 @@
   },
   "register": {
     "title": "नया खाता अनुरोध",
-    "subtitle": "थोक ग्राहकों में शामिल होने के लिए पंजीकरण करें",
+    "openNewAccount": "नया खाता खोलें",
+    "subtitle": "सिनी कार प्रमाणित नेटवर्क में शामिल हों और थोक मूल्य, तेज़ शिपिंग, और विशेष तकनीकी सहायता का लाभ उठाएं।",
     "businessInfo": "व्यवसाय की जानकारी",
     "businessName": "व्यवसाय का नाम",
     "businessNameAr": "व्यवसाय का नाम (अरबी)",
@@ -126,26 +146,97 @@
     "commercialRegister": "वाणिज्यिक रजिस्टर",
     "taxNumber": "कर संख्या",
     "businessType": "व्यवसाय का प्रकार",
+    "selectBusinessType": "व्यवसाय प्रकार चुनें",
     "contactInfo": "संपर्क जानकारी",
-    "ownerName": "मालिक का नाम",
+    "ownerName": "संपर्क व्यक्ति का नाम",
     "ownerPhone": "मालिक का फ़ोन",
-    "ownerEmail": "ईमेल पता",
+    "ownerEmail": "ईमेल पता (वैकल्पिक)",
     "addressInfo": "पता जानकारी",
     "fullAddress": "पूरा पता",
+    "nationalAddress": "राष्ट्रीय पता (संक्षिप्त)",
+    "nationalAddressPlaceholder": "उदाहरण: RDJ2929",
     "city": "शहर",
     "region": "क्षेत्र",
     "postalCode": "पिन कोड",
-    "submitRequest": "अनुरोध जमा करें",
+    "branchesCount": "शाखाओं की संख्या",
+    "submitRequest": "खाता अनुरोध जमा करें",
     "backToLogin": "लॉगिन पर वापस जाएं",
-    "requestSuccess": "अनुरोध सफलतापूर्वक जमा किया गया",
+    "requestSuccess": "आपका अनुरोध सफलतापूर्वक प्राप्त हुआ!",
     "requestPending": "आपका अनुरोध समीक्षाधीन है",
+    "requestSuccessMessage": "आपकी रुचि के लिए धन्यवाद। सिनी कार ग्राहक संबंध टीम डेटा की समीक्षा करेगी और आपके खाते को सक्रिय करने तथा लॉगिन क्रेडेंशियल भेजने के लिए आपसे संपर्क करेगी।",
+    "backToHome": "होम पर वापस जाएं",
+    "benefits": {
+      "exclusivePrices": "विशेष थोक मूल्य",
+      "instantAccess": "तत्काल इन्वेंट्री पहुंच",
+      "taxInvoices": "प्रमाणित टैक्स इनवॉइस"
+    },
     "businessTypes": {
+      "sparePartsShop": "स्पेयर पार्ट्स शॉप",
+      "maintenanceCenter": "मेंटेनेंस सेंटर",
+      "insuranceCompany": "बीमा कंपनी",
+      "rentalCompany": "कार रेंटल",
+      "salesRep": "बिक्री प्रतिनिधि",
       "workshop": "मेंटेनेंस वर्कशॉप",
       "store": "पार्ट्स स्टोर",
       "distributor": "वितरक",
       "agency": "एजेंसी",
       "other": "अन्य"
-    }
+    },
+    "salesRepFields": {
+      "fullName": "पूरा नाम",
+      "phone": "फ़ोन नंबर",
+      "region": "क्षेत्र / कवर किए गए शहर",
+      "email": "ईमेल (वैकल्पिक)",
+      "clientsType": "ग्राहक प्रकार (वर्कशॉप, दुकानें...)",
+      "clientsCount": "अनुमानित ग्राहक संख्या"
+    },
+    "documents": {
+      "title": "आवश्यक दस्तावेज़",
+      "requiredDocuments": "आवश्यक दस्तावेज़",
+      "instructions": "कृपया निम्नलिखित दस्तावेज़ PDF या स्पष्ट छवि प्रारूप में अपलोड करें। अनुमोदन टीम द्वारा उनकी समीक्षा की जाएगी।",
+      "uploadNotice": "कृपया निम्नलिखित दस्तावेज़ PDF या स्पष्ट छवि प्रारूप में अपलोड करें। अनुमोदन टीम द्वारा उनकी समीक्षा की जाएगी।",
+      "crCertificate": "वाणिज्यिक रजिस्टर प्रमाणपत्र",
+      "vatCertificate": "VAT पंजीकरण प्रमाणपत्र",
+      "nationalId": "राष्ट्रीय पहचान पत्र की प्रति",
+      "nationalAddressCert": "राष्ट्रीय पता प्रमाणपत्र",
+      "clickToUpload": "फ़ाइल अपलोड करने के लिए क्लिक करें",
+      "fileTypes": "PDF, JPEG, PNG, WebP (अधिकतम 5MB)",
+      "uploadSuccess": "सफलतापूर्वक अपलोड किया गया",
+      "invalidFileType": "अमान्य फ़ाइल प्रकार। कृपया PDF या छवियां (JPEG, PNG, WebP) उपयोग करें",
+      "fileTooLarge": "फ़ाइल बहुत बड़ी है। अधिकतम आकार 5MB है"
+    },
+    "businessFields": {
+      "businessName": "व्यवसाय का नाम",
+      "branchesCount": "शाखाओं की संख्या",
+      "city": "शहर",
+      "nationalAddress": "राष्ट्रीय पता (संक्षिप्त)",
+      "nationalAddressPlaceholder": "उदाहरण: RDJ2929",
+      "commercialReg": "वाणिज्यिक रजिस्टर",
+      "vatNumber": "VAT नंबर",
+      "contactPerson": "संपर्क व्यक्ति",
+      "phone": "फ़ोन नंबर",
+      "emailOptional": "ईमेल (वैकल्पिक)"
+    },
+    "success": {
+      "title": "आपका अनुरोध सफलतापूर्वक प्राप्त हुआ!",
+      "message": "आपकी रुचि के लिए धन्यवाद। सिनी कार ग्राहक संबंध टीम डेटा की समीक्षा करेगी और आपके खाते को सक्रिय करने तथा लॉगिन क्रेडेंशियल भेजने के लिए आपसे संपर्क करेगी।",
+      "backToHome": "होम पर वापस जाएं"
+    },
+    "validation": {
+      "phoneRequired": "फ़ोन नंबर आवश्यक है",
+      "fullNameRequired": "पूरा नाम आवश्यक है",
+      "regionRequired": "क्षेत्र आवश्यक है",
+      "businessNameRequired": "व्यवसाय का नाम आवश्यक है",
+      "cityRequired": "शहर आवश्यक है",
+      "contactPersonRequired": "संपर्क व्यक्ति का नाम आवश्यक है",
+      "commercialRegRequired": "वाणिज्यिक रजिस्टर आवश्यक है",
+      "vatRequired": "VAT नंबर आवश्यक है",
+      "nationalAddressRequired": "राष्ट्रीय पता आवश्यक है",
+      "documentRequired": "आवश्यक है"
+    },
+    "additionalNotes": "अतिरिक्त नोट्स",
+    "submitting": "जमा हो रहा है...",
+    "submitError": "जमा करने में त्रुटि हुई"
   },
   "nav": {
     "home": "होम",
@@ -747,8 +838,50 @@
       "dailyOrders": "दैनिक ऑर्डर",
       "dailyRevenue": "दैनिक राजस्व",
       "topCustomers": "शीर्ष ग्राहक",
-      "topMissingParts": "सबसे अधिक अनुरोधित पार्ट्स"
-    }
+      "topMissingParts": "सबसे अधिक अनुरोधित पार्ट्स",
+      "revenue": "राजस्व"
+    },
+    "views": {
+      "dashboard": "डैशबोर्ड",
+      "customers": "ग्राहक",
+      "products": "उत्पाद",
+      "settings": "सेटिंग्स",
+      "quotes": "कोटेशन अनुरोध",
+      "missing": "लापता पार्ट्स",
+      "importRequests": "आयात अनुरोध",
+      "accountRequests": "खाता अनुरोध",
+      "activityLogs": "गतिविधि लॉग",
+      "ordersManager": "ग्राहक ऑर्डर",
+      "adminUsers": "उपयोगकर्ता",
+      "marketing": "मार्केटिंग सेंटर",
+      "pricing": "मूल्य निर्धारण केंद्र",
+      "traderTools": "व्यापारी उपकरण",
+      "supplierMarketplace": "आपूर्तिकर्ता मार्केटप्लेस",
+      "marketers": "विपणक",
+      "installments": "किस्त अनुरोध",
+      "advertising": "विज्ञापन",
+      "teamSettings": "संगठन और टीम"
+    },
+    "onlineUsers": {
+      "title": "ऑनलाइन ग्राहक",
+      "subtitle": "पिछले 5 मिनट में सक्रिय",
+      "now": "अभी",
+      "minutesAgo": "{{mins}} मिनट पहले",
+      "online": "ऑनलाइन",
+      "noOnlineUsers": "वर्तमान में कोई ग्राहक ऑनलाइन नहीं है",
+      "moreOnline": "और {{count}} अधिक ग्राहक ऑनलाइन..."
+    },
+    "activityLogs": {
+      "title": "गतिविधि लॉग",
+      "activity": "गतिविधि",
+      "time": "समय",
+      "user": "उपयोगकर्ता",
+      "event": "घटना",
+      "details": "विवरण",
+      "noActivities": "कोई गतिविधि दर्ज नहीं"
+    },
+    "generalManager": "महाप्रबंधक",
+    "teamSettings": "संगठन और टीम"
   },
   "adminSettings": {
     "systemSettings": "सिस्टम सेटिंग्स",

@@ -85,6 +85,25 @@
     "guest": "Guest",
     "guestWelcome": "Welcome as a guest! You can browse products only"
   },
+  "loading": {
+    "verifyingCredentials": "Verifying credentials...",
+    "connectingWarehouse": "Connecting to global warehouse...",
+    "loadingCatalog": "Loading product catalog (20,000+ items)...",
+    "applyingDiscounts": "Applying your exclusive wholesale discounts...",
+    "syncingInventory": "Syncing live inventory and prices...",
+    "optimizingLogistics": "Optimizing shipping and logistics routes...",
+    "finalizingSetup": "Preparing your smart dashboard...",
+    "accessGranted": "Setup complete. Welcome!",
+    "systemInitialization": "SYSTEM INITIALIZATION"
+  },
+  "intro": {
+    "mainServer": "Main Server",
+    "connectingServer": "Connecting and verifying identity...",
+    "dataSync": "Data Sync",
+    "syncingData": "Updating price lists and inventory...",
+    "logistics": "Logistics Connection",
+    "connectingWarehouses": "Connecting to Sini Car central warehouses..."
+  },
   "marketing": {
     "dismiss": "Dismiss",
     "campaignOf": "Campaign {{current}} of {{total}}",
@@ -118,7 +137,8 @@
   },
   "register": {
     "title": "New Account Request",
-    "subtitle": "Register to join wholesale customers",
+    "openNewAccount": "Open New Account",
+    "subtitle": "Join Sini Car certified network and benefit from wholesale prices, fast shipping, and specialized technical support.",
     "businessInfo": "Business Information",
     "businessName": "Business Name",
     "businessNameAr": "Business Name (Arabic)",
@@ -126,26 +146,97 @@
     "commercialRegister": "Commercial Register",
     "taxNumber": "Tax Number",
     "businessType": "Business Type",
+    "selectBusinessType": "Select Business Type",
     "contactInfo": "Contact Information",
-    "ownerName": "Owner Name",
+    "ownerName": "Contact Person Name",
     "ownerPhone": "Owner Phone",
-    "ownerEmail": "Email Address",
+    "ownerEmail": "Email Address (Optional)",
     "addressInfo": "Address Information",
     "fullAddress": "Full Address",
+    "nationalAddress": "National Address (Short)",
+    "nationalAddressPlaceholder": "e.g., RDJ2929",
     "city": "City",
     "region": "Region",
     "postalCode": "Postal Code",
-    "submitRequest": "Submit Request",
+    "branchesCount": "Number of Branches",
+    "submitRequest": "Submit Account Request",
     "backToLogin": "Back to Login",
-    "requestSuccess": "Request submitted successfully",
+    "requestSuccess": "Your request has been received successfully!",
     "requestPending": "Your request is under review",
+    "requestSuccessMessage": "Thank you for your interest. Sini Car customer relations team will review the data and contact you to activate your account and send login credentials.",
+    "backToHome": "Back to Home",
+    "benefits": {
+      "exclusivePrices": "Exclusive wholesale prices",
+      "instantAccess": "Instant inventory access",
+      "taxInvoices": "Certified tax invoices"
+    },
     "businessTypes": {
+      "sparePartsShop": "Spare Parts Shop",
+      "maintenanceCenter": "Maintenance Center",
+      "insuranceCompany": "Insurance Company",
+      "rentalCompany": "Car Rental",
+      "salesRep": "Sales Representative",
       "workshop": "Maintenance Workshop",
       "store": "Parts Store",
       "distributor": "Distributor",
       "agency": "Agency",
       "other": "Other"
-    }
+    },
+    "salesRepFields": {
+      "fullName": "Full Name",
+      "phone": "Phone Number",
+      "region": "Region / Cities Covered",
+      "email": "Email (Optional)",
+      "clientsType": "Clients Type (workshops, shops...)",
+      "clientsCount": "Approximate Clients Count"
+    },
+    "documents": {
+      "title": "Required Documents",
+      "requiredDocuments": "Required Documents",
+      "instructions": "Please upload the following documents in PDF or clear image format. They will be reviewed by the approval team.",
+      "uploadNotice": "Please upload the following documents in PDF or clear image format. They will be reviewed by the approval team.",
+      "crCertificate": "Commercial Register Certificate",
+      "vatCertificate": "VAT Registration Certificate",
+      "nationalId": "National ID Copy",
+      "nationalAddressCert": "National Address Certificate",
+      "clickToUpload": "Click to upload file",
+      "fileTypes": "PDF, JPEG, PNG, WebP (max 5MB)",
+      "uploadSuccess": "uploaded successfully",
+      "invalidFileType": "Invalid file type. Please use PDF or images (JPEG, PNG, WebP)",
+      "fileTooLarge": "File too large. Maximum size is 5MB"
+    },
+    "businessFields": {
+      "businessName": "Business Name",
+      "branchesCount": "Number of Branches",
+      "city": "City",
+      "nationalAddress": "National Address (Short)",
+      "nationalAddressPlaceholder": "e.g., RDJ2929",
+      "commercialReg": "Commercial Register",
+      "vatNumber": "VAT Number",
+      "contactPerson": "Contact Person",
+      "phone": "Phone Number",
+      "emailOptional": "Email (Optional)"
+    },
+    "success": {
+      "title": "Your request has been received successfully!",
+      "message": "Thank you for your interest. Sini Car customer relations team will review the data and contact you to activate your account and send login credentials.",
+      "backToHome": "Back to Home"
+    },
+    "validation": {
+      "phoneRequired": "Phone number is required",
+      "fullNameRequired": "Full name is required",
+      "regionRequired": "Region is required",
+      "businessNameRequired": "Business name is required",
+      "cityRequired": "City is required",
+      "contactPersonRequired": "Contact person name is required",
+      "commercialRegRequired": "Commercial register is required",
+      "vatRequired": "VAT number is required",
+      "nationalAddressRequired": "National address is required",
+      "documentRequired": "is required"
+    },
+    "additionalNotes": "Additional Notes",
+    "submitting": "Submitting...",
+    "submitError": "An error occurred during submission"
   },
   "nav": {
     "home": "Home",
@@ -759,8 +850,50 @@
       "dailyOrders": "Daily Orders",
       "dailyRevenue": "Daily Revenue",
       "topCustomers": "Top Customers",
-      "topMissingParts": "Most Requested Parts"
-    }
+      "topMissingParts": "Most Requested Parts",
+      "revenue": "Revenue"
+    },
+    "views": {
+      "dashboard": "Dashboard",
+      "customers": "Customers",
+      "products": "Products",
+      "settings": "Settings",
+      "quotes": "Quote Requests",
+      "missing": "Missing Parts",
+      "importRequests": "Import Requests",
+      "accountRequests": "Account Requests",
+      "activityLogs": "Activity Log",
+      "ordersManager": "Customer Orders",
+      "adminUsers": "Users",
+      "marketing": "Marketing Center",
+      "pricing": "Pricing Center",
+      "traderTools": "Trader Tools",
+      "supplierMarketplace": "Supplier Marketplace",
+      "marketers": "Marketers",
+      "installments": "Installment Requests",
+      "advertising": "Advertising",
+      "teamSettings": "Organizations & Teams"
+    },
+    "onlineUsers": {
+      "title": "Online Customers",
+      "subtitle": "Active in last 5 minutes",
+      "now": "Now",
+      "minutesAgo": "{{mins}} minutes ago",
+      "online": "Online",
+      "noOnlineUsers": "No customers online currently",
+      "moreOnline": "And {{count}} more customers online..."
+    },
+    "activityLogs": {
+      "title": "Activity Log",
+      "activity": "activity",
+      "time": "Time",
+      "user": "User",
+      "event": "Event",
+      "details": "Details",
+      "noActivities": "No activities recorded"
+    },
+    "generalManager": "General Manager",
+    "teamSettings": "Organizations & Teams"
   },
   "adminSettings": {
     "systemSettings": "System Settings",

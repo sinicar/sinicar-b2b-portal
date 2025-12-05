@@ -16,16 +16,15 @@ import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { getDirection } from './services/i18n';
 import './services/i18n';
 
-// رسائل التحميل التسويقية والتقنية
-const LOGIN_LOADING_STEPS = [
-    { icon: <Lock size={32} />, title: "التحقق من بيانات الاعتماد...", subtitle: "Verifying Secure Credentials" },
-    { icon: <Server size={32} />, title: "الاتصال بالمستودع المركزي...", subtitle: "Connecting to Global Warehouse" },
-    { icon: <Package size={32} />, title: "جاري تحميل كتالوج المنتجات (20,000+ صنف)...", subtitle: "Fetching Product Catalog" },
-    { icon: <Percent size={32} />, title: "تطبيق خصومات الجملة الخاصة بحسابك...", subtitle: "Applying Exclusive Wholesale Rates" },
-    { icon: <Database size={32} />, title: "مزامنة المخزون والأسعار الحية...", subtitle: "Syncing Real-time Inventory" },
-    { icon: <Truck size={32} />, title: "تهيئة مسارات الشحن واللوجستيات...", subtitle: "Optimizing Logistics Routes" },
-    { icon: <Activity size={32} />, title: "إعداد لوحة التحكم الذكية...", subtitle: "Finalizing Dashboard Setup" },
-    { icon: <CheckCircle2 size={32} />, title: "اكتمل الإعداد، أهلاً بك!", subtitle: "Access Granted" }
+const getLoginLoadingSteps = (t: (key: string) => string) => [
+    { icon: <Lock size={32} />, titleKey: "loading.verifyingCredentials" },
+    { icon: <Server size={32} />, titleKey: "loading.connectingWarehouse" },
+    { icon: <Package size={32} />, titleKey: "loading.loadingCatalog" },
+    { icon: <Percent size={32} />, titleKey: "loading.applyingDiscounts" },
+    { icon: <Database size={32} />, titleKey: "loading.syncingInventory" },
+    { icon: <Truck size={32} />, titleKey: "loading.optimizingLogistics" },
+    { icon: <Activity size={32} />, titleKey: "loading.finalizingSetup" },
+    { icon: <CheckCircle2 size={32} />, titleKey: "loading.accessGranted" }
 ];
 
 function AppContent() {
@@ -164,14 +163,15 @@ function AppContent() {
         setLoginProgress(0);
 
         const totalDuration = 4000; // 4 seconds (faster login experience)
-        const stepDuration = totalDuration / LOGIN_LOADING_STEPS.length;
+        const loginSteps = getLoginLoadingSteps(t);
+        const stepDuration = totalDuration / loginSteps.length;
         
         let currentStep = 0;
         
         // Timer for steps text
         const stepInterval = setInterval(() => {
             currentStep++;
-            if (currentStep < LOGIN_LOADING_STEPS.length) {
+            if (currentStep < loginSteps.length) {
                 setLoginStepIndex(currentStep);
             }
         }, stepDuration);
@@ -274,7 +274,8 @@ function AppContent() {
 
   // --- LOGIN LOADING SCREEN (10 Seconds Animation) ---
   if (isLoginProcessing) {
-      const currentStepData = LOGIN_LOADING_STEPS[loginStepIndex];
+      const loginSteps = getLoginLoadingSteps(t);
+      const currentStepData = loginSteps[loginStepIndex];
       
       return (
           <div className="fixed inset-0 bg-[#050A14] text-white flex flex-col items-center justify-center font-sans overflow-hidden z-50">
@@ -300,11 +301,8 @@ function AppContent() {
                   {/* Text Content */}
                   <div className="space-y-3 mb-12 min-h-[100px]">
                       <h2 className="text-2xl font-bold text-white tracking-tight animate-fade-in key={loginStepIndex}">
-                          {currentStepData.title}
+                          {t(currentStepData.titleKey)}
                       </h2>
-                      <p className="text-cyan-500/60 font-mono text-sm uppercase tracking-widest animate-fade-in key={`sub-${loginStepIndex}`}">
-                          {currentStepData.subtitle}
-                      </p>
                   </div>
 
                   {/* Progress Bar */}
@@ -315,7 +313,7 @@ function AppContent() {
                       ></div>
                   </div>
                   <div className="flex justify-between mt-2 text-xs font-mono text-slate-500">
-                      <span>SYSTEM INITIALIZATION</span>
+                      <span>{t('loading.systemInitialization')}</span>
                       <span>{Math.round(loginProgress)}%</span>
                   </div>
               </div>
@@ -345,8 +343,8 @@ function AppContent() {
                    {introStep > 1 ? <CheckCircle2 size={16} /> : <Server size={16} />}
                 </div>
                 <div className="flex-1">
-                   <p className="text-sm font-bold text-slate-200">الخادم الرئيسي (Main Server)</p>
-                   <p className="text-xs text-slate-500 font-mono">جارِ الاتصال وتأكيد الهوية...</p>
+                   <p className="text-sm font-bold text-slate-200">{t('intro.mainServer')}</p>
+                   <p className="text-xs text-slate-500 font-mono">{t('intro.connectingServer')}</p>
                 </div>
              </div>
 
@@ -356,8 +354,8 @@ function AppContent() {
                    {introStep > 2 ? <CheckCircle2 size={16} /> : <Database size={16} />}
                 </div>
                 <div className="flex-1">
-                   <p className="text-sm font-bold text-slate-200">مزامنة البيانات (Sync)</p>
-                   <p className="text-xs text-slate-500 font-mono">جارِ تحديث قوائم الأسعار والمخزون...</p>
+                   <p className="text-sm font-bold text-slate-200">{t('intro.dataSync')}</p>
+                   <p className="text-xs text-slate-500 font-mono">{t('intro.syncingData')}</p>
                 </div>
              </div>
 
@@ -367,8 +365,8 @@ function AppContent() {
                    <Globe size={16} className={introStep >= 3 ? 'animate-spin-slow' : ''} />
                 </div>
                 <div className="flex-1">
-                   <p className="text-sm font-bold text-slate-200">الربط اللوجستي</p>
-                   <p className="text-xs text-slate-500 font-mono">جارِ الاتصال بالمستودعات المركزية لشركة صيني كار...</p>
+                   <p className="text-sm font-bold text-slate-200">{t('intro.logistics')}</p>
+                   <p className="text-xs text-slate-500 font-mono">{t('intro.connectingWarehouses')}</p>
                 </div>
              </div>
           </div>

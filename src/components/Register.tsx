@@ -13,12 +13,12 @@ interface RegisterProps {
   onSwitchToLogin: () => void;
 }
 
-// Document type configurations
-const DOCUMENT_TYPES = {
-  CR_CERTIFICATE: { label: 'صورة السجل التجاري', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
-  VAT_CERTIFICATE: { label: 'شهادة الرقم الضريبي', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
-  NATIONAL_ID: { label: 'صورة الهوية الوطنية', required: true, forCategory: ['SALES_REP'] },
-  NATIONAL_ADDRESS: { label: 'إرفاق العنوان الوطني', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
+// Document type configurations (using translation keys)
+const DOCUMENT_TYPES_CONFIG = {
+  CR_CERTIFICATE: { labelKey: 'register.documents.crCertificate', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
+  VAT_CERTIFICATE: { labelKey: 'register.documents.vatCertificate', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
+  NATIONAL_ID: { labelKey: 'register.documents.nationalId', required: true, forCategory: ['SALES_REP'] },
+  NATIONAL_ADDRESS: { labelKey: 'register.documents.nationalAddressCert', required: true, forCategory: ['SPARE_PARTS_SHOP', 'INSURANCE_COMPANY', 'RENTAL_COMPANY', 'MAINTENANCE_CENTER'] },
 };
 
 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
@@ -69,22 +69,22 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
 
   // Get required documents for current category
   const getRequiredDocuments = () => {
-    return Object.entries(DOCUMENT_TYPES)
+    return Object.entries(DOCUMENT_TYPES_CONFIG)
       .filter(([_, config]) => config.forCategory.includes(category))
-      .map(([key, config]) => ({ key, ...config }));
+      .map(([key, config]) => ({ key, label: t(config.labelKey), ...config }));
   };
 
   // Handle file selection
   const handleFileSelect = async (docType: string, file: File) => {
     // Validate file type
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      addToast('نوع الملف غير مدعوم. يرجى استخدام PDF أو صور (JPEG, PNG, WebP)', 'error');
+      addToast(t('register.documents.invalidFileType'), 'error');
       return;
     }
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      addToast('حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت', 'error');
+      addToast(t('register.documents.fileTooLarge'), 'error');
       return;
     }
 
@@ -107,7 +107,8 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
         return [...filtered, newDoc];
       });
 
-      addToast(`تم رفع ${DOCUMENT_TYPES[docType as keyof typeof DOCUMENT_TYPES]?.label || 'المستند'} بنجاح`, 'success');
+      const docConfig = DOCUMENT_TYPES_CONFIG[docType as keyof typeof DOCUMENT_TYPES_CONFIG];
+      addToast(`${t(docConfig?.labelKey || 'common.document')} ${t('register.documents.uploadSuccess')}`, 'success');
     };
     reader.readAsDataURL(file);
   };
@@ -125,26 +126,26 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
   };
 
   const validate = (): boolean => {
-      if (!formData.phone) { addToast('رقم الجوال مطلوب', 'error'); return false; }
+      if (!formData.phone) { addToast(t('register.validation.phoneRequired'), 'error'); return false; }
 
       if (category === 'SALES_REP') {
-          if (!formData.fullName) { addToast('الاسم الكامل مطلوب', 'error'); return false; }
-          if (!formData.representativeRegion) { addToast('المنطقة التي تغطيها مطلوبة', 'error'); return false; }
+          if (!formData.fullName) { addToast(t('register.validation.fullNameRequired'), 'error'); return false; }
+          if (!formData.representativeRegion) { addToast(t('register.validation.regionRequired'), 'error'); return false; }
       } else {
           // Shop / Insurance / Rental / Maintenance Center
-          if (!formData.businessName) { addToast('اسم المنشأة مطلوب', 'error'); return false; }
-          if (!formData.city) { addToast('المدينة مطلوبة', 'error'); return false; }
-          if (!formData.contactPerson) { addToast('اسم المسؤول مطلوب', 'error'); return false; }
-          if (!formData.commercialRegNumber) { addToast('السجل التجاري مطلوب', 'error'); return false; }
-          if (!formData.vatNumber) { addToast('الرقم الضريبي مطلوب', 'error'); return false; }
-          if (!formData.nationalAddress) { addToast('العنوان الوطني مطلوب', 'error'); return false; }
+          if (!formData.businessName) { addToast(t('register.validation.businessNameRequired'), 'error'); return false; }
+          if (!formData.city) { addToast(t('register.validation.cityRequired'), 'error'); return false; }
+          if (!formData.contactPerson) { addToast(t('register.validation.contactPersonRequired'), 'error'); return false; }
+          if (!formData.commercialRegNumber) { addToast(t('register.validation.commercialRegRequired'), 'error'); return false; }
+          if (!formData.vatNumber) { addToast(t('register.validation.vatRequired'), 'error'); return false; }
+          if (!formData.nationalAddress) { addToast(t('register.validation.nationalAddressRequired'), 'error'); return false; }
       }
 
       // Validate required documents
       const requiredDocs = getRequiredDocuments().filter(d => d.required);
       for (const doc of requiredDocs) {
         if (!uploadedDocs.find(d => d.type === doc.key)) {
-          addToast(`${doc.label} مطلوب`, 'error');
+          addToast(`${doc.label} ${t('register.validation.documentRequired')}`, 'error');
           return false;
         }
       }
@@ -165,9 +166,9 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
         } as any);
         
         setSuccess(true);
-        addToast('تم إرسال الطلب بنجاح', 'success');
+        addToast(t('register.requestSuccess'), 'success');
     } catch (err: any) {
-        addToast('حدث خطأ أثناء الإرسال', 'error');
+        addToast(t('register.submitError'), 'error');
     } finally {
         setLoading(false);
     }
@@ -191,8 +192,8 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
             data-testid={`upload-${docKey}`}
           >
             <Upload className="mx-auto mb-2 text-slate-400" size={28} />
-            <p className="text-sm text-slate-500 font-medium">اضغط لرفع الملف</p>
-            <p className="text-xs text-slate-400 mt-1">PDF, JPEG, PNG, WebP (حد أقصى 5MB)</p>
+            <p className="text-sm text-slate-500 font-medium">{t('register.documents.clickToUpload')}</p>
+            <p className="text-xs text-slate-400 mt-1">{t('register.documents.fileTypes')}</p>
             <input 
               type="file"
               ref={el => fileInputRefs.current[docKey] = el}
@@ -250,28 +251,28 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                 <div className="bg-slate-900 text-white p-8 md:w-1/3 flex flex-col justify-between relative overflow-hidden">
                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                      <div className="relative z-10">
-                         <h2 className="text-2xl font-black mb-6">{siteSettings?.authPageTexts?.registerTitle || 'فتح حساب جديد'}</h2>
+                         <h2 className="text-2xl font-black mb-6">{siteSettings?.authPageTexts?.registerTitle || t('register.openNewAccount')}</h2>
                          <p className="text-slate-300 text-sm leading-relaxed mb-6">
-                             {siteSettings?.authPageTexts?.registerSubtitle || 'انضم إلى شبكة صيني كار المعتمدة واستفد من أسعار الجملة، خدمات الشحن السريع، والدعم الفني المتخصص.'}
+                             {siteSettings?.authPageTexts?.registerSubtitle || t('register.subtitle')}
                          </p>
                          <div className="space-y-4">
                              <div className="flex items-center gap-3 text-sm font-medium text-slate-200">
                                  <CheckCircle className="text-brand-500" size={18} />
-                                 <span>أسعار جملة حصرية</span>
+                                 <span>{t('register.benefits.exclusivePrices')}</span>
                              </div>
                              <div className="flex items-center gap-3 text-sm font-medium text-slate-200">
                                  <CheckCircle className="text-brand-500" size={18} />
-                                 <span>وصول فوري للمخزون</span>
+                                 <span>{t('register.benefits.instantAccess')}</span>
                              </div>
                              <div className="flex items-center gap-3 text-sm font-medium text-slate-200">
                                  <CheckCircle className="text-brand-500" size={18} />
-                                 <span>فواتير ضريبية معتمدة</span>
+                                 <span>{t('register.benefits.taxInvoices')}</span>
                              </div>
                          </div>
                      </div>
                      <div className="relative z-10 mt-8 pt-8 border-t border-slate-800">
                          <button onClick={onSwitchToLogin} className="text-sm font-bold text-slate-400 hover:text-white flex items-center gap-2 transition-colors">
-                             <ArrowRight size={16} /> {siteSettings?.authPageTexts?.registerLoginLinkText || 'العودة لتسجيل الدخول'}
+                             <ArrowRight size={16} /> {siteSettings?.authPageTexts?.registerLoginLinkText || t('register.backToLogin')}
                          </button>
                      </div>
                 </div>
@@ -279,7 +280,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                 {/* Main Form */}
                 <div className="p-8 md:p-10 md:w-2/3">
                     <div className="mb-8">
-                        <label className="block text-sm font-bold text-slate-700 mb-3">{siteSettings?.authPageTexts?.registerBusinessTypeLabel || 'اختر نوع النشاط'} <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 mb-3">{siteSettings?.authPageTexts?.registerBusinessTypeLabel || t('register.selectBusinessType')} <span className="text-red-500">*</span></label>
                         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                             <button 
                                 onClick={() => setCategory('SPARE_PARTS_SHOP')}
@@ -287,7 +288,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                 data-testid="category-spare-parts"
                             >
                                 <Building2 size={24} className="mx-auto mb-1.5" />
-                                <span className="text-xs font-bold block">محل قطع غيار</span>
+                                <span className="text-xs font-bold block">{t('register.businessTypes.sparePartsShop')}</span>
                             </button>
                             <button 
                                 onClick={() => setCategory('MAINTENANCE_CENTER')}
@@ -295,7 +296,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                 data-testid="category-maintenance-center"
                             >
                                 <Wrench size={24} className="mx-auto mb-1.5" />
-                                <span className="text-xs font-bold block">مركز صيانة</span>
+                                <span className="text-xs font-bold block">{t('register.businessTypes.maintenanceCenter')}</span>
                             </button>
                             <button 
                                 onClick={() => setCategory('INSURANCE_COMPANY')}
@@ -303,7 +304,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                 data-testid="category-insurance"
                             >
                                 <Shield size={24} className="mx-auto mb-1.5" />
-                                <span className="text-xs font-bold block">شركة تأمين</span>
+                                <span className="text-xs font-bold block">{t('register.businessTypes.insuranceCompany')}</span>
                             </button>
                             <button 
                                 onClick={() => setCategory('RENTAL_COMPANY')}
@@ -311,7 +312,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                 data-testid="category-rental"
                             >
                                 <Car size={24} className="mx-auto mb-1.5" />
-                                <span className="text-xs font-bold block">تأجير سيارات</span>
+                                <span className="text-xs font-bold block">{t('register.businessTypes.rentalCompany')}</span>
                             </button>
                             <button 
                                 onClick={() => setCategory('SALES_REP')}
@@ -319,7 +320,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                                 data-testid="category-sales-rep"
                             >
                                 <Briefcase size={24} className="mx-auto mb-1.5" />
-                                <span className="text-xs font-bold block">مندوب مبيعات</span>
+                                <span className="text-xs font-bold block">{t('register.businessTypes.salesRep')}</span>
                             </button>
                         </div>
                     </div>
@@ -328,38 +329,38 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                         {category === 'SALES_REP' ? (
                              <>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="الاسم الكامل" name="fullName" value={formData.fullName} onChange={handleChange} required />
-                                    <InputField label="رقم الجوال" name="phone" value={formData.phone} onChange={handleChange} placeholder="05xxxxxxxx" required />
+                                    <InputField label={t('register.salesRepFields.fullName')} name="fullName" value={formData.fullName} onChange={handleChange} required />
+                                    <InputField label={t('register.salesRepFields.phone')} name="phone" value={formData.phone} onChange={handleChange} placeholder="05xxxxxxxx" required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="المنطقة / المدن المغطاة" name="representativeRegion" value={formData.representativeRegion} onChange={handleChange} required />
-                                    <InputField label="البريد الإلكتروني (اختياري)" name="email" type="email" value={formData.email} onChange={handleChange} />
+                                    <InputField label={t('register.salesRepFields.region')} name="representativeRegion" value={formData.representativeRegion} onChange={handleChange} required />
+                                    <InputField label={t('register.salesRepFields.email')} name="email" type="email" value={formData.email} onChange={handleChange} />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="نوع العملاء (ورش، محلات...)" name="representativeClientsType" value={formData.representativeClientsType} onChange={handleChange} />
-                                    <InputField label="عدد العملاء التقريبي" name="approximateClientsCount" value={formData.approximateClientsCount} onChange={handleChange} />
+                                    <InputField label={t('register.salesRepFields.clientsType')} name="representativeClientsType" value={formData.representativeClientsType} onChange={handleChange} />
+                                    <InputField label={t('register.salesRepFields.clientsCount')} name="approximateClientsCount" value={formData.approximateClientsCount} onChange={handleChange} />
                                 </div>
                              </>
                         ) : (
                              // Shop / Company Fields
                              <>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label={siteSettings?.authPageTexts?.registerBusinessNameLabel || "اسم المنشأة"} name="businessName" value={formData.businessName} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerBusinessNamePlaceholder || ''} required />
-                                    <InputField label="عدد الفروع" name="branchesCount" type="number" min={1} value={formData.branchesCount} onChange={handleChange} required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerBusinessNameLabel || t('register.businessFields.businessName')} name="businessName" value={formData.businessName} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerBusinessNamePlaceholder || ''} required />
+                                    <InputField label={t('register.businessFields.branchesCount')} name="branchesCount" type="number" min={1} value={formData.branchesCount} onChange={handleChange} required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label={siteSettings?.authPageTexts?.registerCityLabel || "المدينة"} name="city" value={formData.city} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerCityPlaceholder || ''} required />
-                                    <InputField label="العنوان الوطني المختصر" name="nationalAddress" value={formData.nationalAddress} onChange={handleChange} placeholder="مثال: RDJ2929" required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerCityLabel || t('register.businessFields.city')} name="city" value={formData.city} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerCityPlaceholder || ''} required />
+                                    <InputField label={t('register.businessFields.nationalAddress')} name="nationalAddress" value={formData.nationalAddress} onChange={handleChange} placeholder={t('register.businessFields.nationalAddressPlaceholder')} required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label="السجل التجاري" name="commercialRegNumber" value={formData.commercialRegNumber} onChange={handleChange} required />
-                                    <InputField label="الرقم الضريبي" name="vatNumber" value={formData.vatNumber} onChange={handleChange} required />
+                                    <InputField label={t('register.businessFields.commercialReg')} name="commercialRegNumber" value={formData.commercialRegNumber} onChange={handleChange} required />
+                                    <InputField label={t('register.businessFields.vatNumber')} name="vatNumber" value={formData.vatNumber} onChange={handleChange} required />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <InputField label={siteSettings?.authPageTexts?.registerOwnerNameLabel || "اسم المسؤول"} name="contactPerson" value={formData.contactPerson} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerOwnerNamePlaceholder || ''} required />
-                                    <InputField label={siteSettings?.authPageTexts?.registerPhoneLabel || "رقم الجوال"} name="phone" value={formData.phone} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerPhonePlaceholder || "05xxxxxxxx"} required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerOwnerNameLabel || t('register.businessFields.contactPerson')} name="contactPerson" value={formData.contactPerson} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerOwnerNamePlaceholder || ''} required />
+                                    <InputField label={siteSettings?.authPageTexts?.registerPhoneLabel || t('register.businessFields.phone')} name="phone" value={formData.phone} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerPhonePlaceholder || "05xxxxxxxx"} required />
                                 </div>
-                                <InputField label={siteSettings?.authPageTexts?.registerEmailLabel || "البريد الإلكتروني (اختياري)"} name="email" type="email" value={formData.email} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerEmailPlaceholder || ''} />
+                                <InputField label={siteSettings?.authPageTexts?.registerEmailLabel || t('register.businessFields.emailOptional')} name="email" type="email" value={formData.email} onChange={handleChange} placeholder={siteSettings?.authPageTexts?.registerEmailPlaceholder || ''} />
                              </>
                         )}
 
@@ -367,12 +368,12 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                         <div className="border-t border-slate-200 pt-6 mt-6">
                             <div className="flex items-center gap-2 mb-4">
                                 <FileText className="text-brand-600" size={20} />
-                                <h3 className="text-lg font-bold text-slate-800">المستندات المطلوبة</h3>
+                                <h3 className="text-lg font-bold text-slate-800">{t('register.documents.requiredDocuments')}</h3>
                             </div>
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
                                 <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={18} />
                                 <p className="text-sm text-amber-800">
-                                    يرجى رفع المستندات التالية بصيغة PDF أو صورة واضحة. سيتم مراجعتها من قبل فريق الاعتماد.
+                                    {t('register.documents.uploadNotice')}
                                 </p>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -389,7 +390,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1.5">{siteSettings?.authPageTexts?.registerNotesLabel || 'ملاحظات إضافية'}</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1.5">{siteSettings?.authPageTexts?.registerNotesLabel || t('register.additionalNotes')}</label>
                             <textarea 
                                 name="notes"
                                 className="w-full p-3 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-medium"
@@ -405,7 +406,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                             disabled={loading} 
                             className="w-full py-4 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-200 flex items-center justify-center gap-2 transition-all"
                         >
-                            {loading ? 'جاري الإرسال...' : (siteSettings?.authPageTexts?.registerButtonText || 'إرسال طلب فتح الحساب')} <Send size={18} className="rtl:rotate-180" />
+                            {loading ? t('register.submitting') : (siteSettings?.authPageTexts?.registerButtonText || t('register.submitRequest'))} <Send size={18} className="rtl:rotate-180" />
                         </button>
                     </form>
                 </div>
@@ -415,13 +416,13 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
                 <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-8 shadow-sm animate-bounce">
                     <CheckCircle size={48} />
                 </div>
-                <h2 className="text-3xl font-black text-slate-800 mb-4">تم استلام طلبك بنجاح!</h2>
+                <h2 className="text-3xl font-black text-slate-800 mb-4">{t('register.success.title')}</h2>
                 <p className="text-slate-500 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
-                    شكراً لاهتمامكم. سيقوم فريق علاقات العملاء في صيني كار بمراجعة البيانات والتواصل معكم لتفعيل الحساب وإرسال بيانات الدخول.
+                    {t('register.success.message')}
                 </p>
                 <div className="flex justify-center gap-4">
                     <button onClick={onSwitchToLogin} className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-md">
-                        العودة للرئيسية
+                        {t('register.success.backToHome')}
                     </button>
                 </div>
             </div>

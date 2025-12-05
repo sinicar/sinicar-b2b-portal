@@ -85,6 +85,25 @@
     "guest": "زائر",
     "guestWelcome": "أهلاً بك كزائر! يمكنك تصفح المنتجات فقط"
   },
+  "loading": {
+    "verifyingCredentials": "التحقق من بيانات الاعتماد...",
+    "connectingWarehouse": "الاتصال بالمستودع المركزي...",
+    "loadingCatalog": "جاري تحميل كتالوج المنتجات (20,000+ صنف)...",
+    "applyingDiscounts": "تطبيق خصومات الجملة الخاصة بحسابك...",
+    "syncingInventory": "مزامنة المخزون والأسعار الحية...",
+    "optimizingLogistics": "تهيئة مسارات الشحن واللوجستيات...",
+    "finalizingSetup": "إعداد لوحة التحكم الذكية...",
+    "accessGranted": "اكتمل الإعداد، أهلاً بك!",
+    "systemInitialization": "تهيئة النظام"
+  },
+  "intro": {
+    "mainServer": "الخادم الرئيسي",
+    "connectingServer": "جارِ الاتصال وتأكيد الهوية...",
+    "dataSync": "مزامنة البيانات",
+    "syncingData": "جارِ تحديث قوائم الأسعار والمخزون...",
+    "logistics": "الربط اللوجستي",
+    "connectingWarehouses": "جارِ الاتصال بالمستودعات المركزية لشركة صيني كار..."
+  },
   "marketing": {
     "dismiss": "إخفاء",
     "campaignOf": "الحملة {{current}} من {{total}}",
@@ -118,7 +137,8 @@
   },
   "register": {
     "title": "طلب فتح حساب جديد",
-    "subtitle": "سجل بياناتك للانضمام لعملاء الجملة",
+    "openNewAccount": "فتح حساب جديد",
+    "subtitle": "انضم إلى شبكة صيني كار المعتمدة واستفد من أسعار الجملة، خدمات الشحن السريع، والدعم الفني المتخصص.",
     "businessInfo": "معلومات المنشأة",
     "businessName": "اسم المنشأة",
     "businessNameAr": "اسم المنشأة (عربي)",
@@ -126,26 +146,97 @@
     "commercialRegister": "السجل التجاري",
     "taxNumber": "الرقم الضريبي",
     "businessType": "نوع النشاط",
+    "selectBusinessType": "اختر نوع النشاط",
     "contactInfo": "معلومات التواصل",
-    "ownerName": "اسم صاحب المنشأة",
+    "ownerName": "اسم المسؤول",
     "ownerPhone": "جوال صاحب المنشأة",
-    "ownerEmail": "البريد الإلكتروني",
+    "ownerEmail": "البريد الإلكتروني (اختياري)",
     "addressInfo": "معلومات العنوان",
     "fullAddress": "العنوان الكامل",
+    "nationalAddress": "العنوان الوطني المختصر",
+    "nationalAddressPlaceholder": "مثال: RDJ2929",
     "city": "المدينة",
     "region": "المنطقة",
     "postalCode": "الرمز البريدي",
-    "submitRequest": "إرسال الطلب",
+    "branchesCount": "عدد الفروع",
+    "submitRequest": "إرسال طلب فتح الحساب",
     "backToLogin": "العودة لتسجيل الدخول",
-    "requestSuccess": "تم إرسال طلبك بنجاح",
+    "requestSuccess": "تم استلام طلبك بنجاح!",
     "requestPending": "طلبك قيد المراجعة",
+    "requestSuccessMessage": "شكراً لاهتمامكم. سيقوم فريق علاقات العملاء في صيني كار بمراجعة البيانات والتواصل معكم لتفعيل الحساب وإرسال بيانات الدخول.",
+    "backToHome": "العودة للرئيسية",
+    "benefits": {
+      "exclusivePrices": "أسعار جملة حصرية",
+      "instantAccess": "وصول فوري للمخزون",
+      "taxInvoices": "فواتير ضريبية معتمدة"
+    },
     "businessTypes": {
+      "sparePartsShop": "محل قطع غيار",
+      "maintenanceCenter": "مركز صيانة",
+      "insuranceCompany": "شركة تأمين",
+      "rentalCompany": "تأجير سيارات",
+      "salesRep": "مندوب مبيعات",
       "workshop": "ورشة صيانة",
       "store": "محل قطع غيار",
       "distributor": "موزع",
       "agency": "وكالة",
       "other": "أخرى"
-    }
+    },
+    "salesRepFields": {
+      "fullName": "الاسم الكامل",
+      "phone": "رقم الجوال",
+      "region": "المنطقة / المدن المغطاة",
+      "email": "البريد الإلكتروني (اختياري)",
+      "clientsType": "نوع العملاء (ورش، محلات...)",
+      "clientsCount": "عدد العملاء التقريبي"
+    },
+    "documents": {
+      "title": "المستندات المطلوبة",
+      "requiredDocuments": "المستندات المطلوبة",
+      "instructions": "يرجى رفع المستندات التالية بصيغة PDF أو صورة واضحة. سيتم مراجعتها من قبل فريق الاعتماد.",
+      "uploadNotice": "يرجى رفع المستندات التالية بصيغة PDF أو صورة واضحة. سيتم مراجعتها من قبل فريق الاعتماد.",
+      "crCertificate": "صورة السجل التجاري",
+      "vatCertificate": "شهادة الرقم الضريبي",
+      "nationalId": "صورة الهوية الوطنية",
+      "nationalAddressCert": "إرفاق العنوان الوطني",
+      "clickToUpload": "اضغط لرفع الملف",
+      "fileTypes": "PDF, JPEG, PNG, WebP (حد أقصى 5MB)",
+      "uploadSuccess": "تم رفعه بنجاح",
+      "invalidFileType": "نوع الملف غير مدعوم. يرجى استخدام PDF أو صور (JPEG, PNG, WebP)",
+      "fileTooLarge": "حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت"
+    },
+    "businessFields": {
+      "businessName": "اسم المنشأة",
+      "branchesCount": "عدد الفروع",
+      "city": "المدينة",
+      "nationalAddress": "العنوان الوطني المختصر",
+      "nationalAddressPlaceholder": "مثال: RDJ2929",
+      "commercialReg": "السجل التجاري",
+      "vatNumber": "الرقم الضريبي",
+      "contactPerson": "اسم المسؤول",
+      "phone": "رقم الجوال",
+      "emailOptional": "البريد الإلكتروني (اختياري)"
+    },
+    "success": {
+      "title": "تم استلام طلبك بنجاح!",
+      "message": "شكراً لاهتمامكم. سيقوم فريق علاقات العملاء في صيني كار بمراجعة البيانات والتواصل معكم لتفعيل الحساب وإرسال بيانات الدخول.",
+      "backToHome": "العودة للرئيسية"
+    },
+    "validation": {
+      "phoneRequired": "رقم الجوال مطلوب",
+      "fullNameRequired": "الاسم الكامل مطلوب",
+      "regionRequired": "المنطقة التي تغطيها مطلوبة",
+      "businessNameRequired": "اسم المنشأة مطلوب",
+      "cityRequired": "المدينة مطلوبة",
+      "contactPersonRequired": "اسم المسؤول مطلوب",
+      "commercialRegRequired": "السجل التجاري مطلوب",
+      "vatRequired": "الرقم الضريبي مطلوب",
+      "nationalAddressRequired": "العنوان الوطني مطلوب",
+      "documentRequired": "مطلوب"
+    },
+    "additionalNotes": "ملاحظات إضافية",
+    "submitting": "جاري الإرسال...",
+    "submitError": "حدث خطأ أثناء الإرسال"
   },
   "nav": {
     "home": "الرئيسية",
@@ -763,8 +854,50 @@
       "dailyOrders": "الطلبات اليومية",
       "dailyRevenue": "الإيرادات اليومية",
       "topCustomers": "أفضل العملاء",
-      "topMissingParts": "أكثر القطع المطلوبة"
-    }
+      "topMissingParts": "أكثر القطع المطلوبة",
+      "revenue": "الإيراد"
+    },
+    "views": {
+      "dashboard": "لوحة القيادة",
+      "customers": "قاعدة العملاء",
+      "products": "المنتجات",
+      "settings": "الإعدادات",
+      "quotes": "طلبات التسعير",
+      "missing": "النواقص",
+      "importRequests": "طلبات الاستيراد",
+      "accountRequests": "طلبات الحسابات",
+      "activityLogs": "سجل النشاط",
+      "ordersManager": "طلبات العملاء",
+      "adminUsers": "المستخدمون",
+      "marketing": "مركز التسويق",
+      "pricing": "مركز التسعيرات",
+      "traderTools": "أدوات التاجر",
+      "supplierMarketplace": "سوق الموردين",
+      "marketers": "المسوقين",
+      "installments": "طلبات التقسيط",
+      "advertising": "الإعلانات",
+      "teamSettings": "المنظمات والفرق"
+    },
+    "onlineUsers": {
+      "title": "العملاء المتصلين الآن",
+      "subtitle": "نشاط خلال آخر 5 دقائق",
+      "now": "الآن",
+      "minutesAgo": "منذ {{mins}} دقيقة",
+      "online": "متصل",
+      "noOnlineUsers": "لا يوجد عملاء متصلين حالياً",
+      "moreOnline": "و {{count}} عميل آخر متصل..."
+    },
+    "activityLogs": {
+      "title": "سجل النشاطات",
+      "activity": "نشاط",
+      "time": "الوقت",
+      "user": "المستخدم",
+      "event": "الحدث",
+      "details": "التفاصيل",
+      "noActivities": "لا توجد أنشطة مسجلة"
+    },
+    "generalManager": "المدير العام",
+    "teamSettings": "المنظمات والفرق"
   },
   "adminSettings": {
     "systemSettings": "إعدادات النظام",

@@ -68,26 +68,26 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'TEAM_SETTINGS': 'settings_general'
 };
 
-const VIEW_LABELS: Record<ViewType, string> = {
-    'DASHBOARD': 'لوحة القيادة',
-    'CUSTOMERS': 'قاعدة العملاء',
-    'PRODUCTS': 'المنتجات',
-    'SETTINGS': 'الإعدادات',
-    'QUOTES': 'طلبات التسعير',
-    'MISSING': 'النواقص',
-    'IMPORT_REQUESTS': 'طلبات الاستيراد',
-    'ACCOUNT_REQUESTS': 'طلبات الحسابات',
-    'ACTIVITY_LOGS': 'سجل النشاط',
-    'ORDERS_MANAGER': 'طلبات العملاء',
-    'ADMIN_USERS': 'المستخدمون',
-    'MARKETING': 'مركز التسويق',
-    'PRICING': 'مركز التسعيرات',
-    'TRADER_TOOLS': 'أدوات التاجر',
-    'SUPPLIER_MARKETPLACE': 'سوق الموردين',
-    'MARKETERS': 'المسوقين',
-    'INSTALLMENTS': 'طلبات التقسيط',
-    'ADVERTISING': 'الإعلانات',
-    'TEAM_SETTINGS': 'المنظمات والفرق'
+const VIEW_LABELS_KEYS: Record<ViewType, string> = {
+    'DASHBOARD': 'adminDashboard.views.dashboard',
+    'CUSTOMERS': 'adminDashboard.views.customers',
+    'PRODUCTS': 'adminDashboard.views.products',
+    'SETTINGS': 'adminDashboard.views.settings',
+    'QUOTES': 'adminDashboard.views.quotes',
+    'MISSING': 'adminDashboard.views.missing',
+    'IMPORT_REQUESTS': 'adminDashboard.views.importRequests',
+    'ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
+    'ACTIVITY_LOGS': 'adminDashboard.views.activityLogs',
+    'ORDERS_MANAGER': 'adminDashboard.views.ordersManager',
+    'ADMIN_USERS': 'adminDashboard.views.adminUsers',
+    'MARKETING': 'adminDashboard.views.marketing',
+    'PRICING': 'adminDashboard.views.pricing',
+    'TRADER_TOOLS': 'adminDashboard.views.traderTools',
+    'SUPPLIER_MARKETPLACE': 'adminDashboard.views.supplierMarketplace',
+    'MARKETERS': 'adminDashboard.views.marketers',
+    'INSTALLMENTS': 'adminDashboard.views.installments',
+    'ADVERTISING': 'adminDashboard.views.advertising',
+    'TEAM_SETTINGS': 'adminDashboard.views.teamSettings'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -406,7 +406,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <NavItem icon={<Megaphone size={20} />} label={t('adminDashboard.advertising')} active={view === 'ADVERTISING'} onClick={() => setView('ADVERTISING')} />
                     )}
                     {canAccess('settings_general') && (
-                        <NavItem icon={<Users size={20} />} label="المنظمات والفرق" active={view === 'TEAM_SETTINGS'} onClick={() => setView('TEAM_SETTINGS')} />
+                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.teamSettings')} active={view === 'TEAM_SETTINGS'} onClick={() => setView('TEAM_SETTINGS')} />
                     )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
@@ -446,7 +446,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <div className="flex items-center gap-3">
                             <div className="text-left hidden md:block">
-                                <p className="text-sm font-bold text-slate-800">{adminUser?.fullName || 'المدير العام'}</p>
+                                <p className="text-sm font-bold text-slate-800">{adminUser?.fullName || t('adminDashboard.generalManager')}</p>
                                 <p className="text-left text-[10px] text-slate-500 font-mono">{role?.name || 'Super Admin'}</p>
                             </div>
                             <div className="w-10 h-10 bg-[#0B1B3A] rounded-full flex items-center justify-center text-[#C8A04F] shadow-md border-2 border-[#C8A04F]">
@@ -519,7 +519,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                                                 <Tooltip 
                                                     contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)'}}
-                                                    formatter={(value: number) => [`${value.toLocaleString()} ر.س`, 'الإيراد']}
+                                                    formatter={(value: number) => [`${value.toLocaleString()} ${t('customerDashboard.sar')}`, t('adminDashboard.charts.revenue')]}
                                                 />
                                                 <Area type="monotone" dataKey="revenue" stroke={COLORS.navy} strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
                                             </AreaChart>
@@ -624,103 +624,103 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'SETTINGS' && (
                         canAccess('settings_general') 
                             ? <AdminSettings /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ADMIN_USERS' && (
                         canAccess('users') 
                             ? <AdminUsersPage onRefresh={fetchAllData} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'MARKETING' && (
                         canAccess('settings_general') 
                             ? <AdminMarketingCenter /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                     {view === 'PRICING' && (
                         canAccess('settings_general') 
                             ? <AdminPricingCenter /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'TRADER_TOOLS' && (
                         canAccess('settings_general') 
                             ? <AdminTraderToolsSettings /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'SUPPLIER_MARKETPLACE' && (
                         canAccess('settings_general') 
                             ? <AdminSupplierMarketplaceSettings /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'MARKETERS' && (
                         canAccess('settings_general') 
                             ? <AdminMarketersPage /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'INSTALLMENTS' && (
                         canAccess('settings_general') 
                             ? <AdminInstallmentsPage /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'ADVERTISING' && (
                         canAccess('settings_general') 
                             ? <AdminAdvertisingPage /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'TEAM_SETTINGS' && (
                         canAccess('settings_general') 
                             ? <AdminOrganizationSettings /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'ORDERS_MANAGER' && (
                         canAccess('orders') 
                             ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ACCOUNT_REQUESTS' && (
                         canAccess('account_requests') 
                             ? <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'CUSTOMERS' && (
                         canAccess('customers') 
                             ? <AdminCustomersPage /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'QUOTES' && (
                         canAccess('quotes') 
                             ? <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'MISSING' && (
                         canAccess('missing') 
                             ? <AdminMissingParts missingRequests={missingRequests} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'IMPORT_REQUESTS' && (
                         canAccess('imports') 
                             ? <AdminImportManager requests={importRequests} onUpdate={fetchAllData} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ACTIVITY_LOGS' && (
                         canAccess('activity_log') 
                             ? <ActivityLogsView logs={activityLogs} page={logPage} setPage={setLogPage} perPage={LOGS_PER_PAGE} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
                     {view === 'PRODUCTS' && (
                         canAccess('products') 
                             ? <AdminProductsPage onRefresh={fetchAllData} /> 
-                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                 </div>
@@ -760,6 +760,7 @@ const ActivityCard = ({ label, value, color }: any) => {
 // --- Simplified Views for Sub-Pages (Ported from original to keep file size managed) ---
 
 const OnlineUsersCard = () => {
+    const { t } = useTranslation();
     const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -783,8 +784,8 @@ const OnlineUsersCard = () => {
     const formatLastActive = (dateStr: string) => {
         const diff = Date.now() - new Date(dateStr).getTime();
         const mins = Math.floor(diff / 60000);
-        if (mins < 1) return 'الآن';
-        return `منذ ${mins} دقيقة`;
+        if (mins < 1) return t('adminDashboard.onlineUsers.now');
+        return t('adminDashboard.onlineUsers.minutesAgo', { mins });
     };
 
     return (
@@ -795,8 +796,8 @@ const OnlineUsersCard = () => {
                         <Zap size={20} className="text-green-600" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-800">العملاء المتصلين الآن</h3>
-                        <p className="text-xs text-slate-500">نشاط خلال آخر 5 دقائق</p>
+                        <h3 className="font-bold text-slate-800">{t('adminDashboard.onlineUsers.title')}</h3>
+                        <p className="text-xs text-slate-500">{t('adminDashboard.onlineUsers.subtitle')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -818,7 +819,7 @@ const OnlineUsersCard = () => {
                         <div key={user.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
                             <div className="relative">
                                 <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center text-brand-700 font-bold text-sm">
-                                    {user.name?.charAt(0) || '؟'}
+                                    {user.name?.charAt(0) || '?'}
                                 </div>
                                 <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
                             </div>
@@ -826,7 +827,7 @@ const OnlineUsersCard = () => {
                                 <p className="font-bold text-sm text-slate-800 truncate">{user.name}</p>
                                 <div className="flex items-center gap-1">
                                     <span className="text-[10px] text-slate-400 font-mono">{user.clientId}</span>
-                                    <span className="text-[10px] text-green-600 font-bold">• {user.lastActiveAt ? formatLastActive(user.lastActiveAt) : 'متصل'}</span>
+                                    <span className="text-[10px] text-green-600 font-bold">• {user.lastActiveAt ? formatLastActive(user.lastActiveAt) : t('adminDashboard.onlineUsers.online')}</span>
                                 </div>
                             </div>
                         </div>
@@ -835,13 +836,13 @@ const OnlineUsersCard = () => {
             ) : (
                 <div className="text-center py-8 text-slate-400">
                     <Users size={32} className="mx-auto mb-2 opacity-40" />
-                    <p className="text-sm font-bold">لا يوجد عملاء متصلين حالياً</p>
+                    <p className="text-sm font-bold">{t('adminDashboard.onlineUsers.noOnlineUsers')}</p>
                 </div>
             )}
             
             {onlineUsers.length > 12 && (
                 <p className="text-center mt-4 text-xs text-slate-500">
-                    و {onlineUsers.length - 12} عميل آخر متصل...
+                    {t('adminDashboard.onlineUsers.moreOnline', { count: onlineUsers.length - 12 })}
                 </p>
             )}
         </div>
@@ -849,6 +850,7 @@ const OnlineUsersCard = () => {
 };
 
 const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
+    const { t } = useTranslation();
     const start = (page - 1) * perPage;
     const current = logs.slice(start, start + perPage);
     const totalPages = Math.ceil(logs.length / perPage);
@@ -863,13 +865,13 @@ const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
                 <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
                         <Activity size={18} className="text-slate-600" />
-                        سجل النشاطات
+                        {t('adminDashboard.activityLogs.title')}
                     </h3>
-                    <span className="text-xs text-slate-500">{logs.length} نشاط</span>
+                    <span className="text-xs text-slate-500">{logs.length} {t('adminDashboard.activityLogs.activity')}</span>
                 </div>
                 <table className="w-full text-sm text-right">
                     <thead className="bg-slate-50/50 text-slate-600 font-bold border-b border-slate-200">
-                        <tr><th className="p-4">الوقت</th><th className="p-4">المستخدم</th><th className="p-4">الحدث</th><th className="p-4">التفاصيل</th></tr>
+                        <tr><th className="p-4">{t('adminDashboard.activityLogs.time')}</th><th className="p-4">{t('adminDashboard.activityLogs.user')}</th><th className="p-4">{t('adminDashboard.activityLogs.event')}</th><th className="p-4">{t('adminDashboard.activityLogs.details')}</th></tr>
                     </thead>
                     <tbody>
                         {current.length > 0 ? current.map((log: ActivityLogEntry) => (
@@ -883,7 +885,7 @@ const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
                             <tr>
                                 <td colSpan={4} className="p-8 text-center text-slate-400">
                                     <Clock size={32} className="mx-auto mb-2 opacity-40" />
-                                    <p className="font-bold">لا توجد أنشطة مسجلة</p>
+                                    <p className="font-bold">{t('adminDashboard.activityLogs.noActivities')}</p>
                                 </td>
                             </tr>
                         )}

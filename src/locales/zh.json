@@ -85,6 +85,25 @@
     "guest": "访客",
     "guestWelcome": "欢迎访客！您只能浏览产品"
   },
+  "loading": {
+    "verifyingCredentials": "正在验证凭证...",
+    "connectingWarehouse": "正在连接全球仓库...",
+    "loadingCatalog": "正在加载产品目录（20,000+商品）...",
+    "applyingDiscounts": "正在应用您的专属批发折扣...",
+    "syncingInventory": "正在同步实时库存和价格...",
+    "optimizingLogistics": "正在优化配送和物流路线...",
+    "finalizingSetup": "正在准备您的智能控制面板...",
+    "accessGranted": "设置完成，欢迎！",
+    "systemInitialization": "系统初始化"
+  },
+  "intro": {
+    "mainServer": "主服务器",
+    "connectingServer": "正在连接并验证身份...",
+    "dataSync": "数据同步",
+    "syncingData": "正在更新价格表和库存...",
+    "logistics": "物流连接",
+    "connectingWarehouses": "正在连接新尼汽车中央仓库..."
+  },
   "marketing": {
     "dismiss": "关闭",
     "campaignOf": "活动 {{current}}/{{total}}",
@@ -118,7 +137,8 @@
   },
   "register": {
     "title": "新账户申请",
-    "subtitle": "注册成为批发客户",
+    "openNewAccount": "开设新账户",
+    "subtitle": "加入新尼汽车认证网络，享受批发价格、快速配送和专业技术支持。",
     "businessInfo": "企业信息",
     "businessName": "企业名称",
     "businessNameAr": "企业名称（阿拉伯语）",
@@ -126,26 +146,97 @@
     "commercialRegister": "商业登记",
     "taxNumber": "税号",
     "businessType": "企业类型",
+    "selectBusinessType": "选择企业类型",
     "contactInfo": "联系信息",
-    "ownerName": "负责人姓名",
+    "ownerName": "联系人姓名",
     "ownerPhone": "负责人电话",
-    "ownerEmail": "电子邮件",
+    "ownerEmail": "电子邮件（可选）",
     "addressInfo": "地址信息",
     "fullAddress": "详细地址",
+    "nationalAddress": "国家地址（简码）",
+    "nationalAddressPlaceholder": "例如：RDJ2929",
     "city": "城市",
     "region": "地区",
     "postalCode": "邮政编码",
-    "submitRequest": "提交申请",
+    "branchesCount": "分支机构数量",
+    "submitRequest": "提交账户申请",
     "backToLogin": "返回登录",
-    "requestSuccess": "申请提交成功",
+    "requestSuccess": "您的申请已成功收到！",
     "requestPending": "您的申请正在审核中",
+    "requestSuccessMessage": "感谢您的关注。新尼汽车客户关系团队将审核数据并与您联系以激活账户和发送登录凭证。",
+    "backToHome": "返回首页",
+    "benefits": {
+      "exclusivePrices": "专属批发价格",
+      "instantAccess": "即时库存访问",
+      "taxInvoices": "认证税务发票"
+    },
     "businessTypes": {
+      "sparePartsShop": "汽配店",
+      "maintenanceCenter": "维修中心",
+      "insuranceCompany": "保险公司",
+      "rentalCompany": "汽车租赁",
+      "salesRep": "销售代表",
       "workshop": "维修车间",
       "store": "配件店",
       "distributor": "经销商",
       "agency": "代理商",
       "other": "其他"
-    }
+    },
+    "salesRepFields": {
+      "fullName": "全名",
+      "phone": "电话号码",
+      "region": "覆盖地区/城市",
+      "email": "电子邮件（可选）",
+      "clientsType": "客户类型（车间、商店...）",
+      "clientsCount": "大约客户数量"
+    },
+    "documents": {
+      "title": "所需文件",
+      "requiredDocuments": "所需文件",
+      "instructions": "请以PDF或清晰图片格式上传以下文件。审批团队将进行审核。",
+      "uploadNotice": "请以PDF或清晰图片格式上传以下文件。审批团队将进行审核。",
+      "crCertificate": "商业登记证",
+      "vatCertificate": "增值税登记证",
+      "nationalId": "身份证复印件",
+      "nationalAddressCert": "国家地址证明",
+      "clickToUpload": "点击上传文件",
+      "fileTypes": "PDF, JPEG, PNG, WebP（最大5MB）",
+      "uploadSuccess": "上传成功",
+      "invalidFileType": "无效的文件类型。请使用PDF或图片（JPEG, PNG, WebP）",
+      "fileTooLarge": "文件太大。最大大小为5MB"
+    },
+    "businessFields": {
+      "businessName": "企业名称",
+      "branchesCount": "分支机构数量",
+      "city": "城市",
+      "nationalAddress": "国家地址（简码）",
+      "nationalAddressPlaceholder": "例如：RDJ2929",
+      "commercialReg": "商业登记",
+      "vatNumber": "税号",
+      "contactPerson": "联系人",
+      "phone": "电话号码",
+      "emailOptional": "电子邮件（可选）"
+    },
+    "success": {
+      "title": "您的申请已成功收到！",
+      "message": "感谢您的关注。新尼汽车客户关系团队将审核数据并与您联系以激活账户和发送登录凭证。",
+      "backToHome": "返回首页"
+    },
+    "validation": {
+      "phoneRequired": "电话号码必填",
+      "fullNameRequired": "全名必填",
+      "regionRequired": "地区必填",
+      "businessNameRequired": "企业名称必填",
+      "cityRequired": "城市必填",
+      "contactPersonRequired": "联系人姓名必填",
+      "commercialRegRequired": "商业登记必填",
+      "vatRequired": "税号必填",
+      "nationalAddressRequired": "国家地址必填",
+      "documentRequired": "必填"
+    },
+    "additionalNotes": "附加说明",
+    "submitting": "提交中...",
+    "submitError": "提交时发生错误"
   },
   "nav": {
     "home": "首页",
@@ -747,8 +838,50 @@
       "dailyOrders": "每日订单",
       "dailyRevenue": "每日收入",
       "topCustomers": "顶级客户",
-      "topMissingParts": "最常请求的零件"
-    }
+      "topMissingParts": "最常请求的零件",
+      "revenue": "收入"
+    },
+    "views": {
+      "dashboard": "仪表板",
+      "customers": "客户",
+      "products": "产品",
+      "settings": "设置",
+      "quotes": "报价请求",
+      "missing": "缺货零件",
+      "importRequests": "进口请求",
+      "accountRequests": "账户请求",
+      "activityLogs": "活动日志",
+      "ordersManager": "客户订单",
+      "adminUsers": "用户",
+      "marketing": "营销中心",
+      "pricing": "定价中心",
+      "traderTools": "商家工具",
+      "supplierMarketplace": "供应商市场",
+      "marketers": "营销人员",
+      "installments": "分期付款请求",
+      "advertising": "广告",
+      "teamSettings": "组织和团队"
+    },
+    "onlineUsers": {
+      "title": "在线客户",
+      "subtitle": "过去5分钟内活跃",
+      "now": "现在",
+      "minutesAgo": "{{mins}}分钟前",
+      "online": "在线",
+      "noOnlineUsers": "目前没有在线客户",
+      "moreOnline": "还有{{count}}位客户在线..."
+    },
+    "activityLogs": {
+      "title": "活动日志",
+      "activity": "活动",
+      "time": "时间",
+      "user": "用户",
+      "event": "事件",
+      "details": "详情",
+      "noActivities": "没有记录的活动"
+    },
+    "generalManager": "总经理",
+    "teamSettings": "组织和团队"
   },
   "adminSettings": {
     "systemSettings": "系统设置",
