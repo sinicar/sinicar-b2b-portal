@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode, FormEvent } from 'react';
 import { 
   Advertiser, 
   AdCampaign, 
@@ -929,7 +929,7 @@ const AdvertiserModal = ({ advertiser, onClose, onSave, t, isRTL }: AdvertiserMo
     notes: advertiser?.notes || ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSave(form);
   };
@@ -1125,7 +1125,7 @@ const CampaignModal = ({ campaign, advertisers, onClose, onSave, t, isRTL }: Cam
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSave(form);
   };
@@ -1363,7 +1363,7 @@ const SlotModal = ({ slot, onClose, onSave, t, isRTL }: SlotModalProps) => {
     selectionMode: slot.selectionMode
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSave(form);
   };

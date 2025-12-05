@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -353,7 +353,12 @@ const STORAGE_KEYS = {
   ADVERTISERS: 'sini_advertisers',
   AD_CAMPAIGNS: 'sini_ad_campaigns',
   AD_SLOTS: 'sini_ad_slots',
-  AD_SLOT_ROTATIONS: 'sini_ad_slot_rotations'
+  AD_SLOT_ROTATIONS: 'sini_ad_slot_rotations',
+  // Installment Wholesale Purchase System
+  INSTALLMENT_REQUESTS: 'sini_installment_requests',
+  INSTALLMENT_OFFERS: 'sini_installment_offers',
+  CUSTOMER_CREDIT_PROFILES: 'sini_customer_credit_profiles',
+  INSTALLMENT_SETTINGS: 'sini_installment_settings'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -5060,5 +5065,791 @@ export const MockApi = {
           totalViews: campaigns.reduce((sum, c) => sum + (c.currentViews || 0), 0),
           totalClicks: campaigns.reduce((sum, c) => sum + (c.currentClicks || 0), 0)
       };
+  },
+
+  // ============================================================
+  // INSTALLMENT WHOLESALE PURCHASE SYSTEM
+  // ============================================================
+
+  // Default Installment Settings
+  getDefaultInstallmentSettings(): InstallmentSettings {
+      return {
+          enabled: true,
+          sinicarHasFirstPriority: true,
+          allowPartialApprovalBySinicar: true,
+          allowPartialApprovalBySuppliers: true,
+          autoForwardToSuppliersOnSinicarReject: false,
+          autoForwardToSuppliersOnSinicarPartialRemainder: false,
+          onCustomerRejectsSinicarPartial: 'forward_to_suppliers',
+          onCustomerRejectsSupplierOffer: 'keep_waiting_for_other_suppliers',
+          maxDurationMonths: 12,
+          minDurationMonths: 1,
+          maxDurationWeeks: 52,
+          minDurationWeeks: 4,
+          requireDownPayment: false,
+          minDownPaymentPercent: 10,
+          maxDownPaymentPercent: 50,
+          minRequestAmount: 1000,
+          maxRequestAmount: 500000,
+          requireCreditCheck: false,
+          minCreditScoreForApproval: 'medium',
+          autoRejectLowCredit: false,
+          allowedCustomerTypes: [],
+          blockedCustomerIds: [],
+          autoSelectAllSuppliers: false,
+          defaultSupplierIds: [],
+          maxSuppliersPerRequest: 5,
+          requireAdminApprovalForSinicar: true,
+          autoGeneratePaymentSchedule: true,
+          defaultPaymentFrequency: 'monthly',
+          notifyCustomerOnNewOffer: true,
+          notifyCustomerOnStatusChange: true,
+          notifyAdminOnNewRequest: true,
+          notifyAdminOnCustomerDecision: true,
+          notifySuppliersOnForward: true,
+          notifySuppliersOnCustomerDecision: true,
+          showInstallmentInSidebar: true,
+          showInstallmentInDashboard: true,
+          showCreditProfileToCustomer: false,
+          showPaymentHistoryToCustomer: true,
+          termsAndConditionsAr: 'الشروط والأحكام للشراء بالتقسيط من صيني كار...',
+          termsAndConditionsEn: 'Terms and conditions for installment purchases from SINI CAR...',
+          requireTermsAcceptance: true,
+          overdueGracePeriodDays: 7,
+          autoMarkOverdue: true,
+          notifyOnOverdue: true
+      };
+  },
+
+  // --- Installment Settings ---
+  async getInstallmentSettings(): Promise<InstallmentSettings> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.INSTALLMENT_SETTINGS);
+          if (stored) {
+              return { ...this.getDefaultInstallmentSettings(), ...JSON.parse(stored) };
+          }
+          return this.getDefaultInstallmentSettings();
+      } catch (error) {
+          console.error('Error getting installment settings:', error);
+          return this.getDefaultInstallmentSettings();
+      }
+  },
+
+  async updateInstallmentSettings(settings: Partial<InstallmentSettings>): Promise<InstallmentSettings> {
+      try {
+          const current = await this.getInstallmentSettings();
+          const updated = {
+              ...current,
+              ...settings,
+              lastModifiedAt: new Date().toISOString()
+          };
+          localStorage.setItem(STORAGE_KEYS.INSTALLMENT_SETTINGS, JSON.stringify(updated));
+          internalRecordActivity({
+              userId: 'admin',
+              userName: 'المدير',
+              eventType: 'OTHER',
+              description: 'تم تحديث إعدادات نظام التقسيط',
+              metadata: { action: 'update_installment_settings' }
+          });
+          return updated;
+      } catch (error) {
+          console.error('Error updating installment settings:', error);
+          throw error;
+      }
+  },
+
+  // --- Installment Requests ---
+  async getInstallmentRequests(): Promise<InstallmentRequest[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.INSTALLMENT_REQUESTS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting installment requests:', error);
+          return [];
+      }
+  },
+
+  async getInstallmentRequestById(id: string): Promise<InstallmentRequest | null> {
+      const requests = await this.getInstallmentRequests();
+      return requests.find(r => r.id === id) || null;
+  },
+
+  async getInstallmentRequestsByCustomerId(customerId: string): Promise<InstallmentRequest[]> {
+      const requests = await this.getInstallmentRequests();
+      return requests.filter(r => r.customerId === customerId);
+  },
+
+  async getInstallmentRequestsByStatus(status: InstallmentRequestStatus): Promise<InstallmentRequest[]> {
+      const requests = await this.getInstallmentRequests();
+      return requests.filter(r => r.status === status);
+  },
+
+  async createInstallmentRequest(data: Omit<InstallmentRequest, 'id' | 'createdAt' | 'updatedAt' | 'sinicarDecision' | 'status' | 'allowedForSuppliers'>): Promise<InstallmentRequest> {
+      try {
+          const settings = await this.getInstallmentSettings();
+          if (!settings.enabled) {
+              throw new Error('نظام التقسيط غير مفعل حالياً');
+          }
+          
+          const requests = await this.getInstallmentRequests();
+          const now = new Date().toISOString();
+          const newRequest: InstallmentRequest = {
+              ...data,
+              id: `IR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              status: 'PENDING_SINICAR_REVIEW',
+              sinicarDecision: 'pending',
+              allowedForSuppliers: false,
+              createdAt: now,
+              updatedAt: now
+          };
+          
+          requests.push(newRequest);
+          localStorage.setItem(STORAGE_KEYS.INSTALLMENT_REQUESTS, JSON.stringify(requests));
+          
+          internalRecordActivity({
+              userId: data.customerId,
+              userName: data.customerName || 'عميل',
+              eventType: 'OTHER',
+              description: `تم تقديم طلب تقسيط جديد بقيمة ${data.totalRequestedValue || 0} ريال`,
+              metadata: { action: 'create_installment_request', requestId: newRequest.id }
+          });
+          
+          return newRequest;
+      } catch (error) {
+          console.error('Error creating installment request:', error);
+          throw error;
+      }
+  },
+
+  async updateInstallmentRequest(id: string, data: Partial<InstallmentRequest>): Promise<InstallmentRequest | null> {
+      try {
+          const requests = await this.getInstallmentRequests();
+          const index = requests.findIndex(r => r.id === id);
+          if (index === -1) return null;
+          
+          requests[index] = {
+              ...requests[index],
+              ...data,
+              updatedAt: new Date().toISOString()
+          };
+          
+          localStorage.setItem(STORAGE_KEYS.INSTALLMENT_REQUESTS, JSON.stringify(requests));
+          return requests[index];
+      } catch (error) {
+          console.error('Error updating installment request:', error);
+          return null;
+      }
+  },
+
+  async deleteInstallmentRequest(id: string): Promise<boolean> {
+      try {
+          const requests = await this.getInstallmentRequests();
+          const filtered = requests.filter(r => r.id !== id);
+          if (filtered.length === requests.length) return false;
+          localStorage.setItem(STORAGE_KEYS.INSTALLMENT_REQUESTS, JSON.stringify(filtered));
+          return true;
+      } catch (error) {
+          console.error('Error deleting installment request:', error);
+          return false;
+      }
+  },
+
+  // --- Installment Offers ---
+  async getInstallmentOffers(): Promise<InstallmentOffer[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.INSTALLMENT_OFFERS);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting installment offers:', error);
+          return [];
+      }
+  },
+
+  async getInstallmentOfferById(id: string): Promise<InstallmentOffer | null> {
+      const offers = await this.getInstallmentOffers();
+      return offers.find(o => o.id === id) || null;
+  },
+
+  async getOffersByRequestId(requestId: string): Promise<InstallmentOffer[]> {
+      const offers = await this.getInstallmentOffers();
+      return offers.filter(o => o.requestId === requestId);
+  },
+
+  async createInstallmentOffer(data: Omit<InstallmentOffer, 'id' | 'createdAt' | 'updatedAt'>): Promise<InstallmentOffer> {
+      try {
+          const offers = await this.getInstallmentOffers();
+          const now = new Date().toISOString();
+          const newOffer: InstallmentOffer = {
+              ...data,
+              id: `IO-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              createdAt: now,
+              updatedAt: now
+          };
+          
+          offers.push(newOffer);
+          localStorage.setItem(STORAGE_KEYS.INSTALLMENT_OFFERS, JSON.stringify(offers));
+          
+          internalRecordActivity({
+              userId: 'admin',
+              userName: data.sourceType === 'sinicar' ? 'صيني كار' : (data.supplierName || 'مورد'),
+              eventType: 'OTHER',
+              description: `تم إنشاء عرض ${data.type === 'full' ? 'كامل' : 'جزئي'} للطلب ${data.requestId}`,
+              metadata: { action: 'create_installment_offer', offerId: newOffer.id, requestId: data.requestId }
+          });
+          
+          return newOffer;
+      } catch (error) {
+          console.error('Error creating installment offer:', error);
+          throw error;
+      }
+  },
+
+  async updateInstallmentOffer(id: string, data: Partial<InstallmentOffer>): Promise<InstallmentOffer | null> {
+      try {
+          const offers = await this.getInstallmentOffers();
+          const index = offers.findIndex(o => o.id === id);
+          if (index === -1) return null;
+          
+          offers[index] = {
+              ...offers[index],
+              ...data,
+              updatedAt: new Date().toISOString()
+          };
+          
+          localStorage.setItem(STORAGE_KEYS.INSTALLMENT_OFFERS, JSON.stringify(offers));
+          return offers[index];
+      } catch (error) {
+          console.error('Error updating installment offer:', error);
+          return null;
+      }
+  },
+
+  // --- Customer Credit Profiles ---
+  async getCustomerCreditProfiles(): Promise<CustomerCreditProfile[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMER_CREDIT_PROFILES);
+          return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+          console.error('Error getting customer credit profiles:', error);
+          return [];
+      }
+  },
+
+  async getCustomerCreditProfile(customerId: string): Promise<CustomerCreditProfile | null> {
+      const profiles = await this.getCustomerCreditProfiles();
+      return profiles.find(p => p.customerId === customerId) || null;
+  },
+
+  async upsertCustomerCreditProfile(profile: Partial<CustomerCreditProfile> & { customerId: string }): Promise<CustomerCreditProfile> {
+      try {
+          const profiles = await this.getCustomerCreditProfiles();
+          const index = profiles.findIndex(p => p.customerId === profile.customerId);
+          
+          const now = new Date().toISOString();
+          const fullProfile: CustomerCreditProfile = {
+              customerId: profile.customerId,
+              customerName: profile.customerName,
+              scoreLevel: profile.scoreLevel || 'medium',
+              totalInstallmentRequests: profile.totalInstallmentRequests || 0,
+              totalActiveContracts: profile.totalActiveContracts || 0,
+              totalOverdueInstallments: profile.totalOverdueInstallments || 0,
+              totalPaidAmount: profile.totalPaidAmount || 0,
+              totalRemainingAmount: profile.totalRemainingAmount || 0,
+              paymentHistoryScore: profile.paymentHistoryScore,
+              notes: profile.notes,
+              lastUpdated: now
+          };
+          
+          if (index === -1) {
+              profiles.push(fullProfile);
+          } else {
+              profiles[index] = { ...profiles[index], ...fullProfile, lastUpdated: now };
+          }
+          
+          localStorage.setItem(STORAGE_KEYS.CUSTOMER_CREDIT_PROFILES, JSON.stringify(profiles));
+          return index === -1 ? fullProfile : profiles[index];
+      } catch (error) {
+          console.error('Error upserting customer credit profile:', error);
+          throw error;
+      }
+  },
+
+  // --- Business Logic Functions ---
+
+  // Generate Payment Schedule
+  generatePaymentSchedule(
+      totalAmount: number,
+      frequency: PaymentFrequency,
+      numberOfInstallments: number,
+      startDate?: string
+  ): InstallmentPaymentSchedule {
+      const start = startDate ? new Date(startDate) : new Date();
+      start.setDate(start.getDate() + 7); // Start one week after approval
+      
+      const installmentAmount = Math.ceil(totalAmount / numberOfInstallments);
+      const installments: InstallmentPaymentInstallment[] = [];
+      
+      for (let i = 0; i < numberOfInstallments; i++) {
+          const dueDate = new Date(start);
+          if (frequency === 'monthly') {
+              dueDate.setMonth(dueDate.getMonth() + i);
+          } else {
+              dueDate.setDate(dueDate.getDate() + (i * 7));
+          }
+          
+          installments.push({
+              id: `INS-${Date.now()}-${i}`,
+              dueDate: dueDate.toISOString(),
+              amount: i === numberOfInstallments - 1 
+                  ? totalAmount - (installmentAmount * (numberOfInstallments - 1)) // Last installment adjusts for rounding
+                  : installmentAmount,
+              status: 'pending'
+          });
+      }
+      
+      return {
+          frequency,
+          numberOfInstallments,
+          installmentAmount,
+          startDate: installments[0]?.dueDate || start.toISOString(),
+          endDate: installments[installments.length - 1]?.dueDate || start.toISOString(),
+          installments
+      };
+  },
+
+  // Record SINI CAR Decision
+  async recordSinicarDecision(requestId: string, payload: SinicarDecisionPayload): Promise<{ request: InstallmentRequest; offer?: InstallmentOffer }> {
+      const settings = await this.getInstallmentSettings();
+      const request = await this.getInstallmentRequestById(requestId);
+      
+      if (!request) {
+          throw new Error('طلب التقسيط غير موجود');
+      }
+      
+      const now = new Date().toISOString();
+      let updatedRequest: InstallmentRequest = { ...request };
+      let createdOffer: InstallmentOffer | undefined;
+      
+      if (payload.decisionType === 'approve_full') {
+          // Full approval by SINI CAR
+          const schedule = this.generatePaymentSchedule(
+              payload.offer?.totalApprovedValue || request.totalRequestedValue || 0,
+              request.paymentFrequency,
+              request.requestedDurationMonths || 3
+          );
+          
+          createdOffer = await this.createInstallmentOffer({
+              requestId,
+              sourceType: 'sinicar',
+              type: 'full',
+              itemsApproved: payload.offer?.itemsApproved || request.items.map(item => ({
+                  id: `OI-${Date.now()}-${Math.random()}`,
+                  offerId: '',
+                  requestItemId: item.id,
+                  productId: item.productId,
+                  productName: item.productName,
+                  quantityApproved: item.quantityRequested,
+                  unitPriceApproved: item.unitPriceRequested || 0
+              })),
+              totalApprovedValue: payload.offer?.totalApprovedValue || request.totalRequestedValue || 0,
+              schedule,
+              status: 'WAITING_FOR_CUSTOMER',
+              adminNotes: payload.adminNotes
+          });
+          
+          updatedRequest.sinicarDecision = 'approved_full';
+          updatedRequest.status = 'WAITING_FOR_CUSTOMER_DECISION_ON_PARTIAL_SINICAR';
+          updatedRequest.reviewedAt = now;
+          updatedRequest.adminNotes = payload.adminNotes;
+          
+      } else if (payload.decisionType === 'approve_partial') {
+          // Partial approval by SINI CAR
+          if (!settings.allowPartialApprovalBySinicar) {
+              throw new Error('الموافقة الجزئية غير مسموحة في الإعدادات');
+          }
+          
+          const schedule = this.generatePaymentSchedule(
+              payload.offer?.totalApprovedValue || 0,
+              request.paymentFrequency,
+              request.requestedDurationMonths || 3
+          );
+          
+          createdOffer = await this.createInstallmentOffer({
+              requestId,
+              sourceType: 'sinicar',
+              type: 'partial',
+              itemsApproved: payload.offer?.itemsApproved || [],
+              totalApprovedValue: payload.offer?.totalApprovedValue || 0,
+              schedule,
+              status: 'WAITING_FOR_CUSTOMER',
+              adminNotes: payload.adminNotes
+          });
+          
+          updatedRequest.sinicarDecision = 'approved_partial';
+          updatedRequest.status = 'WAITING_FOR_CUSTOMER_DECISION_ON_PARTIAL_SINICAR';
+          updatedRequest.reviewedAt = now;
+          updatedRequest.adminNotes = payload.adminNotes;
+          
+      } else if (payload.decisionType === 'reject') {
+          // Rejection by SINI CAR
+          updatedRequest.sinicarDecision = 'rejected';
+          updatedRequest.reviewedAt = now;
+          updatedRequest.adminNotes = payload.adminNotes;
+          
+          if (settings.autoForwardToSuppliersOnSinicarReject && payload.forwardToSuppliers !== false) {
+              updatedRequest.status = 'FORWARDED_TO_SUPPLIERS';
+              updatedRequest.allowedForSuppliers = true;
+              updatedRequest.forwardedToSupplierIds = payload.supplierIds || [];
+          } else {
+              updatedRequest.status = 'REJECTED_BY_SINICAR';
+          }
+      }
+      
+      await this.updateInstallmentRequest(requestId, updatedRequest);
+      
+      internalRecordActivity({
+          userId: 'admin',
+          userName: 'صيني كار',
+          eventType: 'OTHER',
+          description: `قرار صيني كار على طلب التقسيط ${requestId}: ${payload.decisionType}`,
+          metadata: { action: 'sinicar_decision', requestId, decision: payload.decisionType }
+      });
+      
+      return { request: updatedRequest, offer: createdOffer };
+  },
+
+  // Forward Request to Suppliers
+  async forwardRequestToSuppliers(requestId: string, supplierIds: string[]): Promise<InstallmentRequest | null> {
+      const request = await this.getInstallmentRequestById(requestId);
+      if (!request) return null;
+      
+      // Only allow forwarding after SINI CAR decision
+      if (request.sinicarDecision === 'pending') {
+          throw new Error('يجب انتظار قرار صيني كار أولاً');
+      }
+      
+      const updated = await this.updateInstallmentRequest(requestId, {
+          status: 'FORWARDED_TO_SUPPLIERS',
+          allowedForSuppliers: true,
+          forwardedToSupplierIds: supplierIds
+      });
+      
+      internalRecordActivity({
+          userId: 'admin',
+          userName: 'المدير',
+          eventType: 'OTHER',
+          description: `تم تحويل طلب التقسيط ${requestId} إلى ${supplierIds.length} موردين`,
+          metadata: { action: 'forward_to_suppliers', requestId, supplierIds }
+      });
+      
+      return updated;
+  },
+
+  // Supplier Submit Offer
+  async supplierSubmitOffer(
+      requestId: string,
+      supplierId: string,
+      supplierName: string,
+      offerData: {
+          type: 'full' | 'partial';
+          itemsApproved: InstallmentOffer['itemsApproved'];
+          totalApprovedValue: number;
+          frequency: PaymentFrequency;
+          numberOfInstallments: number;
+          notes?: string;
+      }
+  ): Promise<InstallmentOffer> {
+      const settings = await this.getInstallmentSettings();
+      const request = await this.getInstallmentRequestById(requestId);
+      
+      if (!request) {
+          throw new Error('طلب التقسيط غير موجود');
+      }
+      
+      if (!request.allowedForSuppliers) {
+          throw new Error('هذا الطلب غير متاح للموردين');
+      }
+      
+      if (offerData.type === 'partial' && !settings.allowPartialApprovalBySuppliers) {
+          throw new Error('العروض الجزئية غير مسموحة للموردين');
+      }
+      
+      const schedule = this.generatePaymentSchedule(
+          offerData.totalApprovedValue,
+          offerData.frequency,
+          offerData.numberOfInstallments
+      );
+      
+      const offer = await this.createInstallmentOffer({
+          requestId,
+          sourceType: 'supplier',
+          supplierId,
+          supplierName,
+          type: offerData.type,
+          itemsApproved: offerData.itemsApproved,
+          totalApprovedValue: offerData.totalApprovedValue,
+          schedule,
+          status: 'WAITING_FOR_CUSTOMER',
+          notes: offerData.notes
+      });
+      
+      // Update request status
+      await this.updateInstallmentRequest(requestId, {
+          status: 'WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER'
+      });
+      
+      return offer;
+  },
+
+  // Customer Respond to Offer
+  async customerRespondToOffer(offerId: string, decision: 'accept' | 'reject'): Promise<{ offer: InstallmentOffer; request: InstallmentRequest }> {
+      const settings = await this.getInstallmentSettings();
+      const offer = await this.getInstallmentOfferById(offerId);
+      
+      if (!offer) {
+          throw new Error('العرض غير موجود');
+      }
+      
+      const request = await this.getInstallmentRequestById(offer.requestId);
+      if (!request) {
+          throw new Error('طلب التقسيط غير موجود');
+      }
+      
+      if (decision === 'accept') {
+          // Accept the offer
+          await this.updateInstallmentOffer(offerId, {
+              status: 'ACCEPTED_BY_CUSTOMER'
+          });
+          
+          await this.updateInstallmentRequest(offer.requestId, {
+              status: 'ACTIVE_CONTRACT',
+              acceptedOfferId: offerId
+          });
+          
+          // Update credit profile
+          const profile = await this.getCustomerCreditProfile(request.customerId);
+          await this.upsertCustomerCreditProfile({
+              customerId: request.customerId,
+              customerName: request.customerName,
+              totalInstallmentRequests: (profile?.totalInstallmentRequests || 0) + 1,
+              totalActiveContracts: (profile?.totalActiveContracts || 0) + 1,
+              totalRemainingAmount: (profile?.totalRemainingAmount || 0) + offer.totalApprovedValue,
+              scoreLevel: profile?.scoreLevel || 'medium'
+          });
+          
+          internalRecordActivity({
+              userId: request.customerId,
+              userName: request.customerName || 'عميل',
+              eventType: 'OTHER',
+              description: `قبل العميل عرض التقسيط من ${offer.sourceType === 'sinicar' ? 'صيني كار' : offer.supplierName}`,
+              metadata: { action: 'customer_accept_offer', offerId, requestId: offer.requestId }
+          });
+          
+          return {
+              offer: { ...offer, status: 'ACCEPTED_BY_CUSTOMER' },
+              request: { ...request, status: 'ACTIVE_CONTRACT', acceptedOfferId: offerId }
+          };
+          
+      } else {
+          // Reject the offer
+          await this.updateInstallmentOffer(offerId, {
+              status: 'REJECTED_BY_CUSTOMER'
+          });
+          
+          let newStatus: InstallmentRequestStatus = request.status;
+          
+          if (offer.sourceType === 'sinicar') {
+              // Customer rejected SINI CAR offer
+              if (settings.onCustomerRejectsSinicarPartial === 'forward_to_suppliers') {
+                  newStatus = 'FORWARDED_TO_SUPPLIERS';
+                  await this.updateInstallmentRequest(offer.requestId, {
+                      status: newStatus,
+                      allowedForSuppliers: true
+                  });
+              } else {
+                  newStatus = 'CLOSED';
+                  await this.updateInstallmentRequest(offer.requestId, {
+                      status: newStatus,
+                      closedAt: new Date().toISOString(),
+                      closedReason: 'رفض العميل عرض صيني كار'
+                  });
+              }
+          } else {
+              // Customer rejected supplier offer
+              if (settings.onCustomerRejectsSupplierOffer === 'keep_waiting_for_other_suppliers') {
+                  // Check if there are other pending offers
+                  const allOffers = await this.getOffersByRequestId(offer.requestId);
+                  const pendingOffers = allOffers.filter(o => o.id !== offerId && o.status === 'WAITING_FOR_CUSTOMER');
+                  
+                  if (pendingOffers.length > 0) {
+                      newStatus = 'WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER';
+                  } else {
+                      newStatus = 'WAITING_FOR_SUPPLIER_OFFERS';
+                  }
+              } else {
+                  newStatus = 'CLOSED';
+                  await this.updateInstallmentRequest(offer.requestId, {
+                      status: newStatus,
+                      closedAt: new Date().toISOString(),
+                      closedReason: 'رفض العميل عرض المورد'
+                  });
+              }
+          }
+          
+          internalRecordActivity({
+              userId: request.customerId,
+              userName: request.customerName || 'عميل',
+              eventType: 'OTHER',
+              description: `رفض العميل عرض التقسيط من ${offer.sourceType === 'sinicar' ? 'صيني كار' : offer.supplierName}`,
+              metadata: { action: 'customer_reject_offer', offerId, requestId: offer.requestId }
+          });
+          
+          const updatedRequest = await this.getInstallmentRequestById(offer.requestId);
+          return {
+              offer: { ...offer, status: 'REJECTED_BY_CUSTOMER' },
+              request: updatedRequest || request
+          };
+      }
+  },
+
+  // Mark Installment as Paid
+  async markInstallmentAsPaid(offerId: string, installmentId: string, paymentDetails?: { method?: string; reference?: string }): Promise<InstallmentOffer | null> {
+      const offer = await this.getInstallmentOfferById(offerId);
+      if (!offer) return null;
+      
+      const installmentIndex = offer.schedule.installments.findIndex(i => i.id === installmentId);
+      if (installmentIndex === -1) return null;
+      
+      offer.schedule.installments[installmentIndex] = {
+          ...offer.schedule.installments[installmentIndex],
+          status: 'paid',
+          paidAt: new Date().toISOString(),
+          paymentMethod: paymentDetails?.method,
+          paymentReference: paymentDetails?.reference
+      };
+      
+      const updated = await this.updateInstallmentOffer(offerId, {
+          schedule: offer.schedule
+      });
+      
+      // Update credit profile
+      const request = await this.getInstallmentRequestById(offer.requestId);
+      if (request) {
+          const profile = await this.getCustomerCreditProfile(request.customerId);
+          const paidAmount = offer.schedule.installments[installmentIndex].amount;
+          await this.upsertCustomerCreditProfile({
+              customerId: request.customerId,
+              totalPaidAmount: (profile?.totalPaidAmount || 0) + paidAmount,
+              totalRemainingAmount: Math.max(0, (profile?.totalRemainingAmount || 0) - paidAmount),
+              scoreLevel: profile?.scoreLevel || 'medium'
+          });
+      }
+      
+      return updated;
+  },
+
+  // Get Installment Statistics
+  async getInstallmentStats(): Promise<InstallmentStats> {
+      const requests = await this.getInstallmentRequests();
+      const offers = await this.getInstallmentOffers();
+      
+      const activeContracts = requests.filter(r => r.status === 'ACTIVE_CONTRACT');
+      const closedContracts = requests.filter(r => r.status === 'CLOSED');
+      
+      let totalPaidAmount = 0;
+      let totalOverdueAmount = 0;
+      
+      for (const offer of offers) {
+          if (offer.status === 'ACCEPTED_BY_CUSTOMER') {
+              for (const inst of offer.schedule.installments) {
+                  if (inst.status === 'paid') {
+                      totalPaidAmount += inst.amount;
+                  } else if (inst.status === 'overdue') {
+                      totalOverdueAmount += inst.amount;
+                  }
+              }
+          }
+      }
+      
+      const approvedOffers = offers.filter(o => o.status === 'ACCEPTED_BY_CUSTOMER').length;
+      const totalOffers = offers.length;
+      
+      // Group by status
+      const statusCounts: { [key: string]: number } = {};
+      for (const request of requests) {
+          statusCounts[request.status] = (statusCounts[request.status] || 0) + 1;
+      }
+      
+      // Group by month
+      const monthCounts: { [key: string]: { count: number; value: number } } = {};
+      for (const request of requests) {
+          const month = request.createdAt.substring(0, 7);
+          if (!monthCounts[month]) {
+              monthCounts[month] = { count: 0, value: 0 };
+          }
+          monthCounts[month].count++;
+          monthCounts[month].value += request.totalRequestedValue || 0;
+      }
+      
+      return {
+          totalRequests: requests.length,
+          pendingRequests: requests.filter(r => r.status === 'PENDING_SINICAR_REVIEW').length,
+          activeContracts: activeContracts.length,
+          closedContracts: closedContracts.length,
+          totalRequestedValue: requests.reduce((sum, r) => sum + (r.totalRequestedValue || 0), 0),
+          totalApprovedValue: offers
+              .filter(o => o.status === 'ACCEPTED_BY_CUSTOMER')
+              .reduce((sum, o) => sum + o.totalApprovedValue, 0),
+          totalPaidAmount,
+          totalOverdueAmount,
+          avgApprovalRate: totalOffers > 0 ? (approvedOffers / totalOffers) * 100 : 0,
+          avgProcessingDays: 3, // Placeholder
+          byStatus: Object.entries(statusCounts).map(([status, count]) => ({
+              status: status as InstallmentRequestStatus,
+              count
+          })),
+          byMonth: Object.entries(monthCounts)
+              .sort((a, b) => a[0].localeCompare(b[0]))
+              .map(([month, data]) => ({
+                  month,
+                  count: data.count,
+                  value: data.value
+              }))
+      };
+  },
+
+  // Get requests forwarded to a specific supplier
+  async getInstallmentRequestsForSupplier(supplierId: string): Promise<InstallmentRequest[]> {
+      const requests = await this.getInstallmentRequests();
+      return requests.filter(r => 
+          r.allowedForSuppliers && 
+          (r.forwardedToSupplierIds?.includes(supplierId) || r.forwardedToSupplierIds?.length === 0)
+      );
+  },
+
+  // Close/Cancel Request
+  async closeInstallmentRequest(requestId: string, reason: string): Promise<InstallmentRequest | null> {
+      return await this.updateInstallmentRequest(requestId, {
+          status: 'CLOSED',
+          closedAt: new Date().toISOString(),
+          closedReason: reason
+      });
+  },
+
+  // Cancel Request by Customer
+  async cancelInstallmentRequest(requestId: string): Promise<InstallmentRequest | null> {
+      const request = await this.getInstallmentRequestById(requestId);
+      if (!request) return null;
+      
+      // Can only cancel if not yet active
+      if (request.status === 'ACTIVE_CONTRACT') {
+          throw new Error('لا يمكن إلغاء عقد نشط');
+      }
+      
+      return await this.updateInstallmentRequest(requestId, {
+          status: 'CANCELLED',
+          closedAt: new Date().toISOString(),
+          closedReason: 'تم الإلغاء بواسطة العميل'
+      });
   }
 };
