@@ -3338,7 +3338,7 @@ export const MockApi = {
               quoteRequests: await this.getQuoteRequests(),
               accountRequests: await this.getAccountRequests(),
               notifications: JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]'),
-              activityLogs: JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOG) || '[]')
+              activityLogs: JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOGS) || '[]')
           }
       };
   },
@@ -3353,10 +3353,10 @@ export const MockApi = {
       // إعادة تهيئة البيانات الافتراضية
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]));
-      localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.QUOTE_REQUESTS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.ACCOUNT_REQUESTS, JSON.stringify([]));
-      localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOG, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOGS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify([]));
       
       // تسجيل النشاط
