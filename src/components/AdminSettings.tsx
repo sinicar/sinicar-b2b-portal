@@ -2347,6 +2347,7 @@ const NotificationManagement: React.FC<{t: (key: string, fallback?: string) => s
           style: { bgColor: '#ef4444', textColor: '#ffffff', borderColor: '#dc2626' } },
     ]);
     const [editingNotification, setEditingNotification] = useState<string | null>(null);
+    const [previewNotification, setPreviewNotification] = useState<NotificationTemplate | null>(null);
 
     const notificationTypes = [
         { value: 'success', label: t('adminSettings.notifSuccess', 'نجاح'), icon: <CheckCircle2 size={16} className="text-green-500" /> },

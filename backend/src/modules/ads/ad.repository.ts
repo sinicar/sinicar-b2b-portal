@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma';
-import { Prisma, AdvertiserStatus, CampaignStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { AdvertiserStatus, CampaignStatus } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
 
 export interface AdvertiserFilters {

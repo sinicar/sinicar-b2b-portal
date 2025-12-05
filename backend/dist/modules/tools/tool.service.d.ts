@@ -1,0 +1,385 @@
+import { MarketerFilters } from './tool.repository';
+import { PaginationParams } from '../../utils/pagination';
+import { ToolConfigInput, UpdateToolConfigInput, CustomerToolsOverrideInput, PriceComparisonInput, VinExtractionInput, SupplierPriceUploadInput, CreateMarketerInput, UpdateMarketerInput } from '../../schemas/tools.schema';
+export declare class ToolService {
+    getToolConfigs(): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        toolKey: string;
+        displayName: string;
+        isEnabled: boolean;
+        dailyLimit: number | null;
+        monthlyLimit: number | null;
+        requiredPriceLevel: string | null;
+        allowedCustomerTypes: string | null;
+    }[]>;
+    getToolConfig(toolKey: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        toolKey: string;
+        displayName: string;
+        isEnabled: boolean;
+        dailyLimit: number | null;
+        monthlyLimit: number | null;
+        requiredPriceLevel: string | null;
+        allowedCustomerTypes: string | null;
+    }>;
+    createToolConfig(input: ToolConfigInput): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        toolKey: string;
+        displayName: string;
+        isEnabled: boolean;
+        dailyLimit: number | null;
+        monthlyLimit: number | null;
+        requiredPriceLevel: string | null;
+        allowedCustomerTypes: string | null;
+    }>;
+    updateToolConfig(toolKey: string, input: UpdateToolConfigInput): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        toolKey: string;
+        displayName: string;
+        isEnabled: boolean;
+        dailyLimit: number | null;
+        monthlyLimit: number | null;
+        requiredPriceLevel: string | null;
+        allowedCustomerTypes: string | null;
+    }>;
+    deleteToolConfig(toolKey: string): Promise<{
+        message: string;
+    }>;
+    getCustomerToolOverrides(customerId: string): Promise<{
+        overrides: any;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        customerId: string;
+    } | null>;
+    setCustomerToolOverrides(input: CustomerToolsOverrideInput): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        customerId: string;
+        overrides: string;
+    }>;
+    canUseTool(customerId: string, toolKey: string): Promise<{
+        allowed: boolean;
+        reason?: string;
+    }>;
+    recordToolUsage(customerId: string, toolKey: string, metadata?: object): Promise<{
+        id: string;
+        metadata: string | null;
+        customerId: string;
+        toolKey: string;
+        usageDate: Date;
+    }>;
+    comparePrices(customerId: string, input: PriceComparisonInput): Promise<{
+        id: string;
+        createdAt: Date;
+        customerId: string;
+        supplierIds: string | null;
+        partNumbers: string;
+        results: string | null;
+    }>;
+    extractVin(customerId: string, input: VinExtractionInput): Promise<{
+        id: string;
+        createdAt: Date;
+        customerId: string;
+        vinNumber: string;
+        extractedData: string;
+    }>;
+    uploadSupplierPrices(customerId: string, input: SupplierPriceUploadInput): Promise<{
+        id: string;
+        createdAt: Date;
+        data: string;
+        fileName: string | null;
+        customerId: string;
+        supplierName: string | null;
+    }>;
+    listMarketers(filters: MarketerFilters, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        _count: {
+            referrals: number;
+            commissions: number;
+        };
+    } & {
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>>;
+    getMarketerById(id: string): Promise<{
+        referrals: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            customerId: string;
+            customerName: string | null;
+            convertedAt: Date | null;
+            marketerId: string;
+        }[];
+        commissions: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            orderId: string;
+            customerId: string;
+            customerName: string | null;
+            commissionRate: number;
+            approvedAt: Date | null;
+            marketerId: string;
+            orderAmount: number;
+            commissionAmount: number;
+            paidAt: Date | null;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>;
+    getMarketerByReferralCode(referralCode: string): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>;
+    createMarketer(input: CreateMarketerInput): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>;
+    updateMarketer(id: string, input: UpdateMarketerInput): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>;
+    approveMarketer(id: string): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>;
+    suspendMarketer(id: string): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        paymentMethod: string | null;
+        bankDetails: string | null;
+        commissionRate: number;
+        referralCode: string;
+        referralUrl: string | null;
+        referralCount: number;
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        approvedAt: Date | null;
+    }>;
+    deleteMarketer(id: string): Promise<{
+        message: string;
+    }>;
+    createReferral(referralCode: string, customerId: string, customerName?: string): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        customerId: string;
+        customerName: string | null;
+        convertedAt: Date | null;
+        marketerId: string;
+    }>;
+    recordCommission(marketerId: string, orderId: string, customerId: string, customerName: string, orderAmount: number): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        orderId: string;
+        customerId: string;
+        customerName: string | null;
+        commissionRate: number;
+        approvedAt: Date | null;
+        marketerId: string;
+        orderAmount: number;
+        commissionAmount: number;
+        paidAt: Date | null;
+    }>;
+    approveCommission(commissionId: string): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        orderId: string;
+        customerId: string;
+        customerName: string | null;
+        commissionRate: number;
+        approvedAt: Date | null;
+        marketerId: string;
+        orderAmount: number;
+        commissionAmount: number;
+        paidAt: Date | null;
+    }>;
+    payCommission(commissionId: string): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        orderId: string;
+        customerId: string;
+        customerName: string | null;
+        commissionRate: number;
+        approvedAt: Date | null;
+        marketerId: string;
+        orderAmount: number;
+        commissionAmount: number;
+        paidAt: Date | null;
+    } | null>;
+    getMarketerSettings(): Promise<{
+        id: string;
+        key: string;
+        enableMarketing: boolean;
+        defaultCommissionRate: number;
+        minPayoutAmount: number;
+        payoutFrequency: string;
+    } | null>;
+    updateMarketerSettings(data: any): Promise<{
+        id: string;
+        key: string;
+        enableMarketing: boolean;
+        defaultCommissionRate: number;
+        minPayoutAmount: number;
+        payoutFrequency: string;
+    }>;
+    getMarketerStats(marketerId?: string): Promise<{
+        totalMarketers: number;
+        activeMarketers: number;
+        pendingMarketers: number;
+        totalReferrals: number;
+        totalCommissions: number;
+        totalPaid: number;
+    } | {
+        totalEarnings: number;
+        pendingPayouts: number;
+        paidAmount: number;
+        referralCount: number;
+        referrals: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            customerId: string;
+            customerName: string | null;
+            convertedAt: Date | null;
+            marketerId: string;
+        }[];
+        commissions: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            orderId: string;
+            customerId: string;
+            customerName: string | null;
+            commissionRate: number;
+            approvedAt: Date | null;
+            marketerId: string;
+            orderAmount: number;
+            commissionAmount: number;
+            paidAt: Date | null;
+        }[];
+    }>;
+}
+export declare const toolService: ToolService;
+//# sourceMappingURL=tool.service.d.ts.map

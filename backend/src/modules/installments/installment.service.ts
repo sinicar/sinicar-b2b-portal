@@ -8,7 +8,7 @@ import {
   CreateOfferInput,
   OfferResponseInput
 } from '../../schemas/installment.schema';
-import { InstallmentStatus, SinicarDecision } from '@prisma/client';
+import { InstallmentStatus, SinicarDecision, PaymentFrequency } from '../../types/enums';
 
 export class InstallmentService {
   async list(filters: InstallmentFilters, pagination: PaginationParams) {
@@ -103,7 +103,7 @@ export class InstallmentService {
     const schedule = input.schedule || this.generatePaymentSchedule(
       input.totalApprovedValue,
       request.requestedDurationMonths,
-      request.paymentFrequency
+      request.paymentFrequency as PaymentFrequency
     );
 
     return installmentRepository.createOffer(requestId, {

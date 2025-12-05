@@ -9,7 +9,7 @@ import {
   UpdateMemberInput,
   CreateInvitationInput
 } from '../../schemas/organization.schema';
-import { OrganizationType, OrgUserRole } from '@prisma/client';
+import { OrganizationType, OrgUserRole } from '../../types/enums';
 
 export class OrganizationService {
   async list(filters: { type?: OrganizationType; status?: any; search?: string }, pagination: PaginationParams) {
@@ -225,7 +225,7 @@ export class OrganizationService {
     await organizationRepository.addMember({
       organizationId: invitation.organizationId,
       userId,
-      role: invitation.role,
+      role: invitation.role as OrgUserRole,
       invitedBy: invitation.createdBy
     });
 
@@ -265,7 +265,7 @@ export class OrganizationService {
       throw new ForbiddenError('أنت لست عضواً في هذه المنظمة');
     }
 
-    if (!allowedRoles.includes(member.role)) {
+    if (!allowedRoles.includes(member.role as OrgUserRole)) {
       throw new ForbiddenError('لا تملك الصلاحية لهذا الإجراء');
     }
 

@@ -1120,9 +1120,13 @@ export interface NotificationTemplate {
   id: string;
   key: string;
   name: string;
+  nameEn?: string;
   category: NotificationCategory;
   channel: NotificationChannel;
+  channels?: NotificationChannel[];
+  type?: string;
   isActive: boolean;
+  enabled?: boolean;
   
   // Localized content
   content: {
@@ -1132,8 +1136,20 @@ export interface NotificationTemplate {
     zh: { title: string; message: string };
   };
   
+  // Legacy message format for backward compatibility
+  message?: {
+    ar: string;
+    en: string;
+    hi: string;
+    zh: string;
+  };
+  
   // Styling
-  style: NotificationStyle;
+  style: NotificationStyle | {
+    bgColor?: string;
+    textColor?: string;
+    borderColor?: string;
+  };
   
   // Metadata
   isSystem?: boolean;
@@ -1254,6 +1270,27 @@ export interface DocumentTemplate {
   
   // Sections
   sections: TemplateSection[];
+  
+  // Simple columns array for quick access
+  columns?: string[];
+  
+  // Simplified color config for template designer
+  colors?: {
+    primary: string;
+    secondary: string;
+    text: string;
+    border: string;
+  };
+  
+  // Simplified font config for template designer  
+  fonts?: {
+    heading: string;
+    body: string;
+    size: {
+      heading: number;
+      body: number;
+    };
+  };
   
   // Watermark
   watermark?: {

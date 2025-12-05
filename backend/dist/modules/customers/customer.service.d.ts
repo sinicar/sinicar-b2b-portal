@@ -1,0 +1,1225 @@
+import { CustomerFilters } from './customer.repository';
+import { PaginationParams } from '../../utils/pagination';
+import { CreateCustomerInput, UpdateCustomerInput } from '../../schemas/customer.schema';
+export declare class CustomerService {
+    list(filters: CustomerFilters, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>>;
+    getById(id: string): Promise<{
+        children: {
+            id: string;
+            clientId: string;
+            name: string;
+            employeeRole: string | null;
+            isActive: boolean;
+        }[];
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        orders: ({
+            items: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                orderId: string;
+                productId: string | null;
+                partNumber: string;
+                quantity: number;
+                unitPrice: number;
+                totalPrice: number;
+            }[];
+        } & {
+            id: string;
+            status: string;
+            businessId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            internalNotes: string | null;
+            branchId: string | null;
+            internalStatus: string;
+            totalAmount: number;
+            cancelledBy: string | null;
+            cancelledAt: Date | null;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    getByClientId(clientId: string): Promise<{
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    create(input: CreateCustomerInput): Promise<{
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    update(id: string, input: UpdateCustomerInput): Promise<({
+        children: {
+            id: string;
+            clientId: string;
+            name: string;
+            employeeRole: string | null;
+            isActive: boolean;
+        }[];
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        orders: ({
+            items: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                orderId: string;
+                productId: string | null;
+                partNumber: string;
+                quantity: number;
+                unitPrice: number;
+                totalPrice: number;
+            }[];
+        } & {
+            id: string;
+            status: string;
+            businessId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            internalNotes: string | null;
+            branchId: string | null;
+            internalStatus: string;
+            totalAmount: number;
+            cancelledBy: string | null;
+            cancelledAt: Date | null;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }) | null>;
+    delete(id: string): Promise<{
+        message: string;
+    }>;
+    softDelete(id: string): Promise<{
+        message: string;
+    }>;
+    approve(id: string, priceLevel?: string, searchPoints?: number): Promise<({
+        children: {
+            id: string;
+            clientId: string;
+            name: string;
+            employeeRole: string | null;
+            isActive: boolean;
+        }[];
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        orders: ({
+            items: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                orderId: string;
+                productId: string | null;
+                partNumber: string;
+                quantity: number;
+                unitPrice: number;
+                totalPrice: number;
+            }[];
+        } & {
+            id: string;
+            status: string;
+            businessId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            internalNotes: string | null;
+            branchId: string | null;
+            internalStatus: string;
+            totalAmount: number;
+            cancelledBy: string | null;
+            cancelledAt: Date | null;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }) | null>;
+    suspend(id: string, until?: Date, reason?: string): Promise<({
+        children: {
+            id: string;
+            clientId: string;
+            name: string;
+            employeeRole: string | null;
+            isActive: boolean;
+        }[];
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        orders: ({
+            items: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                orderId: string;
+                productId: string | null;
+                partNumber: string;
+                quantity: number;
+                unitPrice: number;
+                totalPrice: number;
+            }[];
+        } & {
+            id: string;
+            status: string;
+            businessId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            internalNotes: string | null;
+            branchId: string | null;
+            internalStatus: string;
+            totalAmount: number;
+            cancelledBy: string | null;
+            cancelledAt: Date | null;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }) | null>;
+    activate(id: string): Promise<({
+        children: {
+            id: string;
+            clientId: string;
+            name: string;
+            employeeRole: string | null;
+            isActive: boolean;
+        }[];
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        orders: ({
+            items: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                orderId: string;
+                productId: string | null;
+                partNumber: string;
+                quantity: number;
+                unitPrice: number;
+                totalPrice: number;
+            }[];
+        } & {
+            id: string;
+            status: string;
+            businessId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            internalNotes: string | null;
+            branchId: string | null;
+            internalStatus: string;
+            totalAmount: number;
+            cancelledBy: string | null;
+            cancelledAt: Date | null;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }) | null>;
+    addBranch(customerId: string, data: {
+        name: string;
+        city: string;
+        phone: string;
+        address?: string;
+        managerName?: string;
+        managerPhone?: string;
+        isMainBranch?: boolean;
+    }): Promise<{
+        id: string;
+        name: string;
+        phone: string | null;
+        createdAt: Date;
+        city: string;
+        address: string | null;
+        managerName: string | null;
+        managerPhone: string | null;
+        isMainBranch: boolean;
+        profileId: string;
+    }>;
+    updateBranch(branchId: string, data: {
+        name?: string;
+        city?: string;
+        phone?: string;
+        address?: string;
+        managerName?: string;
+        managerPhone?: string;
+    }): Promise<{
+        id: string;
+        name: string;
+        phone: string | null;
+        createdAt: Date;
+        city: string;
+        address: string | null;
+        managerName: string | null;
+        managerPhone: string | null;
+        isMainBranch: boolean;
+        profileId: string;
+    }>;
+    deleteBranch(branchId: string): Promise<{
+        message: string;
+    }>;
+    getStaff(customerId: string): Promise<({
+        profile: {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        } | null;
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    })[]>;
+    addStaff(customerId: string, data: {
+        name: string;
+        phone?: string;
+        email?: string;
+        password?: string;
+        employeeRole: 'MANAGER' | 'BUYER';
+    }): Promise<{
+        activationCode: string;
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    updateStaff(staffId: string, data: {
+        name?: string;
+        phone?: string;
+        email?: string;
+        employeeRole?: 'MANAGER' | 'BUYER';
+        isActive?: boolean;
+    }): Promise<{
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    deleteStaff(staffId: string): Promise<{
+        message: string;
+    }>;
+    updateSearchPoints(customerId: string, points: number, operation: 'add' | 'set' | 'use'): Promise<({
+        children: {
+            id: string;
+            clientId: string;
+            name: string;
+            employeeRole: string | null;
+            isActive: boolean;
+        }[];
+        profile: ({
+            branches: {
+                id: string;
+                name: string;
+                phone: string | null;
+                createdAt: Date;
+                city: string;
+                address: string | null;
+                managerName: string | null;
+                managerPhone: string | null;
+                isMainBranch: boolean;
+                profileId: string;
+            }[];
+            documents: {
+                id: string;
+                status: string;
+                createdAt: Date;
+                type: string;
+                profileId: string;
+                fileName: string;
+                fileUrl: string;
+            }[];
+        } & {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        }) | null;
+        organizationUsers: ({
+            organization: {
+                id: string;
+                name: string;
+                status: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: string;
+                ownerUserId: string;
+                maxEmployees: number;
+                allowCustomPermissions: boolean;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        orders: ({
+            items: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                orderId: string;
+                productId: string | null;
+                partNumber: string;
+                quantity: number;
+                unitPrice: number;
+                totalPrice: number;
+            }[];
+        } & {
+            id: string;
+            status: string;
+            businessId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            internalNotes: string | null;
+            branchId: string | null;
+            internalStatus: string;
+            totalAmount: number;
+            cancelledBy: string | null;
+            cancelledAt: Date | null;
+        })[];
+    } & {
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        role: string;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }) | null>;
+    getAccountOpeningRequests(pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        id: string;
+        email: string | null;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        companyName: string;
+        region: string | null;
+        city: string | null;
+        crNumber: string | null;
+        ownerName: string;
+        businessType: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+    }>>;
+    createAccountOpeningRequest(data: any): Promise<{
+        id: string;
+        email: string | null;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        companyName: string;
+        region: string | null;
+        city: string | null;
+        crNumber: string | null;
+        ownerName: string;
+        businessType: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+    }>;
+    reviewAccountOpeningRequest(id: string, decision: 'approve' | 'reject', reviewedBy: string, notes?: string): Promise<{
+        id: string;
+        email: string | null;
+        phone: string;
+        status: string;
+        createdAt: Date;
+        companyName: string;
+        region: string | null;
+        city: string | null;
+        crNumber: string | null;
+        ownerName: string;
+        businessType: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+    }>;
+}
+export declare const customerService: CustomerService;
+//# sourceMappingURL=customer.service.d.ts.map

@@ -1,0 +1,887 @@
+import { OrderFilters } from './order.repository';
+import { PaginationParams } from '../../utils/pagination';
+import { CreateOrderInput, UpdateOrderStatusInput, CreateQuoteRequestInput } from '../../schemas/order.schema';
+import { OrderInternalStatus } from '../../types/enums';
+export declare class OrderService {
+    list(filters: OrderFilters, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        user: {
+            id: string;
+            clientId: string;
+            name: string;
+            profile: {
+                companyName: string | null;
+            } | null;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        })[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }>>;
+    getById(id: string): Promise<{
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        })[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }>;
+    getByUser(userId: string, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        items: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        }[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }>>;
+    create(userId: string, input: CreateOrderInput, businessId?: string): Promise<{
+        items: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        }[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }>;
+    updateStatus(orderId: string, changedBy: string, input: UpdateOrderStatusInput): Promise<({
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        })[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }) | null>;
+    updateInternalStatus(orderId: string, internalStatus: OrderInternalStatus, notes?: string): Promise<({
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        })[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }) | null>;
+    cancel(orderId: string, cancelledBy: string, reason?: string): Promise<({
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            name: string;
+            createdAt: Date;
+            orderId: string;
+            productId: string | null;
+            partNumber: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+        })[];
+        statusHistory: {
+            id: string;
+            status: string;
+            changedAt: Date;
+            orderId: string;
+            changedBy: string;
+            note: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        businessId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        internalNotes: string | null;
+        branchId: string | null;
+        internalStatus: string;
+        totalAmount: number;
+        cancelledBy: string | null;
+        cancelledAt: Date | null;
+    }) | null>;
+    delete(orderId: string, userId: string): Promise<{
+        message: string;
+    }>;
+    getQuoteRequests(filters: {
+        userId?: string;
+        status?: any;
+    }, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        user: {
+            id: string;
+            clientId: string;
+            name: string;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            status: string;
+            productId: string | null;
+            partNumber: string;
+            quoteId: string;
+            partName: string | null;
+            requestedQty: number;
+            matchedPrice: number | null;
+            notes: string | null;
+        })[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        userName: string | null;
+        userId: string;
+        companyName: string | null;
+        priceType: string | null;
+        resultReady: boolean;
+        processedAt: Date | null;
+    }>>;
+    getQuoteById(id: string): Promise<{
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            status: string;
+            productId: string | null;
+            partNumber: string;
+            quoteId: string;
+            partName: string | null;
+            requestedQty: number;
+            matchedPrice: number | null;
+            notes: string | null;
+        })[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        userName: string | null;
+        userId: string;
+        companyName: string | null;
+        priceType: string | null;
+        resultReady: boolean;
+        processedAt: Date | null;
+    }>;
+    createQuoteRequest(userId: string, userName: string, companyName: string, input: CreateQuoteRequestInput): Promise<{
+        items: {
+            id: string;
+            status: string;
+            productId: string | null;
+            partNumber: string;
+            quoteId: string;
+            partName: string | null;
+            requestedQty: number;
+            matchedPrice: number | null;
+            notes: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        userName: string | null;
+        userId: string;
+        companyName: string | null;
+        priceType: string | null;
+        resultReady: boolean;
+        processedAt: Date | null;
+    }>;
+    processQuote(quoteId: string): Promise<({
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            status: string;
+            productId: string | null;
+            partNumber: string;
+            quoteId: string;
+            partName: string | null;
+            requestedQty: number;
+            matchedPrice: number | null;
+            notes: string | null;
+        })[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        userName: string | null;
+        userId: string;
+        companyName: string | null;
+        priceType: string | null;
+        resultReady: boolean;
+        processedAt: Date | null;
+    }) | null>;
+    updateQuoteStatus(quoteId: string, status: any): Promise<({
+        user: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                partNumber: string;
+                brand: string | null;
+                category: string | null;
+                imageUrl: string | null;
+                priceRetail: number;
+                priceWholesale: number;
+                priceVip: number;
+                stock: number;
+            } | null;
+        } & {
+            id: string;
+            status: string;
+            productId: string | null;
+            partNumber: string;
+            quoteId: string;
+            partName: string | null;
+            requestedQty: number;
+            matchedPrice: number | null;
+            notes: string | null;
+        })[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        userName: string | null;
+        userId: string;
+        companyName: string | null;
+        priceType: string | null;
+        resultReady: boolean;
+        processedAt: Date | null;
+    }) | null>;
+    searchProducts(search: string, limit?: number): Promise<{
+        id: string;
+        name: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        partNumber: string;
+        brand: string | null;
+        category: string | null;
+        imageUrl: string | null;
+        priceRetail: number;
+        priceWholesale: number;
+        priceVip: number;
+        stock: number;
+    }[]>;
+    getOrderStats(userId?: string): Promise<{
+        total: number;
+        pending: number;
+        approved: number;
+        shipped: number;
+        delivered: number;
+        cancelled: number;
+        totalAmount: number;
+    }>;
+}
+export declare const orderService: OrderService;
+//# sourceMappingURL=order.service.d.ts.map

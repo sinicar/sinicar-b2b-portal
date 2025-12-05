@@ -1,0 +1,391 @@
+import { Prisma } from '@prisma/client';
+import { InstallmentStatus, SinicarDecision, OfferSource, OfferType } from '../../types/enums';
+import { PaginationParams } from '../../utils/pagination';
+export interface InstallmentFilters {
+    status?: InstallmentStatus;
+    customerId?: string;
+    fromDate?: Date;
+    toDate?: Date;
+    minValue?: number;
+    maxValue?: number;
+}
+export declare class InstallmentRepository {
+    findMany(filters: InstallmentFilters, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        items: {
+            id: string;
+            partNumber: string;
+            quantity: number;
+            partName: string | null;
+            requestId: string;
+            estimatedPrice: number;
+        }[];
+        customer: {
+            id: string;
+            clientId: string;
+            name: string;
+            profile: {
+                companyName: string | null;
+            } | null;
+        };
+        offers: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            type: string;
+            createdBy: string | null;
+            notes: string | null;
+            requestId: string;
+            sourceType: string;
+            supplierId: string | null;
+            supplierName: string | null;
+            itemsApproved: string | null;
+            totalApprovedValue: number;
+            schedule: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }>>;
+    findById(id: string): Promise<({
+        items: {
+            id: string;
+            partNumber: string;
+            quantity: number;
+            partName: string | null;
+            requestId: string;
+            estimatedPrice: number;
+        }[];
+        customer: {
+            profile: {
+                id: string;
+                phone: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                companyName: string | null;
+                region: string | null;
+                city: string | null;
+                crNumber: string | null;
+                taxNumber: string | null;
+                nationalAddress: string | null;
+                customerType: string;
+                businessCustomerType: string | null;
+                assignedPriceLevel: string;
+                priceVisibility: string;
+                isApproved: boolean;
+                searchPointsTotal: number;
+                searchPointsRemaining: number;
+                suspendedUntil: Date | null;
+                internalNotes: string | null;
+            } | null;
+        } & {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        offers: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            type: string;
+            createdBy: string | null;
+            notes: string | null;
+            requestId: string;
+            sourceType: string;
+            supplierId: string | null;
+            supplierName: string | null;
+            itemsApproved: string | null;
+            totalApprovedValue: number;
+            schedule: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }) | null>;
+    findByCustomerId(customerId: string, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        items: {
+            id: string;
+            partNumber: string;
+            quantity: number;
+            partName: string | null;
+            requestId: string;
+            estimatedPrice: number;
+        }[];
+        offers: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            type: string;
+            createdBy: string | null;
+            notes: string | null;
+            requestId: string;
+            sourceType: string;
+            supplierId: string | null;
+            supplierName: string | null;
+            itemsApproved: string | null;
+            totalApprovedValue: number;
+            schedule: string | null;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }>>;
+    create(data: {
+        customerId: string;
+        customerName?: string;
+        totalRequestedValue: number;
+        paymentFrequency: 'WEEKLY' | 'MONTHLY';
+        requestedDurationMonths: number;
+        items: Array<{
+            partNumber: string;
+            partName?: string;
+            quantity: number;
+            estimatedPrice: number;
+        }>;
+    }): Promise<{
+        items: {
+            id: string;
+            partNumber: string;
+            quantity: number;
+            partName: string | null;
+            requestId: string;
+            estimatedPrice: number;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }>;
+    adminReview(id: string, data: {
+        sinicarDecision: SinicarDecision;
+        adminNotes?: string;
+        allowedForSuppliers?: boolean;
+        reviewedBy: string;
+    }): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }>;
+    forwardToSuppliers(id: string, supplierIds: string[]): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }>;
+    createOffer(requestId: string, data: {
+        sourceType: OfferSource;
+        supplierId?: string;
+        supplierName?: string;
+        type: OfferType;
+        itemsApproved?: object;
+        totalApprovedValue: number;
+        schedule?: object;
+        notes?: string;
+        createdBy?: string;
+    }): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        type: string;
+        createdBy: string | null;
+        notes: string | null;
+        requestId: string;
+        sourceType: string;
+        supplierId: string | null;
+        supplierName: string | null;
+        itemsApproved: string | null;
+        totalApprovedValue: number;
+        schedule: string | null;
+    }>;
+    customerOfferResponse(offerId: string, accept: boolean, reason?: string): Promise<({
+        request: {
+            id: string;
+            status: string;
+            createdAt: Date;
+            updatedAt: Date;
+            reviewedBy: string | null;
+            reviewedAt: Date | null;
+            adminNotes: string | null;
+            customerId: string;
+            customerName: string | null;
+            totalRequestedValue: number;
+            paymentFrequency: string;
+            requestedDurationMonths: number;
+            sinicarDecision: string;
+            allowedForSuppliers: boolean;
+            forwardedToSupplierIds: string | null;
+            acceptedOfferId: string | null;
+            closedAt: Date | null;
+            closedReason: string | null;
+        };
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        type: string;
+        createdBy: string | null;
+        notes: string | null;
+        requestId: string;
+        sourceType: string;
+        supplierId: string | null;
+        supplierName: string | null;
+        itemsApproved: string | null;
+        totalApprovedValue: number;
+        schedule: string | null;
+    }) | null>;
+    updateStatus(id: string, status: InstallmentStatus, closedReason?: string): Promise<{
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+        adminNotes: string | null;
+        customerId: string;
+        customerName: string | null;
+        totalRequestedValue: number;
+        paymentFrequency: string;
+        requestedDurationMonths: number;
+        sinicarDecision: string;
+        allowedForSuppliers: boolean;
+        forwardedToSupplierIds: string | null;
+        acceptedOfferId: string | null;
+        closedAt: Date | null;
+        closedReason: string | null;
+    }>;
+    getSettings(): Promise<{
+        id: string;
+        key: string;
+        enableInstallments: boolean;
+        allowSupplierOffers: boolean;
+        minInstallmentValue: number;
+        maxInstallmentValue: number;
+        minDurationMonths: number;
+        maxDurationMonths: number;
+        defaultCommission: number;
+    } | null>;
+    updateSettings(data: Prisma.InstallmentSettingsUpdateInput): Promise<{
+        id: string;
+        key: string;
+        enableInstallments: boolean;
+        allowSupplierOffers: boolean;
+        minInstallmentValue: number;
+        maxInstallmentValue: number;
+        minDurationMonths: number;
+        maxDurationMonths: number;
+        defaultCommission: number;
+    }>;
+}
+export declare const installmentRepository: InstallmentRepository;
+//# sourceMappingURL=installment.repository.d.ts.map

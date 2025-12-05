@@ -1,0 +1,420 @@
+import { PaginationParams } from '../../utils/pagination';
+import { CreateOrganizationInput, UpdateOrganizationInput, AddMemberInput, UpdateMemberInput, CreateInvitationInput } from '../../schemas/organization.schema';
+import { OrganizationType } from '../../types/enums';
+export declare class OrganizationService {
+    list(filters: {
+        type?: OrganizationType;
+        status?: any;
+        search?: string;
+    }, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        _count: {
+            users: number;
+            invitations: number;
+        };
+        users: ({
+            user: {
+                id: string;
+                clientId: string;
+                name: string;
+                email: string | null;
+                phone: string | null;
+                password: string | null;
+                role: string;
+                employeeRole: string | null;
+                status: string;
+                isActive: boolean;
+                parentId: string | null;
+                businessId: string | null;
+                activationCode: string | null;
+                passwordResetToken: string | null;
+                passwordResetExpiry: Date | null;
+                searchLimit: number;
+                searchUsed: number;
+                failedLoginAttempts: number;
+                lastLoginAt: Date | null;
+                lastActiveAt: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+    } & {
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        ownerUserId: string;
+        maxEmployees: number;
+        allowCustomPermissions: boolean;
+    }>>;
+    getById(id: string): Promise<{
+        activityLogs: {
+            id: string;
+            createdAt: Date;
+            userName: string | null;
+            description: string;
+            metadata: string | null;
+            userId: string;
+            organizationId: string;
+            action: string;
+        }[];
+        users: ({
+            user: {
+                id: string;
+                clientId: string;
+                name: string;
+                email: string | null;
+                phone: string | null;
+                password: string | null;
+                role: string;
+                employeeRole: string | null;
+                status: string;
+                isActive: boolean;
+                parentId: string | null;
+                businessId: string | null;
+                activationCode: string | null;
+                passwordResetToken: string | null;
+                passwordResetExpiry: Date | null;
+                searchLimit: number;
+                searchUsed: number;
+                failedLoginAttempts: number;
+                lastLoginAt: Date | null;
+                lastActiveAt: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+        invitations: {
+            id: string;
+            email: string;
+            phone: string | null;
+            role: string;
+            status: string;
+            createdAt: Date;
+            organizationId: string;
+            expiresAt: Date;
+            inviteCode: string;
+            createdBy: string;
+            acceptedAt: Date | null;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        ownerUserId: string;
+        maxEmployees: number;
+        allowCustomPermissions: boolean;
+    }>;
+    getByOwner(ownerUserId: string): Promise<({
+        users: ({
+            user: {
+                id: string;
+                clientId: string;
+                name: string;
+                email: string | null;
+                phone: string | null;
+                password: string | null;
+                role: string;
+                employeeRole: string | null;
+                status: string;
+                isActive: boolean;
+                parentId: string | null;
+                businessId: string | null;
+                activationCode: string | null;
+                passwordResetToken: string | null;
+                passwordResetExpiry: Date | null;
+                searchLimit: number;
+                searchUsed: number;
+                failedLoginAttempts: number;
+                lastLoginAt: Date | null;
+                lastActiveAt: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+            };
+        } & {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        })[];
+    } & {
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        ownerUserId: string;
+        maxEmployees: number;
+        allowCustomPermissions: boolean;
+    }) | null>;
+    create(ownerUserId: string, input: CreateOrganizationInput): Promise<{
+        users: {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        ownerUserId: string;
+        maxEmployees: number;
+        allowCustomPermissions: boolean;
+    }>;
+    update(id: string, userId: string, input: UpdateOrganizationInput): Promise<{
+        users: {
+            id: string;
+            role: string;
+            status: string;
+            lastActiveAt: Date | null;
+            userId: string;
+            organizationId: string;
+            permissions: string | null;
+            jobTitle: string | null;
+            department: string | null;
+            invitedBy: string | null;
+            joinedAt: Date;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        ownerUserId: string;
+        maxEmployees: number;
+        allowCustomPermissions: boolean;
+    }>;
+    delete(id: string, userId: string): Promise<{
+        message: string;
+    }>;
+    getMembers(organizationId: string): Promise<({
+        user: {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        id: string;
+        role: string;
+        status: string;
+        lastActiveAt: Date | null;
+        userId: string;
+        organizationId: string;
+        permissions: string | null;
+        jobTitle: string | null;
+        department: string | null;
+        invitedBy: string | null;
+        joinedAt: Date;
+    })[]>;
+    addMember(organizationId: string, addedBy: string, input: AddMemberInput): Promise<{
+        user: {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        organization: {
+            id: string;
+            name: string;
+            status: string;
+            createdAt: Date;
+            updatedAt: Date;
+            type: string;
+            ownerUserId: string;
+            maxEmployees: number;
+            allowCustomPermissions: boolean;
+        };
+    } & {
+        id: string;
+        role: string;
+        status: string;
+        lastActiveAt: Date | null;
+        userId: string;
+        organizationId: string;
+        permissions: string | null;
+        jobTitle: string | null;
+        department: string | null;
+        invitedBy: string | null;
+        joinedAt: Date;
+    }>;
+    updateMember(organizationId: string, memberId: string, updatedBy: string, input: UpdateMemberInput): Promise<{
+        user: {
+            id: string;
+            clientId: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            password: string | null;
+            role: string;
+            employeeRole: string | null;
+            status: string;
+            isActive: boolean;
+            parentId: string | null;
+            businessId: string | null;
+            activationCode: string | null;
+            passwordResetToken: string | null;
+            passwordResetExpiry: Date | null;
+            searchLimit: number;
+            searchUsed: number;
+            failedLoginAttempts: number;
+            lastLoginAt: Date | null;
+            lastActiveAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        id: string;
+        role: string;
+        status: string;
+        lastActiveAt: Date | null;
+        userId: string;
+        organizationId: string;
+        permissions: string | null;
+        jobTitle: string | null;
+        department: string | null;
+        invitedBy: string | null;
+        joinedAt: Date;
+    }>;
+    removeMember(organizationId: string, memberId: string, removedBy: string): Promise<{
+        message: string;
+    }>;
+    createInvitation(organizationId: string, createdBy: string, input: CreateInvitationInput): Promise<{
+        id: string;
+        email: string;
+        phone: string | null;
+        role: string;
+        status: string;
+        createdAt: Date;
+        organizationId: string;
+        expiresAt: Date;
+        inviteCode: string;
+        createdBy: string;
+        acceptedAt: Date | null;
+    }>;
+    acceptInvitation(inviteCode: string, userId: string): Promise<{
+        message: string;
+        organization: {
+            id: string;
+            name: string;
+            status: string;
+            createdAt: Date;
+            updatedAt: Date;
+            type: string;
+            ownerUserId: string;
+            maxEmployees: number;
+            allowCustomPermissions: boolean;
+        };
+    }>;
+    getInvitations(organizationId: string, userId: string): Promise<{
+        id: string;
+        email: string;
+        phone: string | null;
+        role: string;
+        status: string;
+        createdAt: Date;
+        organizationId: string;
+        expiresAt: Date;
+        inviteCode: string;
+        createdBy: string;
+        acceptedAt: Date | null;
+    }[]>;
+    getActivityLog(organizationId: string, userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        userName: string | null;
+        description: string;
+        metadata: string | null;
+        userId: string;
+        organizationId: string;
+        action: string;
+    }[]>;
+    private checkPermission;
+}
+export declare const organizationService: OrganizationService;
+//# sourceMappingURL=organization.service.d.ts.map

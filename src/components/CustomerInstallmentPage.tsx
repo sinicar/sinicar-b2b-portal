@@ -428,19 +428,19 @@ const RequestDetailView = ({
               {t('installment.pendingOffers', 'عروض بانتظار قرارك')}
             </h3>
             <div className="space-y-4">
-              {pendingOffers.map(offer => {
-                const cardProps = {
-                  offer,
-                  onAccept: () => onRespondToOffer(offer.id, 'accept'),
-                  onReject: () => onRespondToOffer(offer.id, 'reject'),
-                  processingAction,
-                  t,
-                  isRTL,
-                  formatDate,
-                  formatCurrency
-                };
-                return <OfferCard key={offer.id} {...cardProps} />;
-              })}
+              {pendingOffers.map(offer => (
+                <OfferCard 
+                  key={offer.id}
+                  offer={offer}
+                  onAccept={() => onRespondToOffer(offer.id, 'accept')}
+                  onReject={() => onRespondToOffer(offer.id, 'reject')}
+                  processingAction={processingAction}
+                  t={t}
+                  isRTL={isRTL}
+                  formatDate={formatDate}
+                  formatCurrency={formatCurrency}
+                />
+              ))}
             </div>
           </div>
         )}

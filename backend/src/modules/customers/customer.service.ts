@@ -188,7 +188,7 @@ export class CustomerService {
       password: hashedPassword,
       role: 'CUSTOMER_STAFF',
       employeeRole: data.employeeRole,
-      parentId: customerId,
+      parent: { connect: { id: customerId } },
       activationCode,
       businessId: customer.businessId
     });

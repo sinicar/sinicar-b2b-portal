@@ -42,7 +42,9 @@ import type {
   ImportRequestStatus,
   MissingStatus,
   CustomerStatus,
-  AccountRequestStatus
+  AccountRequestStatus,
+  PriceLevel,
+  BusinessCustomerType
 } from '../types';
 
 // Re-export utility functions
@@ -126,9 +128,9 @@ export interface IQuoteService {
 export interface IImportService {
   getImportRequests(): Promise<ImportRequest[]>;
   createImportRequest(input: Omit<ImportRequest, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'timeline'>): Promise<ImportRequest>;
-  updateImportRequestStatus(requestId: string, newStatus: ImportRequestStatus, note?: string | null, adminNotes?: string | null): Promise<ImportRequest>;
+  updateImportRequestStatus(requestId: string, newStatus: ImportRequestStatus, options?: { note?: string; changedBy: string; actorRole: 'ADMIN' | 'CUSTOMER' }): Promise<ImportRequest>;
   uploadImportRequestExcel(requestId: string, fileName: string, userName: string): Promise<ImportRequest>;
-  completeImportRequestPricing(requestId: string, data: { pricingFileName: string; totalAmount: number; preparedBy: string }): Promise<ImportRequest>;
+  completeImportRequestPricing(requestId: string, data: { pricingFileName: string; totalAmount: number; adminName: string }): Promise<ImportRequest>;
   confirmImportRequestByCustomer(requestId: string, data: { approvalNote?: string; customerName: string }): Promise<ImportRequest>;
 }
 
@@ -168,7 +170,20 @@ export interface IAccountRequestService {
   getAccountOpeningRequests(): Promise<AccountOpeningRequest[]>;
   createAccountOpeningRequest(input: Omit<AccountOpeningRequest, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'allowedSearchPoints'>): Promise<AccountOpeningRequest>;
   updateAccountOpeningRequestStatus(id: string, status: AccountRequestStatus, options?: { allowedSearchPoints?: number; adminNotes?: string }): Promise<AccountOpeningRequest>;
-  reviewAccountRequest(id: string, decision: 'APPROVE' | 'REJECT' | 'ON_HOLD', adminId: string, data?: { adminNotes?: string; assignedPriceLevel?: string; searchPointsInitial?: number; canCreateStaff?: boolean; maxStaffUsers?: number }): Promise<AccountOpeningRequest>;
+  reviewAccountRequest(id: string, decision: { 
+    status: AccountRequestStatus;
+    adminNotes?: string;
+    assignedPriceLevel?: PriceLevel;
+    assignedCustomerType?: BusinessCustomerType;
+    searchPointsInitial?: number;
+    searchPointsMonthly?: number;
+    searchDailyLimit?: number;
+    portalAccessStart?: string | null;
+    portalAccessEnd?: string | null;
+    canCreateStaff?: boolean;
+    maxStaffUsers?: number | null;
+    reviewedBy: string;
+  }): Promise<AccountOpeningRequest>;
 }
 
 /**
@@ -196,18 +211,13 @@ export interface IBranchService {
  */
 export interface IAdminStatsService {
   getAdminStats(): Promise<{
-    totalCustomers: number;
-    activeCustomers: number;
-    suspendedCustomers: number;
-    totalStaff: number;
     totalOrders: number;
     pendingOrders: number;
-    totalQuotes: number;
+    totalRevenue: number;
+    totalUsers: number;
+    totalProducts: number;
     pendingQuotes: number;
-    totalImportRequests: number;
-    pendingImportRequests: number;
-    totalMissingParts: number;
-    pendingAccountRequests: number;
+    newAccountRequests: number;
   }>;
   adminGrantPoints(userId: string, points: number): Promise<void>;
 }
@@ -435,9 +445,9 @@ function createImportService(): IImportService {
       const api = await getMockApi();
       return api.createImportRequest(input);
     },
-    async updateImportRequestStatus(requestId, newStatus, note, adminNotes) {
+    async updateImportRequestStatus(requestId, newStatus, options) {
       const api = await getMockApi();
-      return api.updateImportRequestStatus(requestId, newStatus, note, adminNotes);
+      return api.updateImportRequestStatus(requestId, newStatus, options);
     },
     async uploadImportRequestExcel(requestId, fileName, userName) {
       const api = await getMockApi();
@@ -539,9 +549,9 @@ function createAccountRequestService(): IAccountRequestService {
       const api = await getMockApi();
       return api.updateAccountOpeningRequestStatus(id, status, options);
     },
-    async reviewAccountRequest(id, decision, adminId, data) {
+    async reviewAccountRequest(id, decision) {
       const api = await getMockApi();
-      return api.reviewAccountRequest(id, decision, adminId, data);
+      return api.reviewAccountRequest(id, decision);
     }
   };
 }

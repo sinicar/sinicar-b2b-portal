@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma';
-import { Prisma, InstallmentStatus, SinicarDecision, OfferStatus, OfferSource, OfferType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { InstallmentStatus, SinicarDecision, OfferStatus, OfferSource, OfferType } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
 
 export interface InstallmentFilters {

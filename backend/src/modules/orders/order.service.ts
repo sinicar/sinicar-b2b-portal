@@ -2,7 +2,7 @@ import { orderRepository, OrderFilters } from './order.repository';
 import { NotFoundError, BadRequestError, ForbiddenError } from '../../utils/errors';
 import { PaginationParams } from '../../utils/pagination';
 import { CreateOrderInput, UpdateOrderStatusInput, CreateQuoteRequestInput } from '../../schemas/order.schema';
-import { OrderStatus, OrderInternalStatus } from '@prisma/client';
+import { OrderStatus, OrderInternalStatus } from '../../types/enums';
 
 const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ['APPROVED', 'REJECTED', 'CANCELLED'],
@@ -71,8 +71,8 @@ export class OrderService {
   async updateStatus(orderId: string, changedBy: string, input: UpdateOrderStatusInput) {
     const order = await this.getById(orderId);
 
-    const allowedTransitions = ORDER_STATUS_TRANSITIONS[order.status];
-    if (!allowedTransitions.includes(input.status)) {
+    const allowedTransitions = ORDER_STATUS_TRANSITIONS[order.status as OrderStatus];
+    if (!allowedTransitions.includes(input.status as OrderStatus)) {
       throw new BadRequestError(
         `لا يمكن تغيير حالة الطلب من ${order.status} إلى ${input.status}`
       );
@@ -86,8 +86,8 @@ export class OrderService {
   async updateInternalStatus(orderId: string, internalStatus: OrderInternalStatus, notes?: string) {
     const order = await this.getById(orderId);
 
-    const currentIndex = INTERNAL_STATUS_FLOW.indexOf(order.internalStatus);
-    const newIndex = INTERNAL_STATUS_FLOW.indexOf(internalStatus);
+    const currentIndex = INTERNAL_STATUS_FLOW.indexOf(order.internalStatus as OrderInternalStatus);
+    const newIndex = INTERNAL_STATUS_FLOW.indexOf(internalStatus as OrderInternalStatus);
 
     if (newIndex < currentIndex && internalStatus !== 'CANCELLED_INTERNAL') {
       throw new BadRequestError('لا يمكن الرجوع لحالة سابقة');
@@ -156,7 +156,7 @@ export class OrderService {
       
       if (product) {
         await orderRepository.updateQuoteItem(item.id, {
-          productId: product.id,
+          product: { connect: { id: product.id } },
           matchedPrice: product.priceWholesale,
           status: 'MATCHED'
         });
@@ -167,7 +167,7 @@ export class OrderService {
       }
     }
 
-    await orderRepository.updateQuoteStatus(quoteId, 'PROCESSED');
+    await orderRepository.updateQuoteStatus(quoteId, 'COMPLETED');
 
     return orderRepository.findQuoteById(quoteId);
   }

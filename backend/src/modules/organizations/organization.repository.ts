@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma';
-import { Prisma, OrgStatus, OrganizationType, OrgUserRole, OrgUserStatus, InviteStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { OrgStatus, OrganizationType, OrgUserRole, OrgUserStatus, InviteStatus } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
 
 export interface OrganizationFilters {

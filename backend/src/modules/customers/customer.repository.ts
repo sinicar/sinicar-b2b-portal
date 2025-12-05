@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma';
-import { Prisma, CustomerStatus, CustomerType, PriceLevel } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { CustomerStatus, CustomerType, PriceLevel } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
 
 export interface CustomerFilters {

@@ -10,9 +10,10 @@ import {
   CreateCampaignInput,
   UpdateCampaignInput
 } from '../../schemas/ad.schema';
-import { CampaignStatus } from '@prisma/client';
+import { CampaignStatus } from '../../types/enums';
 
 const CAMPAIGN_STATUS_TRANSITIONS: Record<CampaignStatus, CampaignStatus[]> = {
+  DRAFT: ['PENDING'],
   PENDING: ['ACTIVE', 'REJECTED'],
   ACTIVE: ['PAUSED', 'COMPLETED'],
   PAUSED: ['ACTIVE', 'COMPLETED'],
@@ -133,8 +134,8 @@ export class AdService {
     const campaign = await this.getCampaignById(id);
 
     if (input.status && input.status !== campaign.status) {
-      const allowedTransitions = CAMPAIGN_STATUS_TRANSITIONS[campaign.status];
-      if (!allowedTransitions.includes(input.status)) {
+      const allowedTransitions = CAMPAIGN_STATUS_TRANSITIONS[campaign.status as CampaignStatus];
+      if (!allowedTransitions.includes(input.status as CampaignStatus)) {
         throw new BadRequestError(
           `لا يمكن تغيير حالة الحملة من ${campaign.status} إلى ${input.status}`
         );

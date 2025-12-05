@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma';
-import { Prisma, MarketerStatus, ReferralStatus, CommissionStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { MarketerStatus, ReferralStatus, CommissionStatus } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
 
 export interface MarketerFilters {

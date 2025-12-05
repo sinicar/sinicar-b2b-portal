@@ -1,5 +1,6 @@
 import prisma from '../../lib/prisma';
-import { Prisma, OrderStatus, OrderInternalStatus, QuoteStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { OrderStatus, OrderInternalStatus, QuoteStatus } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
 
 export interface OrderFilters {
