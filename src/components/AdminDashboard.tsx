@@ -29,6 +29,7 @@ import { AdminSupplierMarketplaceSettings } from './AdminSupplierMarketplaceSett
 import { AdminMarketersPage } from './AdminMarketersPage';
 import { AdminInstallmentsPage } from './AdminInstallmentsPage';
 import { AdminAdvertisingPage } from './AdminAdvertisingPage';
+import { AdminOrganizationSettings } from './AdminOrganizationSettings';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -43,7 +44,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -63,7 +64,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'SUPPLIER_MARKETPLACE': 'settings_general',
     'MARKETERS': 'settings_general',
     'INSTALLMENTS': 'settings_general',
-    'ADVERTISING': 'settings_general'
+    'ADVERTISING': 'settings_general',
+    'TEAM_SETTINGS': 'settings_general'
 };
 
 const VIEW_LABELS: Record<ViewType, string> = {
@@ -84,7 +86,8 @@ const VIEW_LABELS: Record<ViewType, string> = {
     'SUPPLIER_MARKETPLACE': 'سوق الموردين',
     'MARKETERS': 'المسوقين',
     'INSTALLMENTS': 'طلبات التقسيط',
-    'ADVERTISING': 'الإعلانات'
+    'ADVERTISING': 'الإعلانات',
+    'TEAM_SETTINGS': 'المنظمات والفرق'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -402,6 +405,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Megaphone size={20} />} label={t('adminDashboard.advertising')} active={view === 'ADVERTISING'} onClick={() => setView('ADVERTISING')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Users size={20} />} label="المنظمات والفرق" active={view === 'TEAM_SETTINGS'} onClick={() => setView('TEAM_SETTINGS')} />
+                    )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
@@ -664,6 +670,12 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'ADVERTISING' && (
                         canAccess('settings_general') 
                             ? <AdminAdvertisingPage /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    
+                    {view === 'TEAM_SETTINGS' && (
+                        canAccess('settings_general') 
+                            ? <AdminOrganizationSettings /> 
                             : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
