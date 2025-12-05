@@ -79,6 +79,16 @@ export class AuthRepository {
     });
   }
 
+  async findUserByResetToken(resetToken: string) {
+    return prisma.user.findFirst({
+      where: { 
+        passwordResetToken: resetToken,
+        role: { not: 'CUSTOMER_STAFF' }
+      },
+      include: { profile: true }
+    });
+  }
+
   async logActivity(data: {
     userId?: string;
     userName?: string;

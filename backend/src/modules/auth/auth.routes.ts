@@ -48,11 +48,24 @@ router.post('/change-password', authMiddleware, validate(changePasswordSchema), 
 }));
 
 router.post('/forgot-password', asyncHandler(async (req: any, res: any) => {
-  successResponse(res, null, 'إذا كان البريد الإلكتروني مسجلاً، سيتم إرسال رابط إعادة التعيين');
+  const { identifier } = req.body;
+  const genericMessage = 'إذا كان الحساب موجوداً، سيتم إرسال رابط إعادة تعيين كلمة المرور';
+  
+  if (!identifier) {
+    return successResponse(res, { success: true }, genericMessage);
+  }
+  
+  await authService.forgotPassword(identifier);
+  successResponse(res, { success: true }, genericMessage);
 }));
 
 router.post('/reset-password', asyncHandler(async (req: any, res: any) => {
-  successResponse(res, null, 'تم إعادة تعيين كلمة المرور بنجاح');
+  const { resetToken, newPassword } = req.body;
+  if (!resetToken || !newPassword) {
+    return errorResponse(res, 'يرجى إدخال رمز إعادة التعيين وكلمة المرور الجديدة', 400);
+  }
+  const result = await authService.resetPassword(resetToken, newPassword);
+  successResponse(res, result, result.message);
 }));
 
 export default router;

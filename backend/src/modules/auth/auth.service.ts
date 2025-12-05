@@ -16,13 +16,13 @@ interface TokenPayload {
 export class AuthService {
   private generateTokens(payload: TokenPayload) {
     const accessToken = jwt.sign(payload, env.jwt.secret, {
-      expiresIn: env.jwt.expiresIn
+      expiresIn: env.jwt.expiresIn as jwt.SignOptions['expiresIn']
     });
     
     const refreshToken = jwt.sign(
       { id: payload.id, type: 'refresh' },
       env.jwt.secret,
-      { expiresIn: '30d' }
+      { expiresIn: '30d' as jwt.SignOptions['expiresIn'] }
     );
 
     return { accessToken, refreshToken };
@@ -110,11 +110,13 @@ export class AuthService {
         throw new UnauthorizedError('حساب الموظف غير نشط');
       }
 
-      if (staff.password) {
-        const isValidPassword = await bcrypt.compare(password, staff.password);
-        if (!isValidPassword) {
-          throw new UnauthorizedError('كلمة المرور غير صحيحة');
-        }
+      if (!staff.password) {
+        throw new UnauthorizedError('لم يتم تعيين كلمة مرور لحساب الموظف. يرجى التواصل مع المالك');
+      }
+
+      const isValidPassword = await bcrypt.compare(password, staff.password);
+      if (!isValidPassword) {
+        throw new UnauthorizedError('كلمة المرور غير صحيحة');
       }
 
       await authRepository.updateLastLogin(staff.id);
@@ -282,6 +284,92 @@ export class AuthService {
     });
 
     return { message: 'تم تغيير كلمة المرور بنجاح' };
+  }
+
+  async forgotPassword(identifier: string) {
+    const user = await authRepository.findUserByClientId(identifier) 
+      || await authRepository.findUserByEmail(identifier);
+    
+    if (!user) {
+      return { 
+        message: 'إذا كان الحساب موجوداً، سيتم إرسال رابط إعادة تعيين كلمة المرور',
+        success: true
+      };
+    }
+
+    const genericResponse = { 
+      message: 'إذا كان الحساب موجوداً، سيتم إرسال رابط إعادة تعيين كلمة المرور',
+      success: true
+    };
+
+    if (user.role === 'CUSTOMER_STAFF') {
+      await authRepository.logActivity({
+        userId: user.id,
+        userName: user.name,
+        role: user.role,
+        eventType: 'PASSWORD_RESET_DENIED_STAFF',
+        description: 'محاولة إعادة تعيين كلمة مرور لحساب موظف'
+      });
+      return genericResponse;
+    }
+
+    const resetToken = uuidv4();
+    const resetExpiry = new Date(Date.now() + 3600000);
+
+    await authRepository.updateUser(user.id, {
+      passwordResetToken: resetToken,
+      passwordResetExpiry: resetExpiry
+    });
+
+    await authRepository.logActivity({
+      userId: user.id,
+      userName: user.name,
+      role: user.role,
+      eventType: 'PASSWORD_RESET_REQUEST',
+      description: 'طلب إعادة تعيين كلمة المرور',
+      metadata: { expiresAt: resetExpiry.toISOString() }
+    });
+
+    return genericResponse;
+  }
+
+  async resetPassword(resetToken: string, newPassword: string) {
+    const user = await authRepository.findUserByResetToken(resetToken);
+    
+    if (!user) {
+      throw new BadRequestError('رمز إعادة التعيين غير صالح أو منتهي الصلاحية');
+    }
+
+    if (user.passwordResetExpiry && new Date() > user.passwordResetExpiry) {
+      await authRepository.updateUser(user.id, { 
+        passwordResetToken: null,
+        passwordResetExpiry: null
+      });
+      throw new BadRequestError('انتهت صلاحية رمز إعادة التعيين. يرجى طلب رمز جديد');
+    }
+
+    if (newPassword.length < 8) {
+      throw new BadRequestError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await authRepository.updateUser(user.id, { 
+      password: hashedPassword,
+      passwordResetToken: null,
+      passwordResetExpiry: null,
+      failedLoginAttempts: 0
+    });
+
+    await authRepository.logActivity({
+      userId: user.id,
+      userName: user.name,
+      role: user.role,
+      eventType: 'PASSWORD_RESET_COMPLETE',
+      description: 'تم إعادة تعيين كلمة المرور بنجاح'
+    });
+
+    return { message: 'تم إعادة تعيين كلمة المرور بنجاح' };
   }
 }
 

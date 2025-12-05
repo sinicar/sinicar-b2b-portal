@@ -25,6 +25,8 @@ model User {
   parentId             String?
   businessId           String?
   activationCode       String?
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
   searchLimit          Int       @default(100)
   searchUsed           Int       @default(0)
   failedLoginAttempts  Int       @default(0)
