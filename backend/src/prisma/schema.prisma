@@ -1,0 +1,1030 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// USER & AUTHENTICATION
+// ===========================================
+
+model User {
+  id              String    @id @default(uuid())
+  clientId        String    @unique
+  name            String
+  email           String?
+  phone           String?
+  password        String?
+  role            UserRole  @default(CUSTOMER_OWNER)
+  employeeRole    EmployeeRole?
+  
+  parentId        String?
+  parent          User?     @relation("UserHierarchy", fields: [parentId], references: [id])
+  children        User[]    @relation("UserHierarchy")
+  
+  businessId      String?
+  branchId        String?
+  activationCode  String?
+  
+  isActive        Boolean   @default(true)
+  status          CustomerStatus @default(ACTIVE)
+  
+  searchLimit     Int       @default(100)
+  searchUsed      Int       @default(0)
+  lastSearchDate  String?
+  
+  lastLoginAt     DateTime?
+  lastActiveAt    DateTime?
+  failedLoginAttempts Int   @default(0)
+  riskyLoginFlag  Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  profile         BusinessProfile?
+  orders          Order[]
+  quoteRequests   QuoteRequest[]
+  notifications   Notification[]
+  activityLogs    ActivityLog[]
+  organizationUsers OrganizationUser[]
+  installmentRequests InstallmentRequest[]
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  CUSTOMER_OWNER
+  CUSTOMER_STAFF
+}
+
+enum EmployeeRole {
+  MANAGER
+  BUYER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+  PENDING
+}
+
+// ===========================================
+// BUSINESS PROFILE
+// ===========================================
+
+model BusinessProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  companyName     String
+  phone           String
+  region          String
+  city            String
+  crNumber        String
+  taxNumber       String
+  nationalAddress String?
+  
+  customerType    CustomerType @default(PARTS_STORE)
+  businessCustomerType BusinessCustomerType?
+  assignedPriceLevel PriceLevel?
+  priceVisibility PriceVisibilityType @default(VISIBLE)
+  
+  isApproved      Boolean   @default(false)
+  
+  portalAccessStart DateTime?
+  portalAccessEnd   DateTime?
+  suspendedUntil    DateTime?
+  
+  searchPointsTotal     Int @default(0)
+  searchPointsRemaining Int @default(0)
+  staffLimit            Int?
+  
+  canActAsSupplier    Boolean @default(false)
+  supplierProfileId   String?
+  referredByMarketerId String?
+  referredAt          DateTime?
+  
+  internalNotes   String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  branches        Branch[]
+  documents       Document[]
+}
+
+enum CustomerType {
+  PARTS_STORE
+  INSURANCE
+  RENTAL
+  REPRESENTATIVE
+  MAINTENANCE
+}
+
+enum BusinessCustomerType {
+  SMALL_STORE
+  MEDIUM_STORE
+  LARGE_STORE
+  CHAIN_STORE
+  INSURANCE_COMPANY
+  RENTAL_COMPANY
+  MAINTENANCE_CENTER
+  SALES_REP
+}
+
+enum PriceLevel {
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
+  LEVEL_5
+  VIP
+}
+
+enum PriceVisibilityType {
+  VISIBLE
+  HIDDEN
+}
+
+// ===========================================
+// BRANCH
+// ===========================================
+
+model Branch {
+  id              String    @id @default(uuid())
+  profileId       String
+  profile         BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  name            String
+  city            String
+  phone           String
+  address         String?
+  managerName     String?
+  managerPhone    String?
+  isMainBranch    Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ===========================================
+// DOCUMENT
+// ===========================================
+
+model Document {
+  id              String    @id @default(uuid())
+  profileId       String
+  profile         BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  type            String
+  fileName        String
+  fileUrl         String
+  fileSize        Int?
+  mimeType        String?
+  
+  uploadedAt      DateTime  @default(now())
+}
+
+// ===========================================
+// ORGANIZATION & TEAM
+// ===========================================
+
+model Organization {
+  id              String    @id @default(uuid())
+  type            OrganizationType
+  name            String
+  ownerUserId     String
+  status          OrgStatus @default(ACTIVE)
+  maxEmployees    Int       @default(10)
+  allowCustomPermissions Boolean @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  users           OrganizationUser[]
+  invitations     TeamInvitation[]
+  activityLogs    OrgActivityLog[]
+}
+
+enum OrganizationType {
+  CUSTOMER
+  SUPPLIER
+  ADVERTISER
+  AFFILIATE
+  PLATFORM
+}
+
+enum OrgStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+model OrganizationUser {
+  id              String    @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role            OrgUserRole @default(STAFF)
+  permissions     String?   // JSON array of ScopedPermissionKey
+  status          OrgUserStatus @default(ACTIVE)
+  jobTitle        String?
+  department      String?
+  
+  joinedAt        DateTime  @default(now())
+  lastActiveAt    DateTime?
+  invitedBy       String?
+}
+
+enum OrgUserRole {
+  OWNER
+  MANAGER
+  STAFF
+  READONLY
+}
+
+enum OrgUserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+model TeamInvitation {
+  id              String    @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  email           String
+  phone           String?
+  role            OrgUserRole @default(STAFF)
+  inviteCode      String    @unique
+  status          InviteStatus @default(PENDING)
+  
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+  acceptedAt      DateTime?
+  createdBy       String
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+model OrgActivityLog {
+  id              String    @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  userName        String?
+  action          String
+  description     String
+  metadata        String?   // JSON
+  
+  createdAt       DateTime  @default(now())
+}
+
+// ===========================================
+// PRODUCT
+// ===========================================
+
+model Product {
+  id              String    @id @default(uuid())
+  partNumber      String    @unique
+  name            String
+  
+  brand           String?
+  category        String?
+  description     String?
+  image           String?
+  
+  priceRetail     Float?
+  priceWholesale  Float?
+  priceWholeWholesale Float?
+  priceEcommerce  Float?
+  
+  qtyStore103     Int       @default(0)
+  qtyStore105     Int       @default(0)
+  qtyTotal        Int       @default(0)
+  
+  oldPrice        Float?
+  isOnSale        Boolean   @default(false)
+  isNew           Boolean   @default(false)
+  
+  manufacturerPartNumber String?
+  carName         String?
+  globalCategory  String?
+  modelYear       String?
+  quality         String?
+  rack103         String?
+  rack105         String?
+  
+  normalizedPart  String?
+  numericPartCore String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  orderItems      OrderItem[]
+  quoteItems      QuoteItem[]
+}
+
+// ===========================================
+// ORDER
+// ===========================================
+
+model Order {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  businessId      String?
+  branchId        String?
+  
+  totalAmount     Float
+  status          OrderStatus @default(PENDING)
+  internalStatus  OrderInternalStatus @default(NEW)
+  internalNotes   String?
+  
+  cancelledBy     String?
+  cancelledAt     DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderInternalStatus {
+  NEW
+  SENT_TO_WAREHOUSE
+  WAITING_PAYMENT
+  PAYMENT_CONFIRMED
+  SALES_INVOICE_CREATED
+  READY_FOR_SHIPMENT
+  COMPLETED_INTERNAL
+  CANCELLED_INTERNAL
+}
+
+model OrderItem {
+  id              String    @id @default(uuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id])
+  
+  partNumber      String
+  name            String
+  quantity        Int
+  unitPrice       Float
+  totalPrice      Float
+  
+  createdAt       DateTime  @default(now())
+}
+
+model OrderStatusHistory {
+  id              String    @id @default(uuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  status          String
+  changedBy       String
+  note            String?
+  
+  changedAt       DateTime  @default(now())
+}
+
+// ===========================================
+// QUOTE REQUEST
+// ===========================================
+
+model QuoteRequest {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  userName        String?
+  companyName     String?
+  
+  status          QuoteStatus @default(NEW)
+  priceType       String?
+  totalQuotedAmount Float?
+  resultReady     Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime?
+  
+  items           QuoteItem[]
+}
+
+enum QuoteStatus {
+  NEW
+  UNDER_REVIEW
+  PROCESSED
+  EXPIRED
+  CANCELLED
+}
+
+model QuoteItem {
+  id              String    @id @default(uuid())
+  quoteId         String
+  quote           QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product?  @relation(fields: [productId], references: [id])
+  
+  partNumber      String
+  partName        String?
+  requestedQty    Int
+  matchedPrice    Float?
+  status          QuoteItemStatus @default(PENDING)
+  approvalStatus  String?
+  notes           String?
+  
+  createdAt       DateTime  @default(now())
+}
+
+enum QuoteItemStatus {
+  PENDING
+  MATCHED
+  NOT_FOUND
+  PARTIAL
+}
+
+// ===========================================
+// ACCOUNT OPENING REQUEST
+// ===========================================
+
+model AccountOpeningRequest {
+  id              String    @id @default(uuid())
+  category        CustomerCategory
+  status          AccountStatus @default(NEW)
+  
+  businessName    String?
+  fullName        String?
+  contactPerson   String?
+  phone           String
+  email           String?
+  
+  commercialRegNumber String?
+  vatNumber       String?
+  nationalAddress String?
+  branchesCount   Int?
+  
+  representativeRegion String?
+  representativeClientsType String?
+  approximateClientsCount String?
+  
+  country         String?
+  city            String?
+  hasImportedBefore Boolean?
+  previousDealingsNotes String?
+  
+  adminNotes      String?
+  reviewedBy      String?
+  allowedSearchPoints Int?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  reviewedAt      DateTime?
+}
+
+enum CustomerCategory {
+  PARTS_STORE
+  INSURANCE_COMPANY
+  RENTAL_COMPANY
+  SALES_REPRESENTATIVE
+  MAINTENANCE_CENTER
+}
+
+enum AccountStatus {
+  NEW
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PENDING_DOCUMENTS
+}
+
+// ===========================================
+// INSTALLMENT SYSTEM
+// ===========================================
+
+model InstallmentRequest {
+  id              String    @id @default(uuid())
+  customerId      String
+  customer        User      @relation(fields: [customerId], references: [id])
+  customerName    String?
+  
+  status          InstallmentStatus @default(PENDING_SINICAR_REVIEW)
+  sinicarDecision SinicarDecision @default(PENDING)
+  
+  totalRequestedValue Float
+  paymentFrequency PaymentFrequency @default(MONTHLY)
+  requestedDurationMonths Int
+  
+  allowedForSuppliers Boolean @default(false)
+  forwardedToSupplierIds String? // JSON array
+  acceptedOfferId String?
+  
+  adminNotes      String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  closedAt        DateTime?
+  closedReason    String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  items           InstallmentItem[]
+  offers          InstallmentOffer[]
+}
+
+enum InstallmentStatus {
+  PENDING_SINICAR_REVIEW
+  WAITING_FOR_CUSTOMER_DECISION_ON_PARTIAL_SINICAR
+  REJECTED_BY_SINICAR
+  FORWARDED_TO_SUPPLIERS
+  WAITING_FOR_SUPPLIER_OFFERS
+  WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER
+  ACTIVE_CONTRACT
+  COMPLETED
+  CANCELLED
+  CLOSED
+}
+
+enum SinicarDecision {
+  PENDING
+  APPROVED_FULL
+  APPROVED_PARTIAL
+  REJECTED
+}
+
+enum PaymentFrequency {
+  WEEKLY
+  MONTHLY
+}
+
+model InstallmentItem {
+  id              String    @id @default(uuid())
+  requestId       String
+  request         InstallmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  partNumber      String
+  partName        String?
+  quantity        Int
+  estimatedPrice  Float
+  
+  createdAt       DateTime  @default(now())
+}
+
+model InstallmentOffer {
+  id              String    @id @default(uuid())
+  requestId       String
+  request         InstallmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  sourceType      OfferSource @default(SINICAR)
+  supplierId      String?
+  supplierName    String?
+  type            OfferType @default(FULL)
+  
+  itemsApproved   String?   // JSON
+  totalApprovedValue Float
+  schedule        String?   // JSON
+  
+  status          OfferStatus @default(WAITING_FOR_CUSTOMER)
+  notes           String?
+  adminNotes      String?
+  
+  createdBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum OfferSource {
+  SINICAR
+  SUPPLIER
+}
+
+enum OfferType {
+  FULL
+  PARTIAL
+}
+
+enum OfferStatus {
+  WAITING_FOR_CUSTOMER
+  ACCEPTED_BY_CUSTOMER
+  REJECTED_BY_CUSTOMER
+  EXPIRED
+}
+
+// ===========================================
+// SUPPLIER MARKETPLACE
+// ===========================================
+
+model SupplierProfile {
+  id              String    @id @default(uuid())
+  customerId      String
+  companyName     String
+  contactName     String?
+  contactPhone    String?
+  contactEmail    String?
+  
+  status          SupplierStatus @default(PENDING)
+  rating          Float     @default(0)
+  totalOrders     Int       @default(0)
+  totalRevenue    Float     @default(0)
+  
+  categories      String?   // JSON array
+  regions         String?   // JSON array
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  catalogItems    SupplierCatalogItem[]
+}
+
+enum SupplierStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+model SupplierCatalogItem {
+  id              String    @id @default(uuid())
+  supplierId      String
+  supplier        SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  partNumber      String
+  partName        String?
+  brand           String?
+  price           Float
+  stock           Int       @default(0)
+  leadTimeDays    Int       @default(7)
+  
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ===========================================
+// ADVERTISING SYSTEM
+// ===========================================
+
+model Advertiser {
+  id              String    @id @default(uuid())
+  name            String
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+  
+  status          AdvertiserStatus @default(ACTIVE)
+  balance         Float     @default(0)
+  totalSpent      Float     @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  campaigns       AdCampaign[]
+}
+
+enum AdvertiserStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+model AdSlot {
+  id              String    @id @default(uuid())
+  name            String
+  location        String
+  width           Int
+  height          Int
+  
+  pricePerDay     Float
+  pricePerWeek    Float
+  pricePerMonth   Float
+  
+  isActive        Boolean   @default(true)
+  currentCampaignId String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  campaigns       AdCampaign[]
+}
+
+model AdCampaign {
+  id              String    @id @default(uuid())
+  advertiserId    String
+  advertiser      Advertiser @relation(fields: [advertiserId], references: [id])
+  slotId          String
+  slot            AdSlot    @relation(fields: [slotId], references: [id])
+  
+  title           String
+  imageUrl        String?
+  targetUrl       String?
+  
+  budget          Float
+  spent           Float     @default(0)
+  impressions     Int       @default(0)
+  clicks          Int       @default(0)
+  
+  status          CampaignStatus @default(PENDING)
+  startDate       DateTime
+  endDate         DateTime
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum CampaignStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+// ===========================================
+// MARKETER/AFFILIATE SYSTEM
+// ===========================================
+
+model Marketer {
+  id              String    @id @default(uuid())
+  userId          String?
+  name            String
+  email           String
+  phone           String
+  
+  status          MarketerStatus @default(PENDING)
+  commissionRate  Float     @default(5)
+  paymentMethod   String?
+  bankDetails     String?   // JSON
+  
+  referralCode    String    @unique
+  referralUrl     String?
+  
+  totalEarnings   Float     @default(0)
+  pendingPayouts  Float     @default(0)
+  paidAmount      Float     @default(0)
+  referralCount   Int       @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  approvedAt      DateTime?
+  
+  commissions     MarketerCommission[]
+  referrals       CustomerReferral[]
+}
+
+enum MarketerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+model CustomerReferral {
+  id              String    @id @default(uuid())
+  marketerId      String
+  marketer        Marketer  @relation(fields: [marketerId], references: [id])
+  
+  customerId      String
+  customerName    String?
+  
+  status          ReferralStatus @default(PENDING)
+  
+  createdAt       DateTime  @default(now())
+  convertedAt     DateTime?
+}
+
+enum ReferralStatus {
+  PENDING
+  CONVERTED
+  EXPIRED
+}
+
+model MarketerCommission {
+  id              String    @id @default(uuid())
+  marketerId      String
+  marketer        Marketer  @relation(fields: [marketerId], references: [id])
+  
+  orderId         String
+  customerId      String
+  customerName    String?
+  orderAmount     Float
+  commissionRate  Float
+  commissionAmount Float
+  
+  status          CommissionStatus @default(PENDING)
+  
+  createdAt       DateTime  @default(now())
+  approvedAt      DateTime?
+  paidAt          DateTime?
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+// ===========================================
+// TRADER TOOLS SYSTEM
+// ===========================================
+
+model ToolConfig {
+  id              String    @id @default(uuid())
+  toolKey         String    @unique
+  displayName     String
+  description     String?
+  
+  isEnabled       Boolean   @default(true)
+  dailyLimit      Int?
+  monthlyLimit    Int?
+  
+  requiredPriceLevel String?
+  allowedCustomerTypes String? // JSON array
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model CustomerToolsOverride {
+  id              String    @id @default(uuid())
+  customerId      String    @unique
+  
+  overrides       String    // JSON: { toolKey: { isEnabled, dailyLimit, monthlyLimit } }
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ToolUsageRecord {
+  id              String    @id @default(uuid())
+  customerId      String
+  toolKey         String
+  
+  usageDate       DateTime  @default(now())
+  metadata        String?   // JSON
+}
+
+model SupplierPriceRecord {
+  id              String    @id @default(uuid())
+  customerId      String
+  fileName        String?
+  
+  supplierName    String?
+  data            String    // JSON array of extracted items
+  
+  createdAt       DateTime  @default(now())
+}
+
+model VinExtractionRecord {
+  id              String    @id @default(uuid())
+  customerId      String
+  vinNumber       String
+  
+  extractedData   String    // JSON
+  
+  createdAt       DateTime  @default(now())
+}
+
+model PriceComparisonSession {
+  id              String    @id @default(uuid())
+  customerId      String
+  
+  partNumbers     String    // JSON array
+  supplierIds     String?   // JSON array
+  results         String?   // JSON
+  
+  createdAt       DateTime  @default(now())
+}
+
+// ===========================================
+// SUPPLIER MARKETPLACE SETTINGS
+// ===========================================
+
+model SupplierMarketplaceSettings {
+  id              String    @id @default(uuid())
+  key             String    @unique @default("global")
+  
+  enableMarketplace Boolean @default(true)
+  minOrderValue   Float     @default(0)
+  hideRealSupplierFromCustomer Boolean @default(true)
+  markupPercentage Float    @default(0)
+  
+  autoApproveSupplierItems Boolean @default(false)
+  showSupplierStockLevel Boolean @default(false)
+  enableSupplierRating Boolean @default(false)
+  notifyAdminOnNewSupplierItem Boolean @default(true)
+  
+  updatedAt       DateTime  @updatedAt
+}
+
+// ===========================================
+// MARKETER SETTINGS
+// ===========================================
+
+model MarketerSettings {
+  id              String    @id @default(uuid())
+  key             String    @unique @default("global")
+  
+  enableAffiliateProgram Boolean @default(true)
+  defaultCommissionRate Float @default(5)
+  
+  minPayoutAmount Float     @default(100)
+  payoutFrequency String    @default("monthly")
+  
+  referralCookieDays Int    @default(30)
+  requireApproval Boolean   @default(true)
+  
+  updatedAt       DateTime  @updatedAt
+}
+
+// ===========================================
+// INSTALLMENT SETTINGS
+// ===========================================
+
+model InstallmentSettings {
+  id              String    @id @default(uuid())
+  key             String    @unique @default("global")
+  
+  enableInstallments Boolean @default(true)
+  maxInstallmentValue Float  @default(50000)
+  minInstallmentValue Float  @default(1000)
+  
+  maxDurationMonths Int     @default(12)
+  minDurationMonths Int     @default(3)
+  
+  allowSupplierOffers Boolean @default(true)
+  requireSinicarApproval Boolean @default(true)
+  
+  updatedAt       DateTime  @updatedAt
+}
+
+// ===========================================
+// NOTIFICATION & ACTIVITY
+// ===========================================
+
+model Notification {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            String
+  title           String
+  message         String
+  link            String?
+  metadata        String?   // JSON
+  
+  isRead          Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+}
+
+model ActivityLog {
+  id              String    @id @default(uuid())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  userName        String?
+  role            String?
+  eventType       String
+  description     String
+  page            String?
+  metadata        String?   // JSON
+  
+  createdAt       DateTime  @default(now())
+}
+
+// ===========================================
+// SETTINGS
+// ===========================================
+
+model SiteSettings {
+  id              String    @id @default(uuid())
+  key             String    @unique
+  value           String    // JSON
+  
+  updatedAt       DateTime  @updatedAt
+}
