@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -358,7 +358,13 @@ const STORAGE_KEYS = {
   INSTALLMENT_REQUESTS: 'sini_installment_requests',
   INSTALLMENT_OFFERS: 'sini_installment_offers',
   CUSTOMER_CREDIT_PROFILES: 'sini_customer_credit_profiles',
-  INSTALLMENT_SETTINGS: 'sini_installment_settings'
+  INSTALLMENT_SETTINGS: 'sini_installment_settings',
+  // Organization & Team Management System
+  ORGANIZATIONS: 'sini_organizations',
+  ORGANIZATION_USERS: 'sini_organization_users',
+  ORGANIZATION_SETTINGS: 'sini_organization_settings',
+  ORGANIZATION_ACTIVITY_LOGS: 'sini_organization_activity_logs',
+  TEAM_INVITATIONS: 'sini_team_invitations'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -5851,5 +5857,629 @@ export const MockApi = {
           closedAt: new Date().toISOString(),
           closedReason: 'تم الإلغاء بواسطة العميل'
       });
+  },
+
+  // =========================================================
+  // PART 3: ORGANIZATION & TEAM MANAGEMENT SYSTEM
+  // =========================================================
+
+  // --- Default Organization Settings ---
+  getDefaultOrganizationSettings(): OrganizationSettings {
+      return {
+          enableTeamsForCustomers: true,
+          enableTeamsForSuppliers: true,
+          enableTeamsForAdvertisers: true,
+          enableTeamsForAffiliates: true,
+          
+          maxCustomerEmployees: 10,
+          maxSupplierEmployees: 5,
+          maxAdvertiserEmployees: 3,
+          maxAffiliateEmployees: 3,
+          
+          defaultCustomerManagerPermissions: ['cust_create_orders', 'cust_view_orders', 'cust_create_installment_requests', 'cust_manage_installment_requests', 'cust_use_trader_tools', 'cust_view_prices', 'cust_manage_cart', 'org_view_logs'],
+          defaultCustomerStaffPermissions: ['cust_create_orders', 'cust_view_orders', 'cust_view_prices', 'cust_manage_cart'],
+          defaultCustomerReadonlyPermissions: ['cust_view_orders', 'cust_view_prices'],
+          
+          defaultSupplierManagerPermissions: ['sup_view_forwarded_requests', 'sup_submit_offers', 'sup_view_team_activity', 'sup_manage_products', 'sup_view_analytics', 'org_view_logs'],
+          defaultSupplierStaffPermissions: ['sup_view_forwarded_requests', 'sup_submit_offers'],
+          defaultSupplierReadonlyPermissions: ['sup_view_forwarded_requests', 'sup_view_analytics'],
+          
+          defaultAdvertiserManagerPermissions: ['adv_view_campaigns', 'adv_manage_campaigns', 'adv_manage_slots', 'adv_view_reports', 'org_view_logs'],
+          defaultAdvertiserStaffPermissions: ['adv_view_campaigns', 'adv_manage_campaigns', 'adv_view_reports'],
+          defaultAdvertiserReadonlyPermissions: ['adv_view_campaigns', 'adv_view_reports'],
+          
+          defaultAffiliateManagerPermissions: ['aff_view_links', 'aff_manage_links', 'aff_view_commissions', 'aff_view_analytics', 'org_view_logs'],
+          defaultAffiliateStaffPermissions: ['aff_view_links', 'aff_manage_links', 'aff_view_commissions'],
+          defaultAffiliateReadonlyPermissions: ['aff_view_links', 'aff_view_commissions'],
+          
+          allowCustomPermissionsForCustomers: true,
+          allowCustomPermissionsForSuppliers: true,
+          allowCustomPermissionsForAdvertisers: true,
+          allowCustomPermissionsForAffiliates: true,
+          
+          trackTeamActivityPerOrganization: true,
+          activityLogRetentionDays: 90,
+          
+          requireEmailVerification: false,
+          invitationExpiryHours: 72
+      };
+  },
+
+  // --- Organization Settings CRUD ---
+  async getOrganizationSettings(): Promise<OrganizationSettings> {
+      const stored = localStorage.getItem(STORAGE_KEYS.ORGANIZATION_SETTINGS);
+      if (stored) {
+          return JSON.parse(stored);
+      }
+      const defaultSettings = this.getDefaultOrganizationSettings();
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATION_SETTINGS, JSON.stringify(defaultSettings));
+      return defaultSettings;
+  },
+
+  async updateOrganizationSettings(partialSettings: Partial<OrganizationSettings>): Promise<OrganizationSettings> {
+      const current = await this.getOrganizationSettings();
+      const updated: OrganizationSettings = {
+          ...current,
+          ...partialSettings,
+          lastModifiedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATION_SETTINGS, JSON.stringify(updated));
+      return updated;
+  },
+
+  // --- Organizations CRUD ---
+  async getOrganizations(): Promise<Organization[]> {
+      const stored = localStorage.getItem(STORAGE_KEYS.ORGANIZATIONS);
+      return stored ? JSON.parse(stored) : [];
+  },
+
+  async getOrganizationById(id: string): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      return orgs.find(o => o.id === id) || null;
+  },
+
+  async getOrganizationByCustomer(customerId: string): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      return orgs.find(o => o.type === 'customer' && o.customerId === customerId) || null;
+  },
+
+  async getOrganizationBySupplier(supplierId: string): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      return orgs.find(o => o.type === 'supplier' && o.supplierId === supplierId) || null;
+  },
+
+  async getOrganizationByAdvertiser(advertiserId: string): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      return orgs.find(o => o.type === 'advertiser' && o.advertiserId === advertiserId) || null;
+  },
+
+  async getOrganizationByAffiliate(affiliateId: string): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      return orgs.find(o => o.type === 'affiliate' && o.affiliateId === affiliateId) || null;
+  },
+
+  async getOrganizationByOwnerUserId(ownerUserId: string): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      return orgs.find(o => o.ownerUserId === ownerUserId) || null;
+  },
+
+  async getOrCreateOrganizationForEntity(
+      type: OrganizationType,
+      entityId: string,
+      name: string,
+      ownerUserId: string
+  ): Promise<Organization> {
+      let existing: Organization | null = null;
+      
+      if (type === 'customer') {
+          existing = await this.getOrganizationByCustomer(entityId);
+      } else if (type === 'supplier') {
+          existing = await this.getOrganizationBySupplier(entityId);
+      } else if (type === 'advertiser') {
+          existing = await this.getOrganizationByAdvertiser(entityId);
+      } else if (type === 'affiliate') {
+          existing = await this.getOrganizationByAffiliate(entityId);
+      }
+      
+      if (existing) return existing;
+      
+      const now = new Date().toISOString();
+      const newOrg: Organization = {
+          id: `org_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type,
+          name,
+          ownerUserId,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now
+      };
+      
+      if (type === 'customer') newOrg.customerId = entityId;
+      else if (type === 'supplier') newOrg.supplierId = entityId;
+      else if (type === 'advertiser') newOrg.advertiserId = entityId;
+      else if (type === 'affiliate') newOrg.affiliateId = entityId;
+      
+      const orgs = await this.getOrganizations();
+      orgs.push(newOrg);
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATIONS, JSON.stringify(orgs));
+      
+      // Create owner as organization user
+      await this.createOrganizationUser(newOrg.id, {
+          userId: ownerUserId,
+          role: 'owner',
+          permissions: [] // Owner has all permissions
+      });
+      
+      return newOrg;
+  },
+
+  async createOrganization(data: Omit<Organization, 'id' | 'createdAt' | 'updatedAt'>): Promise<Organization> {
+      const now = new Date().toISOString();
+      const newOrg: Organization = {
+          ...data,
+          id: `org_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: now,
+          updatedAt: now
+      };
+      
+      const orgs = await this.getOrganizations();
+      orgs.push(newOrg);
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATIONS, JSON.stringify(orgs));
+      return newOrg;
+  },
+
+  async updateOrganization(id: string, data: Partial<Organization>): Promise<Organization | null> {
+      const orgs = await this.getOrganizations();
+      const index = orgs.findIndex(o => o.id === id);
+      if (index === -1) return null;
+      
+      orgs[index] = {
+          ...orgs[index],
+          ...data,
+          updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATIONS, JSON.stringify(orgs));
+      return orgs[index];
+  },
+
+  // --- Organization Users (Team Members) CRUD ---
+  async getOrganizationUsers(orgId?: string): Promise<OrganizationUser[]> {
+      const stored = localStorage.getItem(STORAGE_KEYS.ORGANIZATION_USERS);
+      const users: OrganizationUser[] = stored ? JSON.parse(stored) : [];
+      if (orgId) {
+          return users.filter(u => u.organizationId === orgId);
+      }
+      return users;
+  },
+
+  async getOrganizationUser(orgId: string, userId: string): Promise<OrganizationUser | null> {
+      const users = await this.getOrganizationUsers(orgId);
+      return users.find(u => u.userId === userId) || null;
+  },
+
+  async getOrganizationUserById(id: string): Promise<OrganizationUser | null> {
+      const users = await this.getOrganizationUsers();
+      return users.find(u => u.id === id) || null;
+  },
+
+  async getOrganizationsByUserId(userId: string): Promise<Organization[]> {
+      const orgUsers = await this.getOrganizationUsers();
+      const userOrgIds = orgUsers.filter(u => u.userId === userId && u.isActive).map(u => u.organizationId);
+      const orgs = await this.getOrganizations();
+      return orgs.filter(o => userOrgIds.includes(o.id) || o.ownerUserId === userId);
+  },
+
+  async createOrganizationUser(
+      orgId: string,
+      data: { userId: string; role: OrganizationUserRole; permissions: ScopedPermissionKey[]; jobTitle?: string; department?: string }
+  ): Promise<OrganizationUser> {
+      const now = new Date().toISOString();
+      const newUser: OrganizationUser = {
+          id: `orguser_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          organizationId: orgId,
+          userId: data.userId,
+          role: data.role,
+          permissions: data.permissions,
+          jobTitle: data.jobTitle,
+          department: data.department,
+          isActive: true,
+          joinedAt: now,
+          createdAt: now,
+          updatedAt: now
+      };
+      
+      const users = await this.getOrganizationUsers();
+      users.push(newUser);
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATION_USERS, JSON.stringify(users));
+      
+      // Log activity
+      await this.logOrganizationActivity(orgId, data.userId, 'team_member_added', 'team', {
+          newMemberRole: data.role,
+          newMemberUserId: data.userId
+      });
+      
+      return newUser;
+  },
+
+  async updateOrganizationUser(id: string, data: Partial<OrganizationUser>): Promise<OrganizationUser | null> {
+      const users = await this.getOrganizationUsers();
+      const index = users.findIndex(u => u.id === id);
+      if (index === -1) return null;
+      
+      users[index] = {
+          ...users[index],
+          ...data,
+          updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATION_USERS, JSON.stringify(users));
+      return users[index];
+  },
+
+  async deactivateOrganizationUser(id: string): Promise<OrganizationUser | null> {
+      return await this.updateOrganizationUser(id, { isActive: false });
+  },
+
+  async reactivateOrganizationUser(id: string): Promise<OrganizationUser | null> {
+      return await this.updateOrganizationUser(id, { isActive: true });
+  },
+
+  async removeOrganizationUser(id: string): Promise<boolean> {
+      const users = await this.getOrganizationUsers();
+      const filtered = users.filter(u => u.id !== id);
+      if (filtered.length === users.length) return false;
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATION_USERS, JSON.stringify(filtered));
+      return true;
+  },
+
+  // --- Team Invitations ---
+  async getTeamInvitations(orgId?: string): Promise<TeamInvitation[]> {
+      const stored = localStorage.getItem(STORAGE_KEYS.TEAM_INVITATIONS);
+      const invitations: TeamInvitation[] = stored ? JSON.parse(stored) : [];
+      if (orgId) {
+          return invitations.filter(i => i.organizationId === orgId);
+      }
+      return invitations;
+  },
+
+  async getTeamInvitationByCode(code: string): Promise<TeamInvitation | null> {
+      const invitations = await this.getTeamInvitations();
+      return invitations.find(i => i.invitationCode === code) || null;
+  },
+
+  async createTeamInvitation(
+      orgId: string,
+      invitedByUserId: string,
+      data: { email: string; phone?: string; name?: string; role: OrganizationUserRole; permissions: ScopedPermissionKey[] }
+  ): Promise<TeamInvitation> {
+      const settings = await this.getOrganizationSettings();
+      const now = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + settings.invitationExpiryHours * 60 * 60 * 1000).toISOString();
+      
+      const invitation: TeamInvitation = {
+          id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          organizationId: orgId,
+          invitedByUserId,
+          email: data.email,
+          phone: data.phone,
+          name: data.name,
+          role: data.role,
+          permissions: data.permissions,
+          status: 'pending',
+          invitationCode: Math.random().toString(36).substr(2, 8).toUpperCase(),
+          expiresAt,
+          createdAt: now
+      };
+      
+      const invitations = await this.getTeamInvitations();
+      invitations.push(invitation);
+      localStorage.setItem(STORAGE_KEYS.TEAM_INVITATIONS, JSON.stringify(invitations));
+      
+      return invitation;
+  },
+
+  async acceptTeamInvitation(code: string, userId: string): Promise<{ success: boolean; message: string; orgUser?: OrganizationUser }> {
+      const invitation = await this.getTeamInvitationByCode(code);
+      if (!invitation) {
+          return { success: false, message: 'رمز الدعوة غير صالح' };
+      }
+      
+      if (invitation.status !== 'pending') {
+          return { success: false, message: 'تم استخدام هذه الدعوة بالفعل' };
+      }
+      
+      if (new Date(invitation.expiresAt) < new Date()) {
+          // Update status to expired
+          await this.updateTeamInvitation(invitation.id, { status: 'expired' });
+          return { success: false, message: 'انتهت صلاحية الدعوة' };
+      }
+      
+      // Create organization user
+      const orgUser = await this.createOrganizationUser(invitation.organizationId, {
+          userId,
+          role: invitation.role,
+          permissions: invitation.permissions
+      });
+      
+      // Update invitation status
+      await this.updateTeamInvitation(invitation.id, { 
+          status: 'accepted',
+          acceptedAt: new Date().toISOString()
+      });
+      
+      return { success: true, message: 'تم قبول الدعوة بنجاح', orgUser };
+  },
+
+  async updateTeamInvitation(id: string, data: Partial<TeamInvitation>): Promise<TeamInvitation | null> {
+      const invitations = await this.getTeamInvitations();
+      const index = invitations.findIndex(i => i.id === id);
+      if (index === -1) return null;
+      
+      invitations[index] = { ...invitations[index], ...data };
+      localStorage.setItem(STORAGE_KEYS.TEAM_INVITATIONS, JSON.stringify(invitations));
+      return invitations[index];
+  },
+
+  async cancelTeamInvitation(id: string): Promise<boolean> {
+      const result = await this.updateTeamInvitation(id, { status: 'cancelled' });
+      return result !== null;
+  },
+
+  // --- Organization Activity Logs ---
+  async getOrganizationActivityLogs(orgId?: string, limit: number = 100): Promise<OrganizationActivityLog[]> {
+      const stored = localStorage.getItem(STORAGE_KEYS.ORGANIZATION_ACTIVITY_LOGS);
+      let logs: OrganizationActivityLog[] = stored ? JSON.parse(stored) : [];
+      
+      if (orgId) {
+          logs = logs.filter(l => l.organizationId === orgId);
+      }
+      
+      return logs
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, limit);
+  },
+
+  async logOrganizationActivity(
+      orgId: string,
+      userId: string,
+      actionType: string,
+      actionCategory: OrganizationActivityLog['actionCategory'],
+      metadata?: Record<string, any>
+  ): Promise<OrganizationActivityLog> {
+      const settings = await this.getOrganizationSettings();
+      if (!settings.trackTeamActivityPerOrganization) {
+          // Return a placeholder log if tracking is disabled
+          return {
+              id: '',
+              organizationId: orgId,
+              userId,
+              actionType,
+              actionCategory,
+              description: '',
+              metadata,
+              createdAt: new Date().toISOString()
+          };
+      }
+      
+      // Get user name
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const user = users.find((u: User) => u.id === userId);
+      
+      const log: OrganizationActivityLog = {
+          id: `orglog_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          organizationId: orgId,
+          userId,
+          userName: user?.name || 'مستخدم',
+          actionType,
+          actionCategory,
+          description: this.getActivityDescription(actionType, actionCategory, metadata),
+          metadata,
+          createdAt: new Date().toISOString()
+      };
+      
+      const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORGANIZATION_ACTIVITY_LOGS) || '[]');
+      logs.unshift(log);
+      
+      // Keep only logs within retention period
+      const retentionDate = new Date();
+      retentionDate.setDate(retentionDate.getDate() - settings.activityLogRetentionDays);
+      const filteredLogs = logs.filter((l: OrganizationActivityLog) => 
+          new Date(l.createdAt) > retentionDate
+      );
+      
+      localStorage.setItem(STORAGE_KEYS.ORGANIZATION_ACTIVITY_LOGS, JSON.stringify(filteredLogs));
+      return log;
+  },
+
+  getActivityDescription(actionType: string, category: string, metadata?: Record<string, any>): string {
+      const descriptions: Record<string, string> = {
+          'team_member_added': 'تمت إضافة عضو جديد للفريق',
+          'team_member_removed': 'تمت إزالة عضو من الفريق',
+          'team_member_updated': 'تم تحديث بيانات عضو الفريق',
+          'order_created': 'تم إنشاء طلب جديد',
+          'order_updated': 'تم تحديث الطلب',
+          'installment_request_created': 'تم إنشاء طلب تقسيط',
+          'installment_offer_submitted': 'تم تقديم عرض تقسيط',
+          'campaign_created': 'تم إنشاء حملة إعلانية',
+          'campaign_updated': 'تم تحديث الحملة الإعلانية',
+          'offer_submitted': 'تم تقديم عرض',
+          'link_created': 'تم إنشاء رابط إحالة',
+          'profile_updated': 'تم تحديث الملف الشخصي'
+      };
+      return descriptions[actionType] || actionType;
+  },
+
+  // --- Permission Helpers ---
+  async hasScopedPermission(userId: string, orgId: string, permissionKey: ScopedPermissionKey): Promise<boolean> {
+      const orgUser = await this.getOrganizationUser(orgId, userId);
+      if (!orgUser) {
+          // Check if user is the organization owner
+          const org = await this.getOrganizationById(orgId);
+          if (org && org.ownerUserId === userId) {
+              return true; // Owner has all permissions
+          }
+          return false;
+      }
+      
+      if (!orgUser.isActive) return false;
+      
+      // Owner role has all permissions
+      if (orgUser.role === 'owner') return true;
+      
+      return orgUser.permissions.includes(permissionKey);
+  },
+
+  async getUserScopedPermissions(userId: string, orgId: string): Promise<ScopedPermissionKey[]> {
+      const org = await this.getOrganizationById(orgId);
+      if (org && org.ownerUserId === userId) {
+          // Return all permissions for owner
+          return this.getAllPermissionKeys();
+      }
+      
+      const orgUser = await this.getOrganizationUser(orgId, userId);
+      if (!orgUser || !orgUser.isActive) return [];
+      
+      if (orgUser.role === 'owner') {
+          return this.getAllPermissionKeys();
+      }
+      
+      return orgUser.permissions;
+  },
+
+  getAllPermissionKeys(): ScopedPermissionKey[] {
+      return [
+          'adv_view_campaigns', 'adv_manage_campaigns', 'adv_manage_slots', 'adv_view_reports',
+          'sup_view_forwarded_requests', 'sup_submit_offers', 'sup_view_team_activity', 'sup_manage_products', 'sup_view_analytics',
+          'cust_create_orders', 'cust_view_orders', 'cust_create_installment_requests', 'cust_manage_installment_requests',
+          'cust_use_trader_tools', 'cust_view_team_activity', 'cust_view_prices', 'cust_manage_cart',
+          'aff_view_links', 'aff_manage_links', 'aff_view_commissions', 'aff_withdraw_commissions', 'aff_view_analytics',
+          'org_manage_team', 'org_view_logs', 'org_view_settings', 'org_edit_profile'
+      ];
+  },
+
+  getPermissionsByOrganizationType(type: OrganizationType): ScopedPermissionKey[] {
+      const general: ScopedPermissionKey[] = ['org_manage_team', 'org_view_logs', 'org_view_settings', 'org_edit_profile'];
+      
+      switch (type) {
+          case 'customer':
+              return [...general, 'cust_create_orders', 'cust_view_orders', 'cust_create_installment_requests', 
+                      'cust_manage_installment_requests', 'cust_use_trader_tools', 'cust_view_team_activity', 
+                      'cust_view_prices', 'cust_manage_cart'];
+          case 'supplier':
+              return [...general, 'sup_view_forwarded_requests', 'sup_submit_offers', 'sup_view_team_activity',
+                      'sup_manage_products', 'sup_view_analytics'];
+          case 'advertiser':
+              return [...general, 'adv_view_campaigns', 'adv_manage_campaigns', 'adv_manage_slots', 'adv_view_reports'];
+          case 'affiliate':
+              return [...general, 'aff_view_links', 'aff_manage_links', 'aff_view_commissions', 
+                      'aff_withdraw_commissions', 'aff_view_analytics'];
+          default:
+              return general;
+      }
+  },
+
+  async getDefaultPermissionsForRole(orgType: OrganizationType, role: OrganizationUserRole): Promise<ScopedPermissionKey[]> {
+      const settings = await this.getOrganizationSettings();
+      
+      if (role === 'owner') {
+          return this.getPermissionsByOrganizationType(orgType);
+      }
+      
+      switch (orgType) {
+          case 'customer':
+              return role === 'manager' ? settings.defaultCustomerManagerPermissions :
+                     role === 'staff' ? settings.defaultCustomerStaffPermissions :
+                     settings.defaultCustomerReadonlyPermissions;
+          case 'supplier':
+              return role === 'manager' ? settings.defaultSupplierManagerPermissions :
+                     role === 'staff' ? settings.defaultSupplierStaffPermissions :
+                     settings.defaultSupplierReadonlyPermissions;
+          case 'advertiser':
+              return role === 'manager' ? settings.defaultAdvertiserManagerPermissions :
+                     role === 'staff' ? settings.defaultAdvertiserStaffPermissions :
+                     settings.defaultAdvertiserReadonlyPermissions;
+          case 'affiliate':
+              return role === 'manager' ? settings.defaultAffiliateManagerPermissions :
+                     role === 'staff' ? settings.defaultAffiliateStaffPermissions :
+                     settings.defaultAffiliateReadonlyPermissions;
+          default:
+              return [];
+      }
+  },
+
+  // --- Organization Stats ---
+  async getOrganizationStats(orgId: string): Promise<OrganizationStats> {
+      const members = await this.getOrganizationUsers(orgId);
+      const invitations = await this.getTeamInvitations(orgId);
+      const activities = await this.getOrganizationActivityLogs(orgId, 100);
+      
+      const activeMembers = members.filter(m => m.isActive);
+      const pendingInvitations = invitations.filter(i => i.status === 'pending');
+      
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      const recentActivities = activities.filter(a => new Date(a.createdAt) > oneDayAgo);
+      
+      const rolesCounts: Record<OrganizationUserRole, number> = { owner: 0, manager: 0, staff: 0, readonly: 0 };
+      activeMembers.forEach(m => { rolesCounts[m.role]++; });
+      
+      return {
+          totalMembers: members.length,
+          activeMembers: activeMembers.length,
+          pendingInvitations: pendingInvitations.length,
+          recentActivities: recentActivities.length,
+          membersByRole: Object.entries(rolesCounts).map(([role, count]) => ({
+              role: role as OrganizationUserRole,
+              count
+          }))
+      };
+  },
+
+  // --- Check Team Limits ---
+  async canAddTeamMember(orgId: string): Promise<{ allowed: boolean; reason?: string }> {
+      const org = await this.getOrganizationById(orgId);
+      if (!org) return { allowed: false, reason: 'المنظمة غير موجودة' };
+      
+      const settings = await this.getOrganizationSettings();
+      
+      // Check if teams are enabled for this org type
+      const isEnabled = 
+          (org.type === 'customer' && settings.enableTeamsForCustomers) ||
+          (org.type === 'supplier' && settings.enableTeamsForSuppliers) ||
+          (org.type === 'advertiser' && settings.enableTeamsForAdvertisers) ||
+          (org.type === 'affiliate' && settings.enableTeamsForAffiliates);
+      
+      if (!isEnabled) {
+          return { allowed: false, reason: 'إدارة الفريق غير مفعلة لهذا النوع من الحسابات' };
+      }
+      
+      // Check member limit
+      const members = await this.getOrganizationUsers(orgId);
+      const activeMembers = members.filter(m => m.isActive);
+      
+      const maxLimit = 
+          org.type === 'customer' ? settings.maxCustomerEmployees :
+          org.type === 'supplier' ? settings.maxSupplierEmployees :
+          org.type === 'advertiser' ? settings.maxAdvertiserEmployees :
+          settings.maxAffiliateEmployees;
+      
+      if (activeMembers.length >= maxLimit) {
+          return { allowed: false, reason: `تم الوصول للحد الأقصى من أعضاء الفريق (${maxLimit})` };
+      }
+      
+      return { allowed: true };
+  },
+
+  // --- Check if user can manage team ---
+  async canManageTeam(userId: string, orgId: string): Promise<boolean> {
+      const org = await this.getOrganizationById(orgId);
+      if (!org) return false;
+      
+      // Owner can always manage team
+      if (org.ownerUserId === userId) return true;
+      
+      // Check if user has org_manage_team permission
+      return await this.hasScopedPermission(userId, orgId, 'org_manage_team');
   }
 };
