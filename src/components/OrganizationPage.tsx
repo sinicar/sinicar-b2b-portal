@@ -24,13 +24,12 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
 
     // Company profile state
     const [companyProfile, setCompanyProfile] = useState({
-        businessName: '',
-        commercialRegNumber: '',
-        vatNumber: '',
+        companyName: '',
+        crNumber: '',
+        taxNumber: '',
         nationalAddress: '',
         city: '',
-        country: 'السعودية',
-        email: '',
+        region: 'المملكة العربية السعودية',
         phone: ''
     });
     const [profileLoading, setProfileLoading] = useState(false);
@@ -71,13 +70,12 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                 setBranches(myProfile.branches || []);
                 // Load company profile data
                 setCompanyProfile({
-                    businessName: myProfile.businessName || '',
-                    commercialRegNumber: myProfile.commercialRegNumber || '',
-                    vatNumber: myProfile.vatNumber || '',
+                    companyName: myProfile.companyName || '',
+                    crNumber: myProfile.crNumber || '',
+                    taxNumber: myProfile.taxNumber || '',
                     nationalAddress: myProfile.nationalAddress || '',
                     city: myProfile.city || '',
-                    country: myProfile.country || 'السعودية',
-                    email: myProfile.email || '',
+                    region: myProfile.region || 'المملكة العربية السعودية',
                     phone: myProfile.phone || ''
                 });
             }
@@ -300,8 +298,8 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                                 <input 
                                     type="text"
                                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-lg font-bold"
-                                    value={companyProfile.businessName}
-                                    onChange={e => setCompanyProfile({...companyProfile, businessName: e.target.value})}
+                                    value={companyProfile.companyName}
+                                    onChange={e => setCompanyProfile({...companyProfile, companyName: e.target.value})}
                                     placeholder="اسم الشركة أو المحل"
                                     data-testid="input-business-name"
                                 />
@@ -316,8 +314,8 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                                 <input 
                                     type="text"
                                     className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-mono"
-                                    value={companyProfile.commercialRegNumber}
-                                    onChange={e => setCompanyProfile({...companyProfile, commercialRegNumber: e.target.value})}
+                                    value={companyProfile.crNumber}
+                                    onChange={e => setCompanyProfile({...companyProfile, crNumber: e.target.value})}
                                     placeholder="10 أرقام"
                                     data-testid="input-cr-number"
                                 />
@@ -332,8 +330,8 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                                 <input 
                                     type="text"
                                     className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-mono"
-                                    value={companyProfile.vatNumber}
-                                    onChange={e => setCompanyProfile({...companyProfile, vatNumber: e.target.value})}
+                                    value={companyProfile.taxNumber}
+                                    onChange={e => setCompanyProfile({...companyProfile, taxNumber: e.target.value})}
                                     placeholder="15 رقم"
                                     data-testid="input-vat-number"
                                 />
@@ -371,19 +369,19 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                                 />
                             </div>
 
-                            {/* Country */}
+                            {/* Region */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
                                     <Globe size={16} className="text-slate-400" />
-                                    الدولة
+                                    المنطقة
                                 </label>
                                 <input 
                                     type="text"
                                     className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                                    value={companyProfile.country}
-                                    onChange={e => setCompanyProfile({...companyProfile, country: e.target.value})}
-                                    disabled
-                                    data-testid="input-country"
+                                    value={companyProfile.region}
+                                    onChange={e => setCompanyProfile({...companyProfile, region: e.target.value})}
+                                    placeholder="مثال: المملكة العربية السعودية"
+                                    data-testid="input-region"
                                 />
                             </div>
 
@@ -401,23 +399,6 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                                     placeholder="رقم الجوال أو الهاتف الثابت"
                                     dir="ltr"
                                     data-testid="input-phone"
-                                />
-                            </div>
-
-                            {/* Email */}
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                                    <FileText size={16} className="text-slate-400" />
-                                    البريد الإلكتروني
-                                </label>
-                                <input 
-                                    type="email"
-                                    className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                                    value={companyProfile.email}
-                                    onChange={e => setCompanyProfile({...companyProfile, email: e.target.value})}
-                                    placeholder="example@company.com"
-                                    dir="ltr"
-                                    data-testid="input-email"
                                 />
                             </div>
                         </div>

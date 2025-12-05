@@ -2459,13 +2459,12 @@ export const MockApi = {
 
   // Update customer business profile
   async updateCustomerProfile(mainUserId: string, profileData: {
-      businessName?: string;
-      commercialRegNumber?: string;
-      vatNumber?: string;
+      companyName?: string;
+      crNumber?: string;
+      taxNumber?: string;
       nationalAddress?: string;
       city?: string;
-      country?: string;
-      email?: string;
+      region?: string;
       phone?: string;
   }) {
       await delay(200);
@@ -2473,14 +2472,13 @@ export const MockApi = {
       const idx = profiles.findIndex((p:BusinessProfile) => p.userId === mainUserId);
       if (idx === -1) throw new Error('User not found');
 
-      // Update only provided fields
-      if (profileData.businessName !== undefined) profiles[idx].businessName = profileData.businessName;
-      if (profileData.commercialRegNumber !== undefined) profiles[idx].commercialRegNumber = profileData.commercialRegNumber;
-      if (profileData.vatNumber !== undefined) profiles[idx].vatNumber = profileData.vatNumber;
+      // Update only provided fields (using correct BusinessProfile field names)
+      if (profileData.companyName !== undefined) profiles[idx].companyName = profileData.companyName;
+      if (profileData.crNumber !== undefined) profiles[idx].crNumber = profileData.crNumber;
+      if (profileData.taxNumber !== undefined) profiles[idx].taxNumber = profileData.taxNumber;
       if (profileData.nationalAddress !== undefined) profiles[idx].nationalAddress = profileData.nationalAddress;
       if (profileData.city !== undefined) profiles[idx].city = profileData.city;
-      if (profileData.country !== undefined) profiles[idx].country = profileData.country;
-      if (profileData.email !== undefined) profiles[idx].email = profileData.email;
+      if (profileData.region !== undefined) profiles[idx].region = profileData.region;
       if (profileData.phone !== undefined) profiles[idx].phone = profileData.phone;
 
       localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
