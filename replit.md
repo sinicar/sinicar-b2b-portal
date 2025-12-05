@@ -72,6 +72,10 @@ Preferred communication style: Simple, everyday language.
 - `siniCar_settings`: Site configuration
 - `siniCar_searchHistory`: User search history for price reveal tracking
 - `siniCar_notifications`: User notifications
+- `siniCar_priceLevels`: Configurable price levels (base and derived)
+- `siniCar_priceMatrix`: Product-specific price entries per level
+- `siniCar_customerProfiles`: Customer pricing profiles with custom rules
+- `siniCar_globalPricingSettings`: Global pricing configuration
 
 **Type System** (`types.ts`):
 - Comprehensive TypeScript interfaces for all domain entities
@@ -114,6 +118,15 @@ Preferred communication style: Simple, everyday language.
 - Can add staff with roles (MANAGER with full access, BUYER with limited access)
 - Staff authenticate using phone + activation code
 - Permissions cascade from owner → branches → staff
+
+**Pricing Center (مركز التسعيرات)**: Admin-configurable pricing system
+- Price Levels: Define base levels and derived levels (percentage adjustments)
+- Price Matrix: Set product-specific prices per level
+- Customer Profiles: Override pricing for specific customers with custom rules
+- Global Settings: Configure currency, rounding, default level, precedence order
+- Price Simulation: Test price calculations for any product/customer combination
+- Precedence Order: CUSTOM_RULE → LEVEL_EXPLICIT → LEVEL_DERIVED (configurable)
+- Pricing Engine (`services/pricingEngine.ts`): Centralized calculation with caching
 
 ## Utility Modules
 
