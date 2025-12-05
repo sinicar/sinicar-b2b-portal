@@ -8,7 +8,7 @@ import {
     CheckCircle, SearchX, Download, Globe, XCircle, Info, Truck, Check, 
     UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3, 
     TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, 
-    Database, Server, ExternalLink, Plus, Layers
+    Database, Server, ExternalLink, Plus, Layers, Megaphone
 } from 'lucide-react';
 import { LanguageSwitcherLight } from './LanguageSwitcher';
 import { AdminSettings } from './AdminSettings';
@@ -21,6 +21,7 @@ import { AdminImportManager } from './AdminImportManager';
 import { AdminProductsPage } from './AdminProductsPage';
 import { AdminUsersPage } from './AdminUsersPage';
 import { AccessDenied } from './AccessDenied';
+import { AdminMarketingCenter } from './AdminMarketingCenter';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -35,7 +36,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS' | 'MARKETING';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -48,7 +49,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'ACCOUNT_REQUESTS': 'account_requests',
     'ACTIVITY_LOGS': 'activity_log',
     'ORDERS_MANAGER': 'orders',
-    'ADMIN_USERS': 'users'
+    'ADMIN_USERS': 'users',
+    'MARKETING': 'settings_general'
 };
 
 const VIEW_LABELS: Record<ViewType, string> = {
@@ -62,7 +64,8 @@ const VIEW_LABELS: Record<ViewType, string> = {
     'ACCOUNT_REQUESTS': 'طلبات الحسابات',
     'ACTIVITY_LOGS': 'سجل النشاط',
     'ORDERS_MANAGER': 'طلبات العملاء',
-    'ADMIN_USERS': 'المستخدمون'
+    'ADMIN_USERS': 'المستخدمون',
+    'MARKETING': 'مركز التسويق'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -359,6 +362,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Settings size={20} />} label={t('adminDashboard.systemSettings')} active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Megaphone size={20} />} label={t('adminDashboard.marketingCenter')} active={view === 'MARKETING'} onClick={() => setView('MARKETING')} />
+                    )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
@@ -382,6 +388,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'MISSING' && t('adminDashboard.pageTitles.missing')}
                         {view === 'SETTINGS' && t('adminDashboard.pageTitles.settings')}
                         {view === 'ADMIN_USERS' && t('adminDashboard.pageTitles.users')}
+                        {view === 'MARKETING' && t('adminDashboard.pageTitles.marketing')}
                         {['PRODUCTS'].includes(view) && t('adminDashboard.pageTitles.products')}
                     </h2>
                     <div className="flex items-center gap-4">
@@ -573,6 +580,11 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'ADMIN_USERS' && (
                         canAccess('users') 
                             ? <AdminUsersPage onRefresh={fetchAllData} /> 
+                            : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'MARKETING' && (
+                        canAccess('settings_general') 
+                            ? <AdminMarketingCenter /> 
                             : <AccessDenied resourceName={VIEW_LABELS[view]} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
