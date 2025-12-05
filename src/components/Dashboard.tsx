@@ -53,6 +53,7 @@ import { handlePartSearch, createSearchContext, PartSearchResult, filterProducts
 import { TraderToolsHub } from './TraderToolsHub';
 import { TeamManagementPage } from './TeamManagementPage';
 import { useOrganization } from '../services/OrganizationContext';
+import { useCustomerPortalSettings, isFeatureEnabled, getDashboardSections, getNavigationItems } from '../services/CustomerPortalSettingsContext';
 
 interface DashboardProps {
   user: User;
@@ -674,6 +675,20 @@ const DashboardHeader = memo(({
 export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, onRefreshUser }) => {
     // Organization Context for team permissions
     const { hasPermission, loadOrganization, currentOrganization, isOwner } = useOrganization();
+    
+    // Customer Portal Settings Context for dynamic configuration
+    const { settings: portalSettings, getText: getPortalText, loading: portalSettingsLoading } = useCustomerPortalSettings();
+    
+    // Helper to check if a feature is enabled in portal settings
+    const isPortalFeatureEnabled = useCallback((feature: keyof NonNullable<typeof portalSettings>['features']) => {
+        return isFeatureEnabled(portalSettings, feature);
+    }, [portalSettings]);
+    
+    // Get visible dashboard sections based on portal settings
+    const visibleDashboardSections = useMemo(() => getDashboardSections(portalSettings), [portalSettings]);
+    
+    // Get visible navigation items based on portal settings  
+    const visibleNavigationItems = useMemo(() => getNavigationItems(portalSettings), [portalSettings]);
     
     // Add IMPORT_CHINA and TRADER_TOOLS to view state
     const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT'>('HOME');

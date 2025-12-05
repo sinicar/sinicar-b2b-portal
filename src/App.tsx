@@ -11,6 +11,7 @@ import { Lock, User as UserIcon, ArrowRight, ShieldCheck, Box, Server, Activity,
 import { LanguageProvider, useLanguage } from './services/LanguageContext';
 import { ToastProvider, useToast } from './services/ToastContext';
 import { OrganizationProvider } from './services/OrganizationContext';
+import { CustomerPortalSettingsProvider } from './services/CustomerPortalSettingsContext';
 import { ToastContainer } from './components/Toast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { getDirection } from './services/i18n';
@@ -265,7 +266,11 @@ function AppContent() {
     if (currentUser.role === 'SUPER_ADMIN') {
         return <AdminDashboard onLogout={handleLogout} />;
     }
-    return <Dashboard user={currentUser} profile={currentProfile} onLogout={handleLogout} onRefreshUser={refreshUser} />;
+    return (
+        <CustomerPortalSettingsProvider>
+            <Dashboard user={currentUser} profile={currentProfile} onLogout={handleLogout} onRefreshUser={refreshUser} />
+        </CustomerPortalSettingsProvider>
+    );
   }
 
   if (authView === 'REGISTER') {
