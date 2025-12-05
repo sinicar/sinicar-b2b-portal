@@ -1390,7 +1390,7 @@
     "totalOrders": "إجمالي الطلبات",
     "searchOrder": "بحث برقم الطلب أو اسم العميل...",
     "allStatuses": "جميع الحالات",
-    "allInternalStatuses": "كل الحالات الداخلية",
+    "allInternalStatuses": "جميع الحالات الداخلية",
     "orderNumber": "رقم الطلب",
     "customer": "العميل",
     "date": "التاريخ",
@@ -1406,26 +1406,26 @@
     "internalNotes": "ملاحظات داخلية",
     "updateStatus": "تحديث الحالة",
     "updateInternalStatus": "تحديث الحالة الداخلية",
-    "externalStatusUpdated": "تم تحديث الحالة الخارجية وإشعار العميل",
-    "internalStatusUpdated": "تم تحديث الحالة الداخلية",
-    "updateFailed": "فشل التحديث",
+    "externalStatusUpdated": "تم تحديث حالة الطلب الخارجية",
+    "internalStatusUpdated": "تم تحديث حالة الطلب الداخلية",
+    "updateFailed": "فشل في التحديث",
     "statusLabels": {
-      "pending": "بانتظار الموافقة",
-      "approved": "تم الاعتماد",
+      "pending": "قيد الانتظار",
+      "approved": "تمت الموافقة",
       "shipped": "تم الشحن",
       "delivered": "تم التسليم",
       "rejected": "مرفوض",
       "cancelled": "ملغي"
     },
     "internalStatusLabels": {
-      "new": "طلب جديد",
-      "sentToWarehouse": "تم الإرسال للمستودع",
-      "waitingPayment": "بانتظار التحويل",
-      "paymentConfirmed": "تم تأكيد التحويل",
-      "salesInvoiceCreated": "فاتورة المبيعات",
+      "new": "جديد",
+      "sentToWarehouse": "أرسل للمستودع",
+      "waitingPayment": "بانتظار الدفع",
+      "paymentConfirmed": "الدفع مؤكد",
+      "salesInvoiceCreated": "فاتورة المبيعات صدرت",
       "readyForShipment": "جاهز للشحن",
-      "completedInternal": "مكتمل داخليًا",
-      "cancelledInternal": "ملغي داخليًا"
+      "completedInternal": "مكتمل داخلياً",
+      "cancelledInternal": "ملغي داخلياً"
     },
     "details": "التفاصيل",
     "name": "الاسم",
@@ -1450,12 +1450,15 @@
     "noPermission": "ليس لديك صلاحية",
     "stats": {
       "pending": "قيد الانتظار",
-      "processing": "جاري المعالجة",
+      "processing": "قيد المعالجة",
       "shipped": "تم الشحن",
       "delivered": "تم التوصيل",
-      "cancelled": "ملغاة"
+      "cancelled": "ملغاة",
+      "total": "الإجمالي",
+      "new": "جديدة",
+      "ready": "جاهزة للشحن"
     },
-    "searchPlaceholder": "بحث برقم الطلب، اسم العميل...",
+    "searchPlaceholder": "بحث برقم الطلب أو العميل...",
     "table": {
       "orderId": "رقم الطلب",
       "customer": "العميل",
@@ -1472,7 +1475,8 @@
     "cancel": "إلغاء",
     "orderUpdated": "تم تحديث الطلب",
     "shippingInfo": "معلومات الشحن",
-    "paymentInfo": "معلومات الدفع"
+    "paymentInfo": "معلومات الدفع",
+    "noteAdded": "تمت إضافة الملاحظة"
   },
   "adminAccounts": {
     "title": "إدارة طلبات فتح الحساب",
@@ -1802,7 +1806,17 @@
       "products": "منتج",
       "previous": "السابق",
       "next": "التالي"
-    }
+    },
+    "selectProductsFirst": "الرجاء تحديد منتجات أولاً",
+    "selectedCount": "تم تحديد {{count}} منتج",
+    "visibilityApplied": "تم تطبيق قاعدة إخفاء الكمية على {{count}} منتج",
+    "visibilityRemoved": "تم إزالة قاعدة إخفاء الكمية من {{count}} منتج",
+    "loadFailed": "فشل في تحميل المنتجات",
+    "importFailed": "فشل في الاستيراد",
+    "templateDownloaded": "تم تحميل نموذج Excel",
+    "templateDownloadFailed": "فشل في تحميل النموذج",
+    "partAndNameRequired": "رقم الصنف والاسم مطلوبان",
+    "deleteFailed": "فشل في حذف المنتج"
   },
   "adminUsers": {
     "title": "إدارة المستخدمين",
@@ -1923,7 +1937,7 @@
     "errorCode": "رمز الخطأ"
   },
   "adminQuoteManager": {
-    "searchPlaceholder": "بحث برقم الطلب، العميل...",
+    "searchPlaceholder": "بحث برقم الطلب أو الشركة...",
     "allStatuses": "جميع الحالات",
     "table": {
       "requestNumber": "رقم الطلب",
@@ -1965,17 +1979,19 @@
     "status": {
       "new": "جديد",
       "underReview": "قيد المراجعة",
-      "partiallyApproved": "معتمد جزئياً",
-      "approved": "معتمد بالكامل",
+      "partiallyApproved": "موافقة جزئية",
+      "approved": "تمت الموافقة",
       "quoted": "تم التسعير",
       "processed": "تمت المعالجة",
       "rejected": "مرفوض"
     },
     "toast": {
       "itemsUpdated": "تم تحديث {{count}} صنف",
-      "approvedWithoutPriceWarning": "تنبيه: يوجد أصناف معتمدة (Approved) بدون سعر. هل أنت متأكد من المتابعة؟",
+      "approvedWithoutPriceWarning": "يوجد أصناف معتمدة بدون سعر. هل تريد المتابعة؟",
       "pricingSentSuccess": "تم اعتماد التسعير وإرسال النتيجة للعميل",
-      "saveError": "حدث خطأ أثناء الحفظ"
+      "saveError": "حدث خطأ أثناء الحفظ",
+      "quoteSaved": "تم حفظ طلب التسعير",
+      "quoteSaveFailed": "فشل في حفظ طلب التسعير"
     }
   },
   "adminMissingParts": {

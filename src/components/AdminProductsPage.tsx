@@ -91,7 +91,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     
     const handleSavePreset = () => {
         if (!presetForm.name.trim()) {
-            addToast('الرجاء إدخال اسم الإعداد', 'error');
+            addToast(t('adminProducts.columnPresets.enterPresetName', 'الرجاء إدخال اسم الإعداد'), 'error');
             return;
         }
         
@@ -101,13 +101,13 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                 isDefault: columnPresets.length === 0,
                 mappings: presetForm.mappings
             });
-            addToast('تم إنشاء الإعداد بنجاح', 'success');
+            addToast(t('adminProducts.columnPresets.created', 'تم إنشاء الإعداد بنجاح'), 'success');
         } else if (editingPreset) {
             MockApi.updateExcelColumnPreset(editingPreset.id, {
                 name: presetForm.name,
                 mappings: presetForm.mappings
             });
-            addToast('تم حفظ التعديلات', 'success');
+            addToast(t('adminProducts.columnPresets.saved', 'تم حفظ التعديلات'), 'success');
         }
         
         loadColumnPresets();
@@ -115,16 +115,16 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     };
     
     const handleDeletePreset = (id: string) => {
-        if (confirm('هل أنت متأكد من حذف هذا الإعداد؟')) {
+        if (confirm(t('adminProducts.columnPresets.deleteConfirm', 'هل أنت متأكد من حذف هذا الإعداد؟'))) {
             MockApi.deleteExcelColumnPreset(id);
-            addToast('تم حذف الإعداد', 'info');
+            addToast(t('adminProducts.columnPresets.deleted', 'تم حذف الإعداد'), 'info');
             loadColumnPresets();
         }
     };
     
     const handleSetDefault = (id: string) => {
         MockApi.setDefaultExcelColumnPreset(id);
-        addToast('تم تعيين الإعداد الافتراضي', 'success');
+        addToast(t('adminProducts.columnPresets.setDefault', 'تم تعيين الإعداد الافتراضي'), 'success');
         loadColumnPresets();
     };
     
@@ -173,7 +173,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     
     const selectAllFiltered = () => {
         setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
-        addToast(`تم تحديد ${filteredProducts.length} منتج`, 'info');
+        addToast(t('adminProducts.selectedCount', `تم تحديد ${filteredProducts.length} منتج`, { count: filteredProducts.length }), 'info');
     };
     
     const clearSelection = () => {
@@ -183,22 +183,22 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     // Bulk Visibility Actions
     const applyVisibilityRule = async () => {
         if (selectedProducts.size === 0) {
-            addToast('الرجاء تحديد منتجات أولاً', 'error');
+            addToast(t('adminProducts.selectProductsFirst', 'الرجاء تحديد منتجات أولاً'), 'error');
             return;
         }
         const count = await MockApi.bulkUpdateProductVisibility(Array.from(selectedProducts), true);
-        addToast(`تم تطبيق قاعدة إخفاء الكمية على ${count} منتج`, 'success');
+        addToast(t('adminProducts.visibilityApplied', `تم تطبيق قاعدة إخفاء الكمية على ${count} منتج`, { count }), 'success');
         loadProducts();
         clearSelection();
     };
     
     const removeVisibilityRule = async () => {
         if (selectedProducts.size === 0) {
-            addToast('الرجاء تحديد منتجات أولاً', 'error');
+            addToast(t('adminProducts.selectProductsFirst', 'الرجاء تحديد منتجات أولاً'), 'error');
             return;
         }
         const count = await MockApi.bulkUpdateProductVisibility(Array.from(selectedProducts), false);
-        addToast(`تم إزالة قاعدة إخفاء الكمية من ${count} منتج`, 'success');
+        addToast(t('adminProducts.visibilityRemoved', `تم إزالة قاعدة إخفاء الكمية من ${count} منتج`, { count }), 'success');
         loadProducts();
         clearSelection();
     };
@@ -206,7 +206,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     const saveVisibilityThreshold = async () => {
         const settings = await MockApi.getSettings();
         await MockApi.updateSettings({ ...settings, minVisibleQty: visibilityThreshold });
-        addToast('تم حفظ الحد الأدنى لعرض الكمية', 'success');
+        addToast(t('adminProducts.visibility.saved', 'تم حفظ الحد الأدنى لعرض الكمية'), 'success');
     };
 
     const loadProducts = async () => {
@@ -215,7 +215,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             const data = await MockApi.getProducts();
             setProducts(data);
         } catch (err) {
-            addToast('فشل في تحميل المنتجات', 'error');
+            addToast(t('adminProducts.loadFailed', 'فشل في تحميل المنتجات'), 'error');
         } finally {
             setLoading(false);
         }
@@ -251,12 +251,11 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             const defaultPreset = MockApi.getDefaultExcelColumnPreset();
             const result = await MockApi.importProductsFromOnyxExcel(file, defaultPreset?.id);
             setImportResult(result);
-            const usedPresetName = defaultPreset ? `باستخدام "${defaultPreset.name}"` : '';
-            addToast(`تم الاستيراد: ${result.imported} جديد، ${result.updated} محدث ${usedPresetName}`, 'success');
+            addToast(t('adminProducts.importModal.importSuccess', 'تم الاستيراد بنجاح'), 'success');
             loadProducts();
             onRefresh?.();
         } catch (err: any) {
-            addToast(err.message || 'فشل في الاستيراد', 'error');
+            addToast(err.message || t('adminProducts.importFailed', 'فشل في الاستيراد'), 'error');
             setImportResult({ imported: 0, updated: 0, skipped: 0, errors: [err.message] });
         } finally {
             setImporting(false);
@@ -267,9 +266,9 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     const handleDownloadTemplate = () => {
         try {
             MockApi.generateOnyxExcelTemplate();
-            addToast('تم تحميل نموذج Excel', 'success');
+            addToast(t('adminProducts.templateDownloaded', 'تم تحميل نموذج Excel'), 'success');
         } catch (err) {
-            addToast('فشل في تحميل النموذج', 'error');
+            addToast(t('adminProducts.templateDownloadFailed', 'فشل في تحميل النموذج'), 'error');
         }
     };
 
@@ -287,36 +286,36 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
 
     const handleSaveProduct = async () => {
         if (!productForm.partNumber || !productForm.name) {
-            addToast('رقم الصنف والاسم مطلوبان', 'error');
+            addToast(t('adminProducts.partAndNameRequired', 'رقم الصنف والاسم مطلوبان'), 'error');
             return;
         }
 
         try {
             if (editingProduct) {
                 await MockApi.updateProduct(editingProduct.id, productForm);
-                addToast('تم تحديث المنتج', 'success');
+                addToast(t('adminProducts.productSaved', 'تم تحديث المنتج'), 'success');
             } else {
                 await MockApi.addProduct(productForm as Omit<Product, 'id' | 'createdAt'>);
-                addToast('تم إضافة المنتج', 'success');
+                addToast(t('adminProducts.productCreated', 'تم إضافة المنتج'), 'success');
             }
             loadProducts();
             setShowProductModal(false);
             onRefresh?.();
         } catch (err: any) {
-            addToast(err.message || 'حدث خطأ', 'error');
+            addToast(err.message || t('common.error', 'حدث خطأ'), 'error');
         }
     };
 
     const handleDeleteProduct = async (id: string) => {
-        if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+        if (!confirm(t('adminProducts.deleteConfirm', 'هل أنت متأكد من حذف هذا المنتج؟'))) return;
         
         try {
             await MockApi.deleteProduct(id);
-            addToast('تم حذف المنتج', 'success');
+            addToast(t('adminProducts.productDeleted', 'تم حذف المنتج'), 'success');
             loadProducts();
             onRefresh?.();
         } catch (err) {
-            addToast('فشل في حذف المنتج', 'error');
+            addToast(t('adminProducts.deleteFailed', 'فشل في حذف المنتج'), 'error');
         }
     };
 

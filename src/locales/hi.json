@@ -1374,7 +1374,7 @@
     "totalOrders": "कुल ऑर्डर",
     "searchOrder": "ऑर्डर नंबर या ग्राहक नाम से खोजें...",
     "allStatuses": "सभी स्थितियाँ",
-    "allInternalStatuses": "सभी आंतरिक स्थिति",
+    "allInternalStatuses": "सभी आंतरिक स्थितियाँ",
     "orderNumber": "ऑर्डर नंबर",
     "customer": "ग्राहक",
     "date": "तारीख",
@@ -1390,19 +1390,19 @@
     "internalNotes": "आंतरिक नोट्स",
     "updateStatus": "स्थिति अपडेट करें",
     "updateInternalStatus": "आंतरिक स्थिति अपडेट करें",
-    "externalStatusUpdated": "बाहरी स्थिति अपडेट की गई और ग्राहक को सूचित किया गया",
-    "internalStatusUpdated": "आंतरिक स्थिति अपडेट की गई",
+    "externalStatusUpdated": "बाहरी ऑर्डर स्थिति अपडेट की गई",
+    "internalStatusUpdated": "आंतरिक ऑर्डर स्थिति अपडेट की गई",
     "updateFailed": "अपडेट विफल",
     "statusLabels": {
-      "pending": "अनुमोदन लंबित",
+      "pending": "लंबित",
       "approved": "स्वीकृत",
-      "shipped": "शिप किया गया",
+      "shipped": "भेज दिया गया",
       "delivered": "डिलीवर किया गया",
       "rejected": "अस्वीकृत",
       "cancelled": "रद्द"
     },
     "internalStatusLabels": {
-      "new": "नया ऑर्डर",
+      "new": "नया",
       "sentToWarehouse": "गोदाम को भेजा गया",
       "waitingPayment": "भुगतान की प्रतीक्षा",
       "paymentConfirmed": "भुगतान पुष्टि",
@@ -1437,9 +1437,12 @@
       "processing": "प्रोसेसिंग",
       "shipped": "भेज दिया गया",
       "delivered": "डिलीवर किया गया",
-      "cancelled": "रद्द किया गया"
+      "cancelled": "रद्द किया गया",
+      "total": "कुल",
+      "new": "नए",
+      "ready": "शिपमेंट के लिए तैयार"
     },
-    "searchPlaceholder": "ऑर्डर आईडी, ग्राहक नाम से खोजें...",
+    "searchPlaceholder": "ऑर्डर नंबर या ग्राहक से खोजें...",
     "table": {
       "orderId": "ऑर्डर आईडी",
       "customer": "ग्राहक",
@@ -1456,7 +1459,8 @@
     "cancel": "रद्द करें",
     "orderUpdated": "ऑर्डर अपडेट किया गया",
     "shippingInfo": "शिपिंग जानकारी",
-    "paymentInfo": "भुगतान जानकारी"
+    "paymentInfo": "भुगतान जानकारी",
+    "noteAdded": "नोट जोड़ा गया"
   },
   "adminAccounts": {
     "title": "खाता खोलने के अनुरोध",
@@ -1786,7 +1790,17 @@
       "products": "उत्पाद",
       "previous": "पिछला",
       "next": "अगला"
-    }
+    },
+    "selectProductsFirst": "कृपया पहले उत्पाद चुनें",
+    "selectedCount": "{{count}} उत्पाद चुने गए",
+    "visibilityApplied": "{{count}} उत्पादों पर दृश्यता नियम लागू किया गया",
+    "visibilityRemoved": "{{count}} उत्पादों से दृश्यता नियम हटाया गया",
+    "loadFailed": "उत्पाद लोड करने में विफल",
+    "importFailed": "आयात विफल",
+    "templateDownloaded": "Excel टेम्पलेट डाउनलोड किया गया",
+    "templateDownloadFailed": "टेम्पलेट डाउनलोड करने में विफल",
+    "partAndNameRequired": "पार्ट नंबर और नाम आवश्यक हैं",
+    "deleteFailed": "उत्पाद हटाने में विफल"
   },
   "adminUsers": {
     "title": "उपयोगकर्ता प्रबंधन",
@@ -1907,8 +1921,8 @@
     "errorCode": "त्रुटि कोड"
   },
   "adminQuoteManager": {
-    "searchPlaceholder": "अनुरोध नंबर, ग्राहक से खोजें...",
-    "allStatuses": "सभी स्थिति",
+    "searchPlaceholder": "कोटेशन नंबर या कंपनी से खोजें...",
+    "allStatuses": "सभी स्थितियाँ",
     "table": {
       "requestNumber": "अनुरोध नंबर",
       "businessCustomer": "व्यवसाय / ग्राहक",
@@ -1950,16 +1964,18 @@
       "new": "नया",
       "underReview": "समीक्षाधीन",
       "partiallyApproved": "आंशिक रूप से स्वीकृत",
-      "approved": "पूर्ण रूप से स्वीकृत",
-      "quoted": "कोटेड",
-      "processed": "प्रोसेस्ड",
+      "approved": "स्वीकृत",
+      "quoted": "कोट किया गया",
+      "processed": "प्रोसेस किया गया",
       "rejected": "अस्वीकृत"
     },
     "toast": {
       "itemsUpdated": "{{count}} आइटम अपडेट किए गए",
-      "approvedWithoutPriceWarning": "चेतावनी: कुछ स्वीकृत आइटम में कोई कीमत नहीं है। क्या आप जारी रखना चाहते हैं?",
+      "approvedWithoutPriceWarning": "कुछ आइटम बिना कीमत के स्वीकृत हैं। जारी रखें?",
       "pricingSentSuccess": "मूल्य निर्धारण स्वीकृत और ग्राहक को भेजा गया",
-      "saveError": "परिवर्तन सहेजने में त्रुटि"
+      "saveError": "परिवर्तन सहेजने में त्रुटि",
+      "quoteSaved": "कोटेशन अनुरोध सहेजा गया",
+      "quoteSaveFailed": "कोटेशन अनुरोध सहेजने में विफल"
     }
   },
   "adminMissingParts": {

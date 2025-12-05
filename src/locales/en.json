@@ -1402,11 +1402,11 @@
     "internalNotes": "Internal Notes",
     "updateStatus": "Update Status",
     "updateInternalStatus": "Update Internal Status",
-    "externalStatusUpdated": "External status updated and customer notified",
-    "internalStatusUpdated": "Internal status updated",
+    "externalStatusUpdated": "External order status updated",
+    "internalStatusUpdated": "Internal order status updated",
     "updateFailed": "Update failed",
     "statusLabels": {
-      "pending": "Pending Approval",
+      "pending": "Pending",
       "approved": "Approved",
       "shipped": "Shipped",
       "delivered": "Delivered",
@@ -1414,9 +1414,9 @@
       "cancelled": "Cancelled"
     },
     "internalStatusLabels": {
-      "new": "New Order",
+      "new": "New",
       "sentToWarehouse": "Sent to Warehouse",
-      "waitingPayment": "Awaiting Payment",
+      "waitingPayment": "Waiting Payment",
       "paymentConfirmed": "Payment Confirmed",
       "salesInvoiceCreated": "Sales Invoice Created",
       "readyForShipment": "Ready for Shipment",
@@ -1449,9 +1449,12 @@
       "processing": "Processing",
       "shipped": "Shipped",
       "delivered": "Delivered",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "total": "Total",
+      "new": "New",
+      "ready": "Ready for Shipment"
     },
-    "searchPlaceholder": "Search by order ID, customer name...",
+    "searchPlaceholder": "Search by order number or customer...",
     "table": {
       "orderId": "Order ID",
       "customer": "Customer",
@@ -1468,7 +1471,8 @@
     "cancel": "Cancel",
     "orderUpdated": "Order updated",
     "shippingInfo": "Shipping Info",
-    "paymentInfo": "Payment Info"
+    "paymentInfo": "Payment Info",
+    "noteAdded": "Note added"
   },
   "adminAccounts": {
     "title": "Account Opening Requests",
@@ -1798,7 +1802,17 @@
       "products": "products",
       "previous": "Previous",
       "next": "Next"
-    }
+    },
+    "selectProductsFirst": "Please select products first",
+    "selectedCount": "Selected {{count}} products",
+    "visibilityApplied": "Applied visibility rule to {{count}} products",
+    "visibilityRemoved": "Removed visibility rule from {{count}} products",
+    "loadFailed": "Failed to load products",
+    "importFailed": "Import failed",
+    "templateDownloaded": "Excel template downloaded",
+    "templateDownloadFailed": "Failed to download template",
+    "partAndNameRequired": "Part number and name are required",
+    "deleteFailed": "Failed to delete product"
   },
   "adminUsers": {
     "title": "User Management",
@@ -1919,7 +1933,7 @@
     "errorCode": "Error Code"
   },
   "adminQuoteManager": {
-    "searchPlaceholder": "Search by request number, customer...",
+    "searchPlaceholder": "Search by quote number or company...",
     "allStatuses": "All Statuses",
     "table": {
       "requestNumber": "Request Number",
@@ -1962,16 +1976,18 @@
       "new": "New",
       "underReview": "Under Review",
       "partiallyApproved": "Partially Approved",
-      "approved": "Fully Approved",
+      "approved": "Approved",
       "quoted": "Quoted",
       "processed": "Processed",
       "rejected": "Rejected"
     },
     "toast": {
-      "itemsUpdated": "{{count}} items updated",
-      "approvedWithoutPriceWarning": "Warning: Some approved items have no price. Are you sure you want to continue?",
+      "itemsUpdated": "Updated {{count}} items",
+      "approvedWithoutPriceWarning": "Some items are approved without price. Continue?",
       "pricingSentSuccess": "Pricing approved and sent to customer",
-      "saveError": "Error saving changes"
+      "saveError": "Error saving changes",
+      "quoteSaved": "Quote request saved",
+      "quoteSaveFailed": "Failed to save quote request"
     }
   },
   "adminMissingParts": {
