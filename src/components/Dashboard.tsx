@@ -51,6 +51,7 @@ import { NotificationBell } from './NotificationBell';
 import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
+import { TeamManagementPage } from './TeamManagementPage';
 
 interface DashboardProps {
   user: User;
@@ -554,6 +555,7 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                     </div>
                 )}
                 <CollapsibleSidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORGANIZATION')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<Users size={20} />} label={tDynamic('sidebar.teamManagement', 'إدارة الفريق')} active={view === 'TEAM_MANAGEMENT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TEAM_MANAGEMENT')} collapsed={collapsed} />
                 
                 {!collapsed && (
                     <div className="flex items-center gap-2 px-3 py-2 mt-6 mb-2">
@@ -619,6 +621,7 @@ const DashboardHeader = memo(({
                     {view === 'IMPORT_CHINA' && tDynamic('sidebar.import', 'الاستيراد من الصين')}
                     {view === 'TRADER_TOOLS' && tDynamic('sidebar.traderTools', 'أدوات التاجر')}
                     {view === 'ORGANIZATION' && tDynamic('sidebar.organization', 'إدارة المنشأة')}
+                    {view === 'TEAM_MANAGEMENT' && tDynamic('sidebar.teamManagement', 'إدارة الفريق')}
                     {view === 'HISTORY' && tDynamic('sidebar.history', 'سجل البحث')}
                     {view === 'ABOUT' && tDynamic('sidebar.support', 'عن الشركة / الدعم')}
                 </h2>
@@ -654,7 +657,7 @@ const DashboardHeader = memo(({
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, onRefreshUser }) => {
     // Add IMPORT_CHINA and TRADER_TOOLS to view state
-    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS'>('HOME');
+    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -1981,6 +1984,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         {view === 'IMPORT_CHINA' && <ImportFromChinaPage user={user} userProfile={profile} />}
                         {view === 'TRADER_TOOLS' && <TraderToolsHub user={user} profile={profile} />}
                         {view === 'ORGANIZATION' && <OrganizationPage user={user} mainProfileUserId={user.role === 'CUSTOMER_STAFF' ? user.parentId! : user.id} />}
+                        {view === 'TEAM_MANAGEMENT' && profile && (
+                            <TeamManagementPage 
+                                organizationType="customer"
+                                entityId={user.role === 'CUSTOMER_STAFF' && user.parentId ? user.parentId : user.id}
+                                entityName={profile.businessName || 'شركة'}
+                                currentUserId={user.id}
+                            />
+                        )}
                         {view === 'ABOUT' && <AboutPage />}
                         {view === 'HISTORY' && (
                             <div className="animate-fade-in">
