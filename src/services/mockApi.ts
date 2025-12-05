@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -326,7 +326,8 @@ const STORAGE_KEYS = {
   EXCEL_COLUMN_PRESETS: 'siniCar_excel_column_presets',
   STATUS_LABELS: 'siniCar_status_labels_v1',
   ADMIN_USERS: 'siniCar_admin_users_v2',
-  ADMIN_ROLES: 'siniCar_admin_roles_v1'
+  ADMIN_ROLES: 'siniCar_admin_roles_v1',
+  CAMPAIGNS: 'siniCar_marketing_campaigns'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -3366,5 +3367,170 @@ export const MockApi = {
           description: 'تم إعادة ضبط جميع البيانات (فورمات)',
           metadata: { action: 'reset_all_data' }
       });
+  },
+
+  // =============================================
+  // Marketing Campaigns - مركز التسويق
+  // =============================================
+
+  async getAllCampaigns(): Promise<MarketingCampaign[]> {
+      try {
+          const stored = localStorage.getItem(STORAGE_KEYS.CAMPAIGNS);
+          if (!stored) return [];
+          return JSON.parse(stored) as MarketingCampaign[];
+      } catch (error) {
+          console.error('Error loading campaigns:', error);
+          return [];
+      }
+  },
+
+  async createCampaign(campaignInput: Partial<MarketingCampaign>): Promise<MarketingCampaign> {
+      const campaigns = await this.getAllCampaigns();
+      
+      const newCampaign: MarketingCampaign = {
+          id: `CAMP-${Date.now()}`,
+          title: campaignInput.title || '',
+          message: campaignInput.message || '',
+          displayType: campaignInput.displayType || 'POPUP',
+          skippable: campaignInput.skippable ?? true,
+          contentType: campaignInput.contentType || 'TEXT',
+          mediaUrl: campaignInput.mediaUrl,
+          htmlContent: campaignInput.htmlContent,
+          ctaLabel: campaignInput.ctaLabel,
+          ctaUrl: campaignInput.ctaUrl,
+          audienceType: campaignInput.audienceType || 'ALL',
+          status: campaignInput.status || 'DRAFT',
+          priority: campaignInput.priority || 1,
+          createdAt: new Date().toISOString(),
+          startsAt: campaignInput.startsAt,
+          expiresAt: campaignInput.expiresAt
+      };
+      
+      campaigns.push(newCampaign);
+      localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+      
+      internalRecordActivity({
+          userId: 'admin',
+          userName: 'المدير',
+          eventType: 'OTHER',
+          description: `تم إنشاء حملة تسويقية جديدة: ${newCampaign.title}`,
+          metadata: { campaignId: newCampaign.id, action: 'create_campaign' }
+      });
+      
+      return newCampaign;
+  },
+
+  async updateCampaign(id: string, updates: Partial<MarketingCampaign>): Promise<MarketingCampaign> {
+      const campaigns = await this.getAllCampaigns();
+      const index = campaigns.findIndex(c => c.id === id);
+      
+      if (index === -1) {
+          throw new Error('Campaign not found');
+      }
+      
+      const updatedCampaign = { ...campaigns[index], ...updates };
+      campaigns[index] = updatedCampaign;
+      localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+      
+      return updatedCampaign;
+  },
+
+  async updateCampaignStatus(id: string, status: CampaignStatus): Promise<MarketingCampaign> {
+      const campaign = await this.updateCampaign(id, { status });
+      
+      internalRecordActivity({
+          userId: 'admin',
+          userName: 'المدير',
+          eventType: 'OTHER',
+          description: `تم تحديث حالة الحملة "${campaign.title}" إلى ${status}`,
+          metadata: { campaignId: id, status, action: 'update_campaign_status' }
+      });
+      
+      return campaign;
+  },
+
+  async deleteCampaign(id: string): Promise<void> {
+      const campaigns = await this.getAllCampaigns();
+      const campaign = campaigns.find(c => c.id === id);
+      const filtered = campaigns.filter(c => c.id !== id);
+      localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(filtered));
+      
+      if (campaign) {
+          internalRecordActivity({
+              userId: 'admin',
+              userName: 'المدير',
+              eventType: 'OTHER',
+              description: `تم حذف الحملة التسويقية: ${campaign.title}`,
+              metadata: { campaignId: id, action: 'delete_campaign' }
+          });
+      }
+  },
+
+  async dismissCampaignForUser(userId: string, campaignId: string): Promise<void> {
+      try {
+          const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]') as BusinessProfile[];
+          const index = profiles.findIndex(p => p.userId === userId);
+          
+          if (index !== -1) {
+              const dismissedIds = profiles[index].dismissedCampaignIds || [];
+              if (!dismissedIds.includes(campaignId)) {
+                  dismissedIds.push(campaignId);
+                  profiles[index].dismissedCampaignIds = dismissedIds;
+                  localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+              }
+          }
+      } catch (error) {
+          console.error('Error dismissing campaign:', error);
+      }
+  },
+
+  async getDismissedCampaignIds(userId: string): Promise<string[]> {
+      try {
+          const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]') as BusinessProfile[];
+          const profile = profiles.find(p => p.userId === userId);
+          return profile?.dismissedCampaignIds || [];
+      } catch (error) {
+          console.error('Error getting dismissed campaigns:', error);
+          return [];
+      }
+  },
+
+  async getActiveCampaignsForUser(userId: string, customerType?: string): Promise<MarketingCampaign[]> {
+      try {
+          const allCampaigns = await this.getAllCampaigns();
+          const dismissedIds = await this.getDismissedCampaignIds(userId);
+          const now = new Date();
+          
+          return allCampaigns.filter(campaign => {
+              // Filter by status
+              if (campaign.status !== 'ACTIVE') return false;
+              
+              // Filter by dismissed
+              if (dismissedIds.includes(campaign.id)) return false;
+              
+              // Filter by date range
+              if (campaign.startsAt && new Date(campaign.startsAt) > now) return false;
+              if (campaign.expiresAt && new Date(campaign.expiresAt) < now) return false;
+              
+              // Filter by audience type
+              if (campaign.audienceType === 'ALL') return true;
+              if (!customerType) return true;
+              
+              // Map customer type to audience type
+              const audienceMap: Record<string, CampaignAudienceType> = {
+                  'محل قطع غيار': 'SPARE_PARTS_SHOP',
+                  'شركة تأجير سيارات': 'RENTAL_COMPANY',
+                  'مركز صيانة': 'MAINTENANCE_CENTER',
+                  'شركة تأمين': 'INSURANCE_COMPANY',
+                  'مندوب مبيعات': 'SALES_REP'
+              };
+              
+              const mappedType = audienceMap[customerType];
+              return campaign.audienceType === mappedType;
+          }).sort((a, b) => b.priority - a.priority);
+      } catch (error) {
+          console.error('Error getting active campaigns:', error);
+          return [];
+      }
   }
 };
