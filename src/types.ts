@@ -4,6 +4,22 @@ export type UserRole =
   | 'CUSTOMER_OWNER' // Was ADMIN
   | 'CUSTOMER_STAFF'; // Was EMPLOYEE
 
+// Extended User Role for multi-role system (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER, MARKETER)
+export type ExtendedUserRole = 
+  | 'ADMIN'                    // مدير النظام
+  | 'EMPLOYEE'                 // موظف
+  | 'CUSTOMER'                 // عميل
+  | 'SUPPLIER_LOCAL'           // مورد محلي
+  | 'SUPPLIER_INTERNATIONAL'   // مورد دولي
+  | 'MARKETER';                // مسوق
+
+// User Account Status for approval workflow
+export type UserAccountStatus = 
+  | 'PENDING'    // قيد الانتظار
+  | 'APPROVED'   // مقبول
+  | 'REJECTED'   // مرفوض
+  | 'BLOCKED';   // محظور
+
 export enum EmployeeRole {
   MANAGER = 'MANAGER', // Can view prices, order, manage
   BUYER = 'BUYER' // Can browse, add to cart (needs approval)
@@ -182,7 +198,6 @@ export interface User {
   // API Integration Preparation Fields (New)
   priceLevel?: string; // مستوى التسعير (A, B, C) - Legacy string, consider migrating to PriceLevel type
   isApproved?: boolean; // حالة الاعتماد من النظام الخارجي
-  accountStatus?: string; // Active, Hold, Closed
   customerType?: string; // نوع العميل من النظام الخارجي
 
   // --- New Security & Status Fields ---
@@ -196,6 +211,15 @@ export interface User {
   
   // --- Guest Mode ---
   isGuest?: boolean; // Flag for guest users with restricted access
+
+  // --- Extended Role/Status System (New) ---
+  extendedRole?: ExtendedUserRole; // Extended role type (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER_*, MARKETER)
+  accountStatus?: UserAccountStatus; // Approval workflow status (PENDING, APPROVED, REJECTED, BLOCKED)
+  isCustomer?: boolean;              // Flag: User is a customer
+  isSupplier?: boolean;              // Flag: User is a supplier (can be both customer + supplier)
+  completionPercent?: number;        // Profile completion percentage (0-100)
+  whatsapp?: string;                 // WhatsApp contact number
+  clientCode?: string;               // Internal client code (optional)
 }
 
 // --- Notifications System (New) ---
