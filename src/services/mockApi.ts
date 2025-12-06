@@ -1661,6 +1661,50 @@ export const MockApi = {
         users.push(demoSupplierUser);
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     }
+    
+    // Demo marketer user
+    const demoMarketerExists = users.find((u: User) => u.clientId === 'MKT-001');
+    if (!demoMarketerExists) {
+        const demoMarketerUser: User = {
+            id: 'marketer-demo-1',
+            clientId: 'MKT-001',
+            name: 'محمد المسوق',
+            email: 'marketer@sinicar.com',
+            phone: '0555555551',
+            password: 'marketer123',
+            role: 'CUSTOMER_OWNER',
+            searchLimit: 75,
+            searchUsed: 0,
+            status: 'ACTIVE',
+            isApproved: true,
+            accountStatus: 'ACTIVE',
+            extendedRole: 'MARKETER'
+        };
+        users.push(demoMarketerUser);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+    
+    // Demo advertiser user
+    const demoAdvertiserExists = users.find((u: User) => u.clientId === 'ADV-001');
+    if (!demoAdvertiserExists) {
+        const demoAdvertiserUser: User = {
+            id: 'advertiser-demo-1',
+            clientId: 'ADV-001',
+            name: 'أحمد المعلن',
+            email: 'advertiser@sinicar.com',
+            phone: '0555555552',
+            password: 'advertiser123',
+            role: 'CUSTOMER_OWNER',
+            searchLimit: 60,
+            searchUsed: 0,
+            status: 'ACTIVE',
+            isApproved: true,
+            accountStatus: 'ACTIVE',
+            extendedRole: 'EMPLOYEE'
+        };
+        users.push(demoAdvertiserUser);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
 
     if (identifier === '1' && secret === '1' && type === 'OWNER') {
         const demoUserExists = users.find((u: User) => u.clientId === '1');

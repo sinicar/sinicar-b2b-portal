@@ -586,7 +586,7 @@ function AppContent() {
                                   className="px-2 py-2 bg-red-600/20 border border-red-500/30 text-red-400 text-xs rounded hover:bg-red-600/40 transition-all"
                                   data-testid="quick-login-admin"
                               >
-                                  {t('login.quickAdmin')}
+                                  مدير عام
                               </button>
                               <button
                                   type="button"
@@ -594,7 +594,7 @@ function AppContent() {
                                   className="px-2 py-2 bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 text-xs rounded hover:bg-yellow-600/40 transition-all"
                                   data-testid="quick-login-manager"
                               >
-                                  {t('login.quickManager')}
+                                  مدير
                               </button>
                               <button
                                   type="button"
@@ -602,7 +602,7 @@ function AppContent() {
                                   className="px-2 py-2 bg-green-600/20 border border-green-500/30 text-green-400 text-xs rounded hover:bg-green-600/40 transition-all"
                                   data-testid="quick-login-supplier"
                               >
-                                  {t('login.quickSupplier')}
+                                  مورد
                               </button>
                               <button
                                   type="button"
@@ -610,7 +610,23 @@ function AppContent() {
                                   className="px-2 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs rounded hover:bg-blue-600/40 transition-all"
                                   data-testid="quick-login-staff"
                               >
-                                  {t('login.quickStaff')}
+                                  موظف
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('MKT-001'); setSecret('marketer123'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-purple-600/20 border border-purple-500/30 text-purple-400 text-xs rounded hover:bg-purple-600/40 transition-all"
+                                  data-testid="quick-login-marketer"
+                              >
+                                  مسوق
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('ADV-001'); setSecret('advertiser123'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-pink-600/20 border border-pink-500/30 text-pink-400 text-xs rounded hover:bg-pink-600/40 transition-all"
+                                  data-testid="quick-login-advertiser"
+                              >
+                                  معلن
                               </button>
                           </div>
                       </div>
