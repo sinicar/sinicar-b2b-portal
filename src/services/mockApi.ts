@@ -2092,6 +2092,19 @@ export const MockApi = {
           metadata: { requestId: newRequest.id, category: input.category }
       });
 
+      // Notify all admins about new account request
+      const adminIds = getAdminUserIds();
+      adminIds.forEach(adminId => {
+          internalCreateNotification(
+              adminId,
+              'NEW_ACCOUNT_REQUEST',
+              'طلب فتح حساب جديد',
+              `طلب فتح حساب جديد من: ${input.businessName || input.fullName}`,
+              'ACCOUNT',
+              newRequest.id
+          );
+      });
+
       return newRequest;
   },
 
@@ -2109,6 +2122,30 @@ export const MockApi = {
       
       requests[index] = updatedRequest;
       localStorage.setItem(STORAGE_KEYS.ACCOUNT_REQUESTS, JSON.stringify(requests));
+      
+      // Create notification for the user if they have an account
+      if (updatedRequest.userId) {
+          if (status === 'APPROVED') {
+              internalCreateNotification(
+                  updatedRequest.userId,
+                  'ACCOUNT_APPROVED',
+                  'تم اعتماد حسابك',
+                  'تمت الموافقة على حسابك في SINI CAR. يمكنك الآن تسجيل الدخول واستخدام النظام.',
+                  'ACCOUNT',
+                  updatedRequest.id
+              );
+          } else if (status === 'REJECTED') {
+              internalCreateNotification(
+                  updatedRequest.userId,
+                  'ACCOUNT_REJECTED',
+                  'تم رفض طلب الحساب',
+                  'للأسف تم رفض طلب فتح حسابك. يرجى التواصل مع الدعم لمزيد من المعلومات.',
+                  'ACCOUNT',
+                  updatedRequest.id
+              );
+          }
+      }
+      
       return updatedRequest;
   },
 
@@ -2153,6 +2190,29 @@ export const MockApi = {
         description: `تم ${decision.status === 'APPROVED' ? 'الموافقة' : decision.status === 'REJECTED' ? 'رفض' : 'تحديث'} طلب فتح الحساب للعميل ${updatedRequest.businessName || updatedRequest.fullName}`,
         metadata: { requestId, status: decision.status }
     });
+
+    // Notify user about account decision
+    if (updatedRequest.userId) {
+        if (decision.status === 'APPROVED') {
+            internalCreateNotification(
+                updatedRequest.userId,
+                'ACCOUNT_APPROVED',
+                'تم اعتماد حسابك',
+                'تمت الموافقة على حسابك في SINI CAR. يمكنك الآن تسجيل الدخول واستخدام النظام.',
+                'ACCOUNT',
+                requestId
+            );
+        } else if (decision.status === 'REJECTED') {
+            internalCreateNotification(
+                updatedRequest.userId,
+                'ACCOUNT_REJECTED',
+                'تم رفض طلب الحساب',
+                'للأسف تم رفض طلب فتح حسابك. يرجى التواصل مع الدعم لمزيد من المعلومات.',
+                'ACCOUNT',
+                requestId
+            );
+        }
+    }
 
     return updatedRequest;
   },
@@ -2705,6 +2765,19 @@ export const MockApi = {
           metadata: { requestId, itemsCount: items.length }
       });
       
+      // Notify admins about new purchase request
+      const adminIds = getAdminUserIds();
+      adminIds.forEach(adminId => {
+          internalCreateNotification(
+              adminId,
+              'NEW_PURCHASE_REQUEST',
+              'طلب شراء جديد',
+              `طلب شراء جديد من ${userName} (${companyName}) - ${items.length} صنف`,
+              'REQUEST',
+              requestId
+          );
+      });
+      
       return { success: true, requestId };
   },
 
@@ -2742,6 +2815,8 @@ export const MockApi = {
       
       if (idx === -1) return null;
       
+      const previousStatus = requests[idx].status;
+      
       requests[idx] = {
           ...requests[idx],
           status,
@@ -2753,6 +2828,26 @@ export const MockApi = {
       };
       
       localStorage.setItem(STORAGE_KEYS.PURCHASE_REQUESTS, JSON.stringify(requests));
+      
+      // Notify customer about status change
+      if (requests[idx].customerId && previousStatus !== status) {
+          const statusLabels: Record<string, string> = {
+              'NEW': 'جديد',
+              'PROCESSING': 'قيد المعالجة',
+              'COMPLETED': 'مكتمل',
+              'CANCELLED': 'ملغي'
+          };
+          
+          internalCreateNotification(
+              requests[idx].customerId,
+              'ORDER_STATUS_CHANGED',
+              'تحديث حالة طلب الشراء',
+              `تم تحديث حالة طلب الشراء #${id} إلى: ${statusLabels[status] || status}`,
+              'REQUEST',
+              id
+          );
+      }
+      
       return requests[idx];
   },
 
