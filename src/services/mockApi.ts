@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, SupplierProduct, SupplierRequest, SupplierDashboardStats, SupplierSettings, SupplierProductFilters, SupplierRequestFilters, SupplierProductInsert, SupplierExcelImportResult, SupplierQuoteSubmission, SupplierProfileExtended, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, TraderToolType, TraderToolActionStatus, TraderToolAction, TraderToolsAdminFilters, TraderToolsAdminResponse, TraderToolsCustomerFilters, TraderToolsCustomerResponse, TraderToolsExportRow, TraderToolsUsageReport, SupplierProduct, SupplierRequest, SupplierDashboardStats, SupplierSettings, SupplierProductFilters, SupplierRequestFilters, SupplierProductInsert, SupplierExcelImportResult, SupplierQuoteSubmission, SupplierProfileExtended, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -372,7 +372,9 @@ const STORAGE_KEYS = {
   // Supplier Portal System
   SUPPLIER_PORTAL_PRODUCTS: 'sini_supplier_portal_products',
   SUPPLIER_PORTAL_REQUESTS: 'sini_supplier_portal_requests',
-  SUPPLIER_PORTAL_SETTINGS: 'sini_supplier_portal_settings'
+  SUPPLIER_PORTAL_SETTINGS: 'sini_supplier_portal_settings',
+  // Trader Tools Center
+  TRADER_TOOL_ACTIONS: 'sini_trader_tool_actions'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -9412,5 +9414,553 @@ export const MockApi = {
     const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
     const brands = [...new Set(products.filter(p => p.supplierId === supplierId).map(p => p.brand))];
     return brands.filter(Boolean);
+  },
+
+  // ============================================
+  // TRADER TOOLS CENTER APIs
+  // ============================================
+
+  // --- Log Trader Tool Action (Called by each tool after use) ---
+  async logTraderToolAction(
+    customerId: string,
+    toolType: TraderToolType,
+    inputData: Record<string, any>,
+    outputData?: Record<string, any>,
+    options?: {
+      inputFileUrl?: string;
+      inputFileName?: string;
+      outputFileUrl?: string;
+      outputFileName?: string;
+      status?: TraderToolActionStatus;
+      errorMessage?: string;
+      processingTimeMs?: number;
+      metadata?: TraderToolAction['metadata'];
+    }
+  ): Promise<TraderToolAction> {
+    await delay(10);
+    const actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    
+    // Get customer name
+    const users: User[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    const customer = users.find(u => u.id === customerId);
+    
+    const newAction: TraderToolAction = {
+      id: `TTA-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      customerId,
+      customerName: customer?.name || 'غير معروف',
+      toolType,
+      inputData,
+      outputData,
+      inputFileUrl: options?.inputFileUrl,
+      inputFileName: options?.inputFileName,
+      outputFileUrl: options?.outputFileUrl,
+      outputFileName: options?.outputFileName,
+      createdAt: new Date().toISOString(),
+      createdFromIp: '192.168.1.' + Math.floor(Math.random() * 255),
+      deviceType: 'WEB',
+      status: options?.status || 'SUCCESS',
+      errorMessage: options?.errorMessage,
+      processingTimeMs: options?.processingTimeMs,
+      metadata: options?.metadata
+    };
+    
+    actions.push(newAction);
+    localStorage.setItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS, JSON.stringify(actions));
+    
+    // Log to Activity Log
+    const toolNames: Record<TraderToolType, string> = {
+      VIN: 'أداة استخراج VIN',
+      PDF_EXCEL: 'أداة تحويل PDF إلى Excel',
+      COMPARISON: 'أداة مقارنة الأسعار',
+      ALTERNATIVES: 'أداة رفع البدائل',
+      SEARCH: 'أداة البحث عن المنتجات',
+      EXCEL_QUOTE: 'أداة طلب تسعير Excel'
+    };
+    
+    internalRecordActivity({
+      eventType: 'TRADER_TOOL_USED',
+      userId: customerId,
+      userName: customer?.name,
+      role: customer?.role || 'CUSTOMER_OWNER',
+      entityType: 'TRADER_TOOL',
+      entityId: newAction.id,
+      description: `استخدم ${toolNames[toolType]}`,
+      metadata: {
+        toolType,
+        status: newAction.status,
+        inputSummary: JSON.stringify(inputData).substring(0, 200)
+      }
+    });
+    
+    return newAction;
+  },
+
+  // --- Get Trader Tool Actions (Admin API) ---
+  async getTraderToolActionsAdmin(filters: TraderToolsAdminFilters): Promise<TraderToolsAdminResponse> {
+    await delay(30);
+    let actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    
+    // Filter out deleted actions
+    actions = actions.filter(a => !a.isDeleted);
+    
+    // Apply filters
+    if (filters.customerId) {
+      actions = actions.filter(a => a.customerId === filters.customerId);
+    }
+    
+    if (filters.toolType && filters.toolType !== 'ALL') {
+      actions = actions.filter(a => a.toolType === filters.toolType);
+    }
+    
+    if (filters.status && filters.status !== 'ALL') {
+      actions = actions.filter(a => a.status === filters.status);
+    }
+    
+    if (filters.deviceType && filters.deviceType !== 'ALL') {
+      actions = actions.filter(a => a.deviceType === filters.deviceType);
+    }
+    
+    if (filters.dateFrom) {
+      actions = actions.filter(a => a.createdAt >= filters.dateFrom!);
+    }
+    
+    if (filters.dateTo) {
+      actions = actions.filter(a => a.createdAt <= filters.dateTo!);
+    }
+    
+    if (filters.hasFiles !== undefined) {
+      if (filters.hasFiles) {
+        actions = actions.filter(a => a.inputFileUrl || a.outputFileUrl);
+      } else {
+        actions = actions.filter(a => !a.inputFileUrl && !a.outputFileUrl);
+      }
+    }
+    
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      actions = actions.filter(a => 
+        a.customerName?.toLowerCase().includes(searchLower) ||
+        a.inputFileName?.toLowerCase().includes(searchLower) ||
+        a.outputFileName?.toLowerCase().includes(searchLower) ||
+        a.metadata?.vin?.toLowerCase().includes(searchLower) ||
+        a.metadata?.partNumber?.toLowerCase().includes(searchLower) ||
+        a.metadata?.searchQuery?.toLowerCase().includes(searchLower) ||
+        JSON.stringify(a.inputData).toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Calculate summary before pagination
+    const total = actions.length;
+    const byToolType: Record<TraderToolType, number> = {
+      VIN: actions.filter(a => a.toolType === 'VIN').length,
+      PDF_EXCEL: actions.filter(a => a.toolType === 'PDF_EXCEL').length,
+      COMPARISON: actions.filter(a => a.toolType === 'COMPARISON').length,
+      ALTERNATIVES: actions.filter(a => a.toolType === 'ALTERNATIVES').length,
+      SEARCH: actions.filter(a => a.toolType === 'SEARCH').length,
+      EXCEL_QUOTE: actions.filter(a => a.toolType === 'EXCEL_QUOTE').length
+    };
+    const byStatus: Record<TraderToolActionStatus, number> = {
+      SUCCESS: actions.filter(a => a.status === 'SUCCESS').length,
+      FAILED: actions.filter(a => a.status === 'FAILED').length,
+      PENDING: actions.filter(a => a.status === 'PENDING').length,
+      PROCESSING: actions.filter(a => a.status === 'PROCESSING').length
+    };
+    const successRate = total > 0 ? (byStatus.SUCCESS / total) * 100 : 0;
+    
+    // Sorting
+    const sortBy = filters.sortBy || 'createdAt';
+    const sortDir = filters.sortDirection || 'desc';
+    actions.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'createdAt':
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'toolType':
+          comparison = a.toolType.localeCompare(b.toolType);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case 'customerName':
+          comparison = (a.customerName || '').localeCompare(b.customerName || '');
+          break;
+      }
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+    
+    // Pagination
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 20;
+    const start = (page - 1) * pageSize;
+    const paginatedActions = actions.slice(start, start + pageSize);
+    
+    return {
+      items: paginatedActions,
+      total,
+      page,
+      pageSize,
+      summary: {
+        total,
+        byToolType,
+        byStatus,
+        successRate
+      }
+    };
+  },
+
+  // --- Get Single Trader Tool Action (Admin API) ---
+  async getTraderToolActionById(actionId: string): Promise<TraderToolAction | null> {
+    await delay(10);
+    const actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    return actions.find(a => a.id === actionId && !a.isDeleted) || null;
+  },
+
+  // --- Delete Trader Tool Action (Soft Delete - Admin API) ---
+  async deleteTraderToolAction(actionId: string): Promise<boolean> {
+    await delay(10);
+    const actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    const idx = actions.findIndex(a => a.id === actionId);
+    
+    if (idx !== -1) {
+      actions[idx].isDeleted = true;
+      localStorage.setItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS, JSON.stringify(actions));
+      
+      internalRecordActivity({
+        eventType: 'ADMIN_ACTION',
+        userId: 'super-admin',
+        userName: 'المدير العام',
+        role: 'SUPER_ADMIN',
+        entityType: 'TRADER_TOOL',
+        entityId: actionId,
+        description: `حذف سجل أداة التاجر: ${actionId}`,
+        metadata: {}
+      });
+      
+      return true;
+    }
+    return false;
+  },
+
+  // --- Get Trader Tool Actions (Customer API) ---
+  async getTraderToolActionsCustomer(customerId: string, filters: TraderToolsCustomerFilters): Promise<TraderToolsCustomerResponse> {
+    await delay(20);
+    let actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    
+    // Filter for this customer only and not deleted
+    actions = actions.filter(a => a.customerId === customerId && !a.isDeleted);
+    
+    // Apply filters
+    if (filters.toolType && filters.toolType !== 'ALL') {
+      actions = actions.filter(a => a.toolType === filters.toolType);
+    }
+    
+    if (filters.status && filters.status !== 'ALL') {
+      actions = actions.filter(a => a.status === filters.status);
+    }
+    
+    if (filters.dateFrom) {
+      actions = actions.filter(a => a.createdAt >= filters.dateFrom!);
+    }
+    
+    if (filters.dateTo) {
+      actions = actions.filter(a => a.createdAt <= filters.dateTo!);
+    }
+    
+    // Sort by date desc
+    actions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const total = actions.length;
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 20;
+    const start = (page - 1) * pageSize;
+    const paginatedActions = actions.slice(start, start + pageSize);
+    
+    return {
+      items: paginatedActions,
+      total,
+      page,
+      pageSize
+    };
+  },
+
+  // --- Export Trader Tool Actions to Excel Data ---
+  async exportTraderToolActions(filters: TraderToolsAdminFilters): Promise<TraderToolsExportRow[]> {
+    await delay(30);
+    const response = await this.getTraderToolActionsAdmin({ ...filters, page: 1, pageSize: 10000 });
+    
+    return response.items.map(action => ({
+      id: action.id,
+      customerId: action.customerId,
+      customerName: action.customerName || '',
+      toolType: action.toolType,
+      inputSummary: JSON.stringify(action.inputData).substring(0, 200),
+      outputSummary: action.outputData ? JSON.stringify(action.outputData).substring(0, 200) : '',
+      status: action.status,
+      deviceType: action.deviceType,
+      createdAt: action.createdAt,
+      hasInputFile: !!action.inputFileUrl,
+      hasOutputFile: !!action.outputFileUrl
+    }));
+  },
+
+  // --- Get Trader Tools Usage Report ---
+  async getTraderToolsUsageReport(
+    period: 'day' | 'week' | 'month' | 'quarter' | 'year',
+    dateFrom?: string,
+    dateTo?: string,
+    customerType?: string
+  ): Promise<TraderToolsUsageReport> {
+    await delay(50);
+    let actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    actions = actions.filter(a => !a.isDeleted);
+    
+    // Calculate date range based on period
+    const now = new Date();
+    let startDate: Date;
+    let endDate = now;
+    
+    if (dateFrom && dateTo) {
+      startDate = new Date(dateFrom);
+      endDate = new Date(dateTo);
+    } else {
+      switch (period) {
+        case 'day':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'quarter':
+          startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+      }
+    }
+    
+    // Filter by date range
+    actions = actions.filter(a => {
+      const actionDate = new Date(a.createdAt);
+      return actionDate >= startDate && actionDate <= endDate;
+    });
+    
+    // Filter by customer type if provided
+    if (customerType) {
+      const profiles: BusinessProfile[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+      const customerIds = profiles.filter(p => p.customerType === customerType).map(p => p.userId);
+      actions = actions.filter(a => customerIds.includes(a.customerId));
+    }
+    
+    const totalActions = actions.length;
+    const uniqueCustomers = new Set(actions.map(a => a.customerId)).size;
+    const successCount = actions.filter(a => a.status === 'SUCCESS').length;
+    const successRate = totalActions > 0 ? (successCount / totalActions) * 100 : 0;
+    
+    // By Tool Type
+    const toolTypes: TraderToolType[] = ['VIN', 'PDF_EXCEL', 'COMPARISON', 'ALTERNATIVES', 'SEARCH', 'EXCEL_QUOTE'];
+    const byToolType = toolTypes.map(toolType => {
+      const toolActions = actions.filter(a => a.toolType === toolType);
+      const successActions = toolActions.filter(a => a.status === 'SUCCESS');
+      const failedActions = toolActions.filter(a => a.status === 'FAILED');
+      const totalTime = toolActions.reduce((sum, a) => sum + (a.processingTimeMs || 0), 0);
+      return {
+        toolType,
+        count: toolActions.length,
+        successCount: successActions.length,
+        failedCount: failedActions.length,
+        avgProcessingTime: toolActions.length > 0 ? totalTime / toolActions.length : 0
+      };
+    });
+    
+    // By Customer Type
+    const profiles: BusinessProfile[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+    const customerTypeMap = new Map<string, number>();
+    actions.forEach(action => {
+      const profile = profiles.find(p => p.userId === action.customerId);
+      const type = profile?.customerType || 'غير محدد';
+      customerTypeMap.set(type, (customerTypeMap.get(type) || 0) + 1);
+    });
+    const byCustomerType = Array.from(customerTypeMap.entries()).map(([customerType, count]) => ({
+      customerType,
+      count
+    }));
+    
+    // By Date (group actions by date)
+    const dateCountMap = new Map<string, number>();
+    actions.forEach(action => {
+      const date = action.createdAt.split('T')[0];
+      dateCountMap.set(date, (dateCountMap.get(date) || 0) + 1);
+    });
+    const byDate = Array.from(dateCountMap.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Top Customers
+    const customerCountMap = new Map<string, { name: string; count: number }>();
+    actions.forEach(action => {
+      const existing = customerCountMap.get(action.customerId);
+      if (existing) {
+        existing.count++;
+      } else {
+        customerCountMap.set(action.customerId, {
+          name: action.customerName || 'غير معروف',
+          count: 1
+        });
+      }
+    });
+    const topCustomers = Array.from(customerCountMap.entries())
+      .map(([customerId, data]) => ({
+        customerId,
+        customerName: data.name,
+        usageCount: data.count
+      }))
+      .sort((a, b) => b.usageCount - a.usageCount)
+      .slice(0, 10);
+    
+    return {
+      period,
+      dateFrom: startDate.toISOString(),
+      dateTo: endDate.toISOString(),
+      totalActions,
+      uniqueCustomers,
+      successRate,
+      byToolType,
+      byCustomerType,
+      byDate,
+      topCustomers
+    };
+  },
+
+  // --- Initialize Demo Trader Tool Actions ---
+  async initializeTraderToolsDemoData(customerId: string): Promise<void> {
+    await delay(10);
+    const actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    
+    // Check if demo data already exists for this customer
+    if (actions.some(a => a.customerId === customerId)) return;
+    
+    const users: User[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    const customer = users.find(u => u.id === customerId);
+    const customerName = customer?.name || 'عميل تجريبي';
+    
+    const demoActions: TraderToolAction[] = [
+      {
+        id: `TTA-demo-${customerId}-1`,
+        customerId,
+        customerName,
+        toolType: 'VIN',
+        inputData: { imageFile: 'vin_photo.jpg' },
+        outputData: { vin: 'JT2BG22K0W0012345', manufacturer: 'Toyota', year: '2022' },
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        deviceType: 'WEB',
+        status: 'SUCCESS',
+        processingTimeMs: 2340,
+        metadata: { vin: 'JT2BG22K0W0012345', manufacturer: 'Toyota', model: 'Camry', year: '2022', confidence: 94 }
+      },
+      {
+        id: `TTA-demo-${customerId}-2`,
+        customerId,
+        customerName,
+        toolType: 'PDF_EXCEL',
+        inputData: { fileName: 'price_list.pdf', pageCount: 5 },
+        outputData: { rows: 150, columns: 8 },
+        inputFileName: 'price_list.pdf',
+        outputFileName: 'price_list.xlsx',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        deviceType: 'WEB',
+        status: 'SUCCESS',
+        processingTimeMs: 8750,
+        metadata: { rowCount: 150, columnCount: 8, pageCount: 5 }
+      },
+      {
+        id: `TTA-demo-${customerId}-3`,
+        customerId,
+        customerName,
+        toolType: 'COMPARISON',
+        inputData: { partNumber: 'CN-102030' },
+        outputData: { suppliersCount: 5, lowestPrice: 120, highestPrice: 180 },
+        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        deviceType: 'WEB',
+        status: 'SUCCESS',
+        processingTimeMs: 1560,
+        metadata: { partNumber: 'CN-102030', partName: 'فحمات أمامي', suppliersCount: 5, lowestPrice: 120, highestPrice: 180 }
+      },
+      {
+        id: `TTA-demo-${customerId}-4`,
+        customerId,
+        customerName,
+        toolType: 'SEARCH',
+        inputData: { query: 'فلتر زيت تويوتا' },
+        outputData: { resultsCount: 12 },
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        deviceType: 'WEB',
+        status: 'SUCCESS',
+        processingTimeMs: 890,
+        metadata: { searchQuery: 'فلتر زيت تويوتا', resultsCount: 12 }
+      },
+      {
+        id: `TTA-demo-${customerId}-5`,
+        customerId,
+        customerName,
+        toolType: 'EXCEL_QUOTE',
+        inputData: { fileName: 'parts_request.xlsx', itemsCount: 25 },
+        outputData: { processedItems: 25, quotedTotal: 15750 },
+        inputFileName: 'parts_request.xlsx',
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        deviceType: 'WEB',
+        status: 'SUCCESS',
+        processingTimeMs: 4200,
+        metadata: { itemsCount: 25, quotedTotal: 15750 }
+      }
+    ];
+    
+    actions.push(...demoActions);
+    localStorage.setItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS, JSON.stringify(actions));
+  },
+
+  // --- Get Customer Tool Usage Summary (for customer dashboard) ---
+  async getCustomerToolUsageSummary(customerId: string): Promise<{
+    totalUsage: number;
+    byToolType: Record<TraderToolType, number>;
+    lastUsed?: string;
+    mostUsedTool?: TraderToolType;
+  }> {
+    await delay(10);
+    let actions: TraderToolAction[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRADER_TOOL_ACTIONS) || '[]');
+    actions = actions.filter(a => a.customerId === customerId && !a.isDeleted);
+    
+    const byToolType: Record<TraderToolType, number> = {
+      VIN: actions.filter(a => a.toolType === 'VIN').length,
+      PDF_EXCEL: actions.filter(a => a.toolType === 'PDF_EXCEL').length,
+      COMPARISON: actions.filter(a => a.toolType === 'COMPARISON').length,
+      ALTERNATIVES: actions.filter(a => a.toolType === 'ALTERNATIVES').length,
+      SEARCH: actions.filter(a => a.toolType === 'SEARCH').length,
+      EXCEL_QUOTE: actions.filter(a => a.toolType === 'EXCEL_QUOTE').length
+    };
+    
+    // Sort to get last used
+    actions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    // Find most used tool
+    let mostUsedTool: TraderToolType | undefined;
+    let maxCount = 0;
+    (Object.entries(byToolType) as [TraderToolType, number][]).forEach(([tool, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        mostUsedTool = tool;
+      }
+    });
+    
+    return {
+      totalUsage: actions.length,
+      byToolType,
+      lastUsed: actions[0]?.createdAt,
+      mostUsedTool
+    };
   }
 };
