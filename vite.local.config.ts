@@ -5,10 +5,29 @@ import { spawn, type ChildProcess } from 'child_process';
 
 function backendServerPlugin(): Plugin {
   let backendProcess: ChildProcess | null = null;
+  let isShuttingDown = false;
+
+  const killBackend = () => {
+    if (backendProcess && !isShuttingDown) {
+      isShuttingDown = true;
+      backendProcess.kill('SIGTERM');
+      setTimeout(() => {
+        if (backendProcess && !backendProcess.killed) {
+          backendProcess.kill('SIGKILL');
+        }
+        backendProcess = null;
+        isShuttingDown = false;
+      }, 2000);
+    }
+  };
 
   return {
     name: 'backend-server',
-    configureServer() {
+    configureServer(server) {
+      if (backendProcess) {
+        killBackend();
+      }
+      
       console.log('🚀 Starting backend server...');
       
       backendProcess = spawn('npx', ['tsx', 'src/server.ts'], {
@@ -36,30 +55,27 @@ function backendServerPlugin(): Plugin {
       });
 
       backendProcess.on('close', (code) => {
-        if (code !== null && code !== 0) {
+        if (code !== null && code !== 0 && !isShuttingDown) {
           console.log(`Backend exited with code ${code}`);
         }
       });
 
+      server.httpServer?.on('close', () => {
+        killBackend();
+      });
+
       process.on('SIGINT', () => {
-        if (backendProcess) {
-          backendProcess.kill();
-        }
+        killBackend();
         process.exit();
       });
 
       process.on('SIGTERM', () => {
-        if (backendProcess) {
-          backendProcess.kill();
-        }
+        killBackend();
         process.exit();
       });
     },
     closeBundle() {
-      if (backendProcess) {
-        backendProcess.kill();
-        backendProcess = null;
-      }
+      killBackend();
     }
   };
 }

@@ -232,7 +232,7 @@ export class PricingService {
   }
 
   async deleteSupplierGroup(id: string): Promise<void> {
-    await prisma.supplierGroup.delete({ where: { id } });
+    await prisma.supplierGroup.update({ where: { id }, data: { isActive: false } });
   }
 
   async getQualityCodes() {
@@ -267,7 +267,7 @@ export class PricingService {
   }
 
   async deleteQualityCode(id: string): Promise<void> {
-    await prisma.qualityCode.delete({ where: { id } });
+    await prisma.qualityCode.update({ where: { id }, data: { isActive: false } });
   }
 
   async getBrandCodes() {
@@ -304,7 +304,7 @@ export class PricingService {
   }
 
   async deleteBrandCode(id: string): Promise<void> {
-    await prisma.brandCode.delete({ where: { id } });
+    await prisma.brandCode.update({ where: { id }, data: { isActive: false } });
   }
 
   async getShippingMethods() {
@@ -345,7 +345,7 @@ export class PricingService {
   }
 
   async deleteShippingMethod(id: string): Promise<void> {
-    await prisma.shippingMethod.delete({ where: { id } });
+    await prisma.shippingMethod.update({ where: { id }, data: { isActive: false } });
   }
 
   async getShippingZones() {
@@ -378,7 +378,7 @@ export class PricingService {
   }
 
   async deleteShippingZone(id: string): Promise<void> {
-    await prisma.shippingZone.delete({ where: { id } });
+    await prisma.shippingZone.update({ where: { id }, data: { isActive: false } });
   }
 
   async getRoles() {
@@ -416,7 +416,7 @@ export class PricingService {
     if (role?.isSystem) {
       throw new Error('Cannot delete system roles');
     }
-    await prisma.role.delete({ where: { id } });
+    await prisma.role.update({ where: { id }, data: { isActive: false } });
   }
 }
 
