@@ -111,16 +111,34 @@ export const NotificationsPage: FC<NotificationsPageProps> = ({ user, onBack }) 
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [page, setPage] = useState(1);
   const pageSize = 20;
+  
+  const categoryFilters: Array<{ value: string; types: NotificationType[]; ar: string; en: string }> = [
+    { value: 'all', types: [], ar: 'الكل', en: 'All' },
+    { value: 'orders', types: ['ORDER_STATUS_CHANGED', 'CUSTOMER_ORDER'], ar: 'الطلبات', en: 'Orders' },
+    { value: 'account', types: ['ACCOUNT_APPROVED', 'ACCOUNT_REJECTED', 'ACCOUNT_UPDATE', 'NEW_ACCOUNT_REQUEST', 'NEW_CUSTOMER_REGISTERED'], ar: 'الحساب', en: 'Account' },
+    { value: 'requests', types: ['NEW_PURCHASE_REQUEST', 'NEW_QUOTE_REQUEST', 'NEW_IMPORT_REQUEST', 'SUPPLIER_REQUEST_ASSIGNED'], ar: 'طلبات الشراء', en: 'Requests' },
+    { value: 'quotes', types: ['QUOTE_PROCESSED', 'NEW_QUOTE_REQUEST'], ar: 'عروض الأسعار', en: 'Quotes' },
+    { value: 'points', types: ['SEARCH_POINTS_ADDED'], ar: 'النقاط', en: 'Points' },
+    { value: 'system', types: ['SYSTEM', 'GENERAL', 'MARKETING', 'ABANDONED_CART_ALERT', 'NEW_MESSAGE', 'IMPORT_UPDATE'], ar: 'النظام', en: 'System' },
+  ];
+  
+  const getTypesForCategory = (category: string): NotificationType[] | undefined => {
+    const filter = categoryFilters.find(f => f.value === category);
+    return filter && filter.types.length > 0 ? filter.types : undefined;
+  };
 
   const fetchNotifications = useCallback(async () => {
     if (!user?.id) return;
     
     setIsLoading(true);
     try {
+      const typesFilter = getTypesForCategory(selectedCategory);
       const result = await MockApi.getNotificationsForUser(user.id, {
         isRead: activeTab === 'unread' ? false : undefined,
+        types: typesFilter,
         limit: pageSize,
         page
       });
@@ -132,7 +150,7 @@ export const NotificationsPage: FC<NotificationsPageProps> = ({ user, onBack }) 
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, activeTab, page]);
+  }, [user?.id, activeTab, selectedCategory, page]);
 
   useEffect(() => {
     fetchNotifications();
@@ -273,6 +291,26 @@ export const NotificationsPage: FC<NotificationsPageProps> = ({ user, onBack }) 
             <span className="ml-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">{unreadCount}</span>
           )}
         </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 py-3">
+        <span className="text-sm font-medium text-slate-600">
+          {isRTL ? 'تصفية حسب النوع:' : 'Filter by type:'}
+        </span>
+        {categoryFilters.map((filter) => (
+          <button
+            key={filter.value}
+            onClick={() => { setSelectedCategory(filter.value); setPage(1); }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              selectedCategory === filter.value
+                ? 'bg-brand-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+            data-testid={`filter-type-${filter.value}`}
+          >
+            {isRTL ? filter.ar : filter.en}
+          </button>
+        ))}
       </div>
 
       <div className="mt-4">

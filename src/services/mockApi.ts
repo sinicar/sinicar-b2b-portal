@@ -1106,6 +1106,7 @@ export const MockApi = {
       limit?: number; 
       page?: number;
       type?: NotificationType;
+      types?: NotificationType[];
   }): Promise<{ items: Notification[]; unreadCount: number; total: number }> {
       const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
       let userNotifs = all.filter((n: Notification) => n.userId === userId);
@@ -1114,7 +1115,9 @@ export const MockApi = {
       if (options?.isRead !== undefined) {
           userNotifs = userNotifs.filter((n: Notification) => n.isRead === options.isRead);
       }
-      if (options?.type) {
+      if (options?.types && options.types.length > 0) {
+          userNotifs = userNotifs.filter((n: Notification) => options.types!.includes(n.type));
+      } else if (options?.type) {
           userNotifs = userNotifs.filter((n: Notification) => n.type === options.type);
       }
       
