@@ -1545,6 +1545,20 @@ export const MockApi = {
     if (identifier === 'admin' && secret === 'admin') {
         logActivity('LOGIN_ADMIN', { user: 'admin' });
         
+        // Initialize all demo data on first admin login
+        if (!localStorage.getItem(STORAGE_KEYS.TOOL_CONFIGS)) {
+            localStorage.setItem(STORAGE_KEYS.TOOL_CONFIGS, JSON.stringify(this.getDefaultToolConfigs()));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
+            localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(DEMO_ORDERS));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.QUOTE_REQUESTS)) {
+            localStorage.setItem(STORAGE_KEYS.QUOTE_REQUESTS, JSON.stringify(DEMO_QUOTES));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+        }
+        
         // Log Login
         internalRecordActivity({
             userId: 'super-admin',
