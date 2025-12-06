@@ -15,6 +15,7 @@ import { CustomerPortalSettingsProvider } from './services/CustomerPortalSetting
 import { ToastContainer } from './components/Toast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { getDirection } from './services/i18n';
+import AIAssistant from './components/AIAssistant';
 import './services/i18n';
 
 const getLoginLoadingSteps = (t: (key: string) => string) => [
@@ -589,6 +590,7 @@ export default function App() {
               <OrganizationProvider>
                 <ToastContainer />
                 <AppContent />
+                <AIAssistant />
               </OrganizationProvider>
             </ToastProvider>
         </LanguageProvider>

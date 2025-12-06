@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -6830,6 +6830,55 @@ export const MockApi = {
       const trimmed = conversations.slice(0, 50);
       localStorage.setItem(`b2b_ai_conversations_${conversation.userId}`, JSON.stringify(trimmed));
       return conversation;
+  },
+
+  async sendAIMessage(params: {
+      message: string;
+      conversationHistory?: AIChatMessage[];
+      systemPrompt?: string;
+      userId?: string;
+      language?: string;
+  }): Promise<{ content: string; tokensUsed?: number }> {
+      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+      
+      const { message, language = 'ar' } = params;
+      
+      const responses: Record<string, { ar: string; en: string }> = {
+          search: {
+              ar: 'يمكنني مساعدتك في البحث عن قطع الغيار. ما نوع القطعة التي تبحث عنها؟ يرجى إخباري بنوع السيارة أو رقم القطعة.',
+              en: 'I can help you search for auto parts. What type of part are you looking for? Please tell me the vehicle type or part number.'
+          },
+          order: {
+              ar: 'لمعرفة حالة طلبك، يرجى تزويدي برقم الطلب. يمكنك العثور عليه في بريدك الإلكتروني أو في صفحة طلباتي.',
+              en: 'To check your order status, please provide your order number. You can find it in your email or on the My Orders page.'
+          },
+          price: {
+              ar: 'سأساعدك في مقارنة الأسعار. أخبرني باسم القطعة أو رقمها وسأعرض لك أفضل الخيارات المتاحة.',
+              en: 'I will help you compare prices. Tell me the part name or number and I will show you the best available options.'
+          },
+          default: {
+              ar: 'شكراً لتواصلك معنا! كيف يمكنني مساعدتك اليوم؟ يمكنني المساعدة في البحث عن قطع الغيار، تتبع الطلبات، ومقارنة الأسعار.',
+              en: 'Thank you for contacting us! How can I help you today? I can assist with finding parts, tracking orders, and comparing prices.'
+          }
+      };
+      
+      const lowerMessage = message.toLowerCase();
+      let responseKey = 'default';
+      
+      if (lowerMessage.includes('بحث') || lowerMessage.includes('قطعة') || lowerMessage.includes('search') || lowerMessage.includes('find') || lowerMessage.includes('part')) {
+          responseKey = 'search';
+      } else if (lowerMessage.includes('طلب') || lowerMessage.includes('order') || lowerMessage.includes('status')) {
+          responseKey = 'order';
+      } else if (lowerMessage.includes('سعر') || lowerMessage.includes('مقارنة') || lowerMessage.includes('price') || lowerMessage.includes('compare')) {
+          responseKey = 'price';
+      }
+      
+      const lang = language === 'ar' ? 'ar' : 'en';
+      
+      return {
+          content: responses[responseKey][lang],
+          tokensUsed: Math.floor(50 + Math.random() * 100)
+      };
   },
 
   async deleteAIConversation(userId: string, conversationId: string): Promise<boolean> {

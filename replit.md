@@ -150,8 +150,31 @@ src/
 └── App.tsx
 ```
 
+# AI Integration
+
+## AI Assistant
+- **Component**: `src/components/AIAssistant.tsx` - Floating chat widget available globally
+- **Service**: `src/services/mockApi.ts` - `sendAIMessage()` method for mock AI responses
+- **Admin Settings**: `src/components/AdminAISettings.tsx` - Configure AI providers and behavior
+- **Types**: `AIChatMessage`, `AIConversation`, `AIUsageLog`, `AISettings` in `types.ts`
+
+**Features:**
+- Floating chat button (bottom-right corner)
+- Multilingual support (Arabic/English responses)
+- Contextual responses (search, orders, pricing queries)
+- Conversation history management
+- Minimize/close controls
+
+**Future Integration:**
+- OpenAI API via Replit AI Integrations
+- Multi-provider support (Gemini, Anthropic)
+- Real-time streaming responses
+
 # Recent Changes (December 2024)
 
+- Added AI Assistant floating chat widget with mock responses
+- Fixed toggle switches in AI Settings (z-index and pointer-events issues)
+- Created reusable ToggleSwitch component
 - Implemented complete Organization & Team Management System
 - Added scoped permissions for 4 organization types
 - Created TeamManagementPage with invitation system
