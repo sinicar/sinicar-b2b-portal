@@ -2993,5 +2993,80 @@
     "deleteConfirm": "هل أنت متأكد من حذف هذه الملاحظة؟",
     "deleteSuccess": "تم حذف الملاحظة بنجاح",
     "deleteError": "فشل في حذف الملاحظة"
+  },
+  "messaging": {
+    "title": "مركز الرسائل",
+    "subtitle": "إدارة قوالب الرسائل والإشعارات",
+    "tabs": {
+      "templates": "القوالب",
+      "logs": "سجل الرسائل",
+      "settings": "الإعدادات"
+    },
+    "channels": {
+      "WHATSAPP": "واتساب",
+      "EMAIL": "البريد الإلكتروني",
+      "NOTIFICATION": "الإشعارات"
+    },
+    "events": {
+      "QUOTE_CREATED": "إنشاء عرض سعر",
+      "QUOTE_APPROVED": "الموافقة على عرض سعر",
+      "ORDER_CREATED": "إنشاء طلب",
+      "ORDER_SHIPPED": "شحن طلب",
+      "PASSWORD_RESET": "إعادة تعيين كلمة المرور",
+      "ACCOUNT_ACTIVATED": "تفعيل الحساب",
+      "WELCOME_MESSAGE": "رسالة ترحيب",
+      "PAYMENT_REMINDER": "تذكير بالدفع",
+      "SUPPLIER_APPLICATION_APPROVED": "قبول طلب مورد"
+    },
+    "status": {
+      "PENDING": "معلق",
+      "SENT": "تم الإرسال",
+      "DELIVERED": "تم التوصيل",
+      "FAILED": "فشل"
+    },
+    "table": {
+      "event": "الحدث",
+      "template": "القالب",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "logs": {
+      "recipient": "المستلم",
+      "event": "الحدث",
+      "channel": "القناة",
+      "status": "الحالة",
+      "sentAt": "وقت الإرسال",
+      "empty": "لا توجد رسائل في السجل",
+      "unknown": "غير معروف"
+    },
+    "settings": {
+      "channels": "القنوات المفعّلة",
+      "defaultLanguage": "اللغة الافتراضية للرسائل"
+    },
+    "form": {
+      "name": "اسم القالب",
+      "subject": "عنوان البريد",
+      "body": "نص الرسالة",
+      "variables": "المتغيرات المتاحة",
+      "isActive": "تفعيل القالب"
+    },
+    "default": "افتراضي",
+    "noTemplate": "لا يوجد قالب",
+    "active": "مفعّل",
+    "inactive": "معطّل",
+    "createTemplate": "إنشاء قالب",
+    "editTemplate": "تعديل القالب",
+    "preview": "معاينة الرسالة",
+    "sendTest": "إرسال تجريبي",
+    "send": "إرسال",
+    "test": {
+      "phone": "رقم الهاتف",
+      "email": "البريد الإلكتروني",
+      "userId": "معرف المستخدم"
+    },
+    "testSuccess": "تم إرسال الرسالة التجريبية بنجاح",
+    "testFailed": "فشل إرسال الرسالة",
+    "confirmDelete": "هل أنت متأكد من حذف هذا القالب؟",
+    "searchLogs": "بحث في سجل الرسائل..."
   }
 }

@@ -36,6 +36,7 @@ import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
 import { AdminAlternativesPage } from './AdminAlternativesPage';
 import { AdminActivityLogPage } from './AdminActivityLogPage';
 import AdminFeedbackCenter from './AdminFeedbackCenter';
+import AdminMessagingCenter from './AdminMessagingCenter';
 import { AdminInternationalPricingPage } from './AdminInternationalPricingPage';
 import { AdminPermissionCenter } from './AdminPermissionCenter';
 import { NotificationBell } from './NotificationBell';
@@ -54,7 +55,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -67,6 +68,7 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'ACCOUNT_REQUESTS': 'account_requests',
     'ACTIVITY_LOGS': 'activity_log',
     'FEEDBACK_CENTER': 'settings_general',
+    'MESSAGING_CENTER': 'settings_general',
     'ORDERS_MANAGER': 'orders',
     'ABANDONED_CARTS': 'orders',
     'ADMIN_USERS': 'users',
@@ -97,6 +99,7 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
     'ACTIVITY_LOGS': 'adminDashboard.views.activityLogs',
     'FEEDBACK_CENTER': 'adminDashboard.views.feedbackCenter',
+    'MESSAGING_CENTER': 'adminDashboard.views.messagingCenter',
     'ORDERS_MANAGER': 'adminDashboard.views.ordersManager',
     'ABANDONED_CARTS': 'adminDashboard.views.abandonedCarts',
     'ADMIN_USERS': 'adminDashboard.views.adminUsers',
@@ -382,6 +385,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Megaphone size={20} />} label={t('adminDashboard.feedbackCenter', 'مركز الملاحظات')} active={view === 'FEEDBACK_CENTER'} onClick={() => setView('FEEDBACK_CENTER')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Bell size={20} />} label={t('adminDashboard.messagingCenter', 'مركز الرسائل')} active={view === 'MESSAGING_CENTER'} onClick={() => setView('MESSAGING_CENTER')} />
+                    )}
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.ordersCustomersSection')}</p>
                     {canAccess('orders') && (
@@ -473,6 +479,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'ABANDONED_CARTS' && t('adminDashboard.pageTitles.abandonedCarts', 'السلات المتروكة')}
                         {view === 'ACTIVITY_LOGS' && t('adminDashboard.pageTitles.activityLogs')}
                         {view === 'FEEDBACK_CENTER' && t('adminDashboard.pageTitles.feedbackCenter', 'مركز الملاحظات')}
+                        {view === 'MESSAGING_CENTER' && t('adminDashboard.pageTitles.messagingCenter', 'مركز الرسائل')}
                         {view === 'ACCOUNT_REQUESTS' && t('adminDashboard.pageTitles.accountRequests')}
                         {view === 'CUSTOMERS' && t('adminDashboard.pageTitles.customers')}
                         {view === 'QUOTES' && t('adminDashboard.pageTitles.quotes')}
@@ -818,6 +825,11 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'FEEDBACK_CENTER' && (
                         canAccess('settings_general') 
                             ? <AdminFeedbackCenter /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'MESSAGING_CENTER' && (
+                        canAccess('settings_general') 
+                            ? <AdminMessagingCenter /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     

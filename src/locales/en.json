@@ -2989,5 +2989,80 @@
     "deleteConfirm": "Are you sure you want to delete this feedback?",
     "deleteSuccess": "Feedback deleted successfully",
     "deleteError": "Failed to delete feedback"
+  },
+  "messaging": {
+    "title": "Message Center",
+    "subtitle": "Manage message templates and notifications",
+    "tabs": {
+      "templates": "Templates",
+      "logs": "Message Logs",
+      "settings": "Settings"
+    },
+    "channels": {
+      "WHATSAPP": "WhatsApp",
+      "EMAIL": "Email",
+      "NOTIFICATION": "Notifications"
+    },
+    "events": {
+      "QUOTE_CREATED": "Quote Created",
+      "QUOTE_APPROVED": "Quote Approved",
+      "ORDER_CREATED": "Order Created",
+      "ORDER_SHIPPED": "Order Shipped",
+      "PASSWORD_RESET": "Password Reset",
+      "ACCOUNT_ACTIVATED": "Account Activated",
+      "WELCOME_MESSAGE": "Welcome Message",
+      "PAYMENT_REMINDER": "Payment Reminder",
+      "SUPPLIER_APPLICATION_APPROVED": "Supplier Application Approved"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "SENT": "Sent",
+      "DELIVERED": "Delivered",
+      "FAILED": "Failed"
+    },
+    "table": {
+      "event": "Event",
+      "template": "Template",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "logs": {
+      "recipient": "Recipient",
+      "event": "Event",
+      "channel": "Channel",
+      "status": "Status",
+      "sentAt": "Sent At",
+      "empty": "No messages in log",
+      "unknown": "Unknown"
+    },
+    "settings": {
+      "channels": "Enabled Channels",
+      "defaultLanguage": "Default Message Language"
+    },
+    "form": {
+      "name": "Template Name",
+      "subject": "Email Subject",
+      "body": "Message Body",
+      "variables": "Available Variables",
+      "isActive": "Enable Template"
+    },
+    "default": "Default",
+    "noTemplate": "No template",
+    "active": "Active",
+    "inactive": "Inactive",
+    "createTemplate": "Create Template",
+    "editTemplate": "Edit Template",
+    "preview": "Preview Message",
+    "sendTest": "Send Test",
+    "send": "Send",
+    "test": {
+      "phone": "Phone Number",
+      "email": "Email Address",
+      "userId": "User ID"
+    },
+    "testSuccess": "Test message sent successfully",
+    "testFailed": "Failed to send message",
+    "confirmDelete": "Are you sure you want to delete this template?",
+    "searchLogs": "Search message logs..."
   }
 }
