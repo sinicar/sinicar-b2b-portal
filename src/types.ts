@@ -909,6 +909,17 @@ export interface SiteSettings {
   
   // --- إعدادات الشاشة المنبثقة للكميات ---
   quantityModalSettings?: QuantityModalSettings;
+  
+  // --- Product Images Settings (Command 19) ---
+  productImagesSettings?: ProductImagesSettings;
+}
+
+export interface ProductImagesSettings {
+  enabled: boolean;                     // Show product images in search and details
+  supplierUploadEnabled: boolean;       // Allow suppliers to upload images
+  maxSizeMb: number;                    // Max file size in MB (default: 5)
+  allowedTypes: string[];               // Allowed MIME types
+  defaultPlaceholderUrl?: string;       // Custom placeholder image URL
 }
 
 // نصوص صفحات الدخول والتسجيل القابلة للتعديل
