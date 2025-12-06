@@ -4026,3 +4026,363 @@ export interface FeedbackSettings {
   assignedDefaultAdminId?: string;
   allowGuestFeedback: boolean;
 }
+
+// =====================================================
+// INTERNATIONAL SUPPLIER & PRICING ENGINE TYPES
+// =====================================================
+
+export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+
+export interface Currency {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  symbol: string;
+  isBase: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ExchangeRate {
+  id: string;
+  currencyId: string;
+  rateToBase: number;
+  syncPercent: number;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  isActive: boolean;
+  updatedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CurrencyConversionResult {
+  originalAmount: number;
+  originalCurrency: string;
+  convertedAmount: number;
+  targetCurrency: string;
+  exchangeRate: number;
+  syncPercent: number;
+}
+
+export interface SupplierGroup {
+  id: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  defaultMarginPercent: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface QualityCode {
+  id: string;
+  code: string;
+  label: string;
+  labelAr?: string;
+  labelEn?: string;
+  labelHi?: string;
+  labelZh?: string;
+  description?: string;
+  defaultMarginAdjust: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface BrandCode {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  logoUrl?: string;
+  country?: string;
+  description?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ShippingMethod {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  baseRate: number;
+  perKgRate: number;
+  minCharge: number;
+  deliveryDays: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ShippingZone {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  countries: string[];
+  extraRatePerKg: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ShippingCostResult {
+  shippingMethod: string;
+  baseCost: number;
+  weightCost: number;
+  zoneSurcharge: number;
+  totalCost: number;
+  currency: string;
+  estimatedDays: number;
+}
+
+export interface PricingInput {
+  supplierId: string;
+  supplierCurrency: string;
+  supplierPrice: number;
+  customerCurrency?: string;
+  qualityCodeId?: string;
+}
+
+export interface PricingResult {
+  supplierPrice: number;
+  supplierCurrency: string;
+  basePriceInSystemCurrency: number;
+  marginPercent: number;
+  qualityMarginAdjust: number;
+  sellPriceBase: number;
+  customerCurrency: string;
+  sellPriceCustomer: number;
+  exchangeRateUsed: number;
+  breakdown: {
+    step: string;
+    value: number;
+    description: string;
+  }[];
+}
+
+// =====================================================
+// PERMISSION SYSTEM TYPES
+// =====================================================
+
+export interface Role {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  isSystem: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Permission {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  module: string;
+  description?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface RolePermission {
+  id: string;
+  roleId: string;
+  permissionId: string;
+  canCreate: boolean;
+  canRead: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  permission?: Permission;
+}
+
+export interface UserRoleAssignment {
+  id: string;
+  userId: string;
+  roleId: string;
+  assignedBy?: string;
+  isActive: boolean;
+  createdAt: string;
+  role?: Role;
+}
+
+export interface UserPermissions {
+  userId: string;
+  roles: string[];
+  permissions: {
+    code: string;
+    module: string;
+    canCreate: boolean;
+    canRead: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  }[];
+  modules: string[];
+}
+
+export interface ModuleAccess {
+  id: string;
+  moduleKey: string;
+  moduleName: string;
+  moduleNameAr?: string;
+  isEnabled: boolean;
+  requiredRole?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// =====================================================
+// GLOBAL SETTINGS & FEATURE FLAGS
+// =====================================================
+
+export type SettingValueType = 'STRING' | 'NUMBER' | 'BOOLEAN' | 'JSON';
+
+export interface GlobalSetting {
+  id: string;
+  key: string;
+  value: string;
+  valueType: SettingValueType;
+  category?: string;
+  label?: string;
+  labelAr?: string;
+  description?: string;
+  isEditable: boolean;
+  isVisible: boolean;
+  sortOrder: number;
+  updatedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface FeatureFlag {
+  id: string;
+  key: string;
+  name: string;
+  nameAr?: string;
+  description?: string;
+  isEnabled: boolean;
+  enabledFor: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// =====================================================
+// EXCEL IMPORT TEMPLATE TYPES
+// =====================================================
+
+export interface ExcelTemplateColumn {
+  id: string;
+  templateId: string;
+  columnIndex: number;
+  headerName: string;
+  headerNameAr?: string;
+  headerNameEn?: string;
+  mapToField: string;
+  isRequired: boolean;
+  defaultValue?: string;
+  validationRegex?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ExcelImportTemplate {
+  id: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  templateType: string;
+  languageHint?: string;
+  instructionsText?: string;
+  instructionsTextAr?: string;
+  isActive: boolean;
+  columns: ExcelTemplateColumn[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// =====================================================
+// SUPPLIER PROFILE (Extended)
+// =====================================================
+
+export interface SupplierProfile {
+  id: string;
+  userId: string;
+  supplierType: SupplierType;
+  groupId?: string;
+  group?: SupplierGroup;
+  companyName: string;
+  companyNameAr?: string;
+  companyNameEn?: string;
+  country?: string;
+  city?: string;
+  address?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  website?: string;
+  defaultCurrencyCode?: string;
+  customMarginPercent?: number | null;
+  paymentTerms?: string;
+  minOrderValue?: number;
+  avgDeliveryDays?: number;
+  logoUrl?: string;
+  isVerified: boolean;
+  isActive: boolean;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  notes?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface SupplierPriceEntry {
+  id: string;
+  supplierId: string;
+  partNumber: string;
+  partName?: string;
+  partNameAr?: string;
+  partNameEn?: string;
+  brand?: string;
+  qualityCodeId?: string;
+  brandCodeId?: string;
+  unitPrice: number;
+  currencyCode: string;
+  moq?: number;
+  leadTimeDays?: number;
+  weightKg?: number;
+  volumeCbm?: number;
+  hsCode?: string;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
