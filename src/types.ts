@@ -432,6 +432,23 @@ export interface Order {
   isNew?: boolean;
 }
 
+// --- Abandoned Cart Tracking ---
+export type AbandonedCartStatus = 'ACTIVE' | 'CONVERTED';
+
+export interface AbandonedCart {
+  id: string;
+  userId: string;
+  userName?: string;
+  whatsapp?: string;
+  phone?: string;
+  extendedRole?: ExtendedUserRole;
+  items: CartItem[];
+  totalAmount: number;
+  lastUpdatedAt: string;
+  status: AbandonedCartStatus;
+  createdAt: string;
+}
+
 // --- Bulk Quote Logic (Enhanced for Admin Review) ---
 
 export type QuoteRequestStatus =

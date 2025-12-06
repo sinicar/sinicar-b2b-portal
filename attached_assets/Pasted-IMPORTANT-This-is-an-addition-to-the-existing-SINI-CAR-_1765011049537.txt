@@ -1,0 +1,64 @@
+IMPORTANT — This is an addition to the existing SINI CAR system.
+Do NOT delete or modify existing cart/quote logic. Only extend it.
+Keep everything lightweight to reduce Replit compute cost.
+
+GOAL:
+Implement an "Abandoned Carts" system to track customers who added products
+to a cart but did NOT submit the order.
+
+1) Backend — Store abandoned carts
+   - Locate where cart items are stored (mockApi/local storage or backend API).
+   - Create a new backend model/table (if backend cart exists):
+       • userId
+       • items (JSON)
+       • lastUpdatedAt
+       • status ("ACTIVE" for abandoned, "CONVERTED" when submitted)
+   - When a user adds items to cart but does NOT place an order:
+       • Save/update this abandoned cart record.
+   - When a user submits the order:
+       • Mark the abandoned cart record as status = "CONVERTED".
+
+2) Backend endpoint — GET abandoned carts
+   - Create endpoint:
+       GET /api/admin/abandoned-carts
+   - Returns:
+       • user info (name, whatsapp, role)
+       • items list
+       • lastUpdatedAt
+       • status
+   - Keep the response lightweight (no heavy joins) to reduce Replit cost.
+
+3) Frontend — Admin Panel page
+   - Create a new page: "Abandoned Carts" inside Admin panel.
+   - Show table with:
+       • customer name
+       • whatsapp
+       • number of items
+       • lastUpdatedAt
+       • action: "View Cart"
+   - Clicking "View Cart":
+       • Opens modal showing all products in that abandoned cart.
+
+4) Frontend — minimize API calls
+   - Load abandoned carts ONLY when the admin opens the page.
+   - Do NOT auto-refresh or poll.
+   - Store loaded data in React state and reuse it until user manually refreshes.
+
+5) Behavior rules
+   - A cart is considered abandoned if:
+       • User added items
+       • AND did not submit order
+       • AND lastUpdatedAt is older than 15+ minutes
+   - Do NOT use background jobs (Replit cost).
+   - Only check “abandoned” status when:
+       • Admin opens the abandoned carts page
+       • OR user interacts with cart endpoints.
+
+6) Permissions
+   - Only Admin should access the abandoned-carts page.
+   - Respect existing auth/role logic.
+
+7) Replit cost rules
+   - No cron jobs, no watchers, no AI calls.
+   - Use minimal DB queries (1 list query + detailed modal query).
+   - Keep payloads small.

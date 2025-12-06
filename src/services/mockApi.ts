@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -364,7 +364,9 @@ const STORAGE_KEYS = {
   ORGANIZATION_USERS: 'sini_organization_users',
   ORGANIZATION_SETTINGS: 'sini_organization_settings',
   ORGANIZATION_ACTIVITY_LOGS: 'sini_organization_activity_logs',
-  TEAM_INVITATIONS: 'sini_team_invitations'
+  TEAM_INVITATIONS: 'sini_team_invitations',
+  // Abandoned Carts
+  ABANDONED_CARTS: 'sini_abandoned_carts'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -2276,6 +2278,96 @@ export const MockApi = {
       }
 
       return updated;
+  },
+
+  // --- Abandoned Carts System ---
+
+  async getAbandonedCarts(): Promise<AbandonedCart[]> {
+      const carts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ABANDONED_CARTS) || '[]') as AbandonedCart[];
+      // Filter: only return ACTIVE carts that are older than 15 minutes
+      const fifteenMinutesAgo = Date.now() - (15 * 60 * 1000);
+      return carts.filter(c => 
+          c.status === 'ACTIVE' && 
+          new Date(c.lastUpdatedAt).getTime() < fifteenMinutesAgo
+      );
+  },
+
+  async saveAbandonedCart(userId: string, items: CartItem[], totalAmount: number): Promise<AbandonedCart | null> {
+      if (!userId || items.length === 0) return null;
+
+      const carts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ABANDONED_CARTS) || '[]') as AbandonedCart[];
+      
+      // Get user info
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      const user = users.find((u: User) => u.id === userId);
+      
+      const now = new Date().toISOString();
+      
+      // Check if user already has an active abandoned cart
+      const existingIndex = carts.findIndex(c => c.userId === userId && c.status === 'ACTIVE');
+      
+      if (existingIndex !== -1) {
+          // Update existing cart
+          carts[existingIndex].items = items;
+          carts[existingIndex].totalAmount = totalAmount;
+          carts[existingIndex].lastUpdatedAt = now;
+          if (user) {
+              carts[existingIndex].userName = user.name;
+              carts[existingIndex].whatsapp = user.whatsapp || user.phone;
+              carts[existingIndex].phone = user.phone;
+              carts[existingIndex].extendedRole = user.extendedRole;
+          }
+          localStorage.setItem(STORAGE_KEYS.ABANDONED_CARTS, JSON.stringify(carts));
+          return carts[existingIndex];
+      }
+      
+      // Create new abandoned cart
+      const newCart: AbandonedCart = {
+          id: `AC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          userId,
+          userName: user?.name,
+          whatsapp: user?.whatsapp || user?.phone,
+          phone: user?.phone,
+          extendedRole: user?.extendedRole,
+          items,
+          totalAmount,
+          lastUpdatedAt: now,
+          status: 'ACTIVE',
+          createdAt: now
+      };
+      
+      carts.push(newCart);
+      localStorage.setItem(STORAGE_KEYS.ABANDONED_CARTS, JSON.stringify(carts));
+      return newCart;
+  },
+
+  async convertAbandonedCart(userId: string): Promise<boolean> {
+      const carts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ABANDONED_CARTS) || '[]') as AbandonedCart[];
+      const index = carts.findIndex(c => c.userId === userId && c.status === 'ACTIVE');
+      
+      if (index === -1) return false;
+      
+      carts[index].status = 'CONVERTED';
+      carts[index].lastUpdatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEYS.ABANDONED_CARTS, JSON.stringify(carts));
+      return true;
+  },
+
+  async clearAbandonedCart(userId: string): Promise<boolean> {
+      const carts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ABANDONED_CARTS) || '[]') as AbandonedCart[];
+      const index = carts.findIndex(c => c.userId === userId && c.status === 'ACTIVE');
+      
+      if (index === -1) return false;
+      
+      // Remove the cart entirely when user clears it
+      carts.splice(index, 1);
+      localStorage.setItem(STORAGE_KEYS.ABANDONED_CARTS, JSON.stringify(carts));
+      return true;
+  },
+
+  async getAbandonedCartById(cartId: string): Promise<AbandonedCart | null> {
+      const carts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ABANDONED_CARTS) || '[]') as AbandonedCart[];
+      return carts.find(c => c.id === cartId) || null;
   },
 
   // --- Quote Requests (Refactored Logic) ---
