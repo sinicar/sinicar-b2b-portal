@@ -30,8 +30,9 @@ app.use(`/api/${env.api.version}`, routes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.listen(env.port, () => {
-  console.log(`
+function startServer() {
+  app.listen(env.port, () => {
+    console.log(`
 ╔══════════════════════════════════════════════════╗
 ║     SINI CAR B2B Backend API Server              ║
 ╠══════════════════════════════════════════════════╣
@@ -40,7 +41,15 @@ app.listen(env.port, () => {
 ║  API Version: ${env.api.version.padEnd(33)}║
 ║  CORS Origin: ${env.cors.origin.padEnd(33)}║
 ╚══════════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
 
+// Start server if this is the main module
+const isMainModule = require.main === module || process.argv[1]?.includes('server');
+if (isMainModule) {
+  startServer();
+}
+
+export { app, startServer };
 export default app;

@@ -36,6 +36,7 @@ import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
 import { AdminAlternativesPage } from './AdminAlternativesPage';
 import { AdminActivityLogPage } from './AdminActivityLogPage';
 import AdminFeedbackCenter from './AdminFeedbackCenter';
+import { AdminInternationalPricingPage } from './AdminInternationalPricingPage';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
 import { formatDateTime } from '../utils/dateUtils';
@@ -52,7 +53,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -79,7 +80,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'CUSTOMER_PORTAL': 'settings_general',
     'AI_SETTINGS': 'settings_general',
     'ALTERNATIVES': 'products',
-    'NOTIFICATIONS': 'dashboard'
+    'NOTIFICATIONS': 'dashboard',
+    'INTERNATIONAL_PRICING': 'settings_general'
 };
 
 const VIEW_LABELS_KEYS: Record<ViewType, string> = {
@@ -107,7 +109,8 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'CUSTOMER_PORTAL': 'adminDashboard.views.customerPortal',
     'AI_SETTINGS': 'adminDashboard.views.aiSettings',
     'ALTERNATIVES': 'adminDashboard.views.alternatives',
-    'NOTIFICATIONS': 'adminDashboard.views.notifications'
+    'NOTIFICATIONS': 'adminDashboard.views.notifications',
+    'INTERNATIONAL_PRICING': 'adminDashboard.views.internationalPricing'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -443,6 +446,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Bot size={20} />} label={t('adminDashboard.aiSettings')} active={view === 'AI_SETTINGS'} onClick={() => setView('AI_SETTINGS')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Globe size={20} />} label={t('adminDashboard.internationalPricing', 'التسعير الدولي')} active={view === 'INTERNATIONAL_PRICING'} onClick={() => setView('INTERNATIONAL_PRICING')} />
+                    )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
@@ -479,6 +485,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'CUSTOMER_PORTAL' && t('adminDashboard.pageTitles.customerPortal')}
                         {view === 'AI_SETTINGS' && t('adminDashboard.pageTitles.aiSettings')}
                         {view === 'NOTIFICATIONS' && t('adminDashboard.pageTitles.notifications', 'الإشعارات')}
+                        {view === 'INTERNATIONAL_PRICING' && t('adminDashboard.pageTitles.internationalPricing', 'التسعير الدولي والموردين')}
                         {['PRODUCTS'].includes(view) && t('adminDashboard.pageTitles.products')}
                     </h2>
                     <div className="flex items-center gap-4">
@@ -744,6 +751,12 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'AI_SETTINGS' && (
                         canAccess('settings_general') 
                             ? <AdminAISettings /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    
+                    {view === 'INTERNATIONAL_PRICING' && (
+                        canAccess('settings_general') 
+                            ? <AdminInternationalPricingPage /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
