@@ -1,5 +1,12 @@
 import { MockApi } from './mockApi';
-import { ToolKey, ToolConfig, CustomerToolsOverride, BusinessProfile } from '../types';
+import { ToolKey, ToolConfig, CustomerToolsOverride, BusinessProfile, TraderToolType } from '../types';
+
+// Mapping from ToolKey to TraderToolType
+const TOOL_KEY_TO_TRADER_TYPE: Record<ToolKey, TraderToolType> = {
+  'VIN_EXTRACTOR': 'VIN',
+  'PDF_TO_EXCEL': 'PDF_EXCEL',
+  'PRICE_COMPARISON': 'COMPARISON'
+};
 
 export interface ToolAccessResult {
   hasAccess: boolean;
@@ -248,6 +255,23 @@ export const toolsAccessService = {
         processingTimeMs,
         metadata
       });
+    }
+    
+    // Also log to the new TraderToolAction system for comprehensive tracking
+    const traderToolType = TOOL_KEY_TO_TRADER_TYPE[toolKey];
+    if (traderToolType) {
+      await MockApi.logTraderToolAction(
+        customerId,
+        traderToolType,
+        metadata || {},
+        success ? { filesProcessed } : undefined,
+        {
+          status: success ? 'SUCCESS' : 'FAILED',
+          errorMessage,
+          processingTimeMs,
+          metadata: metadata as any
+        }
+      );
     }
   },
 

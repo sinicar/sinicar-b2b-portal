@@ -53,6 +53,7 @@ import { DynamicHomePage } from './DynamicHomePage';
 import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
+import { TraderToolsHistory } from './TraderToolsHistory';
 import { AlternativesPage } from './AlternativesPage';
 import { ProductSearchPage } from './ProductSearchPage';
 import { TeamManagementPage } from './TeamManagementPage';
@@ -564,6 +565,9 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                 {canAccessFeature('cust_use_trader_tools') && (
                     <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
                 )}
+                {canAccessFeature('cust_use_trader_tools') && (
+                    <CollapsibleSidebarItem icon={<Clock size={20} />} label={tDynamic('sidebar.toolsHistory', 'سجل الأدوات')} active={view === 'TOOLS_HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TOOLS_HISTORY')} collapsed={collapsed} />
+                )}
                 <CollapsibleSidebarItem icon={<Package size={20} />} label={tDynamic('sidebar.productSearch', 'بحث المنتجات')} active={view === 'PRODUCT_SEARCH'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('PRODUCT_SEARCH')} collapsed={collapsed} />
                 <CollapsibleSidebarItem icon={<Layers size={20} />} label={tDynamic('sidebar.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ALTERNATIVES')} collapsed={collapsed} />
                 <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
@@ -644,6 +648,7 @@ const DashboardHeader = memo(({
                     {view === 'QUOTE_REQUEST' && tDynamic('sidebar.quotes', 'طلبات التسعير')}
                     {view === 'IMPORT_CHINA' && tDynamic('sidebar.import', 'الاستيراد من الصين')}
                     {view === 'TRADER_TOOLS' && tDynamic('sidebar.traderTools', 'أدوات التاجر')}
+                    {view === 'TOOLS_HISTORY' && tDynamic('sidebar.toolsHistory', 'سجل الأدوات')}
                     {view === 'PRODUCT_SEARCH' && tDynamic('sidebar.productSearch', 'بحث المنتجات')}
                     {view === 'ALTERNATIVES' && tDynamic('sidebar.alternatives', 'بدائل الأصناف')}
                     {view === 'ORGANIZATION' && tDynamic('sidebar.organization', 'إدارة المنشأة')}
@@ -701,7 +706,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const visibleNavigationItems = useMemo(() => getNavigationItems(portalSettings), [portalSettings]);
     
     // Add IMPORT_CHINA and TRADER_TOOLS and ALTERNATIVES and NOTIFICATIONS to view state
-    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES' | 'PRODUCT_SEARCH' | 'NOTIFICATIONS'>('HOME');
+    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TOOLS_HISTORY' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES' | 'PRODUCT_SEARCH' | 'NOTIFICATIONS'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -2067,6 +2072,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         {view === 'QUOTE_REQUEST' && <QuoteRequestPage user={user} onSuccess={() => {}} />}
                         {view === 'IMPORT_CHINA' && <ImportFromChinaPage user={user} userProfile={profile} />}
                         {view === 'TRADER_TOOLS' && <TraderToolsHub user={user} profile={profile} />}
+                        {view === 'TOOLS_HISTORY' && <TraderToolsHistory user={user} />}
                         {view === 'ALTERNATIVES' && <AlternativesPage user={user} onBack={() => setView('HOME')} />}
                         {view === 'PRODUCT_SEARCH' && <ProductSearchPage user={user} profile={profile} onBack={() => setView('HOME')} />}
                         {view === 'ORGANIZATION' && <OrganizationPage user={user} mainProfileUserId={user.role === 'CUSTOMER_STAFF' ? user.parentId! : user.id} />}

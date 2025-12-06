@@ -2376,5 +2376,88 @@
     "cards": {
       "info": "信息卡"
     }
+  },
+  "traderHistory": {
+    "title": "工具使用历史",
+    "subtitle": "跟踪您的所有商家工具使用情况",
+    "filters": "筛选",
+    "toolType": "工具类型",
+    "status": "状态",
+    "dateFrom": "开始日期",
+    "dateTo": "结束日期",
+    "totalUsage": "总计",
+    "noRecords": "没有记录",
+    "noRecordsDesc": "开始使用商家工具以在此查看您的历史记录",
+    "detailsTitle": "操作详情",
+    "loadError": "加载历史记录时出错",
+    "col": {
+      "date": "日期",
+      "tool": "工具",
+      "input": "输入",
+      "output": "输出",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "processingTime": "处理时间",
+    "inputFile": "输入文件",
+    "outputFile": "输出文件",
+    "errorMessage": "错误信息",
+    "deviceType": "设备",
+    "additionalInfo": "附加信息",
+    "confidence": "准确度",
+    "suppliersCompared": "比较的供应商",
+    "pagesProcessed": "处理的页面"
+  },
+  "traderToolsAdmin": {
+    "title": "商家工具管理",
+    "subtitle": "启用/禁用工具并配置访问权限",
+    "settingsTab": "设置",
+    "analyticsTab": "分析",
+    "usageLogTab": "使用日志",
+    "filters": "筛选",
+    "search": "搜索",
+    "searchPlaceholder": "名称、VIN、文件...",
+    "toolType": "工具类型",
+    "status": "状态",
+    "dateFrom": "开始日期",
+    "dateTo": "结束日期",
+    "clearFilters": "清除",
+    "export": "导出",
+    "totalActions": "总操作数",
+    "successful": "成功",
+    "failed": "失败",
+    "successRate": "成功率",
+    "noRecords": "没有记录",
+    "exportSuccess": "数据导出成功",
+    "exportError": "导出数据失败",
+    "loadError": "加载使用日志失败",
+    "col": {
+      "date": "日期",
+      "customer": "客户",
+      "tool": "工具",
+      "input": "输入",
+      "output": "输出",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "detailTitle": "操作详情",
+    "processingTime": "处理时间",
+    "inputDetails": "输入",
+    "outputDetails": "输出",
+    "showing": "显示"
+  },
+  "toolTypes": {
+    "VIN": "VIN提取",
+    "PDF_EXCEL": "PDF转Excel",
+    "COMPARISON": "价格比较",
+    "ALTERNATIVES": "替代品上传",
+    "SEARCH": "产品搜索",
+    "EXCEL_QUOTE": "Excel报价"
+  },
+  "toolStatus": {
+    "SUCCESS": "成功",
+    "FAILED": "失败",
+    "PENDING": "待处理",
+    "PROCESSING": "处理中"
   }
 }

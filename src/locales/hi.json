@@ -2376,5 +2376,88 @@
     "cards": {
       "info": "जानकारी कार्ड"
     }
+  },
+  "traderHistory": {
+    "title": "टूल उपयोग इतिहास",
+    "subtitle": "अपने सभी व्यापारी टूल उपयोग को ट्रैक करें",
+    "filters": "फ़िल्टर",
+    "toolType": "टूल प्रकार",
+    "status": "स्थिति",
+    "dateFrom": "तारीख से",
+    "dateTo": "तारीख तक",
+    "totalUsage": "कुल",
+    "noRecords": "कोई रिकॉर्ड नहीं",
+    "noRecordsDesc": "अपना इतिहास यहां देखने के लिए व्यापारी टूल का उपयोग शुरू करें",
+    "detailsTitle": "कार्रवाई विवरण",
+    "loadError": "इतिहास लोड करने में त्रुटि",
+    "col": {
+      "date": "तारीख",
+      "tool": "टूल",
+      "input": "इनपुट",
+      "output": "आउटपुट",
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "processingTime": "प्रोसेसिंग समय",
+    "inputFile": "इनपुट फ़ाइल",
+    "outputFile": "आउटपुट फ़ाइल",
+    "errorMessage": "त्रुटि संदेश",
+    "deviceType": "डिवाइस",
+    "additionalInfo": "अतिरिक्त जानकारी",
+    "confidence": "सटीकता",
+    "suppliersCompared": "तुलना किए गए आपूर्तिकर्ता",
+    "pagesProcessed": "प्रोसेस किए गए पेज"
+  },
+  "traderToolsAdmin": {
+    "title": "व्यापारी टूल प्रबंधन",
+    "subtitle": "टूल सक्षम/अक्षम करें और एक्सेस अनुमतियां कॉन्फ़िगर करें",
+    "settingsTab": "सेटिंग्स",
+    "analyticsTab": "एनालिटिक्स",
+    "usageLogTab": "उपयोग लॉग",
+    "filters": "फ़िल्टर",
+    "search": "खोजें",
+    "searchPlaceholder": "नाम, VIN, फ़ाइल...",
+    "toolType": "टूल प्रकार",
+    "status": "स्थिति",
+    "dateFrom": "तारीख से",
+    "dateTo": "तारीख तक",
+    "clearFilters": "साफ़ करें",
+    "export": "निर्यात",
+    "totalActions": "कुल कार्रवाई",
+    "successful": "सफल",
+    "failed": "विफल",
+    "successRate": "सफलता दर",
+    "noRecords": "कोई रिकॉर्ड नहीं",
+    "exportSuccess": "डेटा सफलतापूर्वक निर्यात किया गया",
+    "exportError": "डेटा निर्यात करने में विफल",
+    "loadError": "उपयोग लॉग लोड करने में विफल",
+    "col": {
+      "date": "तारीख",
+      "customer": "ग्राहक",
+      "tool": "टूल",
+      "input": "इनपुट",
+      "output": "आउटपुट",
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "detailTitle": "कार्रवाई विवरण",
+    "processingTime": "प्रोसेसिंग समय",
+    "inputDetails": "इनपुट",
+    "outputDetails": "आउटपुट",
+    "showing": "दिखा रहा है"
+  },
+  "toolTypes": {
+    "VIN": "VIN निष्कर्षण",
+    "PDF_EXCEL": "PDF से Excel",
+    "COMPARISON": "मूल्य तुलना",
+    "ALTERNATIVES": "विकल्प अपलोड",
+    "SEARCH": "उत्पाद खोज",
+    "EXCEL_QUOTE": "Excel कोट"
+  },
+  "toolStatus": {
+    "SUCCESS": "सफल",
+    "FAILED": "विफल",
+    "PENDING": "लंबित",
+    "PROCESSING": "प्रोसेसिंग"
   }
 }
