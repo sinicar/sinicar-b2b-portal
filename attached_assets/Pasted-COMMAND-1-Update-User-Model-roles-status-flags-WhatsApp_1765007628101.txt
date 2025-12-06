@@ -1,0 +1,86 @@
+COMMAND 1 — Update User Model (roles, status, flags, WhatsApp, clientCode)
+
+IMPORTANT — DO NOT DELETE ANY EXISTING MODELS, FIELDS OR LOGIC.
+This is an update to the existing SINI CAR system, not a rebuild.
+
+GOAL: Extend the User model to support roles, account status, WhatsApp, client code, completion percentage, and “supplier + customer” combination.
+
+1️⃣ Locate the User model
+
+Find where the User entity is defined:
+
+Most likely in prisma/schema.prisma and related TypeScript/Zod types.
+
+Do NOT remove or rename any existing fields. Only add new fields.
+
+2️⃣ Add new fields to the User model
+Add these fields (or equivalent names) to the User model:
+
+role              // Enum or string: ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER_LOCAL, SUPPLIER_INTERNATIONAL, MARKETER
+status            // Enum or string: PENDING, APPROVED, REJECTED, BLOCKED
+isCustomer Boolean
+isSupplier Boolean
+completionPercent Int      // 0–100
+whatsapp          String   // main WhatsApp / phone number
+clientCode        String?  // optional internal client code
+
+
+Prefer using enums for role and status if possible, but do NOT break existing data.
+
+3️⃣ Support “supplier + customer” at the same time
+
+Ensure the model allows:
+
+Supplier only → isSupplier = true, isCustomer = false
+
+Customer only → isCustomer = true, isSupplier = false
+
+Both → isSupplier = true, isCustomer = true
+
+Do NOT enforce mutual exclusivity between supplier and customer.
+
+4️⃣ Update TypeScript types and Zod schemas
+
+Update all TypeScript interfaces/types related to User.
+
+Update all Zod schemas used for:
+
+User registration / signup
+
+User profile
+
+Any other user-related payloads
+
+Do NOT remove existing fields in these schemas; only extend them.
+
+5️⃣ Safe Prisma migration
+
+Create a new Prisma migration that:
+
+Adds these new fields to the User table.
+
+Does NOT drop or rename any existing tables or columns.
+
+Use safe defaults:
+
+status = "PENDING" for new users.
+
+completionPercent = 0 for existing users.
+
+For existing users without a role, you can default to "CUSTOMER" or allow role to be nullable and handle it carefully.
+
+6️⃣ Replit cost rules
+
+Do NOT add background jobs, cron, or heavy logic.
+
+Do NOT call any AI from this code.
+
+Only adjust the schema and types; there should be no extra CPU or network load.
+
+7️⃣ After finishing
+
+Make sure the Prisma migration runs successfully.
+
+Make sure the TypeScript build still passes.
+
+Do NOT change any frontend code in this command.

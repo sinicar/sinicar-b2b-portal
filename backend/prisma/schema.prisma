@@ -34,6 +34,13 @@ model User {
   lastActiveAt         DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
+  
+  // New fields for extended role/status system
+  isCustomer           Boolean   @default(true)
+  isSupplier           Boolean   @default(false)
+  completionPercent    Int       @default(0)
+  whatsapp             String?
+  clientCode           String?
 
   parent               User?     @relation("UserHierarchy", fields: [parentId], references: [id])
   children             User[]    @relation("UserHierarchy")
