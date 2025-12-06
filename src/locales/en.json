@@ -2859,5 +2859,106 @@
     "FAILED": "Failed",
     "PENDING": "Pending",
     "PROCESSING": "Processing"
+  },
+  "feedback": {
+    "button": "Send Feedback",
+    "title": "Send Your Feedback",
+    "subtitle": "We value your opinion and strive to improve our services",
+    "typeLabel": "Feedback Type",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "Enter feedback subject...",
+    "descriptionLabel": "Details",
+    "descriptionPlaceholder": "Describe your feedback in detail...",
+    "submitButton": "Submit Feedback",
+    "submitting": "Submitting...",
+    "successTitle": "Feedback Submitted Successfully",
+    "successMessage": "Thank you! We will review your feedback and work on improving our services",
+    "errorMessage": "Error submitting feedback",
+    "guest": "Guest",
+    "types": {
+      "BUG": "Bug Report",
+      "FEATURE": "Feature Request",
+      "IMPROVEMENT": "Improvement",
+      "COMPLAINT": "Complaint",
+      "OTHER": "Other"
+    },
+    "categories": {
+      "bug": "Bug Report",
+      "suggestion": "Suggestion",
+      "complaint": "Complaint",
+      "question": "Question",
+      "other": "Other"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    }
+  },
+  "feedbackAdmin": {
+    "title": "Feedback Center",
+    "subtitle": "Manage customer feedback and analytics",
+    "allFeedback": "All Feedback",
+    "filters": "Filters",
+    "type": "Type",
+    "status": "Status",
+    "priority": "Priority",
+    "dateRange": "Date Range",
+    "search": "Search...",
+    "noFeedback": "No feedback found",
+    "loading": "Loading...",
+    "export": "Export",
+    "refresh": "Refresh",
+    "markAsRead": "Mark as Read",
+    "delete": "Delete",
+    "adminNotes": "Admin Notes",
+    "adminNotesPlaceholder": "Add internal notes...",
+    "saveNotes": "Save Notes",
+    "updateStatus": "Update Status",
+    "updatePriority": "Update Priority",
+    "customerInfo": "Customer Info",
+    "feedbackDetails": "Feedback Details",
+    "submittedAt": "Submitted At",
+    "lastUpdated": "Last Updated",
+    "actions": "Actions",
+    "stats": {
+      "total": "Total Feedback",
+      "new": "New",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "byType": "By Type",
+      "byPriority": "By Priority"
+    },
+    "status": {
+      "NEW": "New",
+      "IN_PROGRESS": "In Progress",
+      "IN_REVIEW": "In Review",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed",
+      "DISMISSED": "Dismissed"
+    },
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "senderType": {
+      "CUSTOMER": "Customer",
+      "SUPPLIER": "Supplier",
+      "MARKETER": "Marketer",
+      "EMPLOYEE": "Employee",
+      "ADMIN": "Admin",
+      "GUEST": "Guest"
+    },
+    "exportSuccess": "Data exported successfully",
+    "exportError": "Failed to export data",
+    "updateSuccess": "Updated successfully",
+    "updateError": "Failed to update",
+    "deleteConfirm": "Are you sure you want to delete this feedback?",
+    "deleteSuccess": "Feedback deleted successfully",
+    "deleteError": "Failed to delete feedback"
   }
 }

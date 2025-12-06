@@ -54,6 +54,7 @@ import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
 import { TraderToolsHistory } from './TraderToolsHistory';
+import FeedbackButton from './FeedbackButton';
 import { AlternativesPage } from './AlternativesPage';
 import { ProductSearchPage } from './ProductSearchPage';
 import { TeamManagementPage } from './TeamManagementPage';
@@ -2304,6 +2305,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     onClose={() => setShowMarketingPopup(false)}
                 />
             )}
+
+            {/* Feedback Button - Global floating button */}
+            {!isGuest && <FeedbackButton user={{ id: user.id, name: user.name, phone: user.phone, email: user.email, role: user.role }} />}
         </div>
     );
 };

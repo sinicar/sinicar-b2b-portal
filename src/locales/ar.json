@@ -2863,5 +2863,106 @@
     "FAILED": "فشل",
     "PENDING": "قيد الانتظار",
     "PROCESSING": "قيد المعالجة"
+  },
+  "feedback": {
+    "button": "إرسال ملاحظة",
+    "title": "أرسل ملاحظتك",
+    "subtitle": "نقدر رأيك ونسعى لتحسين خدماتنا",
+    "typeLabel": "نوع الملاحظة",
+    "subjectLabel": "الموضوع",
+    "subjectPlaceholder": "اكتب عنوان الملاحظة...",
+    "descriptionLabel": "التفاصيل",
+    "descriptionPlaceholder": "اشرح ملاحظتك بالتفصيل...",
+    "submitButton": "إرسال الملاحظة",
+    "submitting": "جاري الإرسال...",
+    "successTitle": "تم إرسال ملاحظتك بنجاح",
+    "successMessage": "شكراً لك! سنراجع ملاحظتك ونعمل على تحسين خدماتنا",
+    "errorMessage": "حدث خطأ أثناء إرسال الملاحظة",
+    "guest": "زائر",
+    "types": {
+      "BUG": "خلل تقني",
+      "FEATURE": "اقتراح ميزة جديدة",
+      "IMPROVEMENT": "تحسين",
+      "COMPLAINT": "شكوى",
+      "OTHER": "أخرى"
+    },
+    "categories": {
+      "bug": "خلل تقني",
+      "suggestion": "اقتراح",
+      "complaint": "شكوى",
+      "question": "سؤال",
+      "other": "أخرى"
+    },
+    "priorities": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "critical": "حرجة"
+    }
+  },
+  "feedbackAdmin": {
+    "title": "مركز الملاحظات",
+    "subtitle": "إدارة ملاحظات العملاء والتحليلات",
+    "allFeedback": "جميع الملاحظات",
+    "filters": "الفلاتر",
+    "type": "النوع",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "dateRange": "الفترة الزمنية",
+    "search": "بحث...",
+    "noFeedback": "لا توجد ملاحظات",
+    "loading": "جاري التحميل...",
+    "export": "تصدير",
+    "refresh": "تحديث",
+    "markAsRead": "تعليم كمقروء",
+    "delete": "حذف",
+    "adminNotes": "ملاحظات الإدارة",
+    "adminNotesPlaceholder": "أضف ملاحظات داخلية...",
+    "saveNotes": "حفظ الملاحظات",
+    "updateStatus": "تحديث الحالة",
+    "updatePriority": "تحديث الأولوية",
+    "customerInfo": "معلومات العميل",
+    "feedbackDetails": "تفاصيل الملاحظة",
+    "submittedAt": "تاريخ الإرسال",
+    "lastUpdated": "آخر تحديث",
+    "actions": "إجراءات",
+    "stats": {
+      "total": "إجمالي الملاحظات",
+      "new": "جديد",
+      "inProgress": "قيد المعالجة",
+      "resolved": "تم الحل",
+      "closed": "مغلق",
+      "byType": "حسب النوع",
+      "byPriority": "حسب الأولوية"
+    },
+    "status": {
+      "NEW": "جديد",
+      "IN_PROGRESS": "قيد المعالجة",
+      "IN_REVIEW": "قيد المراجعة",
+      "RESOLVED": "تم الحل",
+      "CLOSED": "مغلق",
+      "DISMISSED": "مرفوض"
+    },
+    "priority": {
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "CRITICAL": "حرجة"
+    },
+    "senderType": {
+      "CUSTOMER": "عميل",
+      "SUPPLIER": "مورد",
+      "MARKETER": "مسوق",
+      "EMPLOYEE": "موظف",
+      "ADMIN": "مدير",
+      "GUEST": "زائر"
+    },
+    "exportSuccess": "تم تصدير البيانات بنجاح",
+    "exportError": "فشل في تصدير البيانات",
+    "updateSuccess": "تم التحديث بنجاح",
+    "updateError": "فشل في التحديث",
+    "deleteConfirm": "هل أنت متأكد من حذف هذه الملاحظة؟",
+    "deleteSuccess": "تم حذف الملاحظة بنجاح",
+    "deleteError": "فشل في حذف الملاحظة"
   }
 }

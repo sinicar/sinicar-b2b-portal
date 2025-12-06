@@ -35,6 +35,7 @@ import AdminAISettings from './AdminAISettings';
 import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
 import { AdminAlternativesPage } from './AdminAlternativesPage';
 import { AdminActivityLogPage } from './AdminActivityLogPage';
+import AdminFeedbackCenter from './AdminFeedbackCenter';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
 import { formatDateTime } from '../utils/dateUtils';
@@ -51,7 +52,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -63,6 +64,7 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'IMPORT_REQUESTS': 'imports',
     'ACCOUNT_REQUESTS': 'account_requests',
     'ACTIVITY_LOGS': 'activity_log',
+    'FEEDBACK_CENTER': 'settings_general',
     'ORDERS_MANAGER': 'orders',
     'ABANDONED_CARTS': 'orders',
     'ADMIN_USERS': 'users',
@@ -90,6 +92,7 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'IMPORT_REQUESTS': 'adminDashboard.views.importRequests',
     'ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
     'ACTIVITY_LOGS': 'adminDashboard.views.activityLogs',
+    'FEEDBACK_CENTER': 'adminDashboard.views.feedbackCenter',
     'ORDERS_MANAGER': 'adminDashboard.views.ordersManager',
     'ABANDONED_CARTS': 'adminDashboard.views.abandonedCarts',
     'ADMIN_USERS': 'adminDashboard.views.adminUsers',
@@ -370,6 +373,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('activity_log') && (
                         <NavItem icon={<Activity size={20} />} label={t('adminDashboard.activityLog')} active={view === 'ACTIVITY_LOGS'} onClick={() => setView('ACTIVITY_LOGS')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Megaphone size={20} />} label={t('adminDashboard.feedbackCenter', 'مركز الملاحظات')} active={view === 'FEEDBACK_CENTER'} onClick={() => setView('FEEDBACK_CENTER')} />
+                    )}
                     
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.ordersCustomersSection')}</p>
                     {canAccess('orders') && (
@@ -454,6 +460,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'ORDERS_MANAGER' && t('adminDashboard.pageTitles.ordersManager')}
                         {view === 'ABANDONED_CARTS' && t('adminDashboard.pageTitles.abandonedCarts', 'السلات المتروكة')}
                         {view === 'ACTIVITY_LOGS' && t('adminDashboard.pageTitles.activityLogs')}
+                        {view === 'FEEDBACK_CENTER' && t('adminDashboard.pageTitles.feedbackCenter', 'مركز الملاحظات')}
                         {view === 'ACCOUNT_REQUESTS' && t('adminDashboard.pageTitles.accountRequests')}
                         {view === 'CUSTOMERS' && t('adminDashboard.pageTitles.customers')}
                         {view === 'QUOTES' && t('adminDashboard.pageTitles.quotes')}
@@ -780,6 +787,11 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'ACTIVITY_LOGS' && (
                         canAccess('activity_log') 
                             ? <AdminActivityLogPage /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'FEEDBACK_CENTER' && (
+                        canAccess('settings_general') 
+                            ? <AdminFeedbackCenter /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     

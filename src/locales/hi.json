@@ -2459,5 +2459,106 @@
     "FAILED": "विफल",
     "PENDING": "लंबित",
     "PROCESSING": "प्रोसेसिंग"
+  },
+  "feedback": {
+    "button": "प्रतिक्रिया भेजें",
+    "title": "अपनी प्रतिक्रिया भेजें",
+    "subtitle": "हम आपकी राय की सराहना करते हैं और अपनी सेवाओं में सुधार के लिए प्रयासरत हैं",
+    "typeLabel": "प्रतिक्रिया प्रकार",
+    "subjectLabel": "विषय",
+    "subjectPlaceholder": "प्रतिक्रिया का विषय लिखें...",
+    "descriptionLabel": "विवरण",
+    "descriptionPlaceholder": "अपनी प्रतिक्रिया का विस्तार से वर्णन करें...",
+    "submitButton": "प्रतिक्रिया भेजें",
+    "submitting": "भेज रहे हैं...",
+    "successTitle": "प्रतिक्रिया सफलतापूर्वक भेजी गई",
+    "successMessage": "धन्यवाद! हम आपकी प्रतिक्रिया की समीक्षा करेंगे और अपनी सेवाओं में सुधार करेंगे",
+    "errorMessage": "प्रतिक्रिया भेजने में त्रुटि",
+    "guest": "अतिथि",
+    "types": {
+      "BUG": "बग रिपोर्ट",
+      "FEATURE": "फीचर अनुरोध",
+      "IMPROVEMENT": "सुधार",
+      "COMPLAINT": "शिकायत",
+      "OTHER": "अन्य"
+    },
+    "categories": {
+      "bug": "बग रिपोर्ट",
+      "suggestion": "सुझाव",
+      "complaint": "शिकायत",
+      "question": "प्रश्न",
+      "other": "अन्य"
+    },
+    "priorities": {
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "उच्च",
+      "critical": "महत्वपूर्ण"
+    }
+  },
+  "feedbackAdmin": {
+    "title": "प्रतिक्रिया केंद्र",
+    "subtitle": "ग्राहक प्रतिक्रियाओं और विश्लेषण का प्रबंधन",
+    "allFeedback": "सभी प्रतिक्रियाएं",
+    "filters": "फ़िल्टर",
+    "type": "प्रकार",
+    "status": "स्थिति",
+    "priority": "प्राथमिकता",
+    "dateRange": "तारीख सीमा",
+    "search": "खोजें...",
+    "noFeedback": "कोई प्रतिक्रिया नहीं मिली",
+    "loading": "लोड हो रहा है...",
+    "export": "निर्यात",
+    "refresh": "रिफ्रेश",
+    "markAsRead": "पढ़ा हुआ चिह्नित करें",
+    "delete": "हटाएं",
+    "adminNotes": "व्यवस्थापक नोट्स",
+    "adminNotesPlaceholder": "आंतरिक नोट्स जोड़ें...",
+    "saveNotes": "नोट्स सहेजें",
+    "updateStatus": "स्थिति अपडेट करें",
+    "updatePriority": "प्राथमिकता अपडेट करें",
+    "customerInfo": "ग्राहक जानकारी",
+    "feedbackDetails": "प्रतिक्रिया विवरण",
+    "submittedAt": "जमा करने की तारीख",
+    "lastUpdated": "अंतिम अपडेट",
+    "actions": "कार्रवाई",
+    "stats": {
+      "total": "कुल प्रतिक्रियाएं",
+      "new": "नया",
+      "inProgress": "प्रगति में",
+      "resolved": "हल किया गया",
+      "closed": "बंद",
+      "byType": "प्रकार के अनुसार",
+      "byPriority": "प्राथमिकता के अनुसार"
+    },
+    "status": {
+      "NEW": "नया",
+      "IN_PROGRESS": "प्रगति में",
+      "IN_REVIEW": "समीक्षाधीन",
+      "RESOLVED": "हल किया गया",
+      "CLOSED": "बंद",
+      "DISMISSED": "खारिज"
+    },
+    "priority": {
+      "LOW": "कम",
+      "MEDIUM": "मध्यम",
+      "HIGH": "उच्च",
+      "CRITICAL": "महत्वपूर्ण"
+    },
+    "senderType": {
+      "CUSTOMER": "ग्राहक",
+      "SUPPLIER": "आपूर्तिकर्ता",
+      "MARKETER": "विपणनकर्ता",
+      "EMPLOYEE": "कर्मचारी",
+      "ADMIN": "व्यवस्थापक",
+      "GUEST": "अतिथि"
+    },
+    "exportSuccess": "डेटा सफलतापूर्वक निर्यात किया गया",
+    "exportError": "डेटा निर्यात करने में विफल",
+    "updateSuccess": "सफलतापूर्वक अपडेट किया गया",
+    "updateError": "अपडेट करने में विफल",
+    "deleteConfirm": "क्या आप इस प्रतिक्रिया को हटाना चाहते हैं?",
+    "deleteSuccess": "प्रतिक्रिया सफलतापूर्वक हटाई गई",
+    "deleteError": "प्रतिक्रिया हटाने में विफल"
   }
 }

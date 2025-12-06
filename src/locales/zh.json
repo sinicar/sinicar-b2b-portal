@@ -2459,5 +2459,106 @@
     "FAILED": "失败",
     "PENDING": "待处理",
     "PROCESSING": "处理中"
+  },
+  "feedback": {
+    "button": "发送反馈",
+    "title": "发送您的反馈",
+    "subtitle": "我们重视您的意见，并致力于改善我们的服务",
+    "typeLabel": "反馈类型",
+    "subjectLabel": "主题",
+    "subjectPlaceholder": "输入反馈主题...",
+    "descriptionLabel": "详情",
+    "descriptionPlaceholder": "详细描述您的反馈...",
+    "submitButton": "提交反馈",
+    "submitting": "提交中...",
+    "successTitle": "反馈提交成功",
+    "successMessage": "感谢您！我们将审核您的反馈并改进我们的服务",
+    "errorMessage": "提交反馈时出错",
+    "guest": "访客",
+    "types": {
+      "BUG": "错误报告",
+      "FEATURE": "功能请求",
+      "IMPROVEMENT": "改进建议",
+      "COMPLAINT": "投诉",
+      "OTHER": "其他"
+    },
+    "categories": {
+      "bug": "错误报告",
+      "suggestion": "建议",
+      "complaint": "投诉",
+      "question": "问题",
+      "other": "其他"
+    },
+    "priorities": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "critical": "紧急"
+    }
+  },
+  "feedbackAdmin": {
+    "title": "反馈中心",
+    "subtitle": "管理客户反馈和分析",
+    "allFeedback": "所有反馈",
+    "filters": "筛选",
+    "type": "类型",
+    "status": "状态",
+    "priority": "优先级",
+    "dateRange": "日期范围",
+    "search": "搜索...",
+    "noFeedback": "未找到反馈",
+    "loading": "加载中...",
+    "export": "导出",
+    "refresh": "刷新",
+    "markAsRead": "标记为已读",
+    "delete": "删除",
+    "adminNotes": "管理员备注",
+    "adminNotesPlaceholder": "添加内部备注...",
+    "saveNotes": "保存备注",
+    "updateStatus": "更新状态",
+    "updatePriority": "更新优先级",
+    "customerInfo": "客户信息",
+    "feedbackDetails": "反馈详情",
+    "submittedAt": "提交时间",
+    "lastUpdated": "最后更新",
+    "actions": "操作",
+    "stats": {
+      "total": "总反馈",
+      "new": "新建",
+      "inProgress": "进行中",
+      "resolved": "已解决",
+      "closed": "已关闭",
+      "byType": "按类型",
+      "byPriority": "按优先级"
+    },
+    "status": {
+      "NEW": "新建",
+      "IN_PROGRESS": "进行中",
+      "IN_REVIEW": "审核中",
+      "RESOLVED": "已解决",
+      "CLOSED": "已关闭",
+      "DISMISSED": "已驳回"
+    },
+    "priority": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "CRITICAL": "紧急"
+    },
+    "senderType": {
+      "CUSTOMER": "客户",
+      "SUPPLIER": "供应商",
+      "MARKETER": "营销人员",
+      "EMPLOYEE": "员工",
+      "ADMIN": "管理员",
+      "GUEST": "访客"
+    },
+    "exportSuccess": "数据导出成功",
+    "exportError": "导出数据失败",
+    "updateSuccess": "更新成功",
+    "updateError": "更新失败",
+    "deleteConfirm": "确定要删除此反馈吗？",
+    "deleteSuccess": "反馈删除成功",
+    "deleteError": "删除反馈失败"
   }
 }

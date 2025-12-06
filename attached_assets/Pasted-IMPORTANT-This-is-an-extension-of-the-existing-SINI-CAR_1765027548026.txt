@@ -1,0 +1,342 @@
+IMPORTANT — This is an extension of the existing SINI CAR system.
+Do NOT delete any existing contact/support logic.
+We are ADDING a full Feedback System with:
+- A global feedback icon/button visible in the portal
+- Feedback forms for customers, suppliers, marketers, and optional guests
+- Admin Feedback Center in the dashboard
+- Ability to categorize, filter, reply, and track feedback
+
+GOAL:
+Implement a unified feedback system where:
+1) Any logged-in user (customer, supplier, marketer, staff) can send feedback/suggestions/issues from any page.
+2) Optionally allow public (non-logged-in) visitors to send feedback via a separate public form.
+3) Admins can view, filter, categorize, and manage all feedback from an "Admin Feedback Center".
+
+────────────────────────────────
+1) Backend — Feedback Model
+────────────────────────────────
+
+Create a new model/table:
+
+Feedback:
+- id
+- senderUserId      (nullable FK to User; null if guest)
+- senderName        (string)
+- senderContact     (string)   // phone, WhatsApp, or email (optional but recommended)
+- senderType        (string)   // "CUSTOMER", "SUPPLIER", "MARKETER", "EMPLOYEE", "ADMIN", "GUEST"
+- pageContext       (string?)  // which page they were on (e.g. "/product-search", "/orders/123")
+- category          (string)   // "BUG", "SUGGESTION", "COMPLAINT", "QUESTION", "OTHER"
+- priority          (string)   // "LOW", "MEDIUM", "HIGH"
+- subject           (string)
+- message           (text)
+- attachments       (JSON?)    // list of file URLs if you support file uploads later
+- status            (string)   // "NEW", "IN_REVIEW", "RESOLVED", "DISMISSED"
+- adminAssignedId   (nullable FK to User; who will handle this feedback)
+- adminNotes        (text?)    // internal notes from admins/staff
+- createdAt         (DateTime)
+- updatedAt         (DateTime)
+
+Do NOT remove or alter existing models. This is a new centralized feedback model.
+
+────────────────────────────────
+2) Backend — Feedback Creation Endpoints
+────────────────────────────────
+
+A) Authenticated feedback (for logged-in users):
+
+POST /api/feedback
+
+Input:
+- category    (BUG / SUGGESTION / COMPLAINT / QUESTION / OTHER)
+- priority    (LOW / MEDIUM / HIGH)
+- subject
+- message
+- pageContext (optional)
+- senderContact (optional override; if empty use user’s existing phone/email)
+
+Server-side:
+- Determine senderUserId from auth token.
+- Determine senderType from user role (CUSTOMER, SUPPLIER, MARKETER, EMPLOYEE, ADMIN).
+- Fill:
+  - senderName from user profile.
+  - senderContact from user or from request body.
+- Set:
+  - status = "NEW"
+- Save Feedback record.
+
+Return:
+- { "success": true, "feedbackId": "..." }
+
+B) Optional: Public feedback endpoint (for non-logged-in visitors):
+
+POST /api/feedback/public
+
+Input:
+- senderName
+- senderContact
+- category
+- priority
+- subject
+- message
+- pageContext (optional)
+- captchaToken (optional if you implement a captcha later)
+
+Server-side:
+- senderUserId = null
+- senderType = "GUEST"
+- status = "NEW"
+
+Return same structure.
+
+────────────────────────────────
+3) Backend — Admin Feedback Management APIs
+────────────────────────────────
+
+A) GET /api/admin/feedback
+Query parameters:
+- status        (NEW / IN_REVIEW / RESOLVED / DISMISSED)
+- category      (BUG / SUGGESTION / ...)
+- senderType    (CUSTOMER / SUPPLIER / MARKETER / EMPLOYEE / ADMIN / GUEST)
+- assignedTo    (adminAssignedId)
+- dateFrom/dateTo
+- search (search in subject/message/senderName)
+- page, pageSize
+
+Return paginated list:
+{
+  "items": [
+    {
+      "id": "...",
+      "senderUserId": "...",
+      "senderName": "...",
+      "senderContact": "...",
+      "senderType": "...",
+      "category": "...",
+      "priority": "...",
+      "subject": "...",
+      "message": "...(trimmed)...",
+      "status": "NEW",
+      "adminAssignedId": "...",
+      "createdAt": "...",
+      "pageContext": "/product-search"
+    },
+    ...
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "total": 123
+}
+
+B) GET /api/admin/feedback/:id
+- Returns full details of that feedback including message, adminNotes, attachments.
+
+C) PUT /api/admin/feedback/:id
+Allows admin to update:
+- status
+- adminAssignedId
+- adminNotes
+- priority
+- category (if they want to recategorize)
+
+D) DELETE /api/admin/feedback/:id
+- Soft delete or archive (do not physically delete if not necessary).
+
+────────────────────────────────
+4) Backend — Optional Reply Mechanism (future proof)
+────────────────────────────────
+
+Add an optional table for replies if needed later:
+
+FeedbackReply:
+- id
+- feedbackId
+- senderUserId (admin replying)
+- message
+- createdAt
+
+For this command:
+- Only design the structure; implementing full email/WhatsApp replies can be done in a future command.
+- At minimum, allow admins to log internal replies to keep track of how issue was handled.
+
+────────────────────────────────
+5) Frontend — Global Feedback Icon (All Logged-in Users)
+────────────────────────────────
+
+Add a floating feedback button/icon visible on all main portal pages (customer, supplier, marketer, employee):
+
+- Position:
+  • Bottom-right corner (or top bar icon).
+- Appearance:
+  • Chat bubble / “?” / note icon.
+- Behavior on click:
+  • Opens a modal "Send Feedback".
+
+Feedback Modal:
+
+Fields:
+- Category (select: Bug / Suggestion / Complaint / Question / Other)
+- Priority (Low / Medium / High)
+- Subject (short text)
+- Message (textarea)
+- Optional:
+  - Attach screenshot/file (if file upload is enabled in future)
+- Display user's name/contact pre-filled (read-only or editable) from user profile.
+- Show pageContext automatically (current route/path) for debugging.
+
+Actions:
+- "Send" button:
+  • Calls POST /api/feedback
+- "Cancel" button:
+  • Closes modal.
+
+UX:
+- Show success message "Thank you, your feedback has been submitted."
+- Close modal after success.
+
+────────────────────────────────
+6) Frontend — Optional Public Feedback Form
+────────────────────────────────
+
+If you want feedback from visitors not logged in:
+
+- Add a “Feedback / Suggestions” link on public site or landing page.
+- Link takes user to:
+  • /feedback-public
+
+Public feedback page:
+- Fields:
+  • Name
+  • Contact (phone/WhatsApp/email)
+  • Category
+  • Priority
+  • Subject
+  • Message
+- Send button → POST /api/feedback/public
+
+────────────────────────────────
+7) Frontend — Admin Feedback Center Page
+────────────────────────────────
+
+Add a menu item in Admin Panel:
+- "Feedback Center" / "مركز الملاحظات"
+
+Page structure:
+
+A) Filters bar:
+- Status filter:
+  • All, New, In Review, Resolved, Dismissed
+- Category filter:
+  • Bug, Suggestion, Complaint, Question, Other
+- Sender type:
+  • Customer, Supplier, Marketer, Employee, Admin, Guest
+- Assigned to:
+  • None, Me, or select specific admin/employee.
+- Date range.
+- Search box (subject/message/senderName).
+
+B) Main table:
+Columns:
+- Created date/time
+- SenderName (with badge for senderType)
+- Contact (icon for WhatsApp/email)
+- Category
+- Priority
+- Subject
+- Status (colored badge)
+- AssignedTo
+- View button
+
+Behavior:
+- Clicking a row or “View” opens a side drawer or separate page.
+
+C) Feedback detail drawer/page:
+Displays:
+- Sender info:
+  • Name, Type, Contact
+  • Link to customer/supplier profile if senderUserId is not null.
+- Feedback details:
+  • Subject
+  • Category
+  • Priority
+  • Message (full)
+  • PageContext (the page they were on when sending)
+- Status & Assignment:
+  • Dropdown for status
+  • Dropdown for assigning to a specific admin/employee
+- Admin notes:
+  • Textarea to write internal notes
+  • Save button
+- (Optional) Replies:
+  • List of replies if implemented
+  • Add reply form (internal)
+
+────────────────────────────────
+8) Integration with Activity Log & Notifications
+────────────────────────────────
+
+A) Activity Log (Command 10)
+- When a user submits feedback:
+  • Log activity:
+    - actorType = user role or GUEST
+    - actionType = "CREATE_FEEDBACK"
+    - entityType = "FEEDBACK"
+    - entityId = feedback.id
+
+- When admin updates feedback status:
+  • Log "UPDATE_FEEDBACK_STATUS"
+
+B) Notifications (Command 11)
+- Admin notifications:
+  • When new feedback is created, send notification to Admin group or a specific manager:
+    - type: "NEW_FEEDBACK"
+    - message: "New feedback from [senderName], category: [BUG/SUGGESTION/...]."
+- User notifications (optional future):
+  • When their feedback is marked as RESOLVED:
+    - Send a notification: "Your feedback has been resolved."
+
+────────────────────────────────
+9) Integration with Settings (Command 12)
+────────────────────────────────
+
+Add settings keys:
+- "feedback.enabled" (boolean)
+- "feedback.showForRoles" (list, e.g. CUSTOMER, SUPPLIER, MARKETER, GUEST)
+- "feedback.defaultCategory" (e.g. SUGGESTION)
+- "feedback.defaultPriority" (e.g. MEDIUM)
+- "feedback.assignedDefaultAdminId" (for new feedback)
+
+Use these to:
+- Control whether feedback button appears for each role.
+- Decide who gets notifications by default.
+
+────────────────────────────────
+10) Performance & Data Handling
+────────────────────────────────
+
+- Use pagination for admin feedback list.
+- Apply indexes on:
+  • status
+  • senderType
+  • createdAt
+- Search should be implemented using simple LIKE on subject/message/senderName (no full-text engine required at this stage).
+- Do not use AI here by default (this can be added later to classify or summarize feedback).
+
+────────────────────────────────
+11) Scope of this command
+────────────────────────────────
+
+This command includes:
+- Feedback model
+- Feedback creation endpoints (auth + optional public)
+- Admin Feedback Management APIs
+- Global feedback icon for logged-in users with modal form
+- Optional public feedback page
+- Full Admin Feedback Center with filters, table, and detail view
+- Integration with:
+  • Activity Log (Command 10)
+  • Notifications (Command 11)
+  • Settings (Command 12)
+
+It does NOT:
+- Implement external channels (email/WhatsApp) responses in this step.
+- Replace any existing contact forms (they can coexist until migrated).

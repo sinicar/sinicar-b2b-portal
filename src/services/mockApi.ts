@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, TraderToolType, TraderToolActionStatus, TraderToolAction, TraderToolsAdminFilters, TraderToolsAdminResponse, TraderToolsCustomerFilters, TraderToolsCustomerResponse, TraderToolsExportRow, TraderToolsUsageReport, SupplierProduct, SupplierRequest, SupplierDashboardStats, SupplierSettings, SupplierProductFilters, SupplierRequestFilters, SupplierProductInsert, SupplierExcelImportResult, SupplierQuoteSubmission, SupplierProfileExtended, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, Feedback, FeedbackReply, FeedbackCreateInput, FeedbackPublicCreateInput, FeedbackUpdateInput, FeedbackListFilters, FeedbackListResponse, FeedbackSettings, FeedbackCategory, FeedbackPriority, FeedbackStatus, FeedbackSenderType, TraderToolType, TraderToolActionStatus, TraderToolAction, TraderToolsAdminFilters, TraderToolsAdminResponse, TraderToolsCustomerFilters, TraderToolsCustomerResponse, TraderToolsExportRow, TraderToolsUsageReport, SupplierProduct, SupplierRequest, SupplierDashboardStats, SupplierSettings, SupplierProductFilters, SupplierRequestFilters, SupplierProductInsert, SupplierExcelImportResult, SupplierQuoteSubmission, SupplierProfileExtended, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -374,7 +374,11 @@ const STORAGE_KEYS = {
   SUPPLIER_PORTAL_REQUESTS: 'sini_supplier_portal_requests',
   SUPPLIER_PORTAL_SETTINGS: 'sini_supplier_portal_settings',
   // Trader Tools Center
-  TRADER_TOOL_ACTIONS: 'sini_trader_tool_actions'
+  TRADER_TOOL_ACTIONS: 'sini_trader_tool_actions',
+  // Feedback System
+  FEEDBACK: 'sini_feedback',
+  FEEDBACK_REPLIES: 'sini_feedback_replies',
+  FEEDBACK_SETTINGS: 'sini_feedback_settings'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -9962,5 +9966,389 @@ export const MockApi = {
       lastUsed: actions[0]?.createdAt,
       mostUsedTool
     };
+  },
+
+  // ==========================================
+  // FEEDBACK SYSTEM API
+  // ==========================================
+
+  // --- Get Feedback Settings ---
+  async getFeedbackSettings(): Promise<FeedbackSettings> {
+    await delay(10);
+    const stored = localStorage.getItem(STORAGE_KEYS.FEEDBACK_SETTINGS);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    // Default settings
+    const defaults: FeedbackSettings = {
+      enabled: true,
+      showForRoles: ['CUSTOMER', 'SUPPLIER', 'MARKETER', 'EMPLOYEE', 'ADMIN'],
+      defaultCategory: 'SUGGESTION',
+      defaultPriority: 'MEDIUM',
+      allowGuestFeedback: true
+    };
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK_SETTINGS, JSON.stringify(defaults));
+    return defaults;
+  },
+
+  // --- Save Feedback Settings ---
+  async saveFeedbackSettings(settings: FeedbackSettings): Promise<void> {
+    await delay(50);
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK_SETTINGS, JSON.stringify(settings));
+  },
+
+  // --- Create Feedback (Authenticated User) ---
+  async createFeedback(
+    input: FeedbackCreateInput,
+    userId: string,
+    userName: string,
+    userContact: string,
+    userRole: string
+  ): Promise<{ success: boolean; feedbackId: string }> {
+    await delay(100);
+    
+    const feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    const settings = await this.getFeedbackSettings();
+    
+    // Map user role to sender type
+    let senderType: FeedbackSenderType = 'CUSTOMER';
+    if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') senderType = 'ADMIN';
+    else if (userRole === 'EMPLOYEE' || userRole === 'CUSTOMER_STAFF') senderType = 'EMPLOYEE';
+    else if (userRole.includes('SUPPLIER')) senderType = 'SUPPLIER';
+    else if (userRole === 'MARKETER') senderType = 'MARKETER';
+    
+    const now = new Date().toISOString();
+    const newFeedback: Feedback = {
+      id: `FB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      senderUserId: userId,
+      senderName: userName,
+      senderContact: input.senderContact || userContact,
+      senderType,
+      pageContext: input.pageContext,
+      category: input.category,
+      priority: input.priority,
+      subject: input.subject,
+      message: input.message,
+      status: 'NEW',
+      adminAssignedId: settings.assignedDefaultAdminId || null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    feedbackList.push(newFeedback);
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(feedbackList));
+    
+    // Log activity
+    internalRecordActivity({
+      userId,
+      userName,
+      role: userRole,
+      eventType: 'CREATE' as ActivityEventType,
+      entityType: 'FEEDBACK' as EntityType,
+      entityId: newFeedback.id,
+      description: `أرسل ملاحظة جديدة: ${input.subject}`,
+      metadata: { category: input.category, priority: input.priority }
+    });
+    
+    // Create notifications for each admin user
+    const adminUserIds = getAdminUserIds();
+    const notifications: Notification[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
+    
+    adminUserIds.forEach(adminId => {
+      const adminNotification: Notification = {
+        id: `NOTIF-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        userId: adminId,
+        type: 'SYSTEM' as NotificationType,
+        title: 'ملاحظة جديدة',
+        message: `ملاحظة جديدة من ${userName}: ${input.subject}`,
+        isRead: false,
+        createdAt: now,
+        metadata: { feedbackId: newFeedback.id, category: input.category }
+      };
+      notifications.push(adminNotification);
+    });
+    
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications));
+    
+    return { success: true, feedbackId: newFeedback.id };
+  },
+
+  // --- Create Public Feedback (Guest) ---
+  async createPublicFeedback(input: FeedbackPublicCreateInput): Promise<{ success: boolean; feedbackId: string }> {
+    await delay(100);
+    
+    const feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    const settings = await this.getFeedbackSettings();
+    
+    const now = new Date().toISOString();
+    const newFeedback: Feedback = {
+      id: `FB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      senderUserId: null,
+      senderName: input.senderName,
+      senderContact: input.senderContact,
+      senderType: 'GUEST',
+      pageContext: input.pageContext,
+      category: input.category,
+      priority: input.priority,
+      subject: input.subject,
+      message: input.message,
+      status: 'NEW',
+      adminAssignedId: settings.assignedDefaultAdminId || null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    feedbackList.push(newFeedback);
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(feedbackList));
+    
+    // Log activity
+    internalRecordActivity({
+      userId: 'guest',
+      userName: input.senderName,
+      role: 'GUEST',
+      eventType: 'CREATE' as ActivityEventType,
+      entityType: 'FEEDBACK' as EntityType,
+      entityId: newFeedback.id,
+      description: `ملاحظة من زائر: ${input.subject}`,
+      metadata: { category: input.category, priority: input.priority }
+    });
+    
+    return { success: true, feedbackId: newFeedback.id };
+  },
+
+  // --- Get Admin Feedback List (with filters) ---
+  async getAdminFeedbackList(filters: FeedbackListFilters): Promise<FeedbackListResponse> {
+    await delay(50);
+    
+    let feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    
+    // Apply filters
+    if (filters.status) {
+      feedbackList = feedbackList.filter(f => f.status === filters.status);
+    }
+    if (filters.category) {
+      feedbackList = feedbackList.filter(f => f.category === filters.category);
+    }
+    if (filters.senderType) {
+      feedbackList = feedbackList.filter(f => f.senderType === filters.senderType);
+    }
+    if (filters.assignedTo) {
+      feedbackList = feedbackList.filter(f => f.adminAssignedId === filters.assignedTo);
+    }
+    if (filters.dateFrom) {
+      feedbackList = feedbackList.filter(f => new Date(f.createdAt) >= new Date(filters.dateFrom!));
+    }
+    if (filters.dateTo) {
+      feedbackList = feedbackList.filter(f => new Date(f.createdAt) <= new Date(filters.dateTo!));
+    }
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      feedbackList = feedbackList.filter(f => 
+        f.subject.toLowerCase().includes(searchLower) ||
+        f.message.toLowerCase().includes(searchLower) ||
+        f.senderName.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Sort by createdAt descending
+    feedbackList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    // Pagination
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 20;
+    const total = feedbackList.length;
+    const start = (page - 1) * pageSize;
+    const items = feedbackList.slice(start, start + pageSize);
+    
+    return { items, page, pageSize, total };
+  },
+
+  // --- Get Feedback By ID ---
+  async getFeedbackById(id: string): Promise<Feedback | null> {
+    await delay(10);
+    const feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    return feedbackList.find(f => f.id === id) || null;
+  },
+
+  // --- Update Feedback (Admin) ---
+  async updateFeedback(id: string, updates: FeedbackUpdateInput, adminUserId: string, adminName: string): Promise<Feedback | null> {
+    await delay(50);
+    
+    const feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    const index = feedbackList.findIndex(f => f.id === id);
+    
+    if (index === -1) return null;
+    
+    const oldFeedback = feedbackList[index];
+    const updatedFeedback: Feedback = {
+      ...oldFeedback,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    feedbackList[index] = updatedFeedback;
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(feedbackList));
+    
+    // Log activity for status change
+    if (updates.status && updates.status !== oldFeedback.status) {
+      internalRecordActivity({
+        userId: adminUserId,
+        userName: adminName,
+        role: 'ADMIN',
+        eventType: 'UPDATE' as ActivityEventType,
+        entityType: 'FEEDBACK' as EntityType,
+        entityId: id,
+        description: `تم تغيير حالة الملاحظة إلى: ${updates.status}`,
+        metadata: { oldStatus: oldFeedback.status, newStatus: updates.status }
+      });
+      
+      // If resolved, notify the user
+      if (updates.status === 'RESOLVED' && oldFeedback.senderUserId) {
+        const notification: Notification = {
+          id: `NOTIF-${Date.now()}`,
+          userId: oldFeedback.senderUserId,
+          type: 'SYSTEM' as NotificationType,
+          title: 'تم معالجة ملاحظتك',
+          message: `تم معالجة ملاحظتك: ${oldFeedback.subject}`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          metadata: { feedbackId: id }
+        };
+        const notifications: Notification[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
+        notifications.push(notification);
+        localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications));
+      }
+    }
+    
+    return updatedFeedback;
+  },
+
+  // --- Delete Feedback (Soft Delete) ---
+  async deleteFeedback(id: string): Promise<boolean> {
+    await delay(50);
+    
+    let feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    const index = feedbackList.findIndex(f => f.id === id);
+    
+    if (index === -1) return false;
+    
+    // Soft delete - just set status to DISMISSED
+    feedbackList[index].status = 'DISMISSED';
+    feedbackList[index].updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(feedbackList));
+    
+    return true;
+  },
+
+  // --- Get Feedback Replies ---
+  async getFeedbackReplies(feedbackId: string): Promise<FeedbackReply[]> {
+    await delay(10);
+    const replies: FeedbackReply[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK_REPLIES) || '[]');
+    return replies.filter(r => r.feedbackId === feedbackId).sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  },
+
+  // --- Add Feedback Reply ---
+  async addFeedbackReply(feedbackId: string, message: string, adminUserId: string, adminName: string): Promise<FeedbackReply> {
+    await delay(50);
+    
+    const replies: FeedbackReply[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK_REPLIES) || '[]');
+    
+    const newReply: FeedbackReply = {
+      id: `FBR-${Date.now()}`,
+      feedbackId,
+      senderUserId: adminUserId,
+      senderName: adminName,
+      message,
+      createdAt: new Date().toISOString()
+    };
+    
+    replies.push(newReply);
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK_REPLIES, JSON.stringify(replies));
+    
+    // Update feedback updatedAt
+    const feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    const feedbackIndex = feedbackList.findIndex(f => f.id === feedbackId);
+    if (feedbackIndex !== -1) {
+      feedbackList[feedbackIndex].updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(feedbackList));
+    }
+    
+    return newReply;
+  },
+
+  // --- Get Feedback Statistics ---
+  async getFeedbackStats(): Promise<{
+    total: number;
+    byStatus: Record<FeedbackStatus, number>;
+    byCategory: Record<FeedbackCategory, number>;
+    bySenderType: Record<FeedbackSenderType, number>;
+    thisWeek: number;
+    thisMonth: number;
+  }> {
+    await delay(10);
+    
+    const feedbackList: Feedback[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.FEEDBACK) || '[]');
+    
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const byStatus: Record<FeedbackStatus, number> = {
+      NEW: 0, IN_REVIEW: 0, RESOLVED: 0, DISMISSED: 0
+    };
+    const byCategory: Record<FeedbackCategory, number> = {
+      BUG: 0, SUGGESTION: 0, COMPLAINT: 0, QUESTION: 0, OTHER: 0
+    };
+    const bySenderType: Record<FeedbackSenderType, number> = {
+      CUSTOMER: 0, SUPPLIER: 0, MARKETER: 0, EMPLOYEE: 0, ADMIN: 0, GUEST: 0
+    };
+    
+    let thisWeek = 0;
+    let thisMonth = 0;
+    
+    feedbackList.forEach(f => {
+      byStatus[f.status]++;
+      byCategory[f.category]++;
+      bySenderType[f.senderType]++;
+      
+      const createdDate = new Date(f.createdAt);
+      if (createdDate >= weekAgo) thisWeek++;
+      if (createdDate >= monthAgo) thisMonth++;
+    });
+    
+    return {
+      total: feedbackList.length,
+      byStatus,
+      byCategory,
+      bySenderType,
+      thisWeek,
+      thisMonth
+    };
+  },
+
+  // --- Export Feedback to CSV ---
+  async exportFeedbackToCsv(filters: FeedbackListFilters): Promise<string> {
+    await delay(50);
+    
+    const result = await this.getAdminFeedbackList({ ...filters, page: 1, pageSize: 10000 });
+    
+    const headers = ['ID', 'Date', 'Sender', 'Contact', 'Type', 'Category', 'Priority', 'Subject', 'Status', 'Assigned To'];
+    const rows = result.items.map(f => [
+      f.id,
+      new Date(f.createdAt).toLocaleDateString('ar-SA'),
+      f.senderName,
+      f.senderContact,
+      f.senderType,
+      f.category,
+      f.priority,
+      f.subject.replace(/,/g, ';'),
+      f.status,
+      f.adminAssignedId || '-'
+    ]);
+    
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    return csv;
   }
 };
