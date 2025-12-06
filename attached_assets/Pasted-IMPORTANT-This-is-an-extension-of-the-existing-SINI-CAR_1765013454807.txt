@@ -1,0 +1,295 @@
+IMPORTANT — This is an extension of the existing SINI CAR system.
+Do NOT delete or rebuild existing product/quote/order pages.
+We are ADDING a new dedicated "Product Search & Purchase Request" page
+that looks/behaves more like an accounting system search screen,
+and integrates the Alternatives feature (Command 7) inside it.
+
+FOCUS:
+- Full functionality: strong product search, add to request, send purchase request.
+- Integrate Alternatives (بدائل) on the same page.
+- Reduce Replit cost by keeping compute and queries simple (no AI, no heavy loops).
+
+GOAL:
+Create a dedicated "Product Search" page for B2B customers where they can:
+1) Search products using a powerful search UI (similar to accounting systems).
+2) Add selected products to a "Purchase Request" list (like a cart).
+3) Submit the purchase request to the backend as a formal request.
+4) For each product, open an "Alternatives" view (using Command 7 APIs):
+   - Search and display alternatives.
+   - Optionally upload alternatives via Excel from this page as well.
+
+────────────────────────────────
+1) Backend – Product Search API (if not already sufficient)
+────────────────────────────────
+
+If there is already a product search API:
+- Reuse and extend it carefully.
+- Do NOT break existing endpoints or consumers.
+
+Otherwise, create/extend an endpoint, for example:
+  GET /api/products/search
+
+Query parameters:
+- q        (string, free text: part number, name, etc.)
+- brand    (optional)
+- make     (optional – car make)
+- model    (optional – car model)
+- year     (optional – car year)
+- page     (optional, default 1)
+- pageSize (optional, default e.g. 20)
+
+Behavior:
+- Perform a simple, efficient search:
+  • Match by part number, name, or other key fields.
+  • Filter by brand/make/model/year if provided.
+- Return paginated results:
+  {
+    "items": [
+      {
+        "id": ...,
+        "partNumber": "...",
+        "name": "...",
+        "brand": "...",
+        "make": "...",
+        "model": "...",
+        "year": "...",
+        "price": ...,
+        "stockQty": ...
+      },
+      ...
+    ],
+    "page": 1,
+    "pageSize": 20,
+    "total": 123
+  }
+
+Compute/Cost:
+- Use indexed columns for search where possible.
+- Keep WHERE conditions simple.
+- Avoid complex joins; include only necessary fields.
+
+────────────────────────────────
+2) Backend – Purchase Request model + API
+────────────────────────────────
+
+We want to allow customers to "send a purchase request" from this search page.
+
+If there is already a Quote/Request model:
+- Reuse/extend it instead of creating a completely new one.
+- For example, add a source field like: source = "PRODUCT_SEARCH_PAGE".
+
+If not, define simple models, for example:
+
+PurchaseRequest:
+- id
+- customerId
+- createdAt
+- status          // e.g. "NEW", "REVIEWING", "APPROVED", "REJECTED"
+- source          // e.g. "PRODUCT_SEARCH_PAGE"
+- notes           // optional text
+- createdByUserId // the user who created the request
+
+PurchaseRequestItem:
+- id
+- purchaseRequestId (FK)
+- productId         (FK to product table)
+- partNumber        (denormalized for snapshot)
+- quantity
+- priceAtRequest    (optional snapshot)
+- notes             (optional)
+
+Create endpoint for submitting a purchase request, e.g.:
+  POST /api/requests/purchase
+
+Input JSON:
+- items: [
+    {
+      "productId": "...",
+      "quantity": 5,
+      "notes": "..."
+    },
+    ...
+  ]
+- optional: `notes` for the whole request
+
+Behavior:
+- Validate that:
+  • User is authenticated as a customer (or allowed role).
+  • Items array is not empty.
+- Create PurchaseRequest and its items in a single transaction.
+- Set:
+  • status = "NEW"
+  • source = "PRODUCT_SEARCH_PAGE"
+  • customerId from the logged-in user
+- Return:
+  { "success": true, "requestId": "..." }
+
+Compute/Cost:
+- Single API call per request creation.
+- Single transaction (no unnecessary extra writes).
+
+────────────────────────────────
+3) Frontend – Dedicated Product Search Page (Customer Portal)
+────────────────────────────────
+
+Add a new main page in the Customer Portal navigation:
+
+Name:
+- English: "Product Search"
+- Arabic: "بحث المنتجات"
+
+Layout (suggested):
+- Top: Filters/search bar.
+- Center/Left: Search results table.
+- Right (or bottom): Selected Items (Purchase Request list).
+
+A) Search UI:
+- Fields:
+  • Text input `q` for part number / name.
+  • Optional dropdowns: brand, make, model, year.
+  • "Search" button.
+- Behavior:
+  • On clicking "Search", call:
+      GET /api/products/search?q=...&brand=...&...
+  • Do NOT call API on every key stroke; only on:
+      - Submit button
+      - Enter key
+  • Show loading indicator during API call.
+  • Display paginated results with page controls (Prev/Next).
+
+B) Search Results Table:
+- Columns:
+  • Part Number
+  • Name / Description
+  • Brand
+  • Make / Model / Year (if available)
+  • Price (if allowed)
+  • Stock / Availability
+  • Actions:
+      - "Add to Request"
+      - "Alternatives" (بدائل)
+
+- "Add to Request":
+  • Adds this product to an in-memory list on the page (React state).
+  • If product already exists in the list, increase quantity instead of duplicating row.
+  • No API call on "Add to Request" (local only) to reduce cost.
+
+- "Alternatives" button:
+  • Calls:
+      GET /api/tools/alternatives/search?part=<product.partNumber>
+  • Opens a modal/side panel showing:
+      - mainPartNumber
+      - altPartNumber
+      - description
+      - brand
+      - sourceType
+  • If you want, add a small upload button inside the modal that uses:
+      POST /api/tools/alternatives/upload
+    (re-using the upload API from Command 7).
+
+C) Purchase Request Panel (Selected Items):
+- Show a list/table of all items user added:
+  Columns:
+    • Part Number
+    • Name
+    • Quantity (editable)
+    • Remove (X button)
+- Total items count displayed.
+- Button: "Send Purchase Request"
+
+- On clicking "Send Purchase Request":
+  • Validate that there is at least one item.
+  • Build the payload:
+      items: [{ productId, quantity, notes? }]
+  • Call:
+      POST /api/requests/purchase
+  • On success:
+      - Show success message ("Request sent").
+      - Clear the local request list.
+      - Optionally show the generated requestId.
+
+────────────────────────────────
+4) Local Persistence (Optional, to improve UX and reduce re-work)
+────────────────────────────────
+
+To prevent losing the selected items if user refreshes:
+
+- Optionally store the current "Purchase Request" items in `localStorage` on the client.
+  • Key example: "siniCar_productSearch_requestDraft"
+- On page load:
+  • Try to load existing draft from localStorage.
+- On "Send Purchase Request" success:
+  • Clear the draft from localStorage.
+
+This improves UX without extra backend cost.
+Compute is minimal and local to the browser.
+
+────────────────────────────────
+5) Integrating Alternatives (بدائل) Inside This Page
+────────────────────────────────
+
+Use the APIs from Command 7:
+- Search:
+    GET /api/tools/alternatives/search?part=...
+- Upload:
+    POST /api/tools/alternatives/upload
+
+For each product row:
+- "Alternatives" button:
+  • Opens a modal or drawer.
+  • On open:
+      - Call search API with product.partNumber.
+  • Show results in a table as described in Command 7.
+
+Optional:
+- Inside the Alternatives modal, add an upload section to allow the user
+  to upload a small Excel file directly from here, calling the same
+  `/api/tools/alternatives/upload` endpoint.
+
+Compute/Cost:
+- Do NOT auto-refresh alternatives.
+- Call alternatives API only when user clicks "Alternatives".
+- Close modal to clear heavy state and free memory.
+
+────────────────────────────────
+6) Permissions
+────────────────────────────────
+
+- Only authenticated customers (and any allowed B2B roles like suppliers, depending on your policy) can access this "Product Search" page.
+- Use existing auth/role system to guard the route.
+- Do NOT expose purchase request creation to unauthenticated visitors.
+
+────────────────────────────────
+7) Replit Compute & Cost Rules (without sacrificing features)
+────────────────────────────────
+
+- Implement ALL the features above: search, add to request, send request, view alternatives.
+- Reduce cost ONLY by how we implement, not by cutting functionality:
+  • No AI calls from frontend or backend.
+  • No background jobs, cron, or polling.
+  • Search:
+      - Call API only on user-triggered search (button/enter), not on each key press.
+      - Use pagination to limit rows per response (e.g. 20–50).
+  • Cart/Request list:
+      - Keep it in client-side state (and optional localStorage) until submission.
+  • Alternatives:
+      - Call search API only when the user clicks the Alternatives button.
+  • Keep queries simple, use indexes for frequently searched fields.
+  • Keep JSON responses focused (no unnecessary heavy data blobs).
+
+────────────────────────────────
+8) Scope of this command
+────────────────────────────────
+
+- This command covers:
+  • Product search API (if needed).
+  • Purchase Request creation API (or extension of existing quote system).
+  • New "Product Search" page in customer portal.
+  • Integrated Alternatives button within this page.
+  • Optional localStorage draft support.
+
+- Do NOT modify:
+  • Existing quote pages.
+  • Existing main landing/home pages.
+  • Existing separate Alternatives page (Command 7).
+  These remain as they are; this is an additional, dedicated search workflow.

@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, AlternativePart } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, AlternativePart, PurchaseRequest, PurchaseRequestStatus } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -367,7 +367,8 @@ const STORAGE_KEYS = {
   TEAM_INVITATIONS: 'sini_team_invitations',
   // Abandoned Carts
   ABANDONED_CARTS: 'sini_abandoned_carts',
-  ALTERNATIVE_PARTS: 'sini_alternative_parts'
+  ALTERNATIVE_PARTS: 'sini_alternative_parts',
+  PURCHASE_REQUESTS: 'sini_purchase_requests'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -2486,6 +2487,165 @@ export const MockApi = {
       
       localStorage.setItem(STORAGE_KEYS.ALTERNATIVE_PARTS, JSON.stringify(filtered));
       return deletedCount;
+  },
+
+  // --- Advanced Product Search API ---
+  async advancedSearchProducts(params: {
+    q?: string;
+    brand?: string;
+    make?: string;
+    model?: string;
+    year?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{ items: Product[]; page: number; pageSize: number; total: number }> {
+      const { q = '', brand, make, model, year, page = 1, pageSize = 20 } = params;
+      const products = await this.searchProducts('');
+      
+      let filtered = products;
+      
+      // Text search
+      if (q.trim()) {
+          const query = q.toLowerCase().trim();
+          filtered = filtered.filter(p => 
+              p.partNumber.toLowerCase().includes(query) ||
+              p.name.toLowerCase().includes(query) ||
+              (p.manufacturerPartNumber && p.manufacturerPartNumber.toLowerCase().includes(query)) ||
+              (p.description && p.description.toLowerCase().includes(query))
+          );
+      }
+      
+      // Filter by brand
+      if (brand) {
+          filtered = filtered.filter(p => p.brand?.toLowerCase() === brand.toLowerCase());
+      }
+      
+      // Filter by make (car name)
+      if (make) {
+          filtered = filtered.filter(p => p.carName?.toLowerCase().includes(make.toLowerCase()));
+      }
+      
+      // Filter by model
+      if (model) {
+          filtered = filtered.filter(p => p.carName?.toLowerCase().includes(model.toLowerCase()));
+      }
+      
+      // Filter by year
+      if (year) {
+          filtered = filtered.filter(p => p.modelYear?.includes(year));
+      }
+      
+      // Pagination
+      const total = filtered.length;
+      const start = (page - 1) * pageSize;
+      const items = filtered.slice(start, start + pageSize);
+      
+      return { items, page, pageSize, total };
+  },
+
+  // --- Purchase Request API ---
+  async createPurchaseRequest(
+    userId: string,
+    userName: string,
+    companyName: string,
+    items: Array<{ productId: string; partNumber: string; productName: string; quantity: number; priceAtRequest?: number; notes?: string }>,
+    notes?: string
+  ): Promise<{ success: boolean; requestId: string }> {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.PURCHASE_REQUESTS) || '[]') as PurchaseRequest[];
+      
+      const requestId = `PR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      const newRequest: PurchaseRequest = {
+          id: requestId,
+          customerId: userId,
+          customerName: userName,
+          companyName,
+          createdAt: new Date().toISOString(),
+          status: 'NEW',
+          source: 'PRODUCT_SEARCH_PAGE',
+          items: items.map((item, idx) => ({
+              id: `${requestId}-item-${idx}`,
+              productId: item.productId,
+              partNumber: item.partNumber,
+              productName: item.productName,
+              quantity: item.quantity,
+              priceAtRequest: item.priceAtRequest,
+              notes: item.notes
+          })),
+          totalItemsCount: items.length,
+          notes,
+          createdByUserId: userId,
+          createdByName: userName,
+          isNew: true
+      };
+      
+      requests.push(newRequest);
+      localStorage.setItem(STORAGE_KEYS.PURCHASE_REQUESTS, JSON.stringify(requests));
+      
+      // Log activity
+      internalRecordActivity({
+          userId,
+          userName,
+          role: 'CUSTOMER_OWNER',
+          eventType: 'PURCHASE_REQUEST_CREATED',
+          description: `تم إرسال طلب شراء جديد يحتوي على ${items.length} صنف`,
+          metadata: { requestId, itemsCount: items.length }
+      });
+      
+      return { success: true, requestId };
+  },
+
+  async getPurchaseRequests(filters?: { customerId?: string; status?: PurchaseRequestStatus }, page: number = 1, pageSize: number = 20): Promise<{ items: PurchaseRequest[]; total: number; page: number; pageSize: number }> {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.PURCHASE_REQUESTS) || '[]') as PurchaseRequest[];
+      
+      let filtered = requests;
+      
+      if (filters?.customerId) {
+          filtered = filtered.filter(r => r.customerId === filters.customerId);
+      }
+      
+      if (filters?.status) {
+          filtered = filtered.filter(r => r.status === filters.status);
+      }
+      
+      // Sort by createdAt descending
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      const total = filtered.length;
+      const start = (page - 1) * pageSize;
+      const items = filtered.slice(start, start + pageSize);
+      
+      return { items, total, page, pageSize };
+  },
+
+  async getPurchaseRequestById(id: string): Promise<PurchaseRequest | null> {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.PURCHASE_REQUESTS) || '[]') as PurchaseRequest[];
+      return requests.find(r => r.id === id) || null;
+  },
+
+  async updatePurchaseRequestStatus(id: string, status: PurchaseRequestStatus, adminName?: string, adminNote?: string): Promise<PurchaseRequest | null> {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.PURCHASE_REQUESTS) || '[]') as PurchaseRequest[];
+      const idx = requests.findIndex(r => r.id === id);
+      
+      if (idx === -1) return null;
+      
+      requests[idx] = {
+          ...requests[idx],
+          status,
+          updatedAt: new Date().toISOString(),
+          adminReviewedBy: adminName,
+          adminReviewedAt: new Date().toISOString(),
+          adminNote: adminNote || requests[idx].adminNote,
+          isNew: false
+      };
+      
+      localStorage.setItem(STORAGE_KEYS.PURCHASE_REQUESTS, JSON.stringify(requests));
+      return requests[idx];
+  },
+
+  async getNewPurchaseRequestsCount(): Promise<number> {
+      const requests = JSON.parse(localStorage.getItem(STORAGE_KEYS.PURCHASE_REQUESTS) || '[]') as PurchaseRequest[];
+      return requests.filter(r => r.isNew).length;
   },
 
   // --- Quote Requests (Refactored Logic) ---

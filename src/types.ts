@@ -473,6 +473,39 @@ export interface AlternativeUploadResult {
   errors?: string[];
 }
 
+// --- Purchase Request (from Product Search Page) ---
+export type PurchaseRequestStatus = 'NEW' | 'REVIEWING' | 'APPROVED' | 'REJECTED' | 'PARTIALLY_APPROVED';
+
+export interface PurchaseRequestItem {
+  id: string;
+  productId: string;
+  partNumber: string;
+  productName: string;
+  quantity: number;
+  priceAtRequest?: number;
+  notes?: string;
+}
+
+export interface PurchaseRequest {
+  id: string;
+  customerId: string;
+  customerName?: string;
+  companyName?: string;
+  createdAt: string;
+  updatedAt?: string;
+  status: PurchaseRequestStatus;
+  source: 'PRODUCT_SEARCH_PAGE';
+  items: PurchaseRequestItem[];
+  totalItemsCount: number;
+  notes?: string;
+  createdByUserId: string;
+  createdByName?: string;
+  adminReviewedBy?: string;
+  adminReviewedAt?: string;
+  adminNote?: string;
+  isNew?: boolean;
+}
+
 // --- Bulk Quote Logic (Enhanced for Admin Review) ---
 
 export type QuoteRequestStatus =
@@ -977,6 +1010,9 @@ export type ActivityEventType =
   | 'IMPORT_STATUS_CHANGED' // Import request status change
   | 'PASSWORD_CHANGED'   // تغيير كلمة المرور
   | 'PASSWORD_RESET'     // إعادة تعيين كلمة المرور (بواسطة الإدارة)
+  | 'PURCHASE_REQUEST_CREATED' // إنشاء طلب شراء من صفحة البحث
+  | 'USER_APPROVED'      // اعتماد مستخدم
+  | 'USER_REJECTED'      // رفض مستخدم
   | 'OTHER';             // عمليات أخرى عامة
 
 export interface ActivityLogEntry {
