@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { authRepository } from './auth.repository';
 import { env } from '../../config/env';
 import { UnauthorizedError, BadRequestError, NotFoundError } from '../../utils/errors';
-import { LoginInput, RegisterInput } from '../../schemas/auth.schema';
+import { LoginInput, RegisterInput, PublicRole } from '../../schemas/auth.schema';
 
 interface TokenPayload {
   id: string;
@@ -151,22 +151,63 @@ export class AuthService {
     }
   }
 
+  private generateClientId(role: PublicRole): string {
+    const prefix = {
+      'CUSTOMER': 'C',
+      'SUPPLIER_LOCAL': 'SL',
+      'SUPPLIER_INTERNATIONAL': 'SI',
+      'MARKETER': 'M'
+    }[role];
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${prefix}${timestamp}${random}`;
+  }
+
+  private getRoleFlags(role: PublicRole): { isCustomer: boolean; isSupplier: boolean } {
+    switch (role) {
+      case 'CUSTOMER':
+        return { isCustomer: true, isSupplier: false };
+      case 'SUPPLIER_LOCAL':
+      case 'SUPPLIER_INTERNATIONAL':
+        return { isCustomer: false, isSupplier: true };
+      case 'MARKETER':
+        return { isCustomer: false, isSupplier: false };
+      default:
+        return { isCustomer: true, isSupplier: false };
+    }
+  }
+
   async register(input: RegisterInput) {
-    const existingUser = await authRepository.findUserByClientId(input.clientId);
-    if (existingUser) {
-      throw new BadRequestError('معرف العميل مستخدم بالفعل');
+    if (input.whatsapp) {
+      const existingWhatsapp = await authRepository.findUserByWhatsapp(input.whatsapp);
+      if (existingWhatsapp) {
+        throw new BadRequestError('رقم الواتساب مسجل بالفعل');
+      }
     }
 
+    if (input.email) {
+      const existingEmail = await authRepository.findUserByEmail(input.email);
+      if (existingEmail) {
+        throw new BadRequestError('البريد الإلكتروني مسجل بالفعل');
+      }
+    }
+
+    const clientId = this.generateClientId(input.role);
     const hashedPassword = await bcrypt.hash(input.password, 10);
+    const { isCustomer, isSupplier } = this.getRoleFlags(input.role);
 
     const user = await authRepository.createUser({
-      clientId: input.clientId,
+      clientId,
       name: input.name,
-      email: input.email,
-      phone: input.phone,
+      email: input.email || null,
+      phone: input.whatsapp,
+      whatsapp: input.whatsapp,
       password: hashedPassword,
       role: input.role,
-      status: 'PENDING'
+      status: 'PENDING',
+      isCustomer,
+      isSupplier,
+      completionPercent: 0
     });
 
     await authRepository.logActivity({
@@ -174,7 +215,7 @@ export class AuthService {
       userName: user.name,
       role: user.role,
       eventType: 'REGISTER',
-      description: 'تسجيل حساب جديد',
+      description: `تسجيل حساب جديد - ${input.role}`,
       page: '/register'
     });
 
@@ -184,10 +225,13 @@ export class AuthService {
         clientId: user.clientId,
         name: user.name,
         email: user.email,
+        whatsapp: user.whatsapp,
         role: user.role,
-        status: user.status
+        status: user.status,
+        isCustomer: user.isCustomer,
+        isSupplier: user.isSupplier
       },
-      message: 'تم إنشاء الحساب بنجاح. يرجى انتظار الموافقة'
+      message: 'تم إنشاء الحساب بنجاح. يرجى انتظار الموافقة من الإدارة'
     };
   }
 

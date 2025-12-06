@@ -33,6 +33,13 @@ export class AuthRepository {
     });
   }
 
+  async findUserByWhatsapp(whatsapp: string) {
+    return prisma.user.findFirst({
+      where: { whatsapp },
+      include: { profile: true }
+    });
+  }
+
   async createUser(data: Prisma.UserCreateInput) {
     return prisma.user.create({
       data,

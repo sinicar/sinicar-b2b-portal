@@ -6,13 +6,17 @@ export const loginSchema = z.object({
   loginType: z.enum(['owner', 'staff']).default('owner'),
 });
 
+export const PUBLIC_ROLES = ['CUSTOMER', 'SUPPLIER_LOCAL', 'SUPPLIER_INTERNATIONAL', 'MARKETER'] as const;
+export type PublicRole = typeof PUBLIC_ROLES[number];
+
 export const registerSchema = z.object({
-  clientId: z.string().min(3, 'معرف العميل يجب أن يكون 3 أحرف على الأقل'),
   name: z.string().min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
-  email: z.string().email('البريد الإلكتروني غير صالح').optional(),
-  phone: z.string().min(10, 'رقم الجوال غير صالح').optional(),
+  whatsapp: z.string().min(10, 'رقم الواتساب مطلوب ويجب أن يكون 10 أرقام على الأقل'),
+  email: z.string().email('البريد الإلكتروني غير صالح').optional().or(z.literal('')),
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
-  role: z.enum(['CUSTOMER_OWNER', 'CUSTOMER_STAFF']).default('CUSTOMER_OWNER'),
+  role: z.enum(PUBLIC_ROLES, {
+    errorMap: () => ({ message: 'نوع الحساب غير صالح. يجب أن يكون: عميل، مورد محلي، مورد دولي، أو مسوق' })
+  }),
 });
 
 export const refreshTokenSchema = z.object({
