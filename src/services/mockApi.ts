@@ -473,8 +473,26 @@ const updateLocalUser = (updatedUser: User) => {
     }
 };
 
-// --- Internal Notification Helper ---
-const internalCreateNotification = (userId: string, type: NotificationType, title: string, message: string) => {
+// --- Internal Notification Helper (Enhanced) ---
+interface CreateNotificationParams {
+    userId: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    relatedType?: 'ORDER' | 'REQUEST' | 'ACCOUNT' | 'QUOTE' | 'IMPORT' | 'PRODUCT' | 'USER' | 'CART';
+    relatedId?: string;
+    link?: string;
+}
+
+const internalCreateNotification = (
+    userId: string, 
+    type: NotificationType, 
+    title: string, 
+    message: string,
+    relatedType?: CreateNotificationParams['relatedType'],
+    relatedId?: string,
+    link?: string
+): Notification => {
     const notifications = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
     const newNotif: Notification = {
         id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -483,18 +501,36 @@ const internalCreateNotification = (userId: string, type: NotificationType, titl
         title,
         message,
         createdAt: new Date().toISOString(),
-        isRead: false
+        isRead: false,
+        relatedType,
+        relatedId,
+        link
     };
     notifications.unshift(newNotif);
-    // Keep last 50 per user
-    const userNotifs = notifications.filter((n: Notification) => n.userId === userId);
-    if (userNotifs.length > 50) {
-        // Simple trim strategy: keep 50 newest, discard oldest
-        // For simplicity in mock, just slice the whole array if it gets huge
-        if(notifications.length > 500) notifications.length = 500; 
-    }
+    if(notifications.length > 500) notifications.length = 500; 
     localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications));
     return newNotif;
+};
+
+// Helper to create notifications for specific events
+const createEventNotification = (params: CreateNotificationParams): Notification => {
+    return internalCreateNotification(
+        params.userId,
+        params.type,
+        params.title,
+        params.message,
+        params.relatedType,
+        params.relatedId,
+        params.link
+    );
+};
+
+// Helper to get all admin/staff user IDs for system notifications
+const getAdminUserIds = (): string[] => {
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    return users
+        .filter((u: User) => u.role === 'SUPER_ADMIN' || u.role === 'ADMIN' || u.role === 'EMPLOYEE')
+        .map((u: User) => u.id);
 };
 
 export const MockApi = {
@@ -1063,21 +1099,76 @@ export const MockApi = {
       }
   },
 
-  // --- Notification System ---
+  // --- Notification System (Enhanced) ---
 
-  async getNotificationsForUser(userId: string): Promise<Notification[]> {
+  async getNotificationsForUser(userId: string, options?: { 
+      isRead?: boolean; 
+      limit?: number; 
+      page?: number;
+      type?: NotificationType;
+  }): Promise<{ items: Notification[]; unreadCount: number; total: number }> {
       const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
-      return all.filter((n: Notification) => n.userId === userId);
+      let userNotifs = all.filter((n: Notification) => n.userId === userId);
+      
+      // Apply filters
+      if (options?.isRead !== undefined) {
+          userNotifs = userNotifs.filter((n: Notification) => n.isRead === options.isRead);
+      }
+      if (options?.type) {
+          userNotifs = userNotifs.filter((n: Notification) => n.type === options.type);
+      }
+      
+      // Sort by createdAt DESC
+      userNotifs.sort((a: Notification, b: Notification) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      const total = userNotifs.length;
+      const unreadCount = all.filter((n: Notification) => n.userId === userId && !n.isRead).length;
+      
+      // Pagination
+      const limit = options?.limit || 20;
+      const page = options?.page || 1;
+      const startIndex = (page - 1) * limit;
+      const items = userNotifs.slice(startIndex, startIndex + limit);
+      
+      return { items, unreadCount, total };
   },
 
   async getAllNotifications(): Promise<Notification[]> {
       return JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
   },
 
-  async markNotificationsAsRead(userId: string): Promise<void> {
+  async markNotificationAsRead(userId: string, notificationId: string): Promise<Notification | null> {
       const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
-      const updated = all.map((n: Notification) => n.userId === userId ? { ...n, isRead: true } : n);
+      const idx = all.findIndex((n: Notification) => n.id === notificationId && n.userId === userId);
+      if (idx === -1) return null;
+      
+      all[idx] = { ...all[idx], isRead: true, readAt: new Date().toISOString() };
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(all));
+      return all[idx];
+  },
+
+  async markAllNotificationsAsRead(userId: string): Promise<number> {
+      const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
+      const now = new Date().toISOString();
+      let count = 0;
+      
+      const updated = all.map((n: Notification) => {
+          if (n.userId === userId && !n.isRead) {
+              count++;
+              return { ...n, isRead: true, readAt: now };
+          }
+          return n;
+      });
+      
       localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(updated));
+      return count;
+  },
+
+  // Legacy function for backwards compatibility
+  async markNotificationsAsRead(userId: string): Promise<void> {
+      await this.markAllNotificationsAsRead(userId);
   },
 
   async clearNotificationsForUser(userId: string): Promise<void> {
@@ -1092,8 +1183,30 @@ export const MockApi = {
       localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(filtered));
   },
 
-  async createNotification(notifData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Promise<Notification> {
-      return internalCreateNotification(notifData.userId, notifData.type, notifData.title, notifData.message);
+  async createNotification(notifData: Omit<Notification, 'id' | 'createdAt' | 'isRead' | 'readAt'>): Promise<Notification> {
+      return internalCreateNotification(
+          notifData.userId, 
+          notifData.type, 
+          notifData.title, 
+          notifData.message,
+          notifData.relatedType,
+          notifData.relatedId,
+          notifData.link
+      );
+  },
+
+  // Notify all admin users about an event
+  async notifyAdmins(type: NotificationType, title: string, message: string, relatedType?: CreateNotificationParams['relatedType'], relatedId?: string): Promise<void> {
+      const adminIds = getAdminUserIds();
+      adminIds.forEach(adminId => {
+          internalCreateNotification(adminId, type, title, message, relatedType, relatedId);
+      });
+  },
+
+  // Get unread count for a user
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+      const all = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]');
+      return all.filter((n: Notification) => n.userId === userId && !n.isRead).length;
   },
 
   async markOrdersAsReadForUser(userId: string): Promise<void> {
