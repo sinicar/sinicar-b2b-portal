@@ -48,8 +48,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
 
     const loadNotifications = async () => {
         try {
-            // Load regular notifications
-            const regularNotifs = await MockApi.getNotificationsForUser(user.id);
+            // Load regular notifications (now returns { items, unreadCount, total })
+            const notifResult = await MockApi.getNotificationsForUser(user.id);
+            const regularNotifs = notifResult.items;
             
             // Load BELL type marketing campaigns (getActiveCampaignsForUser already filters dismissed ones)
             const campaigns = await MockApi.getActiveCampaignsForUser(user.id, customerType);
@@ -78,7 +79,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
             allNotifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             
             setNotifications(allNotifs);
-            setUnreadCount(allNotifs.filter(n => !n.isRead).length);
+            // Combine unread count from API with campaign unread count
+            const campaignUnreadCount = campaignNotifs.filter(n => !n.isRead).length;
+            setUnreadCount(notifResult.unreadCount + campaignUnreadCount);
         } catch (e) {
             console.error("Failed to load notifications", e);
         }
