@@ -203,7 +203,7 @@ export declare const updateMarketerSchema: z.ZodObject<{
     name?: string | undefined;
     email?: string | undefined;
     phone?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     paymentMethod?: string | undefined;
     bankDetails?: {
         bankName: string;
@@ -215,7 +215,7 @@ export declare const updateMarketerSchema: z.ZodObject<{
     name?: string | undefined;
     email?: string | undefined;
     phone?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     paymentMethod?: string | undefined;
     bankDetails?: {
         bankName: string;
@@ -231,12 +231,12 @@ export declare const marketerFilterSchema: z.ZodObject<{
     minReferrals: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     search?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     minEarnings?: number | undefined;
     minReferrals?: number | undefined;
 }, {
     search?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     minEarnings?: number | undefined;
     minReferrals?: number | undefined;
 }>;

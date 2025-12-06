@@ -65,10 +65,10 @@ export declare const updateOrderStatusSchema: z.ZodObject<{
     status: z.ZodEnum<["PENDING", "APPROVED", "REJECTED", "SHIPPED", "DELIVERED", "CANCELLED"]>;
     note: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    status: "PENDING" | "REJECTED" | "CANCELLED" | "APPROVED" | "SHIPPED" | "DELIVERED";
+    status: "APPROVED" | "PENDING" | "REJECTED" | "CANCELLED" | "SHIPPED" | "DELIVERED";
     note?: string | undefined;
 }, {
-    status: "PENDING" | "REJECTED" | "CANCELLED" | "APPROVED" | "SHIPPED" | "DELIVERED";
+    status: "APPROVED" | "PENDING" | "REJECTED" | "CANCELLED" | "SHIPPED" | "DELIVERED";
     note?: string | undefined;
 }>;
 export declare const updateInternalStatusSchema: z.ZodObject<{
@@ -92,7 +92,7 @@ export declare const orderFilterSchema: z.ZodObject<{
     maxAmount: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     search?: string | undefined;
-    status?: "PENDING" | "REJECTED" | "CANCELLED" | "APPROVED" | "SHIPPED" | "DELIVERED" | undefined;
+    status?: "APPROVED" | "PENDING" | "REJECTED" | "CANCELLED" | "SHIPPED" | "DELIVERED" | undefined;
     userId?: string | undefined;
     internalStatus?: string | undefined;
     fromDate?: string | undefined;
@@ -101,7 +101,7 @@ export declare const orderFilterSchema: z.ZodObject<{
     maxAmount?: number | undefined;
 }, {
     search?: string | undefined;
-    status?: "PENDING" | "REJECTED" | "CANCELLED" | "APPROVED" | "SHIPPED" | "DELIVERED" | undefined;
+    status?: "APPROVED" | "PENDING" | "REJECTED" | "CANCELLED" | "SHIPPED" | "DELIVERED" | undefined;
     userId?: string | undefined;
     internalStatus?: string | undefined;
     fromDate?: string | undefined;

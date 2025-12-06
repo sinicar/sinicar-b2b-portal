@@ -12,27 +12,26 @@ export declare const loginSchema: z.ZodObject<{
     identifier: string;
     loginType?: "owner" | "staff" | undefined;
 }>;
+export declare const PUBLIC_ROLES: readonly ["CUSTOMER", "SUPPLIER_LOCAL", "SUPPLIER_INTERNATIONAL", "MARKETER"];
+export type PublicRole = typeof PUBLIC_ROLES[number];
 export declare const registerSchema: z.ZodObject<{
-    clientId: z.ZodString;
     name: z.ZodString;
-    email: z.ZodOptional<z.ZodString>;
-    phone: z.ZodOptional<z.ZodString>;
+    whatsapp: z.ZodString;
+    email: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
     password: z.ZodString;
-    role: z.ZodDefault<z.ZodEnum<["CUSTOMER_OWNER", "CUSTOMER_STAFF"]>>;
+    role: z.ZodEnum<["CUSTOMER", "SUPPLIER_LOCAL", "SUPPLIER_INTERNATIONAL", "MARKETER"]>;
 }, "strip", z.ZodTypeAny, {
-    clientId: string;
+    role: "CUSTOMER" | "SUPPLIER_LOCAL" | "SUPPLIER_INTERNATIONAL" | "MARKETER";
     name: string;
     password: string;
-    role: "CUSTOMER_STAFF" | "CUSTOMER_OWNER";
+    whatsapp: string;
     email?: string | undefined;
-    phone?: string | undefined;
 }, {
-    clientId: string;
+    role: "CUSTOMER" | "SUPPLIER_LOCAL" | "SUPPLIER_INTERNATIONAL" | "MARKETER";
     name: string;
     password: string;
+    whatsapp: string;
     email?: string | undefined;
-    phone?: string | undefined;
-    role?: "CUSTOMER_STAFF" | "CUSTOMER_OWNER" | undefined;
 }>;
 export declare const refreshTokenSchema: z.ZodObject<{
     refreshToken: z.ZodString;

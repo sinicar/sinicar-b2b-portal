@@ -27,7 +27,10 @@ export declare class SupplierRepository {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -36,9 +39,18 @@ export declare class SupplierRepository {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>>;
     findById(id: string): Promise<({
         catalogItems: {
+            currency: string;
             id: string;
             isActive: boolean;
             createdAt: Date;
@@ -47,7 +59,12 @@ export declare class SupplierRepository {
             partName: string | null;
             brand: string | null;
             stock: number;
+            qualityCodeId: string | null;
+            brandCodeId: string | null;
             supplierId: string;
+            originalName: string | null;
+            translatedNameAr: string | null;
+            translatedNameEn: string | null;
             price: number;
             leadTimeDays: number;
         }[];
@@ -56,7 +73,10 @@ export declare class SupplierRepository {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -65,9 +85,18 @@ export declare class SupplierRepository {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }) | null>;
     findByCustomerId(customerId: string): Promise<({
         catalogItems: {
+            currency: string;
             id: string;
             isActive: boolean;
             createdAt: Date;
@@ -76,7 +105,12 @@ export declare class SupplierRepository {
             partName: string | null;
             brand: string | null;
             stock: number;
+            qualityCodeId: string | null;
+            brandCodeId: string | null;
             supplierId: string;
+            originalName: string | null;
+            translatedNameAr: string | null;
+            translatedNameEn: string | null;
             price: number;
             leadTimeDays: number;
         }[];
@@ -85,7 +119,10 @@ export declare class SupplierRepository {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -94,6 +131,14 @@ export declare class SupplierRepository {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }) | null>;
     create(data: {
         customerId: string;
@@ -108,7 +153,10 @@ export declare class SupplierRepository {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -117,13 +165,24 @@ export declare class SupplierRepository {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     update(id: string, data: Prisma.SupplierProfileUpdateInput): Promise<{
         id: string;
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -132,13 +191,24 @@ export declare class SupplierRepository {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     delete(id: string): Promise<{
         id: string;
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -147,6 +217,14 @@ export declare class SupplierRepository {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     addCatalogItem(supplierId: string, data: {
         partNumber: string;
@@ -156,6 +234,7 @@ export declare class SupplierRepository {
         stock?: number;
         leadTimeDays?: number;
     }): Promise<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -164,11 +243,17 @@ export declare class SupplierRepository {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>;
     updateCatalogItem(id: string, data: Prisma.SupplierCatalogItemUpdateInput): Promise<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -177,11 +262,17 @@ export declare class SupplierRepository {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>;
     deleteCatalogItem(id: string): Promise<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -190,11 +281,17 @@ export declare class SupplierRepository {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>;
     getCatalogItems(supplierId: string, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -203,7 +300,12 @@ export declare class SupplierRepository {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>>;
@@ -215,6 +317,7 @@ export declare class SupplierRepository {
         stock?: number;
         leadTimeDays?: number;
     }>, replaceExisting?: boolean): Promise<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -223,7 +326,12 @@ export declare class SupplierRepository {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }[]>;
@@ -234,6 +342,7 @@ export declare class SupplierRepository {
             rating: number;
         };
     } & {
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -242,7 +351,12 @@ export declare class SupplierRepository {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>>;

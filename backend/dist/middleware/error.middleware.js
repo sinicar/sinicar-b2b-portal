@@ -14,6 +14,13 @@ function errorHandler(err, req, res, next) {
             errors: err.errors
         });
     }
+    if (err instanceof errors_1.AccountStatusError) {
+        return res.status(err.statusCode).json({
+            success: false,
+            error: err.errorCode,
+            message: err.message
+        });
+    }
     if (err instanceof errors_1.AppError) {
         return res.status(err.statusCode).json({
             success: false,

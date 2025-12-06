@@ -15,11 +15,14 @@ export declare class ToolRepository {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }[]>;
     findToolConfigByKey(toolKey: string): Promise<{
         id: string;
@@ -28,11 +31,14 @@ export declare class ToolRepository {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     } | null>;
     createToolConfig(data: {
         toolKey: string;
@@ -50,11 +56,14 @@ export declare class ToolRepository {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }>;
     updateToolConfig(toolKey: string, data: Prisma.ToolConfigUpdateInput): Promise<{
         id: string;
@@ -63,11 +72,14 @@ export declare class ToolRepository {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }>;
     deleteToolConfig(toolKey: string): Promise<{
         id: string;
@@ -76,11 +88,14 @@ export declare class ToolRepository {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }>;
     getCustomerToolOverrides(customerId: string): Promise<{
         id: string;

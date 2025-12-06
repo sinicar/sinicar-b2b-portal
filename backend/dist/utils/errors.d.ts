@@ -9,6 +9,11 @@ export declare class BadRequestError extends AppError {
 export declare class UnauthorizedError extends AppError {
     constructor(message?: string);
 }
+export declare class AccountStatusError extends Error {
+    errorCode: string;
+    statusCode: number;
+    constructor(errorCode: string, message: string);
+}
 export declare class ForbiddenError extends AppError {
     constructor(message?: string);
 }

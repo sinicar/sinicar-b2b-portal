@@ -11,7 +11,10 @@ export declare class SupplierService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -20,9 +23,18 @@ export declare class SupplierService {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>>;
     getById(id: string): Promise<{
         catalogItems: {
+            currency: string;
             id: string;
             isActive: boolean;
             createdAt: Date;
@@ -31,7 +43,12 @@ export declare class SupplierService {
             partName: string | null;
             brand: string | null;
             stock: number;
+            qualityCodeId: string | null;
+            brandCodeId: string | null;
             supplierId: string;
+            originalName: string | null;
+            translatedNameAr: string | null;
+            translatedNameEn: string | null;
             price: number;
             leadTimeDays: number;
         }[];
@@ -40,7 +57,10 @@ export declare class SupplierService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -49,9 +69,18 @@ export declare class SupplierService {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     getByCustomerId(customerId: string): Promise<({
         catalogItems: {
+            currency: string;
             id: string;
             isActive: boolean;
             createdAt: Date;
@@ -60,7 +89,12 @@ export declare class SupplierService {
             partName: string | null;
             brand: string | null;
             stock: number;
+            qualityCodeId: string | null;
+            brandCodeId: string | null;
             supplierId: string;
+            originalName: string | null;
+            translatedNameAr: string | null;
+            translatedNameEn: string | null;
             price: number;
             leadTimeDays: number;
         }[];
@@ -69,7 +103,10 @@ export declare class SupplierService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -78,13 +115,24 @@ export declare class SupplierService {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }) | null>;
     create(customerId: string, input: CreateSupplierProfileInput): Promise<{
         id: string;
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -93,13 +141,24 @@ export declare class SupplierService {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     update(id: string, customerId: string, input: UpdateSupplierProfileInput): Promise<{
         id: string;
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -108,13 +167,24 @@ export declare class SupplierService {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     updateStatus(id: string, status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED'): Promise<{
         id: string;
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        preferredCurrency: string;
         companyName: string;
+        city: string | null;
+        crNumber: string | null;
         customerId: string;
         contactName: string | null;
         contactPhone: string | null;
@@ -123,11 +193,20 @@ export declare class SupplierService {
         regions: string | null;
         rating: number;
         totalRevenue: number;
+        supplierType: import(".prisma/client").$Enums.SupplierType;
+        groupId: string | null;
+        customMarginPercent: number | null;
+        country: string | null;
+        vatNumber: string | null;
+        allowedCurrencies: string[];
+        shippingOriginCity: string | null;
+        languageHint: string | null;
     }>;
     delete(id: string, customerId: string): Promise<{
         message: string;
     }>;
     addCatalogItem(supplierId: string, customerId: string, input: CatalogItemInput): Promise<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -136,11 +215,17 @@ export declare class SupplierService {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>;
     updateCatalogItem(itemId: string, supplierId: string, customerId: string, data: any): Promise<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -149,7 +234,12 @@ export declare class SupplierService {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>;
@@ -157,6 +247,7 @@ export declare class SupplierService {
         message: string;
     }>;
     getCatalogItems(supplierId: string, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -165,7 +256,12 @@ export declare class SupplierService {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>>;
@@ -180,6 +276,7 @@ export declare class SupplierService {
             rating: number;
         };
     } & {
+        currency: string;
         id: string;
         isActive: boolean;
         createdAt: Date;
@@ -188,7 +285,12 @@ export declare class SupplierService {
         partName: string | null;
         brand: string | null;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
         supplierId: string;
+        originalName: string | null;
+        translatedNameAr: string | null;
+        translatedNameEn: string | null;
         price: number;
         leadTimeDays: number;
     }>>;

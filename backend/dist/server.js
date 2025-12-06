@@ -3,6 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.app = void 0;
+exports.startServer = startServer;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -10,6 +12,7 @@ const env_1 = require("./config/env");
 const routes_1 = __importDefault(require("./routes"));
 const error_middleware_1 = require("./middleware/error.middleware");
 const app = (0, express_1.default)();
+exports.app = app;
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
     origin: env_1.env.cors.origin,
@@ -27,8 +30,9 @@ app.get('/health', (req, res) => {
 app.use(`/api/${env_1.env.api.version}`, routes_1.default);
 app.use(error_middleware_1.notFoundHandler);
 app.use(error_middleware_1.errorHandler);
-app.listen(env_1.env.port, () => {
-    console.log(`
+function startServer() {
+    app.listen(env_1.env.port, () => {
+        console.log(`
 ╔══════════════════════════════════════════════════╗
 ║     SINI CAR B2B Backend API Server              ║
 ╠══════════════════════════════════════════════════╣
@@ -37,7 +41,13 @@ app.listen(env_1.env.port, () => {
 ║  API Version: ${env_1.env.api.version.padEnd(33)}║
 ║  CORS Origin: ${env_1.env.cors.origin.padEnd(33)}║
 ╚══════════════════════════════════════════════════╝
-  `);
-});
+    `);
+    });
+}
+// Start server if this is the main module
+const isMainModule = require.main === module || process.argv[1]?.includes('server');
+if (isMainModule) {
+    startServer();
+}
 exports.default = app;
 //# sourceMappingURL=server.js.map

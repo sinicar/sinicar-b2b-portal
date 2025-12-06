@@ -36,8 +36,8 @@ export declare class AuthRepository {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -49,13 +49,13 @@ export declare class AuthRepository {
             joinedAt: Date;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -71,6 +71,13 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     findUserById(id: string): Promise<({
         profile: {
@@ -108,8 +115,8 @@ export declare class AuthRepository {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -121,13 +128,13 @@ export declare class AuthRepository {
             joinedAt: Date;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -143,6 +150,13 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     findUserByEmail(email: string): Promise<({
         profile: {
@@ -168,13 +182,13 @@ export declare class AuthRepository {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -190,6 +204,67 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
+    }) | null>;
+    findUserByWhatsapp(whatsapp: string): Promise<({
+        profile: {
+            id: string;
+            phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            companyName: string | null;
+            region: string | null;
+            city: string | null;
+            crNumber: string | null;
+            taxNumber: string | null;
+            nationalAddress: string | null;
+            customerType: string;
+            businessCustomerType: string | null;
+            assignedPriceLevel: string;
+            priceVisibility: string;
+            isApproved: boolean;
+            searchPointsTotal: number;
+            searchPointsRemaining: number;
+            suspendedUntil: Date | null;
+            internalNotes: string | null;
+        } | null;
+    } & {
+        role: string;
+        id: string;
+        clientId: string;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        password: string | null;
+        employeeRole: string | null;
+        status: string;
+        isActive: boolean;
+        parentId: string | null;
+        businessId: string | null;
+        activationCode: string | null;
+        passwordResetToken: string | null;
+        passwordResetExpiry: Date | null;
+        searchLimit: number;
+        searchUsed: number;
+        failedLoginAttempts: number;
+        lastLoginAt: Date | null;
+        lastActiveAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     createUser(data: Prisma.UserCreateInput): Promise<{
         profile: {
@@ -215,13 +290,13 @@ export declare class AuthRepository {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -237,6 +312,13 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     updateUser(id: string, data: Prisma.UserUpdateInput): Promise<{
         profile: {
@@ -262,13 +344,13 @@ export declare class AuthRepository {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -284,15 +366,22 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     updateLastLogin(id: string): Promise<{
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -308,15 +397,22 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     incrementFailedLoginAttempts(id: string): Promise<{
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -332,6 +428,13 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     findStaffByParent(parentId: string, activationCode: string): Promise<({
         profile: {
@@ -357,13 +460,13 @@ export declare class AuthRepository {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -379,6 +482,13 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     findUserByResetToken(resetToken: string): Promise<({
         profile: {
@@ -404,13 +514,13 @@ export declare class AuthRepository {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -426,6 +536,13 @@ export declare class AuthRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     logActivity(data: {
         userId?: string;
@@ -436,8 +553,8 @@ export declare class AuthRepository {
         page?: string;
         metadata?: object;
     }): Promise<{
-        id: string;
         role: string | null;
+        id: string;
         createdAt: Date;
         userName: string | null;
         eventType: string;

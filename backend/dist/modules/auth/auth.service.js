@@ -25,8 +25,8 @@ class AuthService {
             if (!user) {
                 throw new errors_1.UnauthorizedError('معرف العميل أو كلمة المرور غير صحيحة');
             }
-            if (!user.isActive || user.status !== 'ACTIVE') {
-                throw new errors_1.UnauthorizedError('الحساب غير نشط أو موقوف');
+            if (!user.isActive) {
+                throw new errors_1.UnauthorizedError('الحساب غير نشط');
             }
             if (user.failedLoginAttempts >= 5) {
                 throw new errors_1.UnauthorizedError('تم تجاوز عدد محاولات الدخول. يرجى الانتظار أو التواصل مع الدعم');
@@ -38,6 +38,16 @@ class AuthService {
             if (!isValidPassword) {
                 await auth_repository_1.authRepository.incrementFailedLoginAttempts(user.id);
                 throw new errors_1.UnauthorizedError('معرف العميل أو كلمة المرور غير صحيحة');
+            }
+            const allowedStatuses = ['ACTIVE', 'APPROVED'];
+            if (!allowedStatuses.includes(user.status)) {
+                const statusErrors = {
+                    'PENDING': { errorCode: 'ACCOUNT_PENDING', message: 'حسابك قيد المراجعة. يرجى انتظار الموافقة' },
+                    'REJECTED': { errorCode: 'ACCOUNT_REJECTED', message: 'تم رفض طلب تسجيل حسابك' },
+                    'BLOCKED': { errorCode: 'ACCOUNT_BLOCKED', message: 'تم حظر حسابك. يرجى التواصل مع الدعم' }
+                };
+                const statusError = statusErrors[user.status] || { errorCode: 'ACCOUNT_INACTIVE', message: 'الحساب غير نشط' };
+                throw new errors_1.AccountStatusError(statusError.errorCode, statusError.message);
             }
             await auth_repository_1.authRepository.updateLastLogin(user.id);
             const orgUser = user.organizationUsers[0];
@@ -119,27 +129,65 @@ class AuthService {
             };
         }
     }
-    async register(input) {
-        const existingUser = await auth_repository_1.authRepository.findUserByClientId(input.clientId);
-        if (existingUser) {
-            throw new errors_1.BadRequestError('معرف العميل مستخدم بالفعل');
+    generateClientId(role) {
+        const prefix = {
+            'CUSTOMER': 'C',
+            'SUPPLIER_LOCAL': 'SL',
+            'SUPPLIER_INTERNATIONAL': 'SI',
+            'MARKETER': 'M'
+        }[role];
+        const timestamp = Date.now().toString(36).toUpperCase();
+        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return `${prefix}${timestamp}${random}`;
+    }
+    getRoleFlags(role) {
+        switch (role) {
+            case 'CUSTOMER':
+                return { isCustomer: true, isSupplier: false };
+            case 'SUPPLIER_LOCAL':
+            case 'SUPPLIER_INTERNATIONAL':
+                return { isCustomer: false, isSupplier: true };
+            case 'MARKETER':
+                return { isCustomer: false, isSupplier: false };
+            default:
+                return { isCustomer: true, isSupplier: false };
         }
+    }
+    async register(input) {
+        if (input.whatsapp) {
+            const existingWhatsapp = await auth_repository_1.authRepository.findUserByWhatsapp(input.whatsapp);
+            if (existingWhatsapp) {
+                throw new errors_1.BadRequestError('رقم الواتساب مسجل بالفعل');
+            }
+        }
+        if (input.email) {
+            const existingEmail = await auth_repository_1.authRepository.findUserByEmail(input.email);
+            if (existingEmail) {
+                throw new errors_1.BadRequestError('البريد الإلكتروني مسجل بالفعل');
+            }
+        }
+        const clientId = this.generateClientId(input.role);
         const hashedPassword = await bcryptjs_1.default.hash(input.password, 10);
+        const { isCustomer, isSupplier } = this.getRoleFlags(input.role);
         const user = await auth_repository_1.authRepository.createUser({
-            clientId: input.clientId,
+            clientId,
             name: input.name,
-            email: input.email,
-            phone: input.phone,
+            email: input.email || null,
+            phone: input.whatsapp,
+            whatsapp: input.whatsapp,
             password: hashedPassword,
             role: input.role,
-            status: 'PENDING'
+            status: 'PENDING',
+            isCustomer,
+            isSupplier,
+            completionPercent: 0
         });
         await auth_repository_1.authRepository.logActivity({
             userId: user.id,
             userName: user.name,
             role: user.role,
             eventType: 'REGISTER',
-            description: 'تسجيل حساب جديد',
+            description: `تسجيل حساب جديد - ${input.role}`,
             page: '/register'
         });
         return {
@@ -148,10 +196,13 @@ class AuthService {
                 clientId: user.clientId,
                 name: user.name,
                 email: user.email,
+                whatsapp: user.whatsapp,
                 role: user.role,
-                status: user.status
+                status: user.status,
+                isCustomer: user.isCustomer,
+                isSupplier: user.isSupplier
             },
-            message: 'تم إنشاء الحساب بنجاح. يرجى انتظار الموافقة'
+            message: 'تم إنشاء الحساب بنجاح. يرجى انتظار الموافقة من الإدارة'
         };
     }
     async refreshToken(refreshToken) {

@@ -87,13 +87,13 @@ export declare class InstallmentService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -109,6 +109,13 @@ export declare class InstallmentService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         offers: {
             id: string;

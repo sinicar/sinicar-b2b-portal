@@ -14,13 +14,13 @@ export declare class OrganizationRepository {
         };
         users: ({
             user: {
+                role: string;
                 id: string;
                 clientId: string;
                 name: string;
                 email: string | null;
                 phone: string | null;
                 password: string | null;
-                role: string;
                 employeeRole: string | null;
                 status: string;
                 isActive: boolean;
@@ -36,10 +36,17 @@ export declare class OrganizationRepository {
                 lastActiveAt: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
+                isCustomer: boolean;
+                isSupplier: boolean;
+                completionPercent: number;
+                whatsapp: string | null;
+                clientCode: string | null;
+                preferredCurrency: string | null;
+                preferredLanguage: string;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -74,13 +81,13 @@ export declare class OrganizationRepository {
         }[];
         users: ({
             user: {
+                role: string;
                 id: string;
                 clientId: string;
                 name: string;
                 email: string | null;
                 phone: string | null;
                 password: string | null;
-                role: string;
                 employeeRole: string | null;
                 status: string;
                 isActive: boolean;
@@ -96,10 +103,17 @@ export declare class OrganizationRepository {
                 lastActiveAt: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
+                isCustomer: boolean;
+                isSupplier: boolean;
+                completionPercent: number;
+                whatsapp: string | null;
+                clientCode: string | null;
+                preferredCurrency: string | null;
+                preferredLanguage: string;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -111,10 +125,10 @@ export declare class OrganizationRepository {
             joinedAt: Date;
         })[];
         invitations: {
+            role: string;
             id: string;
             email: string;
             phone: string | null;
-            role: string;
             status: string;
             createdAt: Date;
             organizationId: string;
@@ -137,13 +151,13 @@ export declare class OrganizationRepository {
     findByOwner(ownerUserId: string): Promise<({
         users: ({
             user: {
+                role: string;
                 id: string;
                 clientId: string;
                 name: string;
                 email: string | null;
                 phone: string | null;
                 password: string | null;
-                role: string;
                 employeeRole: string | null;
                 status: string;
                 isActive: boolean;
@@ -159,10 +173,17 @@ export declare class OrganizationRepository {
                 lastActiveAt: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
+                isCustomer: boolean;
+                isSupplier: boolean;
+                completionPercent: number;
+                whatsapp: string | null;
+                clientCode: string | null;
+                preferredCurrency: string | null;
+                preferredLanguage: string;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -186,8 +207,8 @@ export declare class OrganizationRepository {
     }) | null>;
     create(data: Prisma.OrganizationCreateInput): Promise<{
         users: {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -211,8 +232,8 @@ export declare class OrganizationRepository {
     }>;
     update(id: string, data: Prisma.OrganizationUpdateInput): Promise<{
         users: {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -255,13 +276,13 @@ export declare class OrganizationRepository {
         invitedBy?: string;
     }): Promise<{
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -277,6 +298,13 @@ export declare class OrganizationRepository {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         organization: {
             id: string;
@@ -290,8 +318,8 @@ export declare class OrganizationRepository {
             allowCustomPermissions: boolean;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -304,13 +332,13 @@ export declare class OrganizationRepository {
     }>;
     updateMember(id: string, data: Prisma.OrganizationUserUpdateInput): Promise<{
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -326,10 +354,17 @@ export declare class OrganizationRepository {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -341,8 +376,8 @@ export declare class OrganizationRepository {
         joinedAt: Date;
     }>;
     removeMember(id: string): Promise<{
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -355,13 +390,13 @@ export declare class OrganizationRepository {
     }>;
     findMember(organizationId: string, userId: string): Promise<({
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -377,6 +412,13 @@ export declare class OrganizationRepository {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         organization: {
             id: string;
@@ -390,8 +432,8 @@ export declare class OrganizationRepository {
             allowCustomPermissions: boolean;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -404,13 +446,13 @@ export declare class OrganizationRepository {
     }) | null>;
     getMembers(organizationId: string): Promise<({
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -426,10 +468,17 @@ export declare class OrganizationRepository {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -449,10 +498,10 @@ export declare class OrganizationRepository {
         expiresAt: Date;
         createdBy: string;
     }): Promise<{
+        role: string;
         id: string;
         email: string;
         phone: string | null;
-        role: string;
         status: string;
         createdAt: Date;
         organizationId: string;
@@ -474,10 +523,10 @@ export declare class OrganizationRepository {
             allowCustomPermissions: boolean;
         };
     } & {
+        role: string;
         id: string;
         email: string;
         phone: string | null;
-        role: string;
         status: string;
         createdAt: Date;
         organizationId: string;
@@ -487,10 +536,10 @@ export declare class OrganizationRepository {
         acceptedAt: Date | null;
     }) | null>;
     updateInvitation(id: string, data: Prisma.TeamInvitationUpdateInput): Promise<{
+        role: string;
         id: string;
         email: string;
         phone: string | null;
-        role: string;
         status: string;
         createdAt: Date;
         organizationId: string;
@@ -500,10 +549,10 @@ export declare class OrganizationRepository {
         acceptedAt: Date | null;
     }>;
     getInvitations(organizationId: string, status?: InviteStatus): Promise<{
+        role: string;
         id: string;
         email: string;
         phone: string | null;
-        role: string;
         status: string;
         createdAt: Date;
         organizationId: string;

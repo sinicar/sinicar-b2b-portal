@@ -69,8 +69,8 @@ export declare class CustomerRepository {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -82,13 +82,13 @@ export declare class CustomerRepository {
             joinedAt: Date;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -104,6 +104,13 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>>;
     findById(id: string): Promise<({
         children: {
@@ -170,8 +177,8 @@ export declare class CustomerRepository {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -184,6 +191,7 @@ export declare class CustomerRepository {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -195,6 +203,7 @@ export declare class CustomerRepository {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -209,13 +218,13 @@ export declare class CustomerRepository {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -231,6 +240,13 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     findByClientId(clientId: string): Promise<({
         profile: ({
@@ -269,13 +285,13 @@ export declare class CustomerRepository {
             internalNotes: string | null;
         }) | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -291,6 +307,13 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     create(data: Prisma.UserCreateInput): Promise<{
         profile: ({
@@ -329,13 +352,13 @@ export declare class CustomerRepository {
             internalNotes: string | null;
         }) | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -351,6 +374,13 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     update(id: string, data: Prisma.UserUpdateInput): Promise<{
         profile: ({
@@ -389,13 +419,13 @@ export declare class CustomerRepository {
             internalNotes: string | null;
         }) | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -411,15 +441,22 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     delete(id: string): Promise<{
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -435,15 +472,22 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     softDelete(id: string): Promise<{
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -459,6 +503,13 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     updateProfile(userId: string, data: Prisma.BusinessProfileUpdateInput): Promise<{
         branches: {
@@ -617,13 +668,13 @@ export declare class CustomerRepository {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -639,15 +690,22 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     })[]>;
     addStaff(data: Prisma.UserCreateInput): Promise<{
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -663,6 +721,13 @@ export declare class CustomerRepository {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     getAccountOpeningRequests(pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
         id: string;

@@ -60,8 +60,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -73,13 +73,13 @@ export declare class CustomerService {
             joinedAt: Date;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -95,6 +95,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>>;
     getById(id: string): Promise<{
         children: {
@@ -161,8 +168,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -175,6 +182,7 @@ export declare class CustomerService {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -186,6 +194,7 @@ export declare class CustomerService {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -200,13 +209,13 @@ export declare class CustomerService {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -222,6 +231,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     getByClientId(clientId: string): Promise<{
         profile: ({
@@ -260,13 +276,13 @@ export declare class CustomerService {
             internalNotes: string | null;
         }) | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -282,6 +298,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     create(input: CreateCustomerInput): Promise<{
         profile: ({
@@ -320,13 +343,13 @@ export declare class CustomerService {
             internalNotes: string | null;
         }) | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -342,6 +365,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     update(id: string, input: UpdateCustomerInput): Promise<({
         children: {
@@ -408,8 +438,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -422,6 +452,7 @@ export declare class CustomerService {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -433,6 +464,7 @@ export declare class CustomerService {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -447,13 +479,13 @@ export declare class CustomerService {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -469,6 +501,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     delete(id: string): Promise<{
         message: string;
@@ -541,8 +580,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -555,6 +594,7 @@ export declare class CustomerService {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -566,6 +606,7 @@ export declare class CustomerService {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -580,13 +621,13 @@ export declare class CustomerService {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -602,6 +643,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     suspend(id: string, until?: Date, reason?: string): Promise<({
         children: {
@@ -668,8 +716,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -682,6 +730,7 @@ export declare class CustomerService {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -693,6 +742,7 @@ export declare class CustomerService {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -707,13 +757,13 @@ export declare class CustomerService {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -729,6 +779,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     activate(id: string): Promise<({
         children: {
@@ -795,8 +852,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -809,6 +866,7 @@ export declare class CustomerService {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -820,6 +878,7 @@ export declare class CustomerService {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -834,13 +893,13 @@ export declare class CustomerService {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -856,6 +915,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     addBranch(customerId: string, data: {
         name: string;
@@ -923,13 +989,13 @@ export declare class CustomerService {
             internalNotes: string | null;
         } | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -945,6 +1011,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     })[]>;
     addStaff(customerId: string, data: {
         name: string;
@@ -954,13 +1027,13 @@ export declare class CustomerService {
         employeeRole: 'MANAGER' | 'BUYER';
     }): Promise<{
         activationCode: string;
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -975,6 +1048,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     updateStaff(staffId: string, data: {
         name?: string;
@@ -1019,13 +1099,13 @@ export declare class CustomerService {
             internalNotes: string | null;
         }) | null;
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -1041,6 +1121,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }>;
     deleteStaff(staffId: string): Promise<{
         message: string;
@@ -1110,8 +1197,8 @@ export declare class CustomerService {
                 allowCustomPermissions: boolean;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -1124,6 +1211,7 @@ export declare class CustomerService {
         })[];
         orders: ({
             items: {
+                qualityCode: string | null;
                 id: string;
                 name: string;
                 createdAt: Date;
@@ -1135,6 +1223,7 @@ export declare class CustomerService {
                 totalPrice: number;
             }[];
         } & {
+            currency: string;
             id: string;
             status: string;
             businessId: string | null;
@@ -1149,13 +1238,13 @@ export declare class CustomerService {
             cancelledAt: Date | null;
         })[];
     } & {
+        role: string;
         id: string;
         clientId: string;
         name: string;
         email: string | null;
         phone: string | null;
         password: string | null;
-        role: string;
         employeeRole: string | null;
         status: string;
         isActive: boolean;
@@ -1171,6 +1260,13 @@ export declare class CustomerService {
         lastActiveAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        isCustomer: boolean;
+        isSupplier: boolean;
+        completionPercent: number;
+        whatsapp: string | null;
+        clientCode: string | null;
+        preferredCurrency: string | null;
+        preferredLanguage: string;
     }) | null>;
     getAccountOpeningRequests(pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
         id: string;

@@ -1,0 +1,168 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.currencyService = exports.CurrencyService = void 0;
+const prisma_1 = __importDefault(require("../../lib/prisma"));
+class CurrencyService {
+    async getBaseCurrency() {
+        return prisma_1.default.currency.findFirst({
+            where: { isBase: true, isActive: true }
+        });
+    }
+    async getAllCurrencies() {
+        return prisma_1.default.currency.findMany({
+            where: { isActive: true },
+            orderBy: [{ isBase: 'desc' }, { sortOrder: 'asc' }]
+        });
+    }
+    async getAllExchangeRates() {
+        return prisma_1.default.exchangeRate.findMany({
+            where: { isActive: true },
+            include: { currency: true },
+            orderBy: { effectiveFrom: 'desc' }
+        });
+    }
+    async getCurrencyByCode(code) {
+        return prisma_1.default.currency.findUnique({
+            where: { code: code.toUpperCase() }
+        });
+    }
+    async getExchangeRate(currencyCode) {
+        const currency = await this.getCurrencyByCode(currencyCode);
+        if (!currency)
+            return null;
+        return prisma_1.default.exchangeRate.findFirst({
+            where: {
+                currencyId: currency.id,
+                isActive: true,
+                effectiveFrom: { lte: new Date() },
+                OR: [
+                    { effectiveTo: null },
+                    { effectiveTo: { gte: new Date() } }
+                ]
+            },
+            orderBy: { effectiveFrom: 'desc' }
+        });
+    }
+    async convertToBase(amount, fromCurrencyCode) {
+        const baseCurrency = await this.getBaseCurrency();
+        if (!baseCurrency) {
+            throw new Error('Base currency not configured');
+        }
+        if (fromCurrencyCode.toUpperCase() === baseCurrency.code) {
+            return {
+                originalAmount: amount,
+                originalCurrency: fromCurrencyCode,
+                convertedAmount: amount,
+                targetCurrency: baseCurrency.code,
+                exchangeRate: 1,
+                syncPercent: 100
+            };
+        }
+        const rate = await this.getExchangeRate(fromCurrencyCode);
+        if (!rate) {
+            throw new Error(`Exchange rate not found for ${fromCurrencyCode}`);
+        }
+        const effectiveRate = rate.rateToBase * (rate.syncPercent / 100);
+        const convertedAmount = amount * effectiveRate;
+        return {
+            originalAmount: amount,
+            originalCurrency: fromCurrencyCode,
+            convertedAmount: Math.round(convertedAmount * 100) / 100,
+            targetCurrency: baseCurrency.code,
+            exchangeRate: effectiveRate,
+            syncPercent: rate.syncPercent
+        };
+    }
+    async convertFromBase(amount, toCurrencyCode) {
+        const baseCurrency = await this.getBaseCurrency();
+        if (!baseCurrency) {
+            throw new Error('Base currency not configured');
+        }
+        if (toCurrencyCode.toUpperCase() === baseCurrency.code) {
+            return {
+                originalAmount: amount,
+                originalCurrency: baseCurrency.code,
+                convertedAmount: amount,
+                targetCurrency: toCurrencyCode,
+                exchangeRate: 1,
+                syncPercent: 100
+            };
+        }
+        const rate = await this.getExchangeRate(toCurrencyCode);
+        if (!rate) {
+            throw new Error(`Exchange rate not found for ${toCurrencyCode}`);
+        }
+        const effectiveRate = rate.rateToBase * (rate.syncPercent / 100);
+        const convertedAmount = amount / effectiveRate;
+        return {
+            originalAmount: amount,
+            originalCurrency: baseCurrency.code,
+            convertedAmount: Math.round(convertedAmount * 100) / 100,
+            targetCurrency: toCurrencyCode,
+            exchangeRate: 1 / effectiveRate,
+            syncPercent: rate.syncPercent
+        };
+    }
+    async convert(amount, fromCurrency, toCurrency) {
+        const from = fromCurrency.toUpperCase();
+        const to = toCurrency.toUpperCase();
+        if (from === to) {
+            return {
+                originalAmount: amount,
+                originalCurrency: from,
+                convertedAmount: amount,
+                targetCurrency: to,
+                exchangeRate: 1,
+                syncPercent: 100
+            };
+        }
+        const baseCurrency = await this.getBaseCurrency();
+        if (!baseCurrency) {
+            throw new Error('Base currency not configured');
+        }
+        const baseResult = await this.convertToBase(amount, from);
+        if (to === baseCurrency.code) {
+            return baseResult;
+        }
+        return this.convertFromBase(baseResult.convertedAmount, to);
+    }
+    async createCurrency(data) {
+        if (data.isBase) {
+            await prisma_1.default.currency.updateMany({
+                where: { isBase: true },
+                data: { isBase: false }
+            });
+        }
+        return prisma_1.default.currency.create({
+            data: {
+                ...data,
+                code: data.code.toUpperCase()
+            }
+        });
+    }
+    async updateExchangeRate(currencyCode, rateToBase, syncPercent = 100, updatedBy) {
+        const currency = await this.getCurrencyByCode(currencyCode);
+        if (!currency) {
+            throw new Error(`Currency not found: ${currencyCode}`);
+        }
+        await prisma_1.default.exchangeRate.updateMany({
+            where: { currencyId: currency.id, isActive: true },
+            data: { isActive: false, effectiveTo: new Date() }
+        });
+        return prisma_1.default.exchangeRate.create({
+            data: {
+                currencyId: currency.id,
+                rateToBase,
+                syncPercent,
+                updatedBy,
+                effectiveFrom: new Date()
+            }
+        });
+    }
+}
+exports.CurrencyService = CurrencyService;
+exports.currencyService = new CurrencyService();
+//# sourceMappingURL=currency.service.js.map

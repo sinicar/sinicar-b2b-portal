@@ -140,7 +140,7 @@ export declare const updateCampaignSchema: z.ZodObject<{
     startDate: z.ZodOptional<z.ZodString>;
     endDate: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    status?: "ACTIVE" | "PENDING" | "PAUSED" | "COMPLETED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "PAUSED" | "COMPLETED" | undefined;
     imageUrl?: string | undefined;
     startDate?: string | undefined;
     endDate?: string | undefined;
@@ -148,7 +148,7 @@ export declare const updateCampaignSchema: z.ZodObject<{
     targetUrl?: string | undefined;
     budget?: number | undefined;
 }, {
-    status?: "ACTIVE" | "PENDING" | "PAUSED" | "COMPLETED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "PAUSED" | "COMPLETED" | undefined;
     imageUrl?: string | undefined;
     startDate?: string | undefined;
     endDate?: string | undefined;
@@ -163,13 +163,13 @@ export declare const campaignFilterSchema: z.ZodObject<{
     fromDate: z.ZodOptional<z.ZodString>;
     toDate: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    status?: "ACTIVE" | "PENDING" | "PAUSED" | "COMPLETED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "PAUSED" | "COMPLETED" | undefined;
     fromDate?: string | undefined;
     toDate?: string | undefined;
     slotId?: string | undefined;
     advertiserId?: string | undefined;
 }, {
-    status?: "ACTIVE" | "PENDING" | "PAUSED" | "COMPLETED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "PAUSED" | "COMPLETED" | undefined;
     fromDate?: string | undefined;
     toDate?: string | undefined;
     slotId?: string | undefined;

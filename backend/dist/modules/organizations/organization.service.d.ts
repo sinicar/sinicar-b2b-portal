@@ -13,13 +13,13 @@ export declare class OrganizationService {
         };
         users: ({
             user: {
+                role: string;
                 id: string;
                 clientId: string;
                 name: string;
                 email: string | null;
                 phone: string | null;
                 password: string | null;
-                role: string;
                 employeeRole: string | null;
                 status: string;
                 isActive: boolean;
@@ -35,10 +35,17 @@ export declare class OrganizationService {
                 lastActiveAt: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
+                isCustomer: boolean;
+                isSupplier: boolean;
+                completionPercent: number;
+                whatsapp: string | null;
+                clientCode: string | null;
+                preferredCurrency: string | null;
+                preferredLanguage: string;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -73,13 +80,13 @@ export declare class OrganizationService {
         }[];
         users: ({
             user: {
+                role: string;
                 id: string;
                 clientId: string;
                 name: string;
                 email: string | null;
                 phone: string | null;
                 password: string | null;
-                role: string;
                 employeeRole: string | null;
                 status: string;
                 isActive: boolean;
@@ -95,10 +102,17 @@ export declare class OrganizationService {
                 lastActiveAt: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
+                isCustomer: boolean;
+                isSupplier: boolean;
+                completionPercent: number;
+                whatsapp: string | null;
+                clientCode: string | null;
+                preferredCurrency: string | null;
+                preferredLanguage: string;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -110,10 +124,10 @@ export declare class OrganizationService {
             joinedAt: Date;
         })[];
         invitations: {
+            role: string;
             id: string;
             email: string;
             phone: string | null;
-            role: string;
             status: string;
             createdAt: Date;
             organizationId: string;
@@ -136,13 +150,13 @@ export declare class OrganizationService {
     getByOwner(ownerUserId: string): Promise<({
         users: ({
             user: {
+                role: string;
                 id: string;
                 clientId: string;
                 name: string;
                 email: string | null;
                 phone: string | null;
                 password: string | null;
-                role: string;
                 employeeRole: string | null;
                 status: string;
                 isActive: boolean;
@@ -158,10 +172,17 @@ export declare class OrganizationService {
                 lastActiveAt: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
+                isCustomer: boolean;
+                isSupplier: boolean;
+                completionPercent: number;
+                whatsapp: string | null;
+                clientCode: string | null;
+                preferredCurrency: string | null;
+                preferredLanguage: string;
             };
         } & {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -185,8 +206,8 @@ export declare class OrganizationService {
     }) | null>;
     create(ownerUserId: string, input: CreateOrganizationInput): Promise<{
         users: {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -210,8 +231,8 @@ export declare class OrganizationService {
     }>;
     update(id: string, userId: string, input: UpdateOrganizationInput): Promise<{
         users: {
-            id: string;
             role: string;
+            id: string;
             status: string;
             lastActiveAt: Date | null;
             userId: string;
@@ -238,13 +259,13 @@ export declare class OrganizationService {
     }>;
     getMembers(organizationId: string): Promise<({
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -260,10 +281,17 @@ export declare class OrganizationService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -276,13 +304,13 @@ export declare class OrganizationService {
     })[]>;
     addMember(organizationId: string, addedBy: string, input: AddMemberInput): Promise<{
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -298,6 +326,13 @@ export declare class OrganizationService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         organization: {
             id: string;
@@ -311,8 +346,8 @@ export declare class OrganizationService {
             allowCustomPermissions: boolean;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -325,13 +360,13 @@ export declare class OrganizationService {
     }>;
     updateMember(organizationId: string, memberId: string, updatedBy: string, input: UpdateMemberInput): Promise<{
         user: {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -347,10 +382,17 @@ export declare class OrganizationService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
     } & {
-        id: string;
         role: string;
+        id: string;
         status: string;
         lastActiveAt: Date | null;
         userId: string;
@@ -365,10 +407,10 @@ export declare class OrganizationService {
         message: string;
     }>;
     createInvitation(organizationId: string, createdBy: string, input: CreateInvitationInput): Promise<{
+        role: string;
         id: string;
         email: string;
         phone: string | null;
-        role: string;
         status: string;
         createdAt: Date;
         organizationId: string;
@@ -392,10 +434,10 @@ export declare class OrganizationService {
         };
     }>;
     getInvitations(organizationId: string, userId: string): Promise<{
+        role: string;
         id: string;
         email: string;
         phone: string | null;
-        role: string;
         status: string;
         createdAt: Date;
         organizationId: string;

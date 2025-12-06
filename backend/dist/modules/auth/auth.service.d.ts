@@ -49,14 +49,19 @@ export declare class AuthService {
             profile?: undefined;
         };
     }>;
+    private generateClientId;
+    private getRoleFlags;
     register(input: RegisterInput): Promise<{
         user: {
             id: string;
             clientId: string;
             name: string;
             email: string | null;
+            whatsapp: string | null;
             role: string;
             status: string;
+            isCustomer: boolean;
+            isSupplier: boolean;
         };
         message: string;
     }>;

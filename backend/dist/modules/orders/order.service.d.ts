@@ -21,15 +21,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -49,6 +56,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -87,13 +95,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -109,6 +117,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -119,15 +134,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -147,6 +169,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -162,6 +185,7 @@ export declare class OrderService {
     }>;
     getByUser(userId: string, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
         items: {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -181,6 +205,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -196,6 +221,7 @@ export declare class OrderService {
     }>>;
     create(userId: string, input: CreateOrderInput, businessId?: string): Promise<{
         items: {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -215,6 +241,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -253,13 +280,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -275,6 +302,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -285,15 +319,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -313,6 +354,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -351,13 +393,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -373,6 +415,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -383,15 +432,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -411,6 +467,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -449,13 +506,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -471,6 +528,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -481,15 +545,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -509,6 +580,7 @@ export declare class OrderService {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -543,15 +615,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -563,6 +642,7 @@ export declare class OrderService {
             notes: string | null;
         })[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -598,13 +678,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -620,6 +700,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -630,15 +717,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -650,6 +744,7 @@ export declare class OrderService {
             notes: string | null;
         })[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -662,6 +757,7 @@ export declare class OrderService {
     }>;
     createQuoteRequest(userId: string, userName: string, companyName: string, input: CreateQuoteRequestInput): Promise<{
         items: {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -673,6 +769,7 @@ export declare class OrderService {
             notes: string | null;
         }[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -708,13 +805,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -730,6 +827,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -740,15 +844,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -760,6 +871,7 @@ export declare class OrderService {
             notes: string | null;
         })[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -795,13 +907,13 @@ export declare class OrderService {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -817,6 +929,13 @@ export declare class OrderService {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -827,15 +946,22 @@ export declare class OrderService {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -847,6 +973,7 @@ export declare class OrderService {
             notes: string | null;
         })[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -865,13 +992,19 @@ export declare class OrderService {
         updatedAt: Date;
         description: string | null;
         partNumber: string;
+        nameEn: string | null;
+        nameAr: string | null;
+        nameZh: string | null;
         brand: string | null;
         category: string | null;
         imageUrl: string | null;
+        imageGallery: string[];
         priceRetail: number;
         priceWholesale: number;
         priceVip: number;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
     }[]>;
     getOrderStats(userId?: string): Promise<{
         total: number;

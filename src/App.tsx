@@ -582,7 +582,7 @@ function AppContent() {
                           <div className="grid grid-cols-3 gap-2">
                               <button
                                   type="button"
-                                  onClick={() => { setIdentifier('1@sinicar.com'); setSecret('1'); setLoginType('OWNER'); }}
+                                  onClick={() => { setIdentifier('admin'); setSecret('admin'); setLoginType('OWNER'); }}
                                   className="px-2 py-2 bg-red-600/20 border border-red-500/30 text-red-400 text-xs rounded hover:bg-red-600/40 transition-all"
                                   data-testid="quick-login-admin"
                               >
@@ -590,43 +590,27 @@ function AppContent() {
                               </button>
                               <button
                                   type="button"
-                                  onClick={() => { setIdentifier('3@sinicar.com'); setSecret('3'); setLoginType('OWNER'); }}
-                                  className="px-2 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs rounded hover:bg-blue-600/40 transition-all"
-                                  data-testid="quick-login-staff"
+                                  onClick={() => { setIdentifier('1'); setSecret('1'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 text-xs rounded hover:bg-yellow-600/40 transition-all"
+                                  data-testid="quick-login-manager"
                               >
-                                  {t('login.quickStaff')}
+                                  {t('login.quickManager')}
                               </button>
                               <button
                                   type="button"
-                                  onClick={() => { setIdentifier('4@sinicar.com'); setSecret('4'); setLoginType('OWNER'); }}
+                                  onClick={() => { setIdentifier('SL-20001'); setSecret('supplier123'); setLoginType('OWNER'); }}
                                   className="px-2 py-2 bg-green-600/20 border border-green-500/30 text-green-400 text-xs rounded hover:bg-green-600/40 transition-all"
-                                  data-testid="quick-login-customer"
-                              >
-                                  {t('login.quickCustomer')}
-                              </button>
-                              <button
-                                  type="button"
-                                  onClick={() => { setIdentifier('5@sinicar.com'); setSecret('5'); setLoginType('OWNER'); }}
-                                  className="px-2 py-2 bg-orange-600/20 border border-orange-500/30 text-orange-400 text-xs rounded hover:bg-orange-600/40 transition-all"
                                   data-testid="quick-login-supplier"
                               >
                                   {t('login.quickSupplier')}
                               </button>
                               <button
                                   type="button"
-                                  onClick={() => { setIdentifier('6@sinicar.com'); setSecret('6'); setLoginType('OWNER'); }}
-                                  className="px-2 py-2 bg-purple-600/20 border border-purple-500/30 text-purple-400 text-xs rounded hover:bg-purple-600/40 transition-all"
-                                  data-testid="quick-login-marketer"
+                                  onClick={() => { setIdentifier('0500056988'); setSecret('381960'); setLoginType('STAFF'); }}
+                                  className="px-2 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs rounded hover:bg-blue-600/40 transition-all"
+                                  data-testid="quick-login-staff"
                               >
-                                  {t('login.quickMarketer')}
-                              </button>
-                              <button
-                                  type="button"
-                                  onClick={() => { setIdentifier('2@sinicar.com'); setSecret('2'); setLoginType('OWNER'); }}
-                                  className="px-2 py-2 bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 text-xs rounded hover:bg-yellow-600/40 transition-all"
-                                  data-testid="quick-login-manager"
-                              >
-                                  {t('login.quickManager')}
+                                  {t('login.quickStaff')}
                               </button>
                           </div>
                       </div>

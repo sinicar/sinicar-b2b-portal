@@ -9,11 +9,14 @@ export declare class ToolService {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }[]>;
     getToolConfig(toolKey: string): Promise<{
         id: string;
@@ -22,11 +25,14 @@ export declare class ToolService {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }>;
     createToolConfig(input: ToolConfigInput): Promise<{
         id: string;
@@ -35,11 +41,14 @@ export declare class ToolService {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }>;
     updateToolConfig(toolKey: string, input: UpdateToolConfigInput): Promise<{
         id: string;
@@ -48,11 +57,14 @@ export declare class ToolService {
         description: string | null;
         toolKey: string;
         displayName: string;
+        displayNameAr: string | null;
+        descriptionAr: string | null;
         isEnabled: boolean;
         dailyLimit: number | null;
         monthlyLimit: number | null;
         requiredPriceLevel: string | null;
         allowedCustomerTypes: string | null;
+        requiredPermission: string | null;
     }>;
     deleteToolConfig(toolKey: string): Promise<{
         message: string;

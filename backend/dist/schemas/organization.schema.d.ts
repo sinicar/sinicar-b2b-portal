@@ -6,12 +6,12 @@ export declare const createOrganizationSchema: z.ZodObject<{
     allowCustomPermissions: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     name: string;
-    type: "SUPPLIER" | "CUSTOMER" | "ADVERTISER" | "AFFILIATE" | "PLATFORM";
+    type: "CUSTOMER" | "SUPPLIER" | "ADVERTISER" | "AFFILIATE" | "PLATFORM";
     maxEmployees: number;
     allowCustomPermissions: boolean;
 }, {
     name: string;
-    type: "SUPPLIER" | "CUSTOMER" | "ADVERTISER" | "AFFILIATE" | "PLATFORM";
+    type: "CUSTOMER" | "SUPPLIER" | "ADVERTISER" | "AFFILIATE" | "PLATFORM";
     maxEmployees?: number | undefined;
     allowCustomPermissions?: boolean | undefined;
 }>;
@@ -75,14 +75,14 @@ export declare const createInvitationSchema: z.ZodObject<{
     role: z.ZodDefault<z.ZodEnum<["OWNER", "MANAGER", "STAFF", "READONLY"]>>;
     expiresInDays: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    email: string;
     role: "OWNER" | "MANAGER" | "STAFF" | "READONLY";
+    email: string;
     expiresInDays: number;
     phone?: string | undefined;
 }, {
     email: string;
-    phone?: string | undefined;
     role?: "OWNER" | "MANAGER" | "STAFF" | "READONLY" | undefined;
+    phone?: string | undefined;
     expiresInDays?: number | undefined;
 }>;
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;

@@ -30,15 +30,22 @@ export declare class OrderRepository {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -58,6 +65,7 @@ export declare class OrderRepository {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -96,13 +104,13 @@ export declare class OrderRepository {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -118,6 +126,13 @@ export declare class OrderRepository {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -128,15 +143,22 @@ export declare class OrderRepository {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -156,6 +178,7 @@ export declare class OrderRepository {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -171,6 +194,7 @@ export declare class OrderRepository {
     }) | null>;
     findByUserId(userId: string, pagination: PaginationParams): Promise<import("../../utils/pagination").PaginatedResult<{
         items: {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -190,6 +214,7 @@ export declare class OrderRepository {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -218,6 +243,7 @@ export declare class OrderRepository {
         }>;
     }): Promise<{
         items: {
+            qualityCode: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -237,6 +263,7 @@ export declare class OrderRepository {
             note: string | null;
         }[];
     } & {
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -251,6 +278,7 @@ export declare class OrderRepository {
         cancelledAt: Date | null;
     }>;
     updateStatus(id: string, status: OrderStatus, changedBy: string, note?: string): Promise<[{
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -272,6 +300,7 @@ export declare class OrderRepository {
         note: string | null;
     }]>;
     updateInternalStatus(id: string, internalStatus: OrderInternalStatus, internalNotes?: string): Promise<{
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -286,6 +315,7 @@ export declare class OrderRepository {
         cancelledAt: Date | null;
     }>;
     delete(id: string): Promise<{
+        currency: string;
         id: string;
         status: string;
         businessId: string | null;
@@ -317,15 +347,22 @@ export declare class OrderRepository {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -337,6 +374,7 @@ export declare class OrderRepository {
             notes: string | null;
         })[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -372,13 +410,13 @@ export declare class OrderRepository {
                 internalNotes: string | null;
             } | null;
         } & {
+            role: string;
             id: string;
             clientId: string;
             name: string;
             email: string | null;
             phone: string | null;
             password: string | null;
-            role: string;
             employeeRole: string | null;
             status: string;
             isActive: boolean;
@@ -394,6 +432,13 @@ export declare class OrderRepository {
             lastActiveAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
+            isCustomer: boolean;
+            isSupplier: boolean;
+            completionPercent: number;
+            whatsapp: string | null;
+            clientCode: string | null;
+            preferredCurrency: string | null;
+            preferredLanguage: string;
         };
         items: ({
             product: {
@@ -404,15 +449,22 @@ export declare class OrderRepository {
                 updatedAt: Date;
                 description: string | null;
                 partNumber: string;
+                nameEn: string | null;
+                nameAr: string | null;
+                nameZh: string | null;
                 brand: string | null;
                 category: string | null;
                 imageUrl: string | null;
+                imageGallery: string[];
                 priceRetail: number;
                 priceWholesale: number;
                 priceVip: number;
                 stock: number;
+                qualityCodeId: string | null;
+                brandCodeId: string | null;
             } | null;
         } & {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -424,6 +476,7 @@ export declare class OrderRepository {
             notes: string | null;
         })[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -447,6 +500,7 @@ export declare class OrderRepository {
         }>;
     }): Promise<{
         items: {
+            qualityCode: string | null;
             id: string;
             status: string;
             productId: string | null;
@@ -458,6 +512,7 @@ export declare class OrderRepository {
             notes: string | null;
         }[];
     } & {
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -469,6 +524,7 @@ export declare class OrderRepository {
         processedAt: Date | null;
     }>;
     updateQuoteStatus(id: string, status: QuoteStatus): Promise<{
+        qualityCode: string | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -480,6 +536,7 @@ export declare class OrderRepository {
         processedAt: Date | null;
     }>;
     updateQuoteItem(itemId: string, data: Prisma.QuoteItemUpdateInput): Promise<{
+        qualityCode: string | null;
         id: string;
         status: string;
         productId: string | null;
@@ -498,13 +555,19 @@ export declare class OrderRepository {
         updatedAt: Date;
         description: string | null;
         partNumber: string;
+        nameEn: string | null;
+        nameAr: string | null;
+        nameZh: string | null;
         brand: string | null;
         category: string | null;
         imageUrl: string | null;
+        imageGallery: string[];
         priceRetail: number;
         priceWholesale: number;
         priceVip: number;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
     }[]>;
     findProductByPartNumber(partNumber: string): Promise<{
         id: string;
@@ -514,13 +577,19 @@ export declare class OrderRepository {
         updatedAt: Date;
         description: string | null;
         partNumber: string;
+        nameEn: string | null;
+        nameAr: string | null;
+        nameZh: string | null;
         brand: string | null;
         category: string | null;
         imageUrl: string | null;
+        imageGallery: string[];
         priceRetail: number;
         priceWholesale: number;
         priceVip: number;
         stock: number;
+        qualityCodeId: string | null;
+        brandCodeId: string | null;
     } | null>;
 }
 export declare const orderRepository: OrderRepository;

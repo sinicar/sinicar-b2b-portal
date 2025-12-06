@@ -38,10 +38,10 @@ export declare const createCustomerSchema: z.ZodObject<{
         businessCustomerType?: "SMALL_STORE" | "MEDIUM_STORE" | "LARGE_STORE" | "CHAIN_STORE" | "INSURANCE_COMPANY" | "RENTAL_COMPANY" | "MAINTENANCE_CENTER" | "SALES_REP" | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
+    role: "CUSTOMER_STAFF" | "CUSTOMER_OWNER";
     clientId: string;
     name: string;
     password: string;
-    role: "CUSTOMER_STAFF" | "CUSTOMER_OWNER";
     profile: {
         phone: string;
         companyName: string;
@@ -70,9 +70,9 @@ export declare const createCustomerSchema: z.ZodObject<{
         customerType?: "PARTS_STORE" | "INSURANCE" | "RENTAL" | "REPRESENTATIVE" | "MAINTENANCE" | undefined;
         businessCustomerType?: "SMALL_STORE" | "MEDIUM_STORE" | "LARGE_STORE" | "CHAIN_STORE" | "INSURANCE_COMPANY" | "RENTAL_COMPANY" | "MAINTENANCE_CENTER" | "SALES_REP" | undefined;
     };
+    role?: "CUSTOMER_STAFF" | "CUSTOMER_OWNER" | undefined;
     email?: string | undefined;
     phone?: string | undefined;
-    role?: "CUSTOMER_STAFF" | "CUSTOMER_OWNER" | undefined;
 }>;
 export declare const updateCustomerSchema: z.ZodObject<{
     name: z.ZodOptional<z.ZodString>;
@@ -128,7 +128,7 @@ export declare const updateCustomerSchema: z.ZodObject<{
     name?: string | undefined;
     email?: string | undefined;
     phone?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "BLOCKED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "BLOCKED" | "SUSPENDED" | undefined;
     isActive?: boolean | undefined;
     searchLimit?: number | undefined;
     profile?: {
@@ -150,7 +150,7 @@ export declare const updateCustomerSchema: z.ZodObject<{
     name?: string | undefined;
     email?: string | undefined;
     phone?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "BLOCKED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "BLOCKED" | "SUSPENDED" | undefined;
     isActive?: boolean | undefined;
     searchLimit?: number | undefined;
     profile?: {
@@ -179,7 +179,7 @@ export declare const customerFilterSchema: z.ZodObject<{
     city: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     search?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "BLOCKED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "BLOCKED" | "SUSPENDED" | undefined;
     region?: string | undefined;
     city?: string | undefined;
     customerType?: "PARTS_STORE" | "INSURANCE" | "RENTAL" | "REPRESENTATIVE" | "MAINTENANCE" | undefined;
@@ -187,7 +187,7 @@ export declare const customerFilterSchema: z.ZodObject<{
     priceLevel?: "VIP" | "LEVEL_1" | "LEVEL_2" | "LEVEL_3" | "LEVEL_4" | "LEVEL_5" | undefined;
 }, {
     search?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "BLOCKED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "BLOCKED" | "SUSPENDED" | undefined;
     region?: string | undefined;
     city?: string | undefined;
     customerType?: "PARTS_STORE" | "INSURANCE" | "RENTAL" | "REPRESENTATIVE" | "MAINTENANCE" | undefined;

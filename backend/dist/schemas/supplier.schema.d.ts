@@ -30,7 +30,7 @@ export declare const updateSupplierProfileSchema: z.ZodObject<{
     categories: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     regions: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
 }, "strip", z.ZodTypeAny, {
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     companyName?: string | undefined;
     contactName?: string | undefined;
     contactPhone?: string | undefined;
@@ -38,7 +38,7 @@ export declare const updateSupplierProfileSchema: z.ZodObject<{
     categories?: string[] | undefined;
     regions?: string[] | undefined;
 }, {
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     companyName?: string | undefined;
     contactName?: string | undefined;
     contactPhone?: string | undefined;
@@ -151,13 +151,13 @@ export declare const supplierFilterSchema: z.ZodObject<{
     minRating: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     search?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     region?: string | undefined;
     category?: string | undefined;
     minRating?: number | undefined;
 }, {
     search?: string | undefined;
-    status?: "ACTIVE" | "PENDING" | "SUSPENDED" | "REJECTED" | undefined;
+    status?: "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | undefined;
     region?: string | undefined;
     category?: string | undefined;
     minRating?: number | undefined;
