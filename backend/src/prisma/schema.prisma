@@ -41,6 +41,13 @@ model User {
   failedLoginAttempts Int   @default(0)
   riskyLoginFlag  Boolean   @default(false)
   
+  // Extended role/status system (New)
+  isCustomer        Boolean   @default(true)
+  isSupplier        Boolean   @default(false)
+  completionPercent Int       @default(0)
+  whatsapp          String?
+  clientCode        String?
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
