@@ -10,6 +10,14 @@ import {
   refreshTokenSchema,
   changePasswordSchema
 } from '../../schemas/auth.schema';
+import {
+  generateResetCode,
+  getResetCodeExpiry,
+  storeResetCode,
+  findUserByWhatsappOrEmail,
+  validateResetCode,
+  updatePassword
+} from './password-reset.service';
 
 const router = Router();
 
@@ -66,6 +74,62 @@ router.post('/reset-password', asyncHandler(async (req: any, res: any) => {
   }
   const result = await authService.resetPassword(resetToken, newPassword);
   successResponse(res, result, result.message);
+}));
+
+router.post('/request-password-reset', asyncHandler(async (req: any, res: any) => {
+  const { whatsapp, email } = req.body;
+  const identifier = whatsapp || email;
+  
+  if (!identifier) {
+    return errorResponse(res, 'يرجى إدخال رقم الواتساب أو البريد الإلكتروني', 400);
+  }
+
+  const user = await findUserByWhatsappOrEmail(identifier);
+  
+  if (!user) {
+    return successResponse(res, { 
+      success: true, 
+      message: 'إذا كان الحساب موجوداً، سيتم توليد رمز إعادة التعيين' 
+    });
+  }
+
+  const resetCode = generateResetCode();
+  const expiresAt = getResetCodeExpiry(15);
+  
+  await storeResetCode(user.id, resetCode, expiresAt);
+
+  successResponse(res, {
+    success: true,
+    message: 'تم توليد رمز إعادة التعيين',
+    resetCode,
+    expiresIn: '15 minutes'
+  });
+}));
+
+router.post('/reset-password-with-code', asyncHandler(async (req: any, res: any) => {
+  const { whatsapp, email, resetCode, newPassword } = req.body;
+  const identifier = whatsapp || email;
+
+  if (!identifier || !resetCode || !newPassword) {
+    return errorResponse(res, 'يرجى إدخال جميع الحقول المطلوبة', 400);
+  }
+
+  if (newPassword.length < 6) {
+    return errorResponse(res, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', 400);
+  }
+
+  const validation = await validateResetCode(identifier, resetCode);
+  
+  if (!validation.valid) {
+    return errorResponse(res, validation.error || 'رمز غير صالح', 400);
+  }
+
+  await updatePassword(validation.userId!, newPassword);
+
+  successResponse(res, { 
+    success: true,
+    message: 'تم إعادة تعيين كلمة المرور بنجاح'
+  });
 }));
 
 export default router;
