@@ -55,13 +55,22 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
         try {
             // For testing/development: Provide default permissions for admin users
             // In production, this would fetch from backend API
-            if (user.extendedRole === 'ADMIN' || user.roleId?.includes('admin')) {
+            const isAdminType = user.extendedRole === 'ADMIN' || 
+                                user.extendedRole === 'SUPER_ADMIN' ||
+                                user.isSuperAdmin === true ||
+                                user.roleId?.includes('admin') ||
+                                user.roleId?.includes('super');
+            
+            if (isAdminType) {
+                const isSuperType = user.extendedRole === 'SUPER_ADMIN' || 
+                                    user.isSuperAdmin === true ||
+                                    user.roleId?.includes('super');
                 const adminRole: Role = {
-                    id: user.roleId || 'role-admin',
-                    code: 'ADMIN',
-                    name: 'ADMIN',
-                    nameAr: 'مشرف',
-                    description: 'Administrator',
+                    id: user.roleId || (isSuperType ? 'role-super-admin' : 'role-admin'),
+                    code: isSuperType ? 'SUPER_ADMIN' : 'ADMIN',
+                    name: isSuperType ? 'SUPER_ADMIN' : 'ADMIN',
+                    nameAr: isSuperType ? 'مشرف عام' : 'مشرف',
+                    description: isSuperType ? 'Super Administrator' : 'Administrator',
                     isSystem: true,
                     isActive: true,
                     sortOrder: 0,

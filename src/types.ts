@@ -6,6 +6,7 @@ export type UserRole =
 
 // Extended User Role for multi-role system (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER, MARKETER)
 export type ExtendedUserRole = 
+  | 'SUPER_ADMIN'              // مشرف عام
   | 'ADMIN'                    // مدير النظام
   | 'EMPLOYEE'                 // موظف
   | 'CUSTOMER'                 // عميل
@@ -1222,11 +1223,12 @@ export interface AdminUser {
   id: string;
   fullName: string;       // الاسم الكامل
   username: string;       // اسم المستخدم
-  phone: string;          // رقم الجوال
+  phone?: string;         // رقم الجوال (اختياري)
   email?: string;         // البريد الإلكتروني (اختياري)
   password?: string;      // كلمة المرور (مشفرة في الإنتاج)
   roleId: string;         // معرف الدور المرتبط
   isActive: boolean;      // نشط / موقوف
+  isSuperAdmin?: boolean; // هل هو مشرف عام
   lastLoginAt?: string;   // آخر تسجيل دخول
   createdAt: string;      // تاريخ الإنشاء
   createdBy?: string;     // أنشئ بواسطة

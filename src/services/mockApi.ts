@@ -1559,6 +1559,27 @@ export const MockApi = {
             localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
         }
         
+        // Initialize Admin Roles for permissions system (critical for sidebar)
+        if (!localStorage.getItem(STORAGE_KEYS.ADMIN_ROLES)) {
+            localStorage.setItem(STORAGE_KEYS.ADMIN_ROLES, JSON.stringify(this.getDefaultRoles()));
+        }
+        
+        // Initialize Admin Users with super admin
+        if (!localStorage.getItem(STORAGE_KEYS.ADMIN_USERS)) {
+            const superAdminRecord: AdminUser = {
+                id: 'super-admin',
+                username: 'admin',
+                email: 'admin@system.com',
+                fullName: 'المدير العام',
+                roleId: 'role-super-admin',
+                isActive: true,
+                isSuperAdmin: true,
+                createdAt: new Date().toISOString(),
+                lastLoginAt: new Date().toISOString()
+            };
+            localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify([superAdminRecord]));
+        }
+        
         // Log Login
         internalRecordActivity({
             userId: 'super-admin',
@@ -1568,16 +1589,25 @@ export const MockApi = {
             description: 'تسجيل دخول الأدمن',
         });
 
+        // Build complete super admin user with all required fields
+        const superAdminUser: User = {
+            id: 'super-admin',
+            clientId: 'admin',
+            name: 'المدير العام',
+            email: 'admin@system.com',
+            role: 'SUPER_ADMIN',
+            extendedRole: 'SUPER_ADMIN',
+            searchLimit: 0,
+            searchUsed: 0,
+            isSuperAdmin: true,
+            isApproved: true,
+            status: 'ACTIVE'
+        };
+        
+        localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(superAdminUser));
+
         return {
-            user: {
-                id: 'super-admin',
-                clientId: 'admin',
-                name: 'المدير العام',
-                email: 'admin@system.com',
-                role: 'SUPER_ADMIN',
-                searchLimit: 0,
-                searchUsed: 0
-            },
+            user: superAdminUser,
             profile: null
         };
     }
