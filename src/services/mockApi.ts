@@ -1589,6 +1589,29 @@ export const MockApi = {
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     }
 
+    // Ensure demo supplier user exists for testing supplier portal
+    const demoSupplierExists = users.find((u: User) => u.clientId === 'SL-20001');
+    if (!demoSupplierExists) {
+        const demoSupplierUser: User = {
+            id: 'supplier-1',
+            clientId: 'SL-20001',
+            name: 'شركة الأمل للتوريد',
+            email: 'supplier1@alamal.com',
+            phone: '0560000001',
+            password: 'supplier123',
+            role: 'CUSTOMER_OWNER',
+            searchLimit: 100,
+            searchUsed: 0,
+            status: 'ACTIVE',
+            isApproved: true,
+            accountStatus: 'ACTIVE',
+            isSupplier: true,
+            extendedRole: 'SUPPLIER_LOCAL'
+        };
+        users.push(demoSupplierUser);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+
     if (identifier === '1' && secret === '1' && type === 'OWNER') {
         const demoUserExists = users.find((u: User) => u.clientId === '1');
         if (!demoUserExists) {
@@ -3894,11 +3917,14 @@ export const MockApi = {
           },
           {
               id: 'supplier-1',
+              clientId: 'SL-20001',
               fullName: 'شركة الأمل للتوريد',
+              name: 'شركة الأمل للتوريد',
               username: 'supplier1',
               phone: '0560000001',
               email: 'supplier1@alamal.com',
               password: 'supplier123',
+              role: 'CUSTOMER_OWNER',
               roleId: 'role-viewer',
               isActive: true,
               createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
@@ -3907,15 +3933,20 @@ export const MockApi = {
               completionPercent: 95,
               whatsapp: '+966560000001',
               clientCode: 'SL-20001',
-              isSupplier: true
+              isSupplier: true,
+              searchLimit: 100,
+              searchUsed: 0
           },
           {
               id: 'supplier-2',
+              clientId: 'SI-30001',
               fullName: 'مصنع قوانغجو',
+              name: 'مصنع قوانغجو',
               username: 'guangzhou_supplier',
               phone: '+8613800000001',
               email: 'supplier@guangzhou.cn',
               password: 'supplier123',
+              role: 'CUSTOMER_OWNER',
               roleId: 'role-viewer',
               isActive: false,
               createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -3924,7 +3955,9 @@ export const MockApi = {
               completionPercent: 60,
               whatsapp: '+8613800000001',
               clientCode: 'SI-30001',
-              isSupplier: true
+              isSupplier: true,
+              searchLimit: 100,
+              searchUsed: 0
           },
           {
               id: 'marketer-1',

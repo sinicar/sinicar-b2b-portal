@@ -416,7 +416,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
               <Clock size={16} />
               <span>{formatDateTime(new Date().toISOString())}</span>
             </div>
-            <NotificationBell userId={user.id} onViewAll={() => setView('NOTIFICATIONS')} />
+            <NotificationBell user={user} onViewAll={() => setView('NOTIFICATIONS')} />
             <LanguageSwitcher />
           </div>
         </header>
@@ -467,7 +467,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
           )}
 
           {view === 'NOTIFICATIONS' && (
-            <NotificationsPage userId={user.id} />
+            <NotificationsPage user={user} />
           )}
         </main>
       </div>

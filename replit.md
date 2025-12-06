@@ -7,10 +7,11 @@ This is the **Sini Car B2B Portal** (صيني كار), a comprehensive wholesale
 # Core Systems (5 Main Modules)
 
 1. **Trader Tools Hub** - Advanced tools for traders (VIN Extractor, Price Comparison, PDF to Excel)
-2. **Supplier Marketplace** - Marketplace connecting suppliers with product listings and forward requests
-3. **Marketer/Affiliate System** - Affiliate marketing with referral links, commission tracking, and payouts
-4. **Advertising Management** - Ad campaign management with slots, targeting, and analytics
-5. **Installment Wholesale Purchase System** - Wholesale installment purchases with credit profiles and payment schedules
+2. **Supplier Portal** - Complete supplier portal with product management, quote request handling, Excel import/export, and dashboard stats (login: SL-20001 / supplier123)
+3. **Supplier Marketplace** - Marketplace connecting suppliers with product listings and forward requests
+4. **Marketer/Affiliate System** - Affiliate marketing with referral links, commission tracking, and payouts
+5. **Advertising Management** - Ad campaign management with slots, targeting, and analytics
+6. **Installment Wholesale Purchase System** - Wholesale installment purchases with credit profiles and payment schedules
 
 # User Preferences
 
