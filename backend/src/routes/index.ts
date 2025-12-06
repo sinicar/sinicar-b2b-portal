@@ -13,6 +13,7 @@ import currencyRoutes from '../modules/currency/currency.routes';
 import pricingRoutes from '../modules/pricing/pricing.routes';
 import permissionRoutes from '../modules/permissions/permission.routes';
 import settingsRoutes from '../modules/settings/settings.routes';
+import messagingRoutes from '../modules/messaging/messaging.routes';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.use('/currencies', currencyRoutes);
 router.use('/pricing', pricingRoutes);
 router.use('/permissions', permissionRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/messaging', messagingRoutes);
 
 router.get('/', (req: any, res: any) => {
   res.json({
@@ -49,7 +51,8 @@ router.get('/', (req: any, res: any) => {
       '/currencies',
       '/pricing',
       '/permissions',
-      '/settings'
+      '/settings',
+      '/messaging'
     ]
   });
 });
