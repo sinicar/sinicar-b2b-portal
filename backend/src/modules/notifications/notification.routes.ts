@@ -1,7 +1,27 @@
 import { Router, Response } from 'express';
 import { MessageEvent } from '@prisma/client';
+import { z } from 'zod';
 import { authMiddleware, AuthRequest } from '../../middleware/auth.middleware';
 import * as notificationService from './notification.service';
+
+const notificationSettingSchema = z.object({
+  event: z.nativeEnum(MessageEvent),
+  enableInApp: z.boolean().optional(),
+  enableEmail: z.boolean().optional(),
+  enableWhatsApp: z.boolean().optional(),
+  languagePreference: z.string().optional(),
+});
+
+const bulkSettingsSchema = z.object({
+  settings: z.array(notificationSettingSchema),
+});
+
+const singleSettingUpdateSchema = z.object({
+  enableInApp: z.boolean().optional(),
+  enableEmail: z.boolean().optional(),
+  enableWhatsApp: z.boolean().optional(),
+  languagePreference: z.string().optional(),
+});
 
 const router = Router();
 
@@ -90,19 +110,21 @@ router.put('/settings', async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    const { settings } = req.body;
-
-    if (!settings || !Array.isArray(settings)) {
+    const parseResult = bulkSettingsSchema.safeParse(req.body);
+    if (!parseResult.success) {
       return res.status(400).json({
         success: false,
-        error: 'يجب توفير مصفوفة الإعدادات',
+        error: 'بيانات غير صالحة',
+        details: parseResult.error.errors,
       });
     }
 
+    const { settings } = parseResult.data;
+
     const results = await notificationService.bulkUpdateUserNotificationSettings(
       req.user.id,
-      settings.map((s: any) => ({
-        event: s.event as MessageEvent,
+      settings.map((s) => ({
+        event: s.event,
         enableInApp: s.enableInApp,
         enableEmail: s.enableEmail,
         enableWhatsApp: s.enableWhatsApp,
@@ -127,12 +149,28 @@ router.put('/settings/:event', async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    const event = req.params.event as MessageEvent;
-    const { enableInApp, enableEmail, enableWhatsApp, languagePreference } = req.body;
+    const eventParam = req.params.event;
+    if (!Object.values(MessageEvent).includes(eventParam as MessageEvent)) {
+      return res.status(400).json({
+        success: false,
+        error: 'نوع الحدث غير صالح',
+      });
+    }
+
+    const parseResult = singleSettingUpdateSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'بيانات غير صالحة',
+        details: parseResult.error.errors,
+      });
+    }
+
+    const { enableInApp, enableEmail, enableWhatsApp, languagePreference } = parseResult.data;
 
     const result = await notificationService.updateUserNotificationSettings(
       req.user.id,
-      event,
+      eventParam as MessageEvent,
       { enableInApp, enableEmail, enableWhatsApp, languagePreference }
     );
 
@@ -242,6 +280,28 @@ router.post('/seed-defaults', async (req: AuthRequest, res: Response) => {
       success: true,
       data: result,
       message: 'تم إنشاء الإعدادات الافتراضية بنجاح',
+    });
+  } catch (error: any) {
+    console.error('[Notifications] Error seeding defaults:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/seed-defaults/:userId', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user || req.user.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({
+        success: false,
+        error: 'هذا الإجراء يتطلب صلاحيات المدير',
+      });
+    }
+
+    const result = await notificationService.seedDefaultSettingsForUser(req.params.userId);
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'تم إنشاء الإعدادات الافتراضية للمستخدم بنجاح',
     });
   } catch (error: any) {
     console.error('[Notifications] Error seeding defaults:', error);
