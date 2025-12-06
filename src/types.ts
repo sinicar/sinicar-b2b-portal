@@ -1059,7 +1059,15 @@ export type ActivityEventType =
   | 'ALTERNATIVES_UPLOADED' // رفع ملف بدائل
   | 'SETTINGS_CHANGED'   // تغيير إعدادات
   | 'FILE_UPLOADED'      // رفع ملف
-  | 'OTHER';             // عمليات أخرى عامة
+  | 'OTHER'              // عمليات أخرى عامة
+  // Supplier Portal Events
+  | 'PRODUCT_ADDED'      // إضافة منتج جديد (مورد)
+  | 'PRODUCT_UPDATED'    // تحديث منتج (مورد)
+  | 'PRODUCT_DELETED'    // حذف منتج (مورد)
+  | 'PRODUCT_IMPORTED'   // استيراد منتجات من Excel (مورد)
+  | 'QUOTE_SENT'         // إرسال عرض سعر (مورد)
+  | 'QUOTE_REQUEST_REJECTED' // رفض طلب تسعير (مورد)
+  | 'SETTINGS_UPDATED';  // تحديث إعدادات (مورد)
 
 // Actor type for activity tracking
 export type ActorType = 
@@ -3589,6 +3597,7 @@ export interface SupplierRequest {
   stockAvailable?: number;
   notes?: string;
   responseDeadline?: string;
+  deadline?: string;  // Customer deadline for the request
   respondedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -3597,7 +3606,7 @@ export interface SupplierRequest {
   partName?: string;
   quantity?: number;
   customerName?: string;  // Obfuscated if needed
-  urgency?: 'LOW' | 'MEDIUM' | 'HIGH';
+  urgency?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 }
 
 // Supplier Dashboard Stats
@@ -3676,7 +3685,7 @@ export interface SupplierProductFilters {
 // Supplier Request Filters
 export interface SupplierRequestFilters {
   status?: SupplierRequestStatus | 'ALL';
-  urgency?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ALL';
+  urgency?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'ALL';
   dateFrom?: string;
   dateTo?: string;
   search?: string;

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Register } from './components/Register';
 import { Dashboard } from './components/Dashboard';
 import { AdminDashboard } from './components/AdminDashboard';
+import { SupplierPortal } from './components/SupplierPortal';
 import { MockApi } from './services/mockApi';
 import { User, BusinessProfile, SiteSettings } from './types';
 import { Lock, User as UserIcon, ArrowRight, ShieldCheck, Box, Server, Activity, Database, CheckCircle2, Globe, Zap, Package, Percent, Truck, Phone } from 'lucide-react';
@@ -266,6 +267,10 @@ function AppContent() {
   if (currentUser) {
     if (currentUser.role === 'SUPER_ADMIN') {
         return <AdminDashboard onLogout={handleLogout} />;
+    }
+    // Check if user is a supplier
+    if (currentUser.isSupplier || currentUser.extendedRole === 'SUPPLIER_LOCAL' || currentUser.extendedRole === 'SUPPLIER_INTERNATIONAL') {
+        return <SupplierPortal user={currentUser} onLogout={handleLogout} />;
     }
     return (
         <CustomerPortalSettingsProvider>

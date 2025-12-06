@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, SupplierProduct, SupplierRequest, SupplierDashboardStats, SupplierSettings, SupplierProductFilters, SupplierRequestFilters, SupplierProductInsert, SupplierExcelImportResult, SupplierQuoteSubmission, SupplierProfileExtended, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -368,7 +368,11 @@ const STORAGE_KEYS = {
   // Abandoned Carts
   ABANDONED_CARTS: 'sini_abandoned_carts',
   ALTERNATIVE_PARTS: 'sini_alternative_parts',
-  PURCHASE_REQUESTS: 'sini_purchase_requests'
+  PURCHASE_REQUESTS: 'sini_purchase_requests',
+  // Supplier Portal System
+  SUPPLIER_PORTAL_PRODUCTS: 'sini_supplier_portal_products',
+  SUPPLIER_PORTAL_REQUESTS: 'sini_supplier_portal_requests',
+  SUPPLIER_PORTAL_SETTINGS: 'sini_supplier_portal_settings'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -8747,5 +8751,633 @@ export const MockApi = {
       inProgressOrders: orders.filter(o => o.status === 'PENDING').length,
       totalOrders: orders.length
     };
+  },
+
+  // ===============================================
+  // ===== Supplier Portal API Methods =====
+  // ===============================================
+
+  // --- Supplier Products CRUD ---
+  async getSupplierProducts(supplierId: string, filters?: SupplierProductFilters): Promise<{ items: SupplierProduct[]; total: number }> {
+    await delay(50);
+    const allProducts: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    let products = allProducts.filter(p => p.supplierId === supplierId);
+    
+    // Apply filters
+    if (filters?.search) {
+      const searchLower = filters.search.toLowerCase();
+      products = products.filter(p => 
+        p.name.toLowerCase().includes(searchLower) ||
+        p.sku.toLowerCase().includes(searchLower) ||
+        p.oemNumber.toLowerCase().includes(searchLower) ||
+        p.brand.toLowerCase().includes(searchLower)
+      );
+    }
+    if (filters?.category) {
+      products = products.filter(p => p.category === filters.category);
+    }
+    if (filters?.brand) {
+      products = products.filter(p => p.brand === filters.brand);
+    }
+    if (filters?.availability === 'IN_STOCK') {
+      products = products.filter(p => p.stock > 0);
+    } else if (filters?.availability === 'OUT_OF_STOCK') {
+      products = products.filter(p => p.stock === 0);
+    }
+    if (filters?.isActive !== undefined) {
+      products = products.filter(p => p.isActive === filters.isActive);
+    }
+
+    // Sorting
+    const sortKey = filters?.sortBy || 'createdAt';
+    const sortDir = filters?.sortDirection || 'desc';
+    products.sort((a, b) => {
+      const aVal = a[sortKey as keyof SupplierProduct] ?? '';
+      const bVal = b[sortKey as keyof SupplierProduct] ?? '';
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      return 0;
+    });
+
+    const total = products.length;
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 20;
+    const start = (page - 1) * pageSize;
+    const items = products.slice(start, start + pageSize);
+
+    return { items, total };
+  },
+
+  async addSupplierProduct(supplierId: string, product: SupplierProductInsert): Promise<SupplierProduct> {
+    await delay(50);
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    
+    const newProduct: SupplierProduct = {
+      id: `SP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      supplierId,
+      ...product,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    products.push(newProduct);
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS, JSON.stringify(products));
+
+    // Log activity
+    internalRecordActivity({
+      eventType: 'PRODUCT_ADDED',
+      userId: supplierId,
+      userName: '',
+      role: 'CUSTOMER_OWNER',
+      entityType: 'PRODUCT',
+      entityId: newProduct.id,
+      description: `أضاف منتج جديد: ${product.name}`,
+      metadata: { productSku: product.sku }
+    });
+
+    return newProduct;
+  },
+
+  async updateSupplierProduct(supplierId: string, productId: string, updates: Partial<SupplierProductInsert>): Promise<SupplierProduct | null> {
+    await delay(50);
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const idx = products.findIndex(p => p.id === productId && p.supplierId === supplierId);
+    
+    if (idx === -1) return null;
+    
+    products[idx] = {
+      ...products[idx],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS, JSON.stringify(products));
+
+    // Log activity
+    internalRecordActivity({
+      eventType: 'PRODUCT_UPDATED',
+      userId: supplierId,
+      userName: '',
+      role: 'CUSTOMER_OWNER',
+      entityType: 'PRODUCT',
+      entityId: productId,
+      description: `حدّث منتج: ${products[idx].name}`,
+      metadata: { updates: Object.keys(updates) }
+    });
+
+    return products[idx];
+  },
+
+  async deleteSupplierProduct(supplierId: string, productId: string): Promise<boolean> {
+    await delay(50);
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const idx = products.findIndex(p => p.id === productId && p.supplierId === supplierId);
+    
+    if (idx === -1) return false;
+    
+    // Soft delete
+    products[idx].isActive = false;
+    products[idx].updatedAt = new Date().toISOString();
+    
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS, JSON.stringify(products));
+
+    // Log activity
+    internalRecordActivity({
+      eventType: 'PRODUCT_DELETED',
+      userId: supplierId,
+      userName: '',
+      role: 'CUSTOMER_OWNER',
+      entityType: 'PRODUCT',
+      entityId: productId,
+      description: `حذف منتج: ${products[idx].name}`,
+      metadata: {}
+    });
+
+    return true;
+  },
+
+  // --- Supplier Excel Import ---
+  async importSupplierProductsFromExcel(supplierId: string, fileData: ArrayBuffer): Promise<SupplierExcelImportResult> {
+    await delay(100);
+    
+    try {
+      const workbook = XLSX.read(fileData, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+      
+      const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+      
+      let insertedCount = 0;
+      let updatedCount = 0;
+      let skippedCount = 0;
+      const errors: { row: number; field: string; message: string }[] = [];
+      
+      jsonData.forEach((row: any, index: number) => {
+        const sku = String(row['sku'] || row['SKU'] || row['رمز المنتج'] || '').trim();
+        const oemNumber = String(row['oemNumber'] || row['OEM'] || row['رقم OEM'] || row['رقم القطعة'] || '').trim();
+        const name = String(row['name'] || row['الاسم'] || row['اسم المنتج'] || '').trim();
+        const price = parseFloat(row['price'] || row['السعر'] || row['purchasePrice'] || '0');
+        const stock = parseInt(row['stock'] || row['المخزون'] || row['الكمية'] || '0');
+        const category = String(row['category'] || row['التصنيف'] || '').trim();
+        const brand = String(row['brand'] || row['الماركة'] || row['العلامة'] || '').trim();
+        const model = String(row['model'] || row['الموديل'] || '').trim();
+        const yearFrom = parseInt(row['yearFrom'] || row['سنة من'] || '0') || undefined;
+        const yearTo = parseInt(row['yearTo'] || row['سنة إلى'] || '0') || undefined;
+        const deliveryTime = parseInt(row['deliveryTime'] || row['وقت التسليم'] || '3');
+        const minOrderQty = parseInt(row['minOrderQty'] || row['الحد الأدنى'] || '1');
+        
+        // Validation
+        if (!sku && !oemNumber) {
+          errors.push({ row: index + 2, field: 'sku/oemNumber', message: 'يجب توفير رمز المنتج أو رقم OEM' });
+          skippedCount++;
+          return;
+        }
+        if (!name) {
+          errors.push({ row: index + 2, field: 'name', message: 'اسم المنتج مطلوب' });
+          skippedCount++;
+          return;
+        }
+        if (isNaN(price) || price < 0) {
+          errors.push({ row: index + 2, field: 'price', message: 'السعر غير صالح' });
+          skippedCount++;
+          return;
+        }
+        
+        // Check if product exists (by sku or oemNumber)
+        const existingIdx = products.findIndex(p => 
+          p.supplierId === supplierId && 
+          ((sku && p.sku === sku) || (oemNumber && p.oemNumber === oemNumber))
+        );
+        
+        if (existingIdx !== -1) {
+          // Update existing
+          products[existingIdx] = {
+            ...products[existingIdx],
+            name,
+            purchasePrice: price,
+            stock,
+            category: category || products[existingIdx].category,
+            brand: brand || products[existingIdx].brand,
+            model: model || products[existingIdx].model,
+            yearFrom: yearFrom || products[existingIdx].yearFrom,
+            yearTo: yearTo || products[existingIdx].yearTo,
+            deliveryTime,
+            minOrderQty,
+            updatedAt: new Date().toISOString()
+          };
+          updatedCount++;
+        } else {
+          // Insert new
+          const newProduct: SupplierProduct = {
+            id: `SP-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+            supplierId,
+            sku: sku || `AUTO-${Date.now()}`,
+            oemNumber: oemNumber || '',
+            name,
+            category: category || 'عام',
+            brand: brand || 'غير محدد',
+            model,
+            yearFrom,
+            yearTo,
+            purchasePrice: price,
+            minOrderQty,
+            stock,
+            deliveryTime,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          products.push(newProduct);
+          insertedCount++;
+        }
+      });
+      
+      localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS, JSON.stringify(products));
+
+      // Log activity
+      internalRecordActivity({
+        eventType: 'PRODUCT_IMPORTED',
+        userId: supplierId,
+        userName: '',
+        role: 'CUSTOMER_OWNER',
+        entityType: 'PRODUCT',
+        entityId: '',
+        description: `استورد ${insertedCount + updatedCount} منتج من ملف Excel`,
+        metadata: { insertedCount, updatedCount, skippedCount }
+      });
+
+      return {
+        success: true,
+        totalRows: jsonData.length,
+        insertedCount,
+        updatedCount,
+        skippedCount,
+        errors
+      };
+    } catch (error) {
+      return {
+        success: false,
+        totalRows: 0,
+        insertedCount: 0,
+        updatedCount: 0,
+        skippedCount: 0,
+        errors: [{ row: 0, field: 'file', message: 'فشل في قراءة الملف' }]
+      };
+    }
+  },
+
+  // --- Supplier Requests ---
+  async getSupplierRequests(supplierId: string, filters?: SupplierRequestFilters): Promise<{ items: SupplierRequest[]; total: number }> {
+    await delay(50);
+    const allRequests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    let requests = allRequests.filter(r => r.supplierId === supplierId);
+    
+    // Apply filters
+    if (filters?.status && filters.status !== 'ALL') {
+      requests = requests.filter(r => r.status === filters.status);
+    }
+    if (filters?.urgency && filters.urgency !== 'ALL') {
+      requests = requests.filter(r => r.urgency === filters.urgency);
+    }
+    if (filters?.dateFrom) {
+      requests = requests.filter(r => r.createdAt >= filters.dateFrom!);
+    }
+    if (filters?.dateTo) {
+      requests = requests.filter(r => r.createdAt <= filters.dateTo!);
+    }
+    if (filters?.search) {
+      const searchLower = filters.search.toLowerCase();
+      requests = requests.filter(r => 
+        (r.partNumber?.toLowerCase().includes(searchLower)) ||
+        (r.partName?.toLowerCase().includes(searchLower)) ||
+        (r.customerName?.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Sorting
+    const sortKey = filters?.sortBy || 'createdAt';
+    const sortDir = filters?.sortDirection || 'desc';
+    requests.sort((a, b) => {
+      const aVal = a[sortKey as keyof SupplierRequest] ?? '';
+      const bVal = b[sortKey as keyof SupplierRequest] ?? '';
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return 0;
+    });
+
+    const total = requests.length;
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 20;
+    const start = (page - 1) * pageSize;
+    const items = requests.slice(start, start + pageSize);
+
+    return { items, total };
+  },
+
+  async submitSupplierQuote(supplierId: string, quoteData: SupplierQuoteSubmission): Promise<SupplierRequest | null> {
+    await delay(50);
+    const requests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    const idx = requests.findIndex(r => r.id === quoteData.requestId && r.supplierId === supplierId);
+    
+    if (idx === -1) return null;
+    
+    requests[idx] = {
+      ...requests[idx],
+      status: 'QUOTED',
+      quotedPrice: quoteData.quotedPrice,
+      stockAvailable: quoteData.stockAvailable,
+      notes: quoteData.notes,
+      respondedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS, JSON.stringify(requests));
+
+    // Log activity
+    internalRecordActivity({
+      eventType: 'QUOTE_SENT',
+      userId: supplierId,
+      userName: '',
+      role: 'CUSTOMER_OWNER',
+      entityType: 'REQUEST',
+      entityId: quoteData.requestId,
+      description: `قدم عرض سعر: ${quoteData.quotedPrice} ريال`,
+      metadata: { quotedPrice: quoteData.quotedPrice, stockAvailable: quoteData.stockAvailable }
+    });
+
+    // Notify admin
+    const admins = getAdminUserIds();
+    admins.forEach(adminId => {
+      createEventNotification({
+        userId: adminId,
+        type: 'SUPPLIER_REQUEST_ASSIGNED',
+        title: 'عرض سعر جديد من مورد',
+        message: `المورد قدم عرض سعر ${quoteData.quotedPrice} ريال`,
+        relatedType: 'REQUEST',
+        relatedId: quoteData.requestId
+      });
+    });
+
+    return requests[idx];
+  },
+
+  async rejectSupplierRequest(supplierId: string, requestId: string, reason?: string): Promise<SupplierRequest | null> {
+    await delay(50);
+    const requests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    const idx = requests.findIndex(r => r.id === requestId && r.supplierId === supplierId);
+    
+    if (idx === -1) return null;
+    
+    requests[idx] = {
+      ...requests[idx],
+      status: 'REJECTED',
+      notes: reason || 'رفض المورد الطلب',
+      respondedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS, JSON.stringify(requests));
+
+    // Log activity
+    internalRecordActivity({
+      eventType: 'QUOTE_REQUEST_REJECTED',
+      userId: supplierId,
+      userName: '',
+      role: 'CUSTOMER_OWNER',
+      entityType: 'REQUEST',
+      entityId: requestId,
+      description: `رفض طلب التسعير`,
+      metadata: { reason }
+    });
+
+    return requests[idx];
+  },
+
+  // --- Supplier Data Initialization (Seeds demo data for suppliers) ---
+  initializeSupplierDemoData(supplierId: string): void {
+    const existingProducts: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const supplierHasProducts = existingProducts.some(p => p.supplierId === supplierId);
+    
+    if (!supplierHasProducts) {
+      const demoProducts: SupplierProduct[] = [
+        { id: `SP-demo-1`, supplierId, sku: 'CN-BRK-001', oemNumber: '11223344', name: 'فحمات فرامل أمامية - شانجان CS75', category: 'فرامل', brand: 'Changan', model: 'CS75', yearFrom: 2020, yearTo: 2024, purchasePrice: 120, stock: 50, minOrderQty: 1, deliveryTime: 2, isActive: true, createdAt: new Date(Date.now() - 30*24*60*60*1000).toISOString(), updatedAt: new Date().toISOString() },
+        { id: `SP-demo-2`, supplierId, sku: 'MG-FLT-002', oemNumber: '55667788', name: 'فلتر زيت أصلي - MG RX5', category: 'فلاتر', brand: 'MG', model: 'RX5', yearFrom: 2021, yearTo: 2024, purchasePrice: 35, stock: 200, minOrderQty: 5, deliveryTime: 1, isActive: true, createdAt: new Date(Date.now() - 25*24*60*60*1000).toISOString(), updatedAt: new Date().toISOString() },
+        { id: `SP-demo-3`, supplierId, sku: 'GL-RAD-003', oemNumber: '99887766', name: 'راديتر ماء - جيلي كولراي', category: 'تبريد', brand: 'Geely', model: 'Coolray', yearFrom: 2022, yearTo: 2024, purchasePrice: 550, stock: 15, minOrderQty: 1, deliveryTime: 3, isActive: true, createdAt: new Date(Date.now() - 20*24*60*60*1000).toISOString(), updatedAt: new Date().toISOString() },
+        { id: `SP-demo-4`, supplierId, sku: 'HV-SUSP-004', oemNumber: '44556677', name: 'مساعد أمامي - هافال H6', category: 'نظام تعليق', brand: 'Haval', model: 'H6', yearFrom: 2020, yearTo: 2023, purchasePrice: 380, stock: 10, minOrderQty: 1, deliveryTime: 2, isActive: true, createdAt: new Date(Date.now() - 15*24*60*60*1000).toISOString(), updatedAt: new Date().toISOString() },
+        { id: `SP-demo-5`, supplierId, sku: 'CN-ALT-005', oemNumber: '33445566', name: 'دينمو كهرباء - شانجان CS95', category: 'كهرباء', brand: 'Changan', model: 'CS95', yearFrom: 2019, yearTo: 2024, purchasePrice: 950, stock: 5, minOrderQty: 1, deliveryTime: 4, isActive: false, createdAt: new Date(Date.now() - 10*24*60*60*1000).toISOString(), updatedAt: new Date().toISOString() },
+      ];
+      const updatedProducts = [...existingProducts, ...demoProducts];
+      localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS, JSON.stringify(updatedProducts));
+    }
+
+    const existingRequests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    const supplierHasRequests = existingRequests.some(r => r.supplierId === supplierId);
+    
+    if (!supplierHasRequests) {
+      const demoRequests: SupplierRequest[] = [
+        { id: `SR-demo-1`, supplierId, customerId: 'cust-001', customerName: 'مركز السيارات الحديثة', partNumber: 'CN-BRK-001', partName: 'فحمات فرامل أمامية', quantity: 20, status: 'NEW', urgency: 'HIGH', deadline: new Date(Date.now() + 3*24*60*60*1000).toISOString(), createdAt: new Date(Date.now() - 2*60*60*1000).toISOString() },
+        { id: `SR-demo-2`, supplierId, customerId: 'cust-002', customerName: 'ورشة الأمل للسيارات', partNumber: 'MG-FLT-002', partName: 'فلتر زيت MG', quantity: 50, status: 'NEW', urgency: 'MEDIUM', deadline: new Date(Date.now() + 5*24*60*60*1000).toISOString(), createdAt: new Date(Date.now() - 5*60*60*1000).toISOString() },
+        { id: `SR-demo-3`, supplierId, customerId: 'cust-003', customerName: 'مجموعة السيارات الصينية', partNumber: 'GL-RAD-003', partName: 'راديتر جيلي', quantity: 5, status: 'QUOTED', quotedPrice: 3000, stockAvailable: 5, urgency: 'NORMAL', respondedAt: new Date(Date.now() - 24*60*60*1000).toISOString(), createdAt: new Date(Date.now() - 3*24*60*60*1000).toISOString() },
+        { id: `SR-demo-4`, supplierId, customerId: 'cust-004', customerName: 'الوكيل المعتمد للسيارات', partNumber: 'HV-SUSP-004', partName: 'مساعد هافال H6', quantity: 10, status: 'ACCEPTED', quotedPrice: 4200, stockAvailable: 10, urgency: 'HIGH', respondedAt: new Date(Date.now() - 5*24*60*60*1000).toISOString(), createdAt: new Date(Date.now() - 7*24*60*60*1000).toISOString() },
+        { id: `SR-demo-5`, supplierId, customerId: 'cust-005', customerName: 'مركز الخليج للصيانة', partNumber: 'CN-ALT-005', partName: 'دينمو شانجان', quantity: 2, status: 'REJECTED', notes: 'غير متوفر حالياً', urgency: 'URGENT', respondedAt: new Date(Date.now() - 2*24*60*60*1000).toISOString(), createdAt: new Date(Date.now() - 4*24*60*60*1000).toISOString() },
+      ];
+      const updatedRequests = [...existingRequests, ...demoRequests];
+      localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS, JSON.stringify(updatedRequests));
+    }
+  },
+
+  // --- Supplier Dashboard ---
+  async getSupplierDashboard(supplierId: string): Promise<SupplierDashboardStats> {
+    await delay(50);
+    // Initialize demo data if needed
+    this.initializeSupplierDemoData(supplierId);
+    
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const requests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    
+    const supplierProducts = products.filter(p => p.supplierId === supplierId);
+    const supplierRequests = requests.filter(r => r.supplierId === supplierId);
+    
+    const today = new Date().toISOString().split('T')[0];
+    const requestsToday = supplierRequests.filter(r => r.createdAt.startsWith(today));
+    
+    const quotedRequests = supplierRequests.filter(r => r.status === 'QUOTED');
+    const acceptedRequests = supplierRequests.filter(r => r.status === 'ACCEPTED');
+    const rejectedRequests = supplierRequests.filter(r => r.status === 'REJECTED');
+    const pendingRequests = supplierRequests.filter(r => r.status === 'NEW' || r.status === 'VIEWED');
+    
+    // Calculate average response time
+    let totalResponseTime = 0;
+    let respondedCount = 0;
+    quotedRequests.forEach(r => {
+      if (r.respondedAt && r.createdAt) {
+        const created = new Date(r.createdAt).getTime();
+        const responded = new Date(r.respondedAt).getTime();
+        totalResponseTime += (responded - created) / (1000 * 60 * 60); // Hours
+        respondedCount++;
+      }
+    });
+    
+    return {
+      totalProducts: supplierProducts.length,
+      activeProducts: supplierProducts.filter(p => p.isActive).length,
+      inactiveProducts: supplierProducts.filter(p => !p.isActive).length,
+      requestsAssignedToday: requestsToday.length,
+      quotesSubmitted: quotedRequests.length,
+      quotesAccepted: acceptedRequests.length,
+      quotesRejected: rejectedRequests.length,
+      pendingRequests: pendingRequests.length,
+      averageResponseTime: respondedCount > 0 ? Math.round(totalResponseTime / respondedCount) : 0,
+      supplierRating: 4.2, // Mock rating
+      totalRevenue: acceptedRequests.reduce((sum, r) => sum + (r.quotedPrice || 0), 0),
+      thisMonthRevenue: acceptedRequests
+        .filter(r => r.respondedAt?.startsWith(new Date().toISOString().slice(0, 7)))
+        .reduce((sum, r) => sum + (r.quotedPrice || 0), 0)
+    };
+  },
+
+  // --- Supplier Settings ---
+  async getSupplierSettings(supplierId: string): Promise<SupplierSettings | null> {
+    await delay(30);
+    const allSettings: SupplierSettings[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_SETTINGS) || '[]');
+    const settings = allSettings.find(s => s.supplierId === supplierId);
+    
+    if (!settings) {
+      // Return default settings
+      return {
+        id: `SS-${supplierId}`,
+        supplierId,
+        defaultPriceMarkup: 10,
+        defaultDeliveryTime: 3,
+        autoResponseEnabled: false,
+        notifyOnNewRequest: true,
+        notifyOnQuoteAccepted: true,
+        notifyOnDeadlineApproaching: true
+      };
+    }
+    
+    return settings;
+  },
+
+  async updateSupplierSettings(supplierId: string, updates: Partial<SupplierSettings>): Promise<SupplierSettings> {
+    await delay(50);
+    const allSettings: SupplierSettings[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_SETTINGS) || '[]');
+    const idx = allSettings.findIndex(s => s.supplierId === supplierId);
+    
+    let settings: SupplierSettings;
+    
+    if (idx !== -1) {
+      allSettings[idx] = { ...allSettings[idx], ...updates };
+      settings = allSettings[idx];
+    } else {
+      settings = {
+        id: `SS-${supplierId}`,
+        supplierId,
+        defaultPriceMarkup: 10,
+        defaultDeliveryTime: 3,
+        autoResponseEnabled: false,
+        notifyOnNewRequest: true,
+        notifyOnQuoteAccepted: true,
+        notifyOnDeadlineApproaching: true,
+        ...updates
+      };
+      allSettings.push(settings);
+    }
+    
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_SETTINGS, JSON.stringify(allSettings));
+
+    // Log activity
+    internalRecordActivity({
+      eventType: 'SETTINGS_UPDATED',
+      userId: supplierId,
+      userName: '',
+      role: 'CUSTOMER_OWNER',
+      entityType: 'USER',
+      entityId: supplierId,
+      description: 'حدّث إعدادات المورد',
+      metadata: { updates: Object.keys(updates) }
+    });
+
+    return settings;
+  },
+
+  // --- Create Supplier Request (Admin function to assign requests to suppliers) ---
+  async createSupplierRequest(request: Omit<SupplierRequest, 'id' | 'createdAt' | 'updatedAt'>): Promise<SupplierRequest> {
+    await delay(30);
+    const requests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    
+    const newRequest: SupplierRequest = {
+      id: `SR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      ...request,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    requests.push(newRequest);
+    localStorage.setItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS, JSON.stringify(requests));
+
+    // Notify supplier
+    createEventNotification({
+      userId: request.supplierId,
+      type: 'SUPPLIER_REQUEST_ASSIGNED',
+      title: 'طلب تسعير جديد',
+      message: `لديك طلب تسعير جديد للقطعة: ${request.partName || request.partNumber}`,
+      relatedType: 'REQUEST',
+      relatedId: newRequest.id,
+      link: '/supplier/requests'
+    });
+
+    return newRequest;
+  },
+
+  // --- Get Supplier Portal Profile Extended ---
+  async getSupplierPortalProfile(userId: string): Promise<SupplierProfileExtended | null> {
+    await delay(30);
+    const users: User[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+    const user = users.find(u => u.id === userId);
+    
+    if (!user || !user.isSupplier) return null;
+
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const requests: SupplierRequest[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_REQUESTS) || '[]');
+    
+    const supplierProducts = products.filter(p => p.supplierId === userId);
+    const supplierRequests = requests.filter(r => r.supplierId === userId);
+
+    return {
+      userId,
+      supplierType: (user.extendedRole === 'SUPPLIER_INTERNATIONAL' ? 'INTERNATIONAL' : 'LOCAL') as 'LOCAL' | 'INTERNATIONAL',
+      supplierCompanyName: user.name || 'مورد',
+      supplierVat: '',
+      supplierCrNumber: '',
+      supplierRating: 4.2,
+      supplierActiveProductsCount: supplierProducts.filter(p => p.isActive).length,
+      supplierTotalQuotesSubmitted: supplierRequests.filter(r => r.status === 'QUOTED').length,
+      supplierTotalQuotesAccepted: supplierRequests.filter(r => r.status === 'ACCEPTED').length,
+      supplierJoinedAt: new Date().toISOString(),
+      supplierStatus: 'ACTIVE',
+      contactEmail: user.email,
+      contactPhone: user.phone
+    };
+  },
+
+  // --- Get Products Categories and Brands for Filters ---
+  async getSupplierProductCategories(supplierId: string): Promise<string[]> {
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const categories = [...new Set(products.filter(p => p.supplierId === supplierId).map(p => p.category))];
+    return categories.filter(Boolean);
+  },
+
+  async getSupplierProductBrands(supplierId: string): Promise<string[]> {
+    const products: SupplierProduct[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIER_PORTAL_PRODUCTS) || '[]');
+    const brands = [...new Set(products.filter(p => p.supplierId === supplierId).map(p => p.brand))];
+    return brands.filter(Boolean);
   }
 };
