@@ -1013,21 +1013,92 @@ export type ActivityEventType =
   | 'PURCHASE_REQUEST_CREATED' // إنشاء طلب شراء من صفحة البحث
   | 'USER_APPROVED'      // اعتماد مستخدم
   | 'USER_REJECTED'      // رفض مستخدم
+  | 'ALTERNATIVES_UPLOADED' // رفع ملف بدائل
+  | 'SETTINGS_CHANGED'   // تغيير إعدادات
+  | 'FILE_UPLOADED'      // رفع ملف
   | 'OTHER';             // عمليات أخرى عامة
+
+// Actor type for activity tracking
+export type ActorType = 
+  | 'CUSTOMER'
+  | 'SUPPLIER'
+  | 'MARKETER'
+  | 'EMPLOYEE'
+  | 'ADMIN';
+
+// Entity type for activity tracking
+export type EntityType =
+  | 'ORDER'
+  | 'REQUEST'
+  | 'CUSTOMER'
+  | 'SUPPLIER'
+  | 'PRODUCT'
+  | 'ALTERNATIVE'
+  | 'SETTINGS'
+  | 'QUOTE'
+  | 'IMPORT'
+  | 'USER'
+  | 'FILE'
+  | 'OTHER';
 
 export interface ActivityLogEntry {
   id: string;            // رقم فريد للنشاط
-  userId: string;        // المستخدم الذي قام بالنشاط
+  userId: string;        // المستخدم الذي قام بالنشاط (actorId)
   userName?: string;     // اسم المستخدم
   role?: UserRole;       // دور المستخدم
   eventType: ActivityEventType;
+
+  // Extended activity tracking fields
+  actorType?: ActorType;    // نوع الفاعل (عميل، مورد، مسوق، موظف، إدارة)
+  entityType?: EntityType;  // نوع الكيان المتأثر
+  entityId?: string;        // معرف الكيان المتأثر
 
   // تفاصيل إضافية
   description?: string;  // نص وصفي للنشاط بالعربي
   page?: string;         // اسم الصفحة أو المسار
   metadata?: Record<string, any>; // كائن اختياري لوضع تفاصيل إضافية
+  
+  // Optional tracking
+  ipAddress?: string;    // عنوان IP (اختياري)
+  userAgent?: string;    // معلومات المتصفح (اختياري)
 
   createdAt: string;     // التاريخ والوقت الكامل للنشاط
+}
+
+// Online user tracking
+export interface OnlineUser {
+  id: string;
+  name: string;
+  actorType: ActorType;
+  role?: UserRole;
+  lastActivityAt: string;
+}
+
+export interface OnlineUsersResponse {
+  onlineCustomers: OnlineUser[];
+  onlineSuppliers: OnlineUser[];
+  onlineMarketers: OnlineUser[];
+  onlineEmployees: OnlineUser[];
+  onlineAdmins: OnlineUser[];
+}
+
+export interface ActivityLogFilters {
+  actorType?: ActorType;
+  actorId?: string;
+  actionType?: ActivityEventType;
+  entityType?: EntityType;
+  entityId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ActivityLogResponse {
+  items: ActivityLogEntry[];
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
 // --- Admin Users Management Types ---

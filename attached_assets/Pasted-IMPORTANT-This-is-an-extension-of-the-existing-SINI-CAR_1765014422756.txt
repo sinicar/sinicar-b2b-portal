@@ -1,0 +1,294 @@
+IMPORTANT — This is an extension of the existing SINI CAR system.
+Do NOT delete any existing logs or tracking code.
+We are ADDING a detailed Activity Log page and “Online Users” view in the Admin Panel.
+
+FOCUS:
+- Track actions for: customers, suppliers, marketers, SINI CAR employees.
+- Provide filters for each group.
+- Show “users currently online” based on recent activity.
+- Reduce Replit cost by using simple writes and simple queries (no background jobs, no WebSockets, no AI).
+
+GOAL:
+Implement:
+1) A unified Activity Log model in the backend.
+2) Backend APIs to read/filter activity logs and list online users.
+3) An Admin UI page “Activity Log” with filters and sections:
+   - Marketer activity
+   - Supplier activity
+   - Customer activity
+   - SINI CAR staff activity
+   - Online users (now)
+
+────────────────────────────────
+1) Backend – Activity Log Model
+────────────────────────────────
+
+If an activity/audit log model already exists:
+- Extend and reuse it.
+- Do NOT remove any existing fields.
+
+If not, add a new model/table, for example:
+
+ActivityLog:
+- id             (primary key)
+- actorId        (userId performing the action)
+- actorType      (string enum):
+    • "CUSTOMER"
+    • "SUPPLIER"
+    • "MARKETER"
+    • "EMPLOYEE"
+    • "ADMIN"
+- actionType     (string, e.g. "LOGIN", "LOGOUT", "CREATE_ORDER",
+                           "UPDATE_STATUS", "UPLOAD_FILE", "REGISTER", ...)
+- entityType     (string, e.g. "ORDER", "REQUEST", "CUSTOMER", "SUPPLIER",
+                           "PRODUCT", "ALTERNATIVE", "SETTINGS", ...)
+- entityId       (string | nullable)  // ID of related entity if applicable
+- description    (string, short)      // human-readable description
+- ipAddress      (string? optional)   // if easy to capture
+- userAgent      (string? optional)   // if easy to capture
+- createdAt      (DateTime)
+
+Notes:
+- Keep description short to reduce storage and compute overhead.
+- actionType/entityType can be simple strings, no need for complex enums if that complicates migrations.
+
+────────────────────────────────
+2) Backend – Logging Helper (to avoid heavy logic)
+────────────────────────────────
+
+Create a simple helper/service function in the backend, e.g.:
+
+logActivity({
+  actorId,
+  actorType,
+  actionType,
+  entityType,
+  entityId,
+  description
+})
+
+Rules:
+- Use this helper in key places ONLY (not on every tiny event).
+- Suggested events to log:
+  • User login success
+  • User logout (if implemented)
+  • New customer registration
+  • New supplier registration
+  • New marketer registration
+  • Creating a new order / quote / purchase request
+  • Changing order/request status
+  • Uploading alternatives (Command 7)
+  • Sending purchase request (Command 8)
+  • Editing important settings in Admin Panel
+
+Compute/Cost:
+- Each log is one simple INSERT.
+- Do NOT log every single keystroke or small UI event.
+- Only business-level events.
+
+────────────────────────────────
+3) Backend – Activity Log API (with filters)
+────────────────────────────────
+
+Create endpoint:
+  GET /api/activity
+
+Accepted query parameters (all optional, combine as needed):
+- actorType   (CUSTOMER, SUPPLIER, MARKETER, EMPLOYEE, ADMIN)
+- actorId     (specific user)
+- actionType  (e.g. LOGIN, CREATE_ORDER,...)
+- entityType  (ORDER, REQUEST, CUSTOMER,...)
+- entityId
+- dateFrom
+- dateTo
+- page        (default 1)
+- pageSize    (default e.g. 20 or 50)
+
+Behavior:
+- Apply filters only if provided.
+- Use simple WHERE conditions, e.g.:
+  WHERE
+    (actorType = ? if provided)
+    AND (actorId = ? if provided)
+    AND (actionType = ? if provided)
+    AND (entityType = ? if provided)
+    AND (entityId = ? if provided)
+    AND (createdAt between dateFrom and dateTo if provided)
+- Order by createdAt DESC (most recent first).
+- Return paginated data:
+  {
+    "items": [
+      {
+        "id": "...",
+        "actorId": "...",
+        "actorType": "...",
+        "actionType": "...",
+        "entityType": "...",
+        "entityId": "...",
+        "description": "...",
+        "createdAt": "..."
+      },
+      ...
+    ],
+    "page": 1,
+    "pageSize": 50,
+    "total": 123
+  }
+
+Compute/Cost:
+- Add index on createdAt and actorType (and optionally actorId) to keep queries fast.
+- Always use pagination, never return all rows.
+
+────────────────────────────────
+4) Backend – Track “Online Users” (customers/suppliers/marketers/employees)
+────────────────────────────────
+
+Add two small fields to the User model if not already present:
+- lastActivityAt (DateTime)
+- lastIpAddress? (optional)
+
+On each authenticated request (for any logged-in user):
+- Update:
+  • lastActivityAt = current timestamp
+  • lastIpAddress = request IP (if easy)
+- To reduce write load:
+  • Option 1: only update if lastActivityAt is older than e.g. 2–5 minutes.
+  • This avoids excessive writes on rapid requests.
+
+Create an endpoint:
+  GET /api/activity/online-users
+
+Behavior:
+- Define “online” as users whose lastActivityAt is within last N minutes (e.g. 5 minutes).
+- Query users where:
+  lastActivityAt >= now - 5 minutes
+- Return data grouped by actorType if possible:
+  {
+    "onlineCustomers": [...],
+    "onlineSuppliers": [...],
+    "onlineMarketers": [...],
+    "onlineEmployees": [...],
+    "onlineAdmins": [...]
+  }
+
+Each user item can include:
+- id
+- name
+- role/actorType
+- lastActivityAt
+
+Compute/Cost:
+- Single indexed query on lastActivityAt.
+- No WebSockets.
+- No background job to clean sessions; rely on timestamp logic only.
+
+────────────────────────────────
+5) Frontend – Admin “Activity Log” Page
+────────────────────────────────
+
+Add a new page in the Admin Panel navigation:
+
+Name:
+- English: "Activity Log"
+- Arabic: "سجل النشاط"
+
+Page layout:
+- Top: Filters bar.
+- Middle: Activity log table.
+- Side/Bottom: “Online Users” panel.
+
+A) Filters:
+- Dropdown or tabs for actorType:
+  • All, Customers, Suppliers, Marketers, Employees, Admins
+- Optional dropdowns/search:
+  • Specific customer, supplier, marketer, employee
+- Dropdown for actionType (optional simple list: LOGIN, CREATE_ORDER, UPDATE_STATUS, UPLOAD_FILE, ...)
+- Input for entityType (or dropdown)
+- Date range (dateFrom, dateTo)
+- "Apply / Search" button to trigger API call:
+  GET /api/activity with chosen filters.
+
+Performance:
+- Do NOT call API on every filter change.
+- Only call when clicking "Search" or on initial page load.
+
+B) Activity table:
+- Columns:
+  • Time (createdAt)
+  • Actor (name + type: Customer/Supplier/Marketer/Employee/Admin)
+  • Action (actionType)
+  • Entity (entityType + ID)
+  • Description
+- Pagination controls:
+  • page / perPage / next / previous
+
+C) “Online Users Now” panel:
+- Section on the same page or as a tab:
+  - Title: "Online Users" / "المستخدمون المتصلون الآن"
+  - On first open (or on clicking a button "Refresh"), call:
+      GET /api/activity/online-users
+  - Show grouped lists:
+    • Online Customers
+    • Online Suppliers
+    • Online Marketers
+    • Online Employees/Admins
+  - Each item:
+    • Name
+    • Role
+    • lastActivityAt
+
+Performance:
+- No auto-refresh every few seconds.  
+- Manual refresh button instead (e.g. "Refresh Online List") to avoid unnecessary requests.
+
+────────────────────────────────
+6) Permissions
+────────────────────────────────
+
+- Activity Log & Online Users page:
+  • Access limited to Admin (and optionally specific high-level roles).
+- Protect both:
+  • GET /api/activity
+  • GET /api/activity/online-users
+  with existing auth middleware and role checks.
+- Normal customers/suppliers/marketers MUST NOT see this page.
+
+────────────────────────────────
+7) Replit Compute & Cost Rules (without cutting features)
+────────────────────────────────
+
+- Implement ALL features described:
+  • ActivityLog model
+  • Logging helper
+  • Activity query with filters
+  • Online users based on lastActivityAt
+  • Admin UI with filters and tables
+
+- Reduce cost by:
+  • Logging only important business events (not every tiny action).
+  • Updating lastActivityAt only when needed (e.g. if older than a few minutes).
+  • Using indexes on:
+      - createdAt
+      - actorType
+      - actorId (if frequently filtered)
+      - lastActivityAt (for online users)
+  • Always using pagination for the main Activity Log.
+  • No WebSockets, no background cron jobs, no AI calls.
+
+────────────────────────────────
+8) Scope of this command
+────────────────────────────────
+
+- This command covers:
+  • Backend ActivityLog model + helper.
+  • Backend APIs:
+      - GET /api/activity
+      - GET /api/activity/online-users
+  • Updating lastActivityAt on authenticated user actions.
+  • Admin Activity Log page with filters + table.
+  • “Online Users” panel within the same page.
+
+- It does NOT:
+  • Change existing auth/roles (only reuses them).
+  • Replace any existing logs (only extends).
+  • Add complex charts; this is a table-based view.
