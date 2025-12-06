@@ -33,6 +33,7 @@ import { AdminOrganizationSettings } from './AdminOrganizationSettings';
 import { AdminCustomerPortalSettings } from './AdminCustomerPortalSettings';
 import AdminAISettings from './AdminAISettings';
 import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
+import { AdminAlternativesPage } from './AdminAlternativesPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -47,7 +48,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -71,7 +72,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'ADVERTISING': 'settings_general',
     'TEAM_SETTINGS': 'settings_general',
     'CUSTOMER_PORTAL': 'settings_general',
-    'AI_SETTINGS': 'settings_general'
+    'AI_SETTINGS': 'settings_general',
+    'ALTERNATIVES': 'products'
 };
 
 const VIEW_LABELS_KEYS: Record<ViewType, string> = {
@@ -96,7 +98,8 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'ADVERTISING': 'adminDashboard.views.advertising',
     'TEAM_SETTINGS': 'adminDashboard.views.teamSettings',
     'CUSTOMER_PORTAL': 'adminDashboard.views.customerPortal',
-    'AI_SETTINGS': 'adminDashboard.views.aiSettings'
+    'AI_SETTINGS': 'adminDashboard.views.aiSettings',
+    'ALTERNATIVES': 'adminDashboard.views.alternatives'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -389,6 +392,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.settingsSection')}</p>
                     {canAccess('products') && (
                         <NavItem icon={<Database size={20} />} label={t('adminDashboard.products')} active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
+                    )}
+                    {canAccess('products') && (
+                        <NavItem icon={<Layers size={20} />} label={t('adminDashboard.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => setView('ALTERNATIVES')} />
                     )}
                     {canAccess('users') && (
                         <NavItem icon={<Users size={20} />} label={t('adminDashboard.users')} active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
@@ -759,6 +765,12 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'PRODUCTS' && (
                         canAccess('products') 
                             ? <AdminProductsPage onRefresh={fetchAllData} /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+
+                    {view === 'ALTERNATIVES' && (
+                        canAccess('products') 
+                            ? <AdminAlternativesPage onRefresh={fetchAllData} /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 

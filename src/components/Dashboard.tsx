@@ -33,7 +33,7 @@ import {
   Clock, CheckCircle, ChevronLeft,
   Building2, Trash2, Menu, X,
   ShieldCheck, Headphones, History, AlertTriangle, Loader2, Plus, Globe, Lock,
-  FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX, Wrench
+  FileText, Anchor, BarChart3, Briefcase, Car, FileSpreadsheet, Check, Eye, Minus, ShoppingBag, PackageX, Wrench, Layers
 } from 'lucide-react';
 import { OrdersPage } from './OrdersPage';
 import { QuoteRequestPage } from './QuoteRequestPage';
@@ -51,6 +51,7 @@ import { NotificationBell } from './NotificationBell';
 import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
+import { AlternativesPage } from './AlternativesPage';
 import { TeamManagementPage } from './TeamManagementPage';
 import { useOrganization } from '../services/OrganizationContext';
 import { useCustomerPortalSettings, isFeatureEnabled, getDashboardSections, getNavigationItems } from '../services/CustomerPortalSettingsContext';
@@ -560,6 +561,7 @@ const DashboardSidebar = memo(({ user, profile, view, onViewChange, onLogout, si
                 {canAccessFeature('cust_use_trader_tools') && (
                     <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
                 )}
+                <CollapsibleSidebarItem icon={<Layers size={20} />} label={tDynamic('sidebar.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ALTERNATIVES')} collapsed={collapsed} />
                 <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
                 
                 {!collapsed && (
@@ -637,6 +639,7 @@ const DashboardHeader = memo(({
                     {view === 'QUOTE_REQUEST' && tDynamic('sidebar.quotes', 'طلبات التسعير')}
                     {view === 'IMPORT_CHINA' && tDynamic('sidebar.import', 'الاستيراد من الصين')}
                     {view === 'TRADER_TOOLS' && tDynamic('sidebar.traderTools', 'أدوات التاجر')}
+                    {view === 'ALTERNATIVES' && tDynamic('sidebar.alternatives', 'بدائل الأصناف')}
                     {view === 'ORGANIZATION' && tDynamic('sidebar.organization', 'إدارة المنشأة')}
                     {view === 'TEAM_MANAGEMENT' && tDynamic('sidebar.teamManagement', 'إدارة الفريق')}
                     {view === 'HISTORY' && tDynamic('sidebar.history', 'سجل البحث')}
@@ -690,8 +693,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Get visible navigation items based on portal settings  
     const visibleNavigationItems = useMemo(() => getNavigationItems(portalSettings), [portalSettings]);
     
-    // Add IMPORT_CHINA and TRADER_TOOLS to view state
-    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT'>('HOME');
+    // Add IMPORT_CHINA and TRADER_TOOLS and ALTERNATIVES to view state
+    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -2047,6 +2050,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                         {view === 'QUOTE_REQUEST' && <QuoteRequestPage user={user} onSuccess={() => {}} />}
                         {view === 'IMPORT_CHINA' && <ImportFromChinaPage user={user} userProfile={profile} />}
                         {view === 'TRADER_TOOLS' && <TraderToolsHub user={user} profile={profile} />}
+                        {view === 'ALTERNATIVES' && <AlternativesPage user={user} onBack={() => setView('HOME')} />}
                         {view === 'ORGANIZATION' && <OrganizationPage user={user} mainProfileUserId={user.role === 'CUSTOMER_STAFF' ? user.parentId! : user.id} />}
                         {view === 'TEAM_MANAGEMENT' && profile && (
                             <TeamManagementPage 
