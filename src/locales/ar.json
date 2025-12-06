@@ -965,6 +965,27 @@
     },
     "searchPlaceholder": "بحث باسم المنشأة أو الجوال أو المدينة...",
     "allStatuses": "كل الحالات",
+    "filters": {
+      "searchPlaceholder": "بحث بالاسم، الجوال، البريد، المدينة...",
+      "allStatuses": "كل الحالات",
+      "advanced": "فلاتر متقدمة",
+      "customerType": "نوع العميل",
+      "allTypes": "كل الأنواع",
+      "activityLevel": "مستوى النشاط",
+      "allActivity": "كل النشاط",
+      "activeToday": "نشط اليوم",
+      "activeWeek": "نشط هذا الأسبوع",
+      "inactive30": "غير نشط (+30 يوم)",
+      "marketer": "المسوق المسؤول",
+      "allMarketers": "كل المسوقين",
+      "employee": "الموظف المسؤول",
+      "allEmployees": "كل الموظفين",
+      "clearAll": "مسح الكل",
+      "resultsCount": "تم العثور على {{count}} عميل",
+      "mostOrders": "الأكثر طلبات",
+      "mostSearches": "الأكثر بحثاً",
+      "lastActive": "آخر نشاط"
+    },
     "table": {
       "customer": "العميل",
       "city": "المدينة",
@@ -1157,9 +1178,16 @@
       },
       "notes": {
         "adminNotes": "ملاحظات المدير",
-        "noNotes": "لا توجد ملاحظات داخلية",
-        "addNote": "أضف ملاحظة جديدة...",
-        "placeholder": "اكتب ملاحظات إدارية هنا...",
+        "addNew": "إضافة ملاحظة جديدة",
+        "placeholder": "اكتب ملاحظتك هنا...",
+        "addNote": "إضافة ملاحظة",
+        "adding": "جاري الإضافة...",
+        "addedSuccess": "تمت إضافة الملاحظة بنجاح",
+        "addError": "خطأ في إضافة الملاحظة",
+        "emptyError": "الرجاء إدخال ملاحظة",
+        "previousNotes": "الملاحظات السابقة",
+        "noNotes": "لا توجد ملاحظات بعد",
+        "addFirst": "أضف أول ملاحظة لهذا العميل",
         "saveNote": "حفظ الملاحظة"
       }
     }

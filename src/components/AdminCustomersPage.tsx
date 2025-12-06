@@ -1,14 +1,15 @@
 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLevel, StaffStatus, QuoteRequest, OrderStatus } from '../types';
+import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLevel, StaffStatus, QuoteRequest, OrderStatus, CustomerType, CustomerNote, AdminCustomerFilters, CustomerActivityLevel, CustomerOrderBehavior } from '../types';
 import { MockApi } from '../services/mockApi';
 import { 
     Search, Filter, ChevronRight, ChevronLeft, Eye, EyeOff, ShieldAlert, 
     CheckCircle, XCircle, Clock, MoreHorizontal, UserCheck, 
     Building2, MapPin, Phone, Briefcase, Lock, Key, 
     Trash2, AlertTriangle, Activity, Database, FileText, 
-    RefreshCcw, UserMinus, Plus, Minus, X
+    RefreshCcw, UserMinus, Plus, Minus, X, ChevronDown, ChevronUp,
+    Send, StickyNote, Percent, User as UserIcon, CalendarDays, Bell
 } from 'lucide-react';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
@@ -48,8 +49,19 @@ export const AdminCustomersPage: React.FC = () => {
     // UI State
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<CustomerStatus | 'ALL'>('ALL');
-    const [sortConfig, setSortConfig] = useState<{key: keyof BusinessProfile, direction: 'asc' | 'desc'}>({ key: 'totalOrdersCount', direction: 'desc' });
+    const [customerTypeFilter, setCustomerTypeFilter] = useState<CustomerType | 'ALL'>('ALL');
+    const [activityLevelFilter, setActivityLevelFilter] = useState<CustomerActivityLevel>('ALL');
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    // Valid sort keys that match backend API support
+    type ValidSortKey = NonNullable<AdminCustomerFilters['sortBy']>;
+    const [sortConfig, setSortConfig] = useState<{key: ValidSortKey, direction: 'asc' | 'desc'}>({ key: 'totalOrdersCount', direction: 'desc' });
     const [selectedCustomer, setSelectedCustomer] = useState<BusinessProfile | null>(null);
+    
+    // Dropdown data
+    const [marketers, setMarketers] = useState<{id: string; name: string}[]>([]);
+    const [employees, setEmployees] = useState<{id: string; name: string}[]>([]);
+    const [selectedMarketer, setSelectedMarketer] = useState<string>('');
+    const [selectedEmployee, setSelectedEmployee] = useState<string>('');
     
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -58,16 +70,43 @@ export const AdminCustomersPage: React.FC = () => {
     const { addToast } = useToast();
     const { t } = useTranslation();
 
-    // Load Data
+    // Total count for display
+    const [totalCount, setTotalCount] = useState(0);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, customerTypeFilter, selectedMarketer, selectedEmployee, activityLevelFilter]);
+
+    // Load Data - when filters, sort, or page change
     useEffect(() => {
         loadCustomers();
+    }, [searchTerm, statusFilter, customerTypeFilter, selectedMarketer, selectedEmployee, activityLevelFilter, currentPage, sortConfig]);
+
+    useEffect(() => {
+        loadDropdownData();
     }, []);
 
     const loadCustomers = async () => {
         setLoading(true);
         try {
-            const data = await MockApi.getCustomersDatabase();
-            setCustomers(data);
+            // Build filters object - only include non-ALL values
+            const filters: AdminCustomerFilters = {
+                search: searchTerm || undefined,
+                status: statusFilter !== 'ALL' ? statusFilter : undefined,
+                customerType: customerTypeFilter !== 'ALL' ? customerTypeFilter : undefined,
+                assignedMarketerId: selectedMarketer || undefined,
+                assignedEmployeeId: selectedEmployee || undefined,
+                activityLevel: activityLevelFilter !== 'ALL' ? activityLevelFilter : undefined,
+                page: currentPage,
+                pageSize: ITEMS_PER_PAGE,
+                sortBy: sortConfig.key,
+                sortDirection: sortConfig.direction
+            };
+            
+            const response = await MockApi.getAdminCustomers(filters);
+            setCustomers(response.items);
+            setTotalCount(response.total);
         } catch (e) {
             addToast(t('adminCustomers.errors.loadFailed'), 'error');
         } finally {
@@ -75,52 +114,71 @@ export const AdminCustomersPage: React.FC = () => {
         }
     };
 
-    // Derived Stats
-    const stats = useMemo(() => ({
-        total: customers.length,
-        active: customers.filter(c => c.status === 'ACTIVE').length,
-        suspended: customers.filter(c => c.status === 'SUSPENDED' || c.status === 'BLOCKED').length,
-        topOrders: [...customers].sort((a, b) => (b.totalOrdersCount || 0) - (a.totalOrdersCount || 0)).slice(0, 5),
-    }), [customers]);
-
-    // Filtering & Sorting
-    const filteredCustomers = useMemo(() => {
-        let res = [...customers];
-        
-        if (searchTerm) {
-            const lower = searchTerm.toLowerCase();
-            res = res.filter(c => 
-                c.companyName.toLowerCase().includes(lower) || 
-                c.phone.includes(lower) ||
-                (c.city || '').toLowerCase().includes(lower)
-            );
+    const loadDropdownData = async () => {
+        try {
+            const [marketersList, employeesList] = await Promise.all([
+                MockApi.getMarketersForDropdown(),
+                MockApi.getEmployeesForDropdown()
+            ]);
+            setMarketers(marketersList);
+            setEmployees(employeesList);
+        } catch (e) {
+            console.error('Error loading dropdown data:', e);
         }
+    };
 
-        if (statusFilter !== 'ALL') {
-            res = res.filter(c => c.status === statusFilter);
-        }
+    // Stats summary from dedicated API (used for display cards)
+    const [statsSummary, setStatsSummary] = useState({ total: 0, active: 0, suspended: 0 });
 
-        res.sort((a, b) => {
-            const valA = a[sortConfig.key] || 0;
-            const valB = b[sortConfig.key] || 0;
-            if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
+    // Load stats summary once on mount using dedicated endpoint
+    useEffect(() => {
+        const loadStats = async () => {
+            try {
+                const stats = await MockApi.getCustomerStats();
+                setStatsSummary({ 
+                    total: stats.total, 
+                    active: stats.active, 
+                    suspended: stats.suspended + stats.blocked 
+                });
+            } catch (e) {
+                console.error('Error loading stats:', e);
+            }
+        };
+        loadStats();
+    }, []);
 
-        return res;
-    }, [customers, searchTerm, statusFilter, sortConfig]);
+    // Top orders from current page data
+    const topOrders = useMemo(() => 
+        [...customers].sort((a, b) => (b.totalOrdersCount || 0) - (a.totalOrdersCount || 0)).slice(0, 5),
+    [customers]);
 
-    // Pagination
-    const paginatedCustomers = useMemo(() => {
-        const start = (currentPage - 1) * ITEMS_PER_PAGE;
-        return filteredCustomers.slice(start, start + ITEMS_PER_PAGE);
-    }, [filteredCustomers, currentPage]);
+    // Count active filters for badge
+    const activeFiltersCount = useMemo(() => {
+        let count = 0;
+        if (statusFilter !== 'ALL') count++;
+        if (customerTypeFilter !== 'ALL') count++;
+        if (selectedMarketer) count++;
+        if (selectedEmployee) count++;
+        if (activityLevelFilter !== 'ALL') count++;
+        return count;
+    }, [statusFilter, customerTypeFilter, selectedMarketer, selectedEmployee, activityLevelFilter]);
 
-    const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+    // Clear all filters and reset page
+    const clearAllFilters = () => {
+        setSearchTerm('');
+        setStatusFilter('ALL');
+        setCustomerTypeFilter('ALL');
+        setSelectedMarketer('');
+        setSelectedEmployee('');
+        setActivityLevelFilter('ALL');
+        setCurrentPage(1);
+    };
+
+    // Pagination - now using server-side totalCount
+    const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
     // Handlers
-    const handleSort = (key: keyof BusinessProfile) => {
+    const handleSort = (key: ValidSortKey) => {
         setSortConfig(prev => ({
             key,
             direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
@@ -140,73 +198,180 @@ export const AdminCustomersPage: React.FC = () => {
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
                     <div>
                         <p className="text-slate-500 text-xs font-bold uppercase">{t('adminCustomers.stats.totalCustomers')}</p>
-                        <p className="text-2xl font-black text-slate-800">{stats.total}</p>
+                        <p className="text-2xl font-black text-slate-800">{statsSummary.total}</p>
                     </div>
                     <div className="p-3 bg-slate-100 rounded-lg text-slate-600"><Users size={20}/></div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
                     <div>
                         <p className="text-slate-500 text-xs font-bold uppercase">{t('adminCustomers.stats.activeCustomers')}</p>
-                        <p className="text-2xl font-black text-green-600">{stats.active}</p>
+                        <p className="text-2xl font-black text-green-600">{statsSummary.active}</p>
                     </div>
                     <div className="p-3 bg-green-50 rounded-lg text-green-600"><UserCheck size={20}/></div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
                     <div>
                         <p className="text-slate-500 text-xs font-bold uppercase">{t('adminCustomers.stats.blockedSuspended')}</p>
-                        <p className="text-2xl font-black text-red-600">{stats.suspended}</p>
+                        <p className="text-2xl font-black text-red-600">{statsSummary.suspended}</p>
                     </div>
                     <div className="p-3 bg-red-50 rounded-lg text-red-600"><ShieldAlert size={20}/></div>
                 </div>
                 {/* Top Customer (Quick View) */}
                 <div className="bg-gradient-to-br from-[#0B1B3A] to-[#1a2e56] text-white p-4 rounded-xl shadow-md border border-slate-700">
                     <p className="text-[#C8A04F] text-xs font-bold uppercase mb-1 flex items-center gap-1"><Activity size={12}/> {t('adminCustomers.stats.mostActiveCustomer')}</p>
-                    {stats.topOrders[0] ? (
+                    {topOrders[0] ? (
                         <div>
-                            <p className="font-bold truncate">{stats.topOrders[0].companyName}</p>
-                            <p className="text-xs text-slate-300">{stats.topOrders[0].totalOrdersCount} {t('common.order')}</p>
+                            <p className="font-bold truncate">{topOrders[0].companyName}</p>
+                            <p className="text-xs text-slate-300">{topOrders[0].totalOrdersCount} {t('common.order')}</p>
                         </div>
                     ) : <p className="text-xs text-slate-400">{t('common.noData')}</p>}
                 </div>
             </div>
 
             {/* Filters & Actions */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:flex-row justify-between items-center gap-4">
-                <div className="flex gap-4 w-full xl:w-auto">
-                    <div className="relative flex-1 xl:w-80">
-                        <Search className="absolute right-3 top-2.5 text-slate-400" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder={t('adminCustomers.filters.searchPlaceholder')}
-                            className="w-full pr-10 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500/20 transition-all"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex flex-col xl:flex-row justify-between items-center gap-4">
+                    <div className="flex gap-4 w-full xl:w-auto">
+                        <div className="relative flex-1 xl:w-80">
+                            <Search className="absolute right-3 top-2.5 text-slate-400" size={18} />
+                            <input 
+                                type="text" 
+                                placeholder={t('adminCustomers.filters.searchPlaceholder')}
+                                className="w-full pr-10 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                data-testid="input-search-customers"
+                            />
+                        </div>
+                        <select 
+                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 focus:outline-none"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as any)}
+                            data-testid="select-status-filter"
+                        >
+                            <option value="ALL">{t('adminCustomers.filters.allStatuses')}</option>
+                            <option value="ACTIVE">{t('adminCustomers.status.active')}</option>
+                            <option value="SUSPENDED">{t('adminCustomers.status.suspended')}</option>
+                            <option value="BLOCKED">{t('adminCustomers.status.blocked')}</option>
+                            <option value="PENDING">{t('adminCustomers.status.pending')}</option>
+                        </select>
+                        <button 
+                            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                            className={`px-4 py-2 border rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${showAdvancedFilters ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`}
+                            data-testid="button-toggle-advanced-filters"
+                        >
+                            <Filter size={16} />
+                            {t('adminCustomers.filters.advanced')}
+                            {activeFiltersCount > 0 && (
+                                <span className="bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 font-bold">{activeFiltersCount}</span>
+                            )}
+                            {showAdvancedFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
                     </div>
-                    <select 
-                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 focus:outline-none"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as any)}
-                    >
-                        <option value="ALL">{t('adminCustomers.filters.allStatuses')}</option>
-                        <option value="ACTIVE">{t('adminCustomers.status.active')}</option>
-                        <option value="SUSPENDED">{t('adminCustomers.status.suspended')}</option>
-                        <option value="BLOCKED">{t('adminCustomers.status.blocked')}</option>
-                        <option value="PENDING">{t('adminCustomers.status.pending')}</option>
-                    </select>
+
+                    <div className="flex gap-2 w-full xl:w-auto overflow-x-auto">
+                        <button onClick={() => setSortConfig({key: 'totalOrdersCount', direction: 'desc'})} className={`px-3 py-1.5 border rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${sortConfig.key === 'totalOrdersCount' ? 'bg-brand-50 border-brand-200 text-brand-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                            {t('adminCustomers.filters.mostOrders')}
+                        </button>
+                        <button onClick={() => setSortConfig({key: 'totalSearchesCount', direction: 'desc'})} className={`px-3 py-1.5 border rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${sortConfig.key === 'totalSearchesCount' ? 'bg-brand-50 border-brand-200 text-brand-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                            {t('adminCustomers.filters.mostSearches')}
+                        </button>
+                        <button onClick={() => setSortConfig({key: 'lastLoginAt', direction: 'desc'})} className={`px-3 py-1.5 border rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${sortConfig.key === 'lastLoginAt' ? 'bg-brand-50 border-brand-200 text-brand-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                            {t('adminCustomers.filters.lastActive')}
+                        </button>
+                    </div>
                 </div>
 
-                <div className="flex gap-2 w-full xl:w-auto overflow-x-auto">
-                    <button onClick={() => setSortConfig({key: 'totalOrdersCount', direction: 'desc'})} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap">
-                        {t('adminCustomers.filters.mostOrders')}
-                    </button>
-                    <button onClick={() => setSortConfig({key: 'totalSearchesCount', direction: 'desc'})} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap">
-                        {t('adminCustomers.filters.mostSearches')}
-                    </button>
-                    <button onClick={() => setSortConfig({key: 'lastLoginAt', direction: 'desc'})} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap">
-                        {t('adminCustomers.filters.lastActive')}
-                    </button>
-                </div>
+                {/* Advanced Filters Panel */}
+                {showAdvancedFilters && (
+                    <div className="border-t border-slate-100 pt-4 animate-fade-in">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {/* Customer Type */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1">{t('adminCustomers.filters.customerType')}</label>
+                                <select 
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"
+                                    value={customerTypeFilter}
+                                    onChange={(e) => setCustomerTypeFilter(e.target.value as CustomerType | 'ALL')}
+                                    data-testid="select-customer-type-filter"
+                                >
+                                    <option value="ALL">{t('adminCustomers.filters.allTypes')}</option>
+                                    <option value="AUTO_PARTS_SHOP">محل قطع غيار</option>
+                                    <option value="MAINTENANCE_CENTER">مركز صيانة</option>
+                                    <option value="AUTO_SHOWROOM">معرض سيارات</option>
+                                    <option value="CAR_RENTAL">تأجير سيارات</option>
+                                    <option value="GOVERNMENT">جهة حكومية</option>
+                                    <option value="OTHER">أخرى</option>
+                                </select>
+                            </div>
+
+                            {/* Activity Level */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1">{t('adminCustomers.filters.activityLevel')}</label>
+                                <select 
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"
+                                    value={activityLevelFilter}
+                                    onChange={(e) => setActivityLevelFilter(e.target.value as CustomerActivityLevel)}
+                                    data-testid="select-activity-level-filter"
+                                >
+                                    <option value="ALL">{t('adminCustomers.filters.allActivity')}</option>
+                                    <option value="ACTIVE_TODAY">{t('adminCustomers.filters.activeToday')}</option>
+                                    <option value="ACTIVE_WEEK">{t('adminCustomers.filters.activeWeek')}</option>
+                                    <option value="INACTIVE_30">{t('adminCustomers.filters.inactive30')}</option>
+                                </select>
+                            </div>
+
+                            {/* Assigned Marketer */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1">{t('adminCustomers.filters.marketer')}</label>
+                                <select 
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"
+                                    value={selectedMarketer}
+                                    onChange={(e) => setSelectedMarketer(e.target.value)}
+                                    data-testid="select-marketer-filter"
+                                >
+                                    <option value="">{t('adminCustomers.filters.allMarketers')}</option>
+                                    {marketers.map(m => (
+                                        <option key={m.id} value={m.id}>{m.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Assigned Employee */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1">{t('adminCustomers.filters.employee')}</label>
+                                <select 
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"
+                                    value={selectedEmployee}
+                                    onChange={(e) => setSelectedEmployee(e.target.value)}
+                                    data-testid="select-employee-filter"
+                                >
+                                    <option value="">{t('adminCustomers.filters.allEmployees')}</option>
+                                    {employees.map(e => (
+                                        <option key={e.id} value={e.id}>{e.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Clear Filters */}
+                            <div className="flex items-end">
+                                <button 
+                                    onClick={clearAllFilters}
+                                    className="w-full px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                                    data-testid="button-clear-filters"
+                                >
+                                    <X size={14} />
+                                    {t('adminCustomers.filters.clearAll')}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Results count */}
+                        <div className="mt-4 text-sm text-slate-500">
+                            {t('adminCustomers.filters.resultsCount', { count: totalCount })}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Customers Table */}
@@ -227,10 +392,10 @@ export const AdminCustomersPage: React.FC = () => {
                     <tbody className="divide-y divide-slate-100">
                         {loading ? (
                             <tr><td colSpan={8} className="p-10 text-center">{t('common.loading')}</td></tr>
-                        ) : paginatedCustomers.length === 0 ? (
+                        ) : customers.length === 0 ? (
                             <tr><td colSpan={8} className="p-10 text-center text-slate-400">{t('adminCustomers.table.noMatching')}</td></tr>
                         ) : (
-                            paginatedCustomers.map((customer) => (
+                            customers.map((customer) => (
                                 <tr key={customer.userId} className="hover:bg-slate-50 transition-colors group">
                                     <td className="p-4">
                                         <div className="flex flex-col">
@@ -872,14 +1037,10 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                     )}
 
                     {activeTab === 'NOTES' && (
-                        <div className="animate-fade-in h-full flex flex-col">
-                            <textarea 
-                                className="flex-1 w-full p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-slate-700 focus:outline-none resize-none"
-                                placeholder={t('adminCustomers.detail.notes.placeholder')}
-                                defaultValue={customer.internalNotes}
-                            ></textarea>
-                            <button className="mt-4 bg-yellow-500 text-white font-bold py-2 rounded-xl hover:bg-yellow-600">{t('adminCustomers.detail.notes.saveNote')}</button>
-                        </div>
+                        <CustomerNotesTab 
+                            customerId={customer.userId} 
+                            customerName={customer.companyName}
+                        />
                     )}
 
                     {/* Orders Tab */}
@@ -1036,5 +1197,139 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                 </div>
             </div>
         </>
+    );
+};
+
+// --- Customer Notes Tab Component ---
+interface CustomerNotesTabProps {
+    customerId: string;
+    customerName: string;
+}
+
+const CustomerNotesTab: React.FC<CustomerNotesTabProps> = ({ customerId, customerName }) => {
+    const [notes, setNotes] = useState<CustomerNote[]>([]);
+    const [newNoteText, setNewNoteText] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const { addToast } = useToast();
+    const { t } = useTranslation();
+
+    useEffect(() => {
+        loadNotes();
+    }, [customerId]);
+
+    const loadNotes = async () => {
+        setLoading(true);
+        try {
+            const result = await MockApi.getCustomerNotes(customerId, 1, 50);
+            setNotes(result.notes);
+        } catch (e) {
+            console.error('Error loading notes:', e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddNote = async () => {
+        if (!newNoteText.trim()) {
+            addToast(t('adminCustomers.detail.notes.emptyError'), 'error');
+            return;
+        }
+
+        setSaving(true);
+        try {
+            await MockApi.addCustomerNote(
+                customerId, 
+                newNoteText, 
+                'super-admin', 
+                'System Admin'
+            );
+            addToast(t('adminCustomers.detail.notes.addedSuccess'), 'success');
+            setNewNoteText('');
+            loadNotes();
+        } catch (e) {
+            addToast(t('adminCustomers.detail.notes.addError'), 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="animate-fade-in h-full flex flex-col space-y-4">
+            {/* Add Note Section */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <StickyNote size={18} className="text-amber-500" />
+                    {t('adminCustomers.detail.notes.addNew')}
+                </h4>
+                <textarea 
+                    className="w-full p-3 bg-amber-50 border border-amber-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"
+                    placeholder={t('adminCustomers.detail.notes.placeholder')}
+                    rows={3}
+                    value={newNoteText}
+                    onChange={(e) => setNewNoteText(e.target.value)}
+                    data-testid="textarea-new-note"
+                />
+                <button 
+                    onClick={handleAddNote}
+                    disabled={saving || !newNoteText.trim()}
+                    className="mt-3 w-full bg-amber-500 text-white font-bold py-2.5 rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    data-testid="button-add-note"
+                >
+                    {saving ? (
+                        <RefreshCcw size={16} className="animate-spin" />
+                    ) : (
+                        <Plus size={16} />
+                    )}
+                    {saving ? t('adminCustomers.detail.notes.adding') : t('adminCustomers.detail.notes.addNote')}
+                </button>
+            </div>
+
+            {/* Notes List */}
+            <div className="flex-1 overflow-y-auto space-y-3">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                    <MessageSquare size={18} className="text-blue-500" />
+                    {t('adminCustomers.detail.notes.previousNotes')} ({notes.length})
+                </h4>
+
+                {loading ? (
+                    <div className="text-center py-8 text-slate-400">
+                        <RefreshCcw size={24} className="mx-auto mb-3 animate-spin opacity-50" />
+                        <p className="text-sm">{t('common.loading')}</p>
+                    </div>
+                ) : notes.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                        <StickyNote size={40} className="mx-auto mb-3 opacity-20" />
+                        <p className="text-sm">{t('adminCustomers.detail.notes.noNotes')}</p>
+                        <p className="text-xs text-slate-300 mt-1">{t('adminCustomers.detail.notes.addFirst')}</p>
+                    </div>
+                ) : (
+                    notes.map((note) => (
+                        <div 
+                            key={note.id} 
+                            className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                            data-testid={`note-item-${note.id}`}
+                        >
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
+                                        {note.createdByName.substring(0, 2)}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm text-slate-800">{note.createdByName}</p>
+                                        <p className="text-[10px] text-slate-400 font-mono" dir="ltr">
+                                            {formatDateTime(note.createdAt)}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 p-3 rounded-lg">
+                                {note.text}
+                            </p>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
     );
 };

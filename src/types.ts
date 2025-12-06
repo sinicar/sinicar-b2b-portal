@@ -1172,7 +1172,7 @@ export interface AdminCustomerFilters {
   orderBehavior?: CustomerOrderBehavior;
   page?: number;
   pageSize?: number;
-  sortBy?: 'name' | 'lastActivityAt' | 'createdAt' | 'totalOrdersCount';
+  sortBy?: 'name' | 'companyName' | 'lastActivityAt' | 'lastLoginAt' | 'createdAt' | 'totalOrdersCount' | 'totalSearchesCount' | 'city' | 'status' | 'customerType';
   sortDirection?: 'asc' | 'desc';
 }
 

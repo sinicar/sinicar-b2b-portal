@@ -1081,16 +1081,22 @@ export const MockApi = {
           }
       }
       
-      // Sorting
+      // Sorting - supports all sortable columns
       const sortBy = filters.sortBy || 'lastActivityAt';
       const sortDir = filters.sortDirection || 'desc';
       customers.sort((a, b) => {
           let valA: any, valB: any;
           switch (sortBy) {
-              case 'name': valA = a.companyName; valB = b.companyName; break;
+              case 'name': 
+              case 'companyName': valA = a.companyName; valB = b.companyName; break;
               case 'lastActivityAt': valA = a.lastActivityAt || a.lastLoginAt || ''; valB = b.lastActivityAt || b.lastLoginAt || ''; break;
+              case 'lastLoginAt': valA = a.lastLoginAt || ''; valB = b.lastLoginAt || ''; break;
               case 'createdAt': valA = a.lastLoginAt || ''; valB = b.lastLoginAt || ''; break;
               case 'totalOrdersCount': valA = a.totalOrdersCount || 0; valB = b.totalOrdersCount || 0; break;
+              case 'totalSearchesCount': valA = a.totalSearchesCount || 0; valB = b.totalSearchesCount || 0; break;
+              case 'city': valA = a.city || ''; valB = b.city || ''; break;
+              case 'status': valA = a.status || ''; valB = b.status || ''; break;
+              case 'customerType': valA = a.customerType || ''; valB = b.customerType || ''; break;
               default: valA = a.lastLoginAt || ''; valB = b.lastLoginAt || '';
           }
           if (valA < valB) return sortDir === 'asc' ? -1 : 1;
@@ -1109,6 +1115,17 @@ export const MockApi = {
           page,
           pageSize,
           total: customers.length
+      };
+  },
+
+  // Get global customer stats (for summary cards)
+  async getCustomerStats(): Promise<{total: number; active: number; suspended: number; blocked: number}> {
+      const customers = await this.getCustomersDatabase();
+      return {
+          total: customers.length,
+          active: customers.filter(c => c.status === 'ACTIVE').length,
+          suspended: customers.filter(c => c.status === 'SUSPENDED').length,
+          blocked: customers.filter(c => c.status === 'BLOCKED').length
       };
   },
 
@@ -1150,13 +1167,13 @@ export const MockApi = {
       return { profile, summary, recentActivity };
   },
 
-  async updateCustomerProfile(customerId: string, updates: Partial<BusinessProfile>): Promise<void> {
+  async updateCustomerProfileAdmin(customerId: string, updates: Partial<BusinessProfile>): Promise<void> {
       const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
       const idx = profiles.findIndex((p: BusinessProfile) => p.userId === customerId);
       
       if (idx !== -1) {
-          // Only update allowed fields
-          const allowedFields = ['companyName', 'phone', 'whatsapp', 'email', 'customerType', 'assignedMarketerId', 'assignedEmployeeId', 'completionPercent', 'city', 'region'];
+          // Only update allowed fields (Admin can update more fields)
+          const allowedFields = ['companyName', 'phone', 'whatsapp', 'email', 'customerType', 'assignedMarketerId', 'assignedEmployeeId', 'completionPercent', 'city', 'region', 'status', 'assignedPriceLevel'];
           allowedFields.forEach(field => {
               if (updates[field as keyof BusinessProfile] !== undefined) {
                   (profiles[idx] as any)[field] = updates[field as keyof BusinessProfile];
