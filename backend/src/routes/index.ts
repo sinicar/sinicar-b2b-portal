@@ -8,6 +8,7 @@ import supplierRoutes from '../modules/suppliers/supplier.routes';
 import adRoutes from '../modules/ads/ad.routes';
 import toolRoutes from '../modules/tools/tool.routes';
 import aiRoutes from '../modules/ai/ai.routes';
+import adminRoutes from '../modules/admin/admin.routes';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.use('/suppliers', supplierRoutes);
 router.use('/ads', adRoutes);
 router.use('/trader-tools', toolRoutes);
 router.use('/ai', aiRoutes);
+router.use('/admin', adminRoutes);
 
 router.get('/', (req: any, res: any) => {
   res.json({
@@ -34,7 +36,8 @@ router.get('/', (req: any, res: any) => {
       '/suppliers',
       '/ads',
       '/trader-tools',
-      '/ai'
+      '/ai',
+      '/admin'
     ]
   });
 });

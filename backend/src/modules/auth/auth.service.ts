@@ -57,6 +57,15 @@ export class AuthService {
         throw new UnauthorizedError('معرف العميل أو كلمة المرور غير صحيحة');
       }
 
+      if (user.status !== 'ACTIVE' && user.status !== 'APPROVED') {
+        const statusMessages: Record<string, string> = {
+          'PENDING': 'ACCOUNT_PENDING: حسابك قيد المراجعة. يرجى انتظار الموافقة',
+          'REJECTED': 'ACCOUNT_REJECTED: تم رفض طلب تسجيل حسابك',
+          'BLOCKED': 'ACCOUNT_BLOCKED: تم حظر حسابك. يرجى التواصل مع الدعم'
+        };
+        throw new UnauthorizedError(statusMessages[user.status] || 'ACCOUNT_INACTIVE: الحساب غير نشط');
+      }
+
       await authRepository.updateLastLogin(user.id);
 
       const orgUser = user.organizationUsers[0];
