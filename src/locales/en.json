@@ -109,7 +109,14 @@
       "accountSuspended": "Account is suspended",
       "tooManyAttempts": "Too many attempts. Try later"
     },
-    "success": "Login successful"
+    "success": "Login successful",
+    "quickLoginForTesting": "Quick Login for Testing",
+    "quickAdmin": "Super Admin",
+    "quickManager": "Admin",
+    "quickStaff": "Staff",
+    "quickCustomer": "Customer",
+    "quickSupplier": "Supplier",
+    "quickMarketer": "Marketer"
   },
   "loading": {
     "verifyingCredentials": "Verifying Secure Credentials",

@@ -575,6 +575,61 @@ function AppContent() {
                               <span>{t('login.enterAsGuest')}</span>
                           </button>
                       )}
+
+                      {/* Quick Login Buttons - For Testing */}
+                      <div className="mt-6 pt-4 border-t border-white/5">
+                          <p className="text-[10px] text-slate-500 text-center mb-3">{t('login.quickLoginForTesting')}</p>
+                          <div className="grid grid-cols-3 gap-2">
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('1@sinicar.com'); setSecret('1'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-red-600/20 border border-red-500/30 text-red-400 text-xs rounded hover:bg-red-600/40 transition-all"
+                                  data-testid="quick-login-admin"
+                              >
+                                  {t('login.quickAdmin')}
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('3@sinicar.com'); setSecret('3'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs rounded hover:bg-blue-600/40 transition-all"
+                                  data-testid="quick-login-staff"
+                              >
+                                  {t('login.quickStaff')}
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('4@sinicar.com'); setSecret('4'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-green-600/20 border border-green-500/30 text-green-400 text-xs rounded hover:bg-green-600/40 transition-all"
+                                  data-testid="quick-login-customer"
+                              >
+                                  {t('login.quickCustomer')}
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('5@sinicar.com'); setSecret('5'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-orange-600/20 border border-orange-500/30 text-orange-400 text-xs rounded hover:bg-orange-600/40 transition-all"
+                                  data-testid="quick-login-supplier"
+                              >
+                                  {t('login.quickSupplier')}
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('6@sinicar.com'); setSecret('6'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-purple-600/20 border border-purple-500/30 text-purple-400 text-xs rounded hover:bg-purple-600/40 transition-all"
+                                  data-testid="quick-login-marketer"
+                              >
+                                  {t('login.quickMarketer')}
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => { setIdentifier('2@sinicar.com'); setSecret('2'); setLoginType('OWNER'); }}
+                                  className="px-2 py-2 bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 text-xs rounded hover:bg-yellow-600/40 transition-all"
+                                  data-testid="quick-login-manager"
+                              >
+                                  {t('login.quickManager')}
+                              </button>
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>

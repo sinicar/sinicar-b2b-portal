@@ -109,7 +109,14 @@
       "accountSuspended": "الحساب موقوف",
       "tooManyAttempts": "محاولات كثيرة. حاول لاحقاً"
     },
-    "success": "تم تسجيل الدخول بنجاح"
+    "success": "تم تسجيل الدخول بنجاح",
+    "quickLoginForTesting": "دخول سريع للاختبار",
+    "quickAdmin": "مدير عام",
+    "quickManager": "مدير",
+    "quickStaff": "موظف",
+    "quickCustomer": "عميل",
+    "quickSupplier": "مورد",
+    "quickMarketer": "مسوق"
   },
   "loading": {
     "verifyingCredentials": "التحقق من بيانات الاعتماد...",
