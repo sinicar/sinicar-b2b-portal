@@ -1,0 +1,250 @@
+IMPORTANT — This is an extension of the existing SINI CAR system.
+Do NOT delete any existing logic. We are adding a full notification system
+for customers, suppliers, marketers, and SINI CAR staff.
+
+GOAL:
+Implement a notifications system where:
+- When something important happens (account approved, order status changed, new request, etc.)
+  the related user sees a new notification in the UI.
+- The user does NOT have to manually refresh the page to discover changes.
+- Notifications appear in a bell icon + list, and can be marked as read.
+
+We can start with HTTP-based polling or lightweight mechanisms (no need for WebSockets in the first step),
+but the system design must be ready to extend later.
+
+────────────────────────────────
+1) Backend – Notification Model
+────────────────────────────────
+
+Add a new model/table for notifications, e.g.:
+
+Notification:
+- id             (primary key)
+- userId         (FK to User who will receive the notification)
+- type           (string, e.g. "ACCOUNT_APPROVED", "ORDER_STATUS_CHANGED",
+                          "NEW_PURCHASE_REQUEST", "NEW_MESSAGE", etc.)
+- title          (string)   // short title to display in UI
+- message        (string)   // detailed text
+- relatedType    (string?)  // e.g. "ORDER", "REQUEST", "ACCOUNT"
+- relatedId      (string?)  // ID of related entity (orderId, requestId, etc.)
+- isRead         (boolean, default false)
+- createdAt      (DateTime)
+- readAt         (DateTime?, nullable)
+
+Do NOT remove any existing models; this is a new independent model linked to User.
+
+────────────────────────────────
+2) Backend – Helper to create notifications
+────────────────────────────────
+
+Create a reusable function/service, e.g.:
+
+createNotification({
+  userId,
+  type,
+  title,
+  message,
+  relatedType,
+  relatedId
+})
+
+It should:
+- Insert a record into Notification with:
+  • isRead = false
+  • createdAt = now
+
+This helper will be called from different parts of the backend when events happen.
+
+────────────────────────────────
+3) Backend – Where to trigger notifications
+────────────────────────────────
+
+Hook the notification creation into key events:
+
+A) Account approved/rejected:
+- In the admin endpoint that approves/rejects a user (from Command 3):
+  - When status = APPROVED:
+    call createNotification({
+      userId: user.id,
+      type: "ACCOUNT_APPROVED",
+      title: "Account Approved",
+      message: "Your SINI CAR account has been approved. You can now log in and use the system.",
+      relatedType: "ACCOUNT",
+      relatedId: user.id
+    })
+
+  - When status = REJECTED:
+    call createNotification({
+      userId: user.id,
+      type: "ACCOUNT_REJECTED",
+      title: "Account Rejected",
+      message: "Your SINI CAR account request has been rejected.",
+      relatedType: "ACCOUNT",
+      relatedId: user.id
+    })
+
+B) Order / Request status changes:
+- Whenever an order / quote / purchase request status is updated (e.g. NEW -> APPROVED, APPROVED -> SHIPPED, etc.):
+  - Create a notification for the related customer:
+    type: "ORDER_STATUS_CHANGED"
+    title: "Order Status Updated"
+    message: e.g. "Your order #123 status changed to APPROVED" (or localized)
+    relatedType: "ORDER"
+    relatedId: order.id
+
+- If suppliers are involved (supplier assigned to request):
+  - Create notifications for that supplier when:
+    • New request assigned
+    • Request status changed related to supplier
+
+C) New purchase request submitted (from Command 8):
+- When customer submits a purchase request:
+  - Send notification to:
+    • SINI CAR staff / admins responsible for handling requests.
+    (This can be done by assigning one or more staff users to receive such notifications.)
+
+D) Marketer-related events:
+- When a new customer registers via a marketer's referral:
+  - Create notification for the marketer:
+    type: "NEW_CUSTOMER_REGISTERED"
+    message: "A new customer registered using your link."
+
+- When one of the marketer’s customers makes an order:
+  - Notification for marketer:
+    type: "CUSTOMER_ORDER"
+    message: "Your referred customer placed an order."
+
+Later you can extend to more events without changing the core structure.
+
+────────────────────────────────
+4) Backend – Notifications API
+────────────────────────────────
+
+Create endpoints for the logged-in user:
+
+A) Get notifications list:
+  GET /api/notifications
+
+  - Authenticated user only.
+  - Query parameters (optional):
+    • isRead    (true/false)
+    • limit     (e.g. 20)
+    • page      (for pagination if needed)
+
+  Behavior:
+  - Return notifications for the current user (userId = auth user):
+    - Sorted by createdAt DESC.
+  - Example response:
+    {
+      "items": [
+        {
+          "id": "...",
+          "type": "ORDER_STATUS_CHANGED",
+          "title": "Order Status Updated",
+          "message": "Your order #123 status changed to APPROVED",
+          "relatedType": "ORDER",
+          "relatedId": "123",
+          "isRead": false,
+          "createdAt": "..."
+        },
+        ...
+      ],
+      "unreadCount": 5
+    }
+
+B) Mark one notification as read:
+  PUT /api/notifications/:id/read
+
+  - Marks a specific notification as:
+    isRead = true
+    readAt = now
+
+C) Mark all as read (optional but recommended):
+  PUT /api/notifications/mark-all-read
+
+  - For current user:
+    • Set all notifications where isRead = false to:
+      - isRead = true
+      - readAt = now
+
+────────────────────────────────
+5) Frontend – Notifications UI (Customers, Suppliers, Marketers, Employees, Admin)
+────────────────────────────────
+
+A) Global notification bell (in main layout):
+- Add a bell icon in the top bar for all logged-in users (Customer, Supplier, Marketer, Staff).
+- Next to it, show the count of unread notifications (badge).
+- On click:
+  - Open a dropdown or side panel that lists recent notifications (e.g. last 10–20).
+  - Each notification item shows:
+    • title
+    • short message
+    • time (relative or exact)
+  - If notification has relatedType & relatedId:
+    • Make it clickable to navigate to the related page (order details, account, etc.).
+
+B) Notifications page (full screen):
+- Add a dedicated page "Notifications" where the user can:
+  - See full list (paginated).
+  - Filter by read/unread.
+  - Click to mark as read or mark all as read.
+
+C) Auto-refresh strategy:
+- When user opens the app:
+  - Fetch notifications once (GET /api/notifications).
+- Optionally, use a light polling every X seconds/minutes (e.g. 30–60 seconds) **only when user is active on the page**, OR
+  provide a "Refresh" button to manually refresh.
+- Avoid overly aggressive polling (e.g. every 2–3 seconds) to prevent unnecessary load.
+
+D) Visual cues:
+- When a new notification arrives (after a refresh/polling/submit action):
+  - Increase badge count.
+  - Optionally show a small toast/pop-up.
+
+────────────────────────────────
+6) Admin Notifications
+────────────────────────────────
+
+Admin users should also get notifications, examples:
+- New customer registration pending approval.
+- New supplier registration.
+- New purchase request.
+- New abandoned cart (if you want to notify someone).
+
+You can:
+- Use the same Notification model.
+- Decide which admin/staff users receive which types of notifications.
+  (This can later be configured in settings if needed.)
+
+────────────────────────────────
+7) Integration with Multi-language
+────────────────────────────────
+
+- For now, it is acceptable to store notifications in one language (e.g. Arabic or English).
+- Later, you can:
+  - Either store both AR/EN texts.
+  - Or generate the UI text based on `type` + localization on the frontend.
+
+For now, keep the design simple and stable (title + message strings).
+
+────────────────────────────────
+8) Scope of this command
+────────────────────────────────
+
+This command includes:
+- Notification model.
+- Helper function to create notifications.
+- Hooks in key backend events:
+  • account approval/rejection
+  • order/request status changes
+  • new purchase requests
+  • marketer events
+- Notifications API:
+  • GET /api/notifications
+  • PUT /api/notifications/:id/read
+  • PUT /api/notifications/mark-all-read
+- Frontend:
+  • Global bell icon + dropdown/panel
+  • Notifications page for full list
+
+It does NOT remove or modify existing functionality; it only adds notifications on top.

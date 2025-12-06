@@ -231,7 +231,28 @@ export type NotificationType =
   | 'ACCOUNT_UPDATE'
   | 'IMPORT_UPDATE'
   | 'SYSTEM'
-  | 'MARKETING'; // Marketing campaign notifications
+  | 'MARKETING'
+  | 'ACCOUNT_APPROVED'
+  | 'ACCOUNT_REJECTED'
+  | 'NEW_PURCHASE_REQUEST'
+  | 'NEW_MESSAGE'
+  | 'NEW_CUSTOMER_REGISTERED'
+  | 'CUSTOMER_ORDER'
+  | 'SUPPLIER_REQUEST_ASSIGNED'
+  | 'NEW_ACCOUNT_REQUEST'
+  | 'NEW_QUOTE_REQUEST'
+  | 'NEW_IMPORT_REQUEST'
+  | 'ABANDONED_CART_ALERT';
+
+export type NotificationRelatedType = 
+  | 'ORDER'
+  | 'REQUEST'
+  | 'ACCOUNT'
+  | 'QUOTE'
+  | 'IMPORT'
+  | 'PRODUCT'
+  | 'USER'
+  | 'CART';
 
 export interface Notification {
   id: string;
@@ -241,7 +262,16 @@ export interface Notification {
   message: string;
   createdAt: string;
   isRead: boolean;
-  link?: string; // Optional link to redirect
+  link?: string;
+  relatedType?: NotificationRelatedType;
+  relatedId?: string;
+  readAt?: string;
+}
+
+export interface NotificationsResponse {
+  items: Notification[];
+  unreadCount: number;
+  total: number;
 }
 
 export interface BusinessProfile {
