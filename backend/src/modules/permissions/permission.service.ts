@@ -317,7 +317,7 @@ export class PermissionService {
     };
   }
 
-  async getPermissionGroups(): Promise<PermissionGroup[]> {
+  async getPermissionGroups() {
     return prisma.permissionGroup.findMany({
       where: { isActive: true },
       include: {
@@ -328,6 +328,10 @@ export class PermissionService {
     });
   }
 
+  async getAllPermissionGroups() {
+    return this.getPermissionGroups();
+  }
+
   async getPermissionGroupById(id: string) {
     return prisma.permissionGroup.findUnique({
       where: { id },
@@ -335,6 +339,26 @@ export class PermissionService {
         permissions: { include: { permission: true } }
       }
     });
+  }
+
+  async getGroupPermissions(groupId: string) {
+    return prisma.permissionGroupPermission.findMany({
+      where: { groupId },
+      include: { permission: true }
+    });
+  }
+
+  async assignPermissionsToGroup(groupId: string, permissionIds: string[]) {
+    const results = [];
+    for (const permissionId of permissionIds) {
+      const result = await this.assignGroupPermission(groupId, permissionId);
+      results.push(result);
+    }
+    return results;
+  }
+
+  async removePermissionFromGroup(groupId: string, permissionId: string) {
+    return this.removeGroupPermission(groupId, permissionId);
   }
 
   async createPermissionGroup(data: { code: string; name: string; nameAr?: string; nameEn?: string; description?: string }): Promise<PermissionGroup> {
@@ -382,29 +406,55 @@ export class PermissionService {
     });
   }
 
+  async createUserPermissionOverride(data: { userId: string; permissionId: string; effect: string; reason?: string; assignedBy?: string }) {
+    return this.setUserPermissionOverride(data.userId, data.permissionId, data.effect, data.reason, data.assignedBy);
+  }
+
+  async updateUserPermissionOverride(id: string, data: { effect?: string; reason?: string }) {
+    return prisma.userPermissionOverride.update({ where: { id }, data });
+  }
+
+  async deleteUserPermissionOverride(id: string) {
+    return prisma.userPermissionOverride.delete({ where: { id } });
+  }
+
   async removeUserPermissionOverride(userId: string, permissionId: string) {
     return prisma.userPermissionOverride.delete({
       where: { userId_permissionId: { userId, permissionId } }
     });
   }
 
-  async getCustomerFeatureVisibility(customerId: string): Promise<CustomerFeatureVisibility[]> {
+  async getCustomerFeatureVisibility(customerId: string) {
     return prisma.customerFeatureVisibility.findMany({ where: { customerId } });
   }
 
-  async setCustomerFeatureVisibility(
-    customerId: string,
-    featureCode: string,
-    visibility: string,
-    conditionProfilePercent?: number,
-    reason?: string,
-    assignedBy?: string
-  ): Promise<CustomerFeatureVisibility> {
-    return prisma.customerFeatureVisibility.upsert({
-      where: { customerId_featureCode: { customerId, featureCode } },
-      create: { customerId, featureCode, visibility, conditionProfilePercent, reason, assignedBy },
-      update: { visibility, conditionProfilePercent, reason, assignedBy }
+  async getAllCustomerFeatureVisibility() {
+    return prisma.customerFeatureVisibility.findMany({
+      orderBy: [{ customerId: 'asc' }, { featureCode: 'asc' }]
     });
+  }
+
+  async setCustomerFeatureVisibility(data: {
+    customerId: string;
+    featureCode: string;
+    visibility: string;
+    conditionProfilePercent?: number;
+    reason?: string;
+    assignedBy?: string;
+  }) {
+    return prisma.customerFeatureVisibility.upsert({
+      where: { customerId_featureCode: { customerId: data.customerId, featureCode: data.featureCode } },
+      create: data,
+      update: { visibility: data.visibility, conditionProfilePercent: data.conditionProfilePercent, reason: data.reason, assignedBy: data.assignedBy }
+    });
+  }
+
+  async updateCustomerFeatureVisibility(id: string, data: { visibility?: string; conditionProfilePercent?: number; reason?: string }) {
+    return prisma.customerFeatureVisibility.update({ where: { id }, data });
+  }
+
+  async deleteCustomerFeatureVisibility(id: string) {
+    return prisma.customerFeatureVisibility.delete({ where: { id } });
   }
 
   async removeCustomerFeatureVisibility(customerId: string, featureCode: string) {
@@ -413,9 +463,16 @@ export class PermissionService {
     });
   }
 
-  async getSupplierEmployees(supplierId: string): Promise<SupplierEmployee[]> {
+  async getSupplierEmployees(supplierId: string) {
     return prisma.supplierEmployee.findMany({
       where: { supplierId, isActive: true },
+      include: { permissions: { include: { permission: true } } }
+    });
+  }
+
+  async getSupplierEmployeeById(id: string) {
+    return prisma.supplierEmployee.findUnique({
+      where: { id },
       include: { permissions: { include: { permission: true } } }
     });
   }
@@ -426,12 +483,16 @@ export class PermissionService {
     roleWithinSupplier?: string;
     jobTitle?: string;
     department?: string;
-  }): Promise<SupplierEmployee> {
+  }) {
     return prisma.supplierEmployee.create({ data });
   }
 
-  async updateSupplierEmployee(id: string, data: { roleWithinSupplier?: string; jobTitle?: string; department?: string; isActive?: boolean }): Promise<SupplierEmployee> {
+  async updateSupplierEmployee(id: string, data: { roleWithinSupplier?: string; jobTitle?: string; department?: string; isActive?: boolean }) {
     return prisma.supplierEmployee.update({ where: { id }, data });
+  }
+
+  async deleteSupplierEmployee(id: string) {
+    return prisma.supplierEmployee.update({ where: { id }, data: { isActive: false } });
   }
 
   async setSupplierEmployeePermission(supplierEmployeeId: string, permissionId: string, effect: string = 'ALLOW') {
@@ -470,12 +531,92 @@ export class PermissionService {
     return grouped;
   }
 
-  async deleteRole(id: string): Promise<Role> {
+  async deleteRole(id: string) {
     const role = await prisma.role.findUnique({ where: { id } });
     if (role?.isSystem) {
       throw new Error('Cannot delete system roles');
     }
     return prisma.role.update({ where: { id }, data: { isActive: false } });
+  }
+
+  async updatePermission(id: string, data: { name?: string; nameAr?: string; nameEn?: string; description?: string; module?: string; category?: string }) {
+    return prisma.permission.update({ where: { id }, data });
+  }
+
+  async deletePermission(id: string) {
+    return prisma.permission.update({ where: { id }, data: { isActive: false } });
+  }
+
+  async assignGroupToUser(userId: string, groupId: string) {
+    return prisma.userPermissionGroupAssignment.upsert({
+      where: { userId_groupId: { userId, groupId } },
+      create: { userId, groupId },
+      update: {}
+    });
+  }
+
+  async removeGroupFromUser(userId: string, groupId: string) {
+    return prisma.userPermissionGroupAssignment.delete({
+      where: { userId_groupId: { userId, groupId } }
+    });
+  }
+
+  async getUserGroups(userId: string) {
+    return prisma.userPermissionGroupAssignment.findMany({
+      where: { userId },
+      include: { group: true }
+    });
+  }
+
+  async getEffectivePermissions(userId: string) {
+    const userPermissions = await this.getUserPermissions(userId);
+    const userOverrides = await this.getUserPermissionOverrides(userId);
+    const userGroups = await this.getUserGroups(userId);
+    
+    const effectivePermissions: Record<string, { code: string; module: string; allowed: boolean; source: string }> = {};
+    
+    for (const perm of userPermissions.permissions) {
+      effectivePermissions[perm.code] = {
+        code: perm.code,
+        module: perm.module,
+        allowed: perm.canRead || perm.canCreate || perm.canUpdate || perm.canDelete,
+        source: 'role'
+      };
+    }
+    
+    for (const group of userGroups) {
+      const groupPerms = await this.getGroupPermissions(group.groupId);
+      for (const gp of groupPerms) {
+        const code = gp.permission?.code;
+        if (code) {
+          effectivePermissions[code] = {
+            code,
+            module: gp.permission?.module || '',
+            allowed: gp.effect === 'ALLOW',
+            source: 'group'
+          };
+        }
+      }
+    }
+    
+    for (const override of userOverrides) {
+      const code = override.permission?.code;
+      if (code) {
+        effectivePermissions[code] = {
+          code,
+          module: override.permission?.module || '',
+          allowed: override.effect === 'ALLOW',
+          source: 'override'
+        };
+      }
+    }
+    
+    return {
+      userId,
+      roles: userPermissions.roles,
+      groups: userGroups.map(ug => ug.group?.code).filter(Boolean),
+      permissions: Object.values(effectivePermissions)
+    };
   }
 }
 
