@@ -9,6 +9,7 @@ import { useToast } from '../services/ToastContext';
 interface NotificationBellProps {
     user: User;
     customerType?: string;
+    onViewAll?: () => void;
 }
 
 // Extended notification type to include marketing campaigns
@@ -19,7 +20,7 @@ interface ExtendedNotification extends Notification {
     ctaLabel?: string;
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = ({ user, customerType }) => {
+export const NotificationBell: React.FC<NotificationBellProps> = ({ user, customerType, onViewAll }) => {
     const [notifications, setNotifications] = useState<ExtendedNotification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -328,13 +329,24 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                     </div>
 
                     {/* Footer */}
-                    {notifications.length > 5 && (
-                        <div className="p-3 border-t border-slate-100 bg-slate-50 text-center">
-                            <span className="text-xs text-slate-500">
+                    <div className="p-3 border-t border-slate-100 bg-slate-50">
+                        {onViewAll ? (
+                            <button 
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    onViewAll();
+                                }}
+                                className="w-full text-center text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
+                                data-testid="button-view-all-notifications"
+                            >
+                                عرض جميع الإشعارات
+                            </button>
+                        ) : notifications.length > 5 && (
+                            <span className="text-xs text-slate-500 text-center block">
                                 عرض آخر {Math.min(notifications.length, 20)} تنبيه
                             </span>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             )}
         </div>

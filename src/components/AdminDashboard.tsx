@@ -35,6 +35,8 @@ import AdminAISettings from './AdminAISettings';
 import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
 import { AdminAlternativesPage } from './AdminAlternativesPage';
 import { AdminActivityLogPage } from './AdminActivityLogPage';
+import { NotificationBell } from './NotificationBell';
+import { NotificationsPage } from './NotificationsPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -49,7 +51,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -74,7 +76,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'TEAM_SETTINGS': 'settings_general',
     'CUSTOMER_PORTAL': 'settings_general',
     'AI_SETTINGS': 'settings_general',
-    'ALTERNATIVES': 'products'
+    'ALTERNATIVES': 'products',
+    'NOTIFICATIONS': 'dashboard'
 };
 
 const VIEW_LABELS_KEYS: Record<ViewType, string> = {
@@ -100,7 +103,8 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'TEAM_SETTINGS': 'adminDashboard.views.teamSettings',
     'CUSTOMER_PORTAL': 'adminDashboard.views.customerPortal',
     'AI_SETTINGS': 'adminDashboard.views.aiSettings',
-    'ALTERNATIVES': 'adminDashboard.views.alternatives'
+    'ALTERNATIVES': 'adminDashboard.views.alternatives',
+    'NOTIFICATIONS': 'adminDashboard.views.notifications'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -467,11 +471,27 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'TEAM_SETTINGS' && t('adminDashboard.pageTitles.teamSettings')}
                         {view === 'CUSTOMER_PORTAL' && t('adminDashboard.pageTitles.customerPortal')}
                         {view === 'AI_SETTINGS' && t('adminDashboard.pageTitles.aiSettings')}
+                        {view === 'NOTIFICATIONS' && t('adminDashboard.pageTitles.notifications', 'الإشعارات')}
                         {['PRODUCTS'].includes(view) && t('adminDashboard.pageTitles.products')}
                     </h2>
                     <div className="flex items-center gap-4">
                         <LanguageSwitcherLight />
                         <ConnectionWidget />
+                        {adminUser && (
+                            <NotificationBell 
+                                user={{ 
+                                    id: adminUser.id, 
+                                    username: adminUser.username, 
+                                    email: adminUser.email, 
+                                    phone: '', 
+                                    role: 'ADMIN', 
+                                    status: adminUser.isActive ? 'ACTIVE' : 'PENDING', 
+                                    createdAt: adminUser.createdAt, 
+                                    hasProfile: true 
+                                }} 
+                                onViewAll={() => setView('NOTIFICATIONS')}
+                            />
+                        )}
                         <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <div className="flex items-center gap-3">
                             <div className="text-left hidden md:block">
@@ -773,6 +793,22 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         canAccess('products') 
                             ? <AdminAlternativesPage onRefresh={fetchAllData} /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+
+                    {view === 'NOTIFICATIONS' && adminUser && (
+                        <NotificationsPage 
+                            user={{ 
+                                id: adminUser.id, 
+                                username: adminUser.username, 
+                                email: adminUser.email, 
+                                phone: '', 
+                                role: 'ADMIN', 
+                                status: adminUser.isActive ? 'ACTIVE' : 'PENDING', 
+                                createdAt: adminUser.createdAt, 
+                                hasProfile: true 
+                            }}
+                            onBack={() => setView('DASHBOARD')}
+                        />
                     )}
 
                 </div>

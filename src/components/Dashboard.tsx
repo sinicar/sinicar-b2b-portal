@@ -48,6 +48,7 @@ import { formatDateTime } from '../utils/dateUtils';
 import { searchProducts } from '../utils/arabicSearch';
 import { UsageIntroModal } from './UsageIntroModal';
 import { NotificationBell } from './NotificationBell';
+import { NotificationsPage } from './NotificationsPage';
 import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
@@ -622,7 +623,8 @@ const DashboardHeader = memo(({
     onSubmitOrder,
     showCartDropdown,
     setShowCartDropdown,
-    onCartIconMount
+    onCartIconMount,
+    onViewAllNotifications
 }: any) => {
     return (
         <header className="h-16 md:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 lg:px-8 flex-shrink-0 z-30 shadow-sm gap-2">
@@ -647,6 +649,7 @@ const DashboardHeader = memo(({
                     {view === 'TEAM_MANAGEMENT' && tDynamic('sidebar.teamManagement', 'إدارة الفريق')}
                     {view === 'HISTORY' && tDynamic('sidebar.history', 'سجل البحث')}
                     {view === 'ABOUT' && tDynamic('sidebar.support', 'عن الشركة / الدعم')}
+                    {view === 'NOTIFICATIONS' && tDynamic('sidebar.notifications', 'الإشعارات')}
                 </h2>
             </div>
 
@@ -670,7 +673,7 @@ const DashboardHeader = memo(({
                         isRTL={isRTL}
                     />
                     
-                    <NotificationBell user={user} customerType={profile?.customerType} />
+                    <NotificationBell user={user} customerType={profile?.customerType} onViewAll={onViewAllNotifications} />
                     <LanguageSwitcher />
             </div>
         </header>
@@ -696,8 +699,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Get visible navigation items based on portal settings  
     const visibleNavigationItems = useMemo(() => getNavigationItems(portalSettings), [portalSettings]);
     
-    // Add IMPORT_CHINA and TRADER_TOOLS and ALTERNATIVES to view state
-    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES' | 'PRODUCT_SEARCH'>('HOME');
+    // Add IMPORT_CHINA and TRADER_TOOLS and ALTERNATIVES and NOTIFICATIONS to view state
+    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES' | 'PRODUCT_SEARCH' | 'NOTIFICATIONS'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -1358,6 +1361,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     showCartDropdown={showCartDropdown}
                     setShowCartDropdown={setShowCartDropdown}
                     onCartIconMount={handleCartIconMount}
+                    onViewAllNotifications={() => setView('NOTIFICATIONS')}
                 />
 
                 {/* Scrollable Page Content */}
@@ -2065,6 +2069,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                             />
                         )}
                         {view === 'ABOUT' && <AboutPage />}
+                        {view === 'NOTIFICATIONS' && <NotificationsPage user={user} onBack={() => setView('HOME')} />}
                         {view === 'HISTORY' && (
                             <div className="animate-fade-in">
                                 <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
