@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, AlternativePart } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -366,7 +366,8 @@ const STORAGE_KEYS = {
   ORGANIZATION_ACTIVITY_LOGS: 'sini_organization_activity_logs',
   TEAM_INVITATIONS: 'sini_team_invitations',
   // Abandoned Carts
-  ABANDONED_CARTS: 'sini_abandoned_carts'
+  ABANDONED_CARTS: 'sini_abandoned_carts',
+  ALTERNATIVE_PARTS: 'sini_alternative_parts'
 };
 
 // Optimized delay function (default minimal delay to allow UI painting)
@@ -2368,6 +2369,123 @@ export const MockApi = {
   async getAbandonedCartById(cartId: string): Promise<AbandonedCart | null> {
       const carts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ABANDONED_CARTS) || '[]') as AbandonedCart[];
       return carts.find(c => c.id === cartId) || null;
+  },
+
+  // --- Alternative Parts (Cross References) ---
+  
+  async uploadAlternatives(
+      rows: Array<{ mainPart: string; altPart: string; description?: string; brand?: string }>,
+      userId?: string,
+      userName?: string
+  ): Promise<{ success: boolean; rowsProcessed: number; rowsInserted: number; rowsSkipped: number; errors: string[] }> {
+      const alternatives = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALTERNATIVE_PARTS) || '[]') as AlternativePart[];
+      const now = new Date().toISOString();
+      let rowsInserted = 0;
+      let rowsSkipped = 0;
+      const errors: string[] = [];
+
+      for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const mainPart = (row.mainPart || '').trim().toUpperCase();
+          const altPart = (row.altPart || '').trim().toUpperCase();
+
+          if (!mainPart || !altPart) {
+              rowsSkipped++;
+              errors.push(`Row ${i + 1}: Missing main or alternative part number`);
+              continue;
+          }
+
+          if (mainPart === altPart) {
+              rowsSkipped++;
+              errors.push(`Row ${i + 1}: Main and alternative part numbers are the same`);
+              continue;
+          }
+
+          // Check if this exact mapping already exists
+          const exists = alternatives.find(
+              a => a.mainPartNumber === mainPart && a.altPartNumber === altPart
+          );
+
+          if (exists) {
+              // Update existing record
+              exists.description = row.description || exists.description;
+              exists.brand = row.brand || exists.brand;
+              exists.updatedAt = now;
+              rowsInserted++; // Count as processed
+          } else {
+              // Insert new record
+              alternatives.push({
+                  id: `ALT-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                  mainPartNumber: mainPart,
+                  altPartNumber: altPart,
+                  description: row.description || undefined,
+                  brand: row.brand || undefined,
+                  sourceType: 'CUSTOMER_UPLOAD',
+                  sourceUserId: userId,
+                  sourceUserName: userName,
+                  createdAt: now,
+                  updatedAt: now
+              });
+              rowsInserted++;
+          }
+      }
+
+      localStorage.setItem(STORAGE_KEYS.ALTERNATIVE_PARTS, JSON.stringify(alternatives));
+
+      return {
+          success: true,
+          rowsProcessed: rows.length,
+          rowsInserted,
+          rowsSkipped,
+          errors: errors.slice(0, 10) // Limit errors to first 10
+      };
+  },
+
+  async searchAlternatives(partNumber: string): Promise<AlternativePart[]> {
+      const alternatives = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALTERNATIVE_PARTS) || '[]') as AlternativePart[];
+      const searchTerm = (partNumber || '').trim().toUpperCase();
+      
+      if (!searchTerm) return [];
+
+      // Find all records where mainPartNumber or altPartNumber matches
+      return alternatives.filter(
+          a => a.mainPartNumber === searchTerm || a.altPartNumber === searchTerm
+      );
+  },
+
+  async getAllAlternatives(page: number = 1, pageSize: number = 50): Promise<{ data: AlternativePart[]; total: number }> {
+      const alternatives = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALTERNATIVE_PARTS) || '[]') as AlternativePart[];
+      const sorted = alternatives.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      
+      return {
+          data: sorted.slice(start, end),
+          total: alternatives.length
+      };
+  },
+
+  async deleteAlternative(id: string): Promise<boolean> {
+      const alternatives = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALTERNATIVE_PARTS) || '[]') as AlternativePart[];
+      const index = alternatives.findIndex(a => a.id === id);
+      
+      if (index === -1) return false;
+      
+      alternatives.splice(index, 1);
+      localStorage.setItem(STORAGE_KEYS.ALTERNATIVE_PARTS, JSON.stringify(alternatives));
+      return true;
+  },
+
+  async deleteAllAlternativesByUser(userId: string): Promise<number> {
+      const alternatives = JSON.parse(localStorage.getItem(STORAGE_KEYS.ALTERNATIVE_PARTS) || '[]') as AlternativePart[];
+      const filtered = alternatives.filter(a => a.sourceUserId !== userId);
+      const deletedCount = alternatives.length - filtered.length;
+      
+      localStorage.setItem(STORAGE_KEYS.ALTERNATIVE_PARTS, JSON.stringify(filtered));
+      return deletedCount;
   },
 
   // --- Quote Requests (Refactored Logic) ---

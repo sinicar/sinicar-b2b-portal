@@ -449,6 +449,30 @@ export interface AbandonedCart {
   createdAt: string;
 }
 
+// --- Alternative Parts (Cross References) ---
+export type AlternativeSourceType = 'CUSTOMER_UPLOAD' | 'SYSTEM';
+
+export interface AlternativePart {
+  id: string;
+  mainPartNumber: string;
+  altPartNumber: string;
+  description?: string;
+  brand?: string;
+  sourceType: AlternativeSourceType;
+  sourceUserId?: string;
+  sourceUserName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AlternativeUploadResult {
+  success: boolean;
+  rowsProcessed: number;
+  rowsInserted: number;
+  rowsSkipped: number;
+  errors?: string[];
+}
+
 // --- Bulk Quote Logic (Enhanced for Admin Review) ---
 
 export type QuoteRequestStatus =
