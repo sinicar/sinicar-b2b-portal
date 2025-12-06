@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -8277,5 +8277,151 @@ export const MockApi = {
           logsByActorType,
           logsByActionType
       };
+  },
+
+  // ===== Dynamic Marketing Home Page =====
+  async getHomepageConfig(customerType?: HomepageCustomerType): Promise<HomepageConfig> {
+    const type = customerType || 'DEFAULT';
+    
+    // Default banners (can be customized per customer type)
+    const defaultBanners: HomepageBanner[] = [
+      {
+        id: 'banner-1',
+        title: { ar: 'قطع غيار أصلية بأسعار الجملة', en: 'Genuine Parts at Wholesale Prices', hi: 'थोक मूल्य पर असली पार्ट्स', zh: '批发价原装配件' },
+        subtitle: { ar: 'وكيل معتمد لقطع غيار السيارات الصينية', en: 'Authorized Dealer for Chinese Auto Parts', hi: 'चीनी ऑटो पार्ट्स के अधिकृत डीलर', zh: '中国汽车配件授权经销商' },
+        backgroundColor: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+        ctaLabel: { ar: 'تسوق الآن', en: 'Shop Now', hi: 'अभी खरीदें', zh: '立即购买' },
+        ctaLink: 'PRODUCT_SEARCH',
+        ctaVariant: 'primary',
+        isActive: true,
+        order: 1
+      },
+      {
+        id: 'banner-2',
+        title: { ar: 'خدمة الاستيراد من الصين', en: 'Import Service from China', hi: 'चीन से आयात सेवा', zh: '中国进口服务' },
+        subtitle: { ar: 'احصل على أي قطعة غير متوفرة محلياً', en: 'Get any part not available locally', hi: 'स्थानीय रूप से अनुपलब्ध कोई भी पार्ट प्राप्त करें', zh: '获取本地没有的任何配件' },
+        backgroundColor: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
+        ctaLabel: { ar: 'طلب استيراد', en: 'Request Import', hi: 'आयात अनुरोध', zh: '请求进口' },
+        ctaLink: 'IMPORT_CHINA',
+        ctaVariant: 'secondary',
+        isActive: true,
+        order: 2
+      },
+      {
+        id: 'banner-3',
+        title: { ar: 'أدوات التاجر المتقدمة', en: 'Advanced Trader Tools', hi: 'उन्नत व्यापारी उपकरण', zh: '高级交易工具' },
+        subtitle: { ar: 'مقارنة الأسعار، فك VIN، والمزيد', en: 'Price comparison, VIN decode, and more', hi: 'मूल्य तुलना, VIN डिकोड, और अधिक', zh: '价格比较、VIN解码等' },
+        backgroundColor: 'linear-gradient(135deg, #7c2d12 0%, #f97316 100%)',
+        ctaLabel: { ar: 'استكشف الأدوات', en: 'Explore Tools', hi: 'उपकरण देखें', zh: '探索工具' },
+        ctaLink: 'TRADER_TOOLS',
+        ctaVariant: 'outline',
+        isActive: true,
+        order: 3
+      }
+    ];
+
+    // Customer type specific configurations
+    const typeConfigs: Record<HomepageCustomerType, Partial<HomepageLayoutConfig>> = {
+      WORKSHOP: {
+        heroTitle: { ar: 'مرحباً بورشة الصيانة', en: 'Welcome Workshop', hi: 'वर्कशॉप में आपका स्वागत है', zh: '欢迎维修车间' },
+        heroSubtitle: { ar: 'قطع الغيار التي تحتاجها بأسرع وقت', en: 'Parts you need, delivered fast', hi: 'आपके लिए जरूरी पार्ट्स, तेज डिलीवरी', zh: '您需要的配件，快速送达' },
+        showProductSearchShortcut: true,
+        showTraderTools: true,
+        showQuoteRequest: true,
+        sectionsOrder: ['hero', 'banners', 'keyActions', 'stats', 'recentOrders', 'tools']
+      },
+      RENTAL: {
+        heroTitle: { ar: 'بوابة شركات التأجير', en: 'Rental Companies Portal', hi: 'रेंटल कंपनियों का पोर्टल', zh: '租赁公司门户' },
+        heroSubtitle: { ar: 'إدارة أسطولك بكفاءة عالية', en: 'Manage your fleet efficiently', hi: 'अपने बेड़े को कुशलता से प्रबंधित करें', zh: '高效管理您的车队' },
+        showProductSearchShortcut: true,
+        showTraderTools: false,
+        showQuoteRequest: true,
+        sectionsOrder: ['hero', 'banners', 'keyActions', 'stats', 'recentOrders']
+      },
+      INSURANCE: {
+        heroTitle: { ar: 'بوابة شركات التأمين', en: 'Insurance Companies Portal', hi: 'बीमा कंपनियों का पोर्टल', zh: '保险公司门户' },
+        heroSubtitle: { ar: 'مطالبات سريعة ومقارنة أسعار دقيقة', en: 'Fast claims and accurate price comparison', hi: 'तेज दावे और सटीक मूल्य तुलना', zh: '快速理赔和准确价格比较' },
+        showProductSearchShortcut: true,
+        showTraderTools: true,
+        showQuoteRequest: true,
+        sectionsOrder: ['hero', 'banners', 'keyActions', 'stats', 'tools']
+      },
+      SUPPLIER: {
+        heroTitle: { ar: 'بوابة الموردين', en: 'Supplier Portal', hi: 'आपूर्तिकर्ता पोर्टल', zh: '供应商门户' },
+        heroSubtitle: { ar: 'أدر طلبات العملاء ومنتجاتك', en: 'Manage customer requests and your products', hi: 'ग्राहक अनुरोधों और अपने उत्पादों का प्रबंधन करें', zh: '管理客户请求和您的产品' },
+        showProductSearchShortcut: false,
+        showTraderTools: false,
+        showQuoteRequest: false,
+        sectionsOrder: ['hero', 'banners', 'supplierStats', 'incomingRequests']
+      },
+      MARKETER: {
+        heroTitle: { ar: 'بوابة المسوقين', en: 'Marketer Portal', hi: 'मार्केटर पोर्टल', zh: '营销人员门户' },
+        heroSubtitle: { ar: 'تتبع عمولاتك وروابط الإحالة', en: 'Track your commissions and referral links', hi: 'अपने कमीशन और रेफरल लिंक को ट्रैक करें', zh: '跟踪您的佣金和推荐链接' },
+        showProductSearchShortcut: false,
+        showTraderTools: false,
+        showQuoteRequest: false,
+        sectionsOrder: ['hero', 'banners', 'marketerStats', 'referralSection']
+      },
+      PARTS_SHOP: {
+        heroTitle: { ar: 'محل قطع الغيار', en: 'Parts Shop Portal', hi: 'पार्ट्स शॉप पोर्टल', zh: '配件店门户' },
+        heroSubtitle: { ar: 'أسعار جملة تنافسية وتوصيل سريع', en: 'Competitive wholesale prices and fast delivery', hi: 'प्रतिस्पर्धी थोक मूल्य और तेज डिलीवरी', zh: '有竞争力的批发价格和快速交付' },
+        showProductSearchShortcut: true,
+        showTraderTools: true,
+        showQuoteRequest: true,
+        showOrderHistory: true,
+        sectionsOrder: ['hero', 'banners', 'keyActions', 'stats', 'recentOrders', 'tools']
+      },
+      DEFAULT: {
+        heroTitle: { ar: 'منظومة صيني كار', en: 'SINI CAR System', hi: 'सिनी कार सिस्टम', zh: '新尼卡系统' },
+        heroSubtitle: { ar: 'بوابة عملاء الجملة المعتمدة', en: 'Authorized Wholesale Portal', hi: 'अधिकृत थोक पोर्टल', zh: '授权批发门户' },
+        showProductSearchShortcut: true,
+        showTraderTools: true,
+        showImportServices: true,
+        showQuoteRequest: true,
+        showOrderHistory: true,
+        sectionsOrder: ['hero', 'banners', 'keyActions', 'stats', 'recentOrders', 'tools', 'feedback']
+      }
+    };
+
+    const typeConfig = typeConfigs[type] || typeConfigs.DEFAULT;
+
+    return {
+      customerType: type,
+      layoutConfig: {
+        heroTitle: typeConfig.heroTitle || typeConfigs.DEFAULT.heroTitle!,
+        heroSubtitle: typeConfig.heroSubtitle || typeConfigs.DEFAULT.heroSubtitle!,
+        heroBackgroundGradient: 'linear-gradient(135deg, #081a33 0%, #102b57 100%)',
+        showProductSearchShortcut: typeConfig.showProductSearchShortcut ?? true,
+        showTraderTools: typeConfig.showTraderTools ?? true,
+        showImportServices: typeConfig.showImportServices ?? true,
+        showQuoteRequest: typeConfig.showQuoteRequest ?? true,
+        showOrderHistory: typeConfig.showOrderHistory ?? true,
+        sectionsOrder: typeConfig.sectionsOrder || ['hero', 'banners', 'keyActions', 'stats', 'recentOrders', 'tools'],
+        primaryCtaLabel: { ar: 'ابحث عن قطع الغيار', en: 'Search Parts', hi: 'पार्ट्स खोजें', zh: '搜索配件' },
+        primaryCtaLink: 'PRODUCT_SEARCH',
+        secondaryCtaLabel: { ar: 'طلب تسعير', en: 'Request Quote', hi: 'कोटेशन का अनुरोध करें', zh: '请求报价' },
+        secondaryCtaLink: 'QUOTE_REQUEST'
+      },
+      bannersConfig: {
+        autoPlayInterval: 5000,
+        showDots: true,
+        showArrows: true,
+        transitionType: 'slide',
+        banners: defaultBanners
+      }
+    };
+  },
+
+  async getHomepageStats(userId: string): Promise<HomepageStats> {
+    const orders = await this.getOrders(userId);
+    const quoteRequests = await this.getAllQuoteRequests();
+    const userQuotes = quoteRequests.filter(q => q.customerId === userId);
+    
+    return {
+      pendingRequests: userQuotes.filter(q => q.status === 'NEW' || q.status === 'UNDER_REVIEW').length,
+      approvedOrders: orders.filter(o => o.status === 'APPROVED').length,
+      inProgressOrders: orders.filter(o => o.status === 'PENDING').length,
+      totalOrders: orders.length
+    };
   }
 };
