@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect, MouseEvent } from 'react';
+import { useState, useRef, useCallback, useEffect, MouseEvent, FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, X, ZoomIn, ChevronLeft, ChevronRight, Eye, EyeOff, Package } from 'lucide-react';
+import { ZoomIn, ChevronLeft, ChevronRight, Eye, EyeOff, Package, ImageIcon, X } from 'lucide-react';
 
 interface ProductImageViewerProps {
   mainImageUrl?: string | null;
@@ -14,7 +14,7 @@ interface ProductImageViewerProps {
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+PHJlY3QgZmlsbD0iI2YzZjRmNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiLz48cGF0aCBmaWxsPSIjOWNhM2FmIiBkPSJNNjAgMzBjLTIwIDAtMzUgMTUtMzUgMzVzMTUgMzUgMzUgMzUgMzUtMTUgMzUtMzUtMTUtMzUtMzUtMzV6bTAgNjBjLTE0IDAtMjUtMTEtMjUtMjVzMTEtMjUgMjUtMjUgMjUgMTEgMjUgMjUtMTEgMjUtMjUgMjV6Ii8+PHBhdGggZmlsbD0iIzljYTNhZiIgZD0iTTYwIDQ1Yy0xMCAwLTIwIDgtMjAgMjBzMTAgMjAgMjAgMjAgMjAtOCAyMC0yMC0xMC0yMC0yMC0yMHptMCAzMGMtNSAwLTEwLTQtMTAtMTBzNS0xMCAxMC0xMCAxMCA0IDEwIDEwLTUgMTAtMTAgMTB6Ii8+PC9zdmc+';
 
-export default function ProductImageViewer({
+const ProductImageViewer: FC<ProductImageViewerProps> = ({
   mainImageUrl,
   imageGallery = [],
   productName,
@@ -22,7 +22,7 @@ export default function ProductImageViewer({
   size = 'md',
   showIcon = true,
   className = ''
-}: ProductImageViewerProps) {
+}) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   
@@ -32,6 +32,7 @@ export default function ProductImageViewer({
   const [showMagnifier, setShowMagnifier] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [animate, setAnimate] = useState(false);
   
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,9 +40,9 @@ export default function ProductImageViewer({
   const allImages = [mainImageUrl, ...(imageGallery || [])].filter(Boolean) as string[];
   const hasImages = allImages.length > 0;
   const currentImage = allImages[currentImageIndex] || PLACEHOLDER_IMAGE;
-  
+
   const sizeClasses = {
-    sm: 'w-6 h-6',
+    sm: 'w-7 h-7',
     md: 'w-8 h-8',
     lg: 'w-10 h-10'
   };
@@ -52,12 +53,16 @@ export default function ProductImageViewer({
       setCurrentImageIndex(0);
       setImageLoaded(false);
       setImageError(false);
+      setTimeout(() => setAnimate(true), 10);
     }
   }, [hasImages]);
 
   const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setShowMagnifier(false);
+    setAnimate(false);
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setShowMagnifier(false);
+    }, 200);
   }, []);
 
   const handlePrevImage = useCallback(() => {
@@ -79,7 +84,10 @@ export default function ProductImageViewer({
     const x = ((e.clientX - container.left) / container.width) * 100;
     const y = ((e.clientY - container.top) / container.height) * 100;
     
-    setMagnifierPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
+    const clampedX = Math.max(12, Math.min(88, x));
+    const clampedY = Math.max(12, Math.min(88, y));
+    
+    setMagnifierPosition({ x: clampedX, y: clampedY });
     setShowMagnifier(true);
   }, [imageLoaded]);
 
@@ -118,14 +126,15 @@ export default function ProductImageViewer({
         onClick={handleOpenModal}
         disabled={!hasImages}
         className={`
-          flex items-center justify-center rounded-lg transition-all duration-200
+          flex items-center justify-center rounded-lg transition-colors
           ${hasImages 
-            ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 cursor-pointer hover:scale-105 active:scale-95' 
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            ? 'bg-brand-50 text-brand-600 hover:bg-brand-100' 
+            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
           }
           ${sizeClasses[size]}
           ${className}
         `}
+        aria-label={hasImages ? t('productImages.viewImage', 'عرض الصورة') : t('productImages.noImage', 'لا توجد صورة')}
         title={hasImages ? t('productImages.viewImage', 'عرض الصورة') : t('productImages.noImage', 'لا توجد صورة')}
         data-testid={`button-view-image-${partNumber || 'product'}`}
       >
@@ -138,25 +147,40 @@ export default function ProductImageViewer({
 
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={handleCloseModal}
-          data-testid="modal-product-image"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="product-image-viewer-title"
         >
           <div 
-            className="relative max-w-4xl w-full mx-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden"
+            className={`absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-200 ${
+              animate ? 'opacity-100' : 'opacity-0'
+            }`}
+            onClick={handleCloseModal}
+          />
+          
+          <div 
+            className={`
+              relative z-10 w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden
+              transform transition-all duration-200
+              ${animate ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'}
+            `}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
               <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 bg-brand-100 dark:bg-brand-900 rounded-lg">
+                  <Package className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                 </div>
                 <div className={isRtl ? 'text-right' : 'text-left'}>
-                  <h3 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
+                  <h3 
+                    id="product-image-viewer-title"
+                    className="font-semibold text-slate-900 dark:text-white truncate max-w-md"
+                  >
                     {productName}
                   </h3>
                   {partNumber && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-mono">
                       {partNumber}
                     </p>
                   )}
@@ -165,16 +189,17 @@ export default function ProductImageViewer({
               
               <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                 {allImages.length > 1 && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400 px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-full">
+                  <span className="text-sm text-slate-500 dark:text-slate-400 px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                     {currentImageIndex + 1} / {allImages.length}
                   </span>
                 )}
                 <button
                   onClick={handleCloseModal}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                  aria-label={t('productImages.closeViewer', 'إغلاق')}
                   data-testid="button-close-image-modal"
                 >
-                  <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <X className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                 </button>
               </div>
             </div>
@@ -182,13 +207,15 @@ export default function ProductImageViewer({
             <div className="relative">
               <div 
                 ref={containerRef}
-                className="relative aspect-square max-h-[60vh] w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 cursor-crosshair overflow-hidden"
+                className="relative aspect-square max-h-[60vh] w-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 cursor-crosshair overflow-hidden"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
+                role="img"
+                aria-label={`${productName} ${t('productImages.image', 'صورة')} ${currentImageIndex + 1} / ${allImages.length}`}
               >
                 {!imageLoaded && !imageError && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
                 
@@ -207,27 +234,28 @@ export default function ProductImageViewer({
 
                 {showMagnifier && imageLoaded && !imageError && (
                   <div
-                    className="absolute pointer-events-none w-48 h-48 border-4 border-white shadow-2xl rounded-full overflow-hidden"
+                    className="absolute pointer-events-none w-36 h-36 border-4 border-white dark:border-slate-600 rounded-full overflow-hidden"
                     style={{
-                      left: `calc(${magnifierPosition.x}% - 96px)`,
-                      top: `calc(${magnifierPosition.y}% - 96px)`,
+                      left: `calc(${magnifierPosition.x}% - 72px)`,
+                      top: `calc(${magnifierPosition.y}% - 72px)`,
                       backgroundImage: `url(${currentImage})`,
                       backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
-                      backgroundSize: '400%',
+                      backgroundSize: '300%',
                       backgroundRepeat: 'no-repeat',
-                      boxShadow: '0 0 30px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.2)'
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
                     }}
+                    aria-hidden="true"
                   >
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-[2px] h-full bg-white/30 absolute" />
-                      <div className="w-full h-[2px] bg-white/30 absolute" />
+                      <div className="w-px h-full bg-white/30 absolute" />
+                      <div className="w-full h-px bg-white/30 absolute" />
                     </div>
                   </div>
                 )}
 
                 {imageError && (
-                  <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
-                    <Image className="w-16 h-16" />
+                  <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <ImageIcon className="w-16 h-16" />
                     <span>{t('productImages.loadError', 'فشل تحميل الصورة')}</span>
                   </div>
                 )}
@@ -237,25 +265,31 @@ export default function ProductImageViewer({
                 <>
                   <button
                     onClick={isRtl ? handleNextImage : handlePrevImage}
-                    className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-2' : 'left-2'} p-3 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 rounded-full shadow-lg transition-all hover:scale-110`}
+                    className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-2' : 'left-2'} p-3 bg-white/90 dark:bg-slate-700/90 hover:bg-white dark:hover:bg-slate-600 rounded-full shadow-lg transition-colors`}
+                    aria-label={t('productImages.prevImage', 'الصورة السابقة')}
                     data-testid="button-prev-image"
                   >
-                    <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-200" />
+                    <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200" />
                   </button>
                   <button
                     onClick={isRtl ? handlePrevImage : handleNextImage}
-                    className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'left-2' : 'right-2'} p-3 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 rounded-full shadow-lg transition-all hover:scale-110`}
+                    className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'left-2' : 'right-2'} p-3 bg-white/90 dark:bg-slate-700/90 hover:bg-white dark:hover:bg-slate-600 rounded-full shadow-lg transition-colors`}
+                    aria-label={t('productImages.nextImage', 'الصورة التالية')}
                     data-testid="button-next-image"
                   >
-                    <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-200" />
+                    <ChevronRight className="w-5 h-5 text-slate-700 dark:text-slate-200" />
                   </button>
                 </>
               )}
             </div>
 
             {allImages.length > 1 && (
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                <div className={`flex gap-2 overflow-x-auto pb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                <div 
+                  className={`flex gap-2 overflow-x-auto pb-2 ${isRtl ? 'flex-row-reverse' : ''}`}
+                  role="tablist"
+                  aria-label={t('productImages.thumbnailList', 'قائمة الصور المصغرة')}
+                >
                   {allImages.map((img, idx) => (
                     <button
                       key={idx}
@@ -265,12 +299,15 @@ export default function ProductImageViewer({
                         setImageError(false);
                       }}
                       className={`
-                        flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all
+                        flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors
                         ${idx === currentImageIndex 
-                          ? 'border-blue-500 ring-2 ring-blue-300' 
-                          : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
+                          ? 'border-brand-500 ring-2 ring-brand-300' 
+                          : 'border-slate-200 dark:border-slate-600 hover:border-brand-300'
                         }
                       `}
+                      role="tab"
+                      aria-selected={idx === currentImageIndex}
+                      aria-label={`${t('productImages.thumbnail', 'صورة مصغرة')} ${idx + 1}`}
                       data-testid={`button-thumbnail-${idx}`}
                     >
                       <img
@@ -287,8 +324,8 @@ export default function ProductImageViewer({
               </div>
             )}
 
-            <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900">
-              <div className={`flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 ${isRtl ? 'flex-row-reverse' : ''}`}>
+            <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
+              <div className={`flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 ${isRtl ? 'flex-row-reverse' : ''}`}>
                 <ZoomIn className="w-4 h-4" />
                 <span>{t('productImages.magnifierHint', 'حرك الماوس على الصورة للتكبير')}</span>
               </div>
@@ -298,21 +335,23 @@ export default function ProductImageViewer({
       )}
     </>
   );
-}
+};
 
-export function ProductImageThumbnail({
-  mainImageUrl,
-  productName,
-  size = 'md',
-  onClick,
-  className = ''
-}: {
+export default ProductImageViewer;
+
+export const ProductImageThumbnail: FC<{
   mainImageUrl?: string | null;
   productName: string;
   size?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
   className?: string;
-}) {
+}> = ({
+  mainImageUrl,
+  productName,
+  size = 'md',
+  onClick,
+  className = ''
+}) => {
   const [imageError, setImageError] = useState(false);
   
   const sizeClasses = {
@@ -324,9 +363,9 @@ export function ProductImageThumbnail({
   if (!mainImageUrl || imageError) {
     return (
       <div 
-        className={`${sizeClasses[size]} flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg ${className}`}
+        className={`${sizeClasses[size]} flex items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-lg ${className}`}
       >
-        <Package className="w-1/2 h-1/2 text-gray-400" />
+        <Package className="w-1/2 h-1/2 text-slate-400" />
       </div>
     );
   }
@@ -334,7 +373,8 @@ export function ProductImageThumbnail({
   return (
     <button
       onClick={onClick}
-      className={`${sizeClasses[size]} rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 hover:border-blue-400 transition-all hover:scale-105 ${className}`}
+      className={`${sizeClasses[size]} rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600 hover:border-brand-400 transition-colors ${className}`}
+      aria-label={`View ${productName} image`}
     >
       <img
         src={mainImageUrl}
@@ -344,4 +384,4 @@ export function ProductImageThumbnail({
       />
     </button>
   );
-}
+};
