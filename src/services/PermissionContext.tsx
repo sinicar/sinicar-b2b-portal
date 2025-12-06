@@ -1,11 +1,21 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { MockApi } from './mockApi';
+import { useLocation } from 'wouter';
+import { AccessDenied } from '../components/AccessDenied';
 import { AdminUser, Role, PermissionResource, PermissionAction } from '../types';
+
+interface EffectivePermission {
+    permissionKey: string;
+    resource: string;
+    action: string;
+    source: 'role' | 'group' | 'override';
+    effect: 'ALLOW' | 'DENY';
+}
 
 interface PermissionContextType {
     adminUser: AdminUser | null;
     role: Role | null;
     loading: boolean;
+    effectivePermissions: EffectivePermission[];
     hasPermission: (resource: PermissionResource, action: PermissionAction) => boolean;
     canAccess: (resource: PermissionResource) => boolean;
     isSuperAdmin: boolean;
@@ -26,27 +36,46 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
 }) => {
     const [adminUser, setAdminUserState] = useState<AdminUser | null>(initialAdminUser);
     const [role, setRole] = useState<Role | null>(null);
+    const [effectivePermissions, setEffectivePermissions] = useState<EffectivePermission[]>([]);
     const [loading, setLoading] = useState(true);
 
     const setAdminUser = useCallback((user: AdminUser | null) => {
         setAdminUserState(user);
     }, []);
 
-    const loadRole = useCallback(async (user: AdminUser | null) => {
-        if (!user?.roleId) {
+    const loadPermissions = useCallback(async (user: AdminUser | null) => {
+        if (!user?.id) {
             setRole(null);
+            setEffectivePermissions([]);
             setLoading(false);
             return;
         }
 
         setLoading(true);
         try {
-            const roles = await MockApi.getRoles();
-            const userRole = roles.find(r => r.id === user.roleId);
-            setRole(userRole || null);
+            const [roleResponse, permResponse] = await Promise.all([
+                user.roleId ? fetch(`/api/v1/permissions/roles/${user.roleId}`).then(r => {
+                    if (!r.ok) {
+                        console.warn(`Failed to fetch role ${user.roleId}: ${r.status}`);
+                        return null;
+                    }
+                    return r.json();
+                }) : Promise.resolve(null),
+                fetch(`/api/v1/permissions/users/${user.id}/effective-permissions`).then(r => {
+                    if (!r.ok) {
+                        console.warn(`Failed to fetch permissions for user ${user.id}: ${r.status}`);
+                        return [];
+                    }
+                    return r.json();
+                })
+            ]);
+            
+            setRole(roleResponse);
+            setEffectivePermissions(Array.isArray(permResponse) ? permResponse : []);
         } catch (e) {
-            console.error('Failed to load role:', e);
+            console.error('Failed to load permissions:', e);
             setRole(null);
+            setEffectivePermissions([]);
         } finally {
             setLoading(false);
         }
@@ -59,38 +88,51 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
     }, [initialAdminUser]);
 
     useEffect(() => {
-        loadRole(adminUser);
-    }, [adminUser, loadRole]);
+        loadPermissions(adminUser);
+    }, [adminUser, loadPermissions]);
 
     const isSuperAdmin = useMemo(() => {
         if (!role) return false;
-        return role.isSystem && role.name === 'مشرف عام';
+        return role.isSystem && (role.name === 'مشرف عام' || role.name === 'SUPER_ADMIN');
     }, [role]);
 
     const hasPermission = useCallback((resource: PermissionResource, action: PermissionAction): boolean => {
         if (!adminUser || !adminUser.isActive) return false;
-        if (!role) return false;
-
         if (isSuperAdmin) return true;
 
-        const permission = role.permissions.find(p => p.resource === resource);
-        if (!permission) return false;
+        const permKey = `${resource}:${action}`;
+        const perm = effectivePermissions.find(p => 
+            p.permissionKey === permKey || 
+            (p.resource === resource && p.action === action)
+        );
+        
+        if (perm) {
+            return perm.effect === 'ALLOW';
+        }
 
-        return permission.actions.includes(action);
-    }, [adminUser, role, isSuperAdmin]);
+        if (role?.permissions) {
+            const rolePerm = role.permissions.find(p => p.resource === resource);
+            if (rolePerm) {
+                return rolePerm.actions.includes(action);
+            }
+        }
+
+        return false;
+    }, [adminUser, role, isSuperAdmin, effectivePermissions]);
 
     const canAccess = useCallback((resource: PermissionResource): boolean => {
         return hasPermission(resource, 'view');
     }, [hasPermission]);
 
     const refreshPermissions = useCallback(async () => {
-        await loadRole(adminUser);
-    }, [loadRole, adminUser]);
+        await loadPermissions(adminUser);
+    }, [loadPermissions, adminUser]);
 
     const value: PermissionContextType = {
         adminUser,
         role,
         loading,
+        effectivePermissions,
         hasPermission,
         canAccess,
         isSuperAdmin,
@@ -144,10 +186,125 @@ export function hasPermissionCheck(
     if (!adminUser || !adminUser.isActive) return false;
     if (!role) return false;
 
-    if (role.isSystem && role.name === 'مشرف عام') return true;
+    if (role.isSystem && (role.name === 'مشرف عام' || role.name === 'SUPER_ADMIN')) return true;
 
     const permission = role.permissions.find(p => p.resource === resource);
     if (!permission) return false;
 
     return permission.actions.includes(action);
 }
+
+interface PermissionGateProps {
+    resource: PermissionResource;
+    action?: PermissionAction;
+    children: React.ReactNode;
+    fallback?: React.ReactNode;
+}
+
+export const PermissionGate: React.FC<PermissionGateProps> = ({
+    resource,
+    action = 'view',
+    children,
+    fallback = null
+}) => {
+    const { hasPermission, loading } = usePermission();
+    
+    if (loading) return null;
+    
+    if (hasPermission(resource, action)) {
+        return <>{children}</>;
+    }
+    
+    return <>{fallback}</>;
+};
+
+interface PermissionGuardProps {
+    resource: PermissionResource;
+    action?: PermissionAction;
+    children: React.ReactNode;
+    redirectTo?: string;
+}
+
+export const PermissionGuard: React.FC<PermissionGuardProps> = ({
+    resource,
+    action = 'view',
+    children,
+    redirectTo = '/'
+}) => {
+    const { hasPermission, loading, adminUser } = usePermission();
+    const [, setLocation] = useLocation();
+    const [redirected, setRedirected] = useState(false);
+    
+    useEffect(() => {
+        if (!loading && !adminUser && !redirected) {
+            setRedirected(true);
+            setLocation(redirectTo);
+        }
+        if (adminUser) {
+            setRedirected(false);
+        }
+    }, [loading, adminUser, redirectTo, setLocation, redirected]);
+    
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            </div>
+        );
+    }
+    
+    if (!adminUser) {
+        return null;
+    }
+    
+    if (!hasPermission(resource, action)) {
+        return <AccessDenied resourceName={resource} onGoHome={() => setLocation('/')} />;
+    }
+    
+    return <>{children}</>;
+};
+
+export const useMenuVisibility = () => {
+    const { canAccess, isSuperAdmin, loading } = usePermission();
+    
+    return useMemo(() => {
+        if (loading) return { loading: true, menus: {} };
+        if (isSuperAdmin) {
+            return {
+                loading: false,
+                menus: {
+                    dashboard: true,
+                    products: true,
+                    orders: true,
+                    suppliers: true,
+                    customers: true,
+                    users: true,
+                    roles: true,
+                    permissions: true,
+                    reports: true,
+                    settings: true,
+                    notifications: true,
+                    traderTools: true
+                }
+            };
+        }
+        
+        return {
+            loading: false,
+            menus: {
+                dashboard: canAccess('dashboard'),
+                products: canAccess('products'),
+                orders: canAccess('orders'),
+                suppliers: canAccess('suppliers'),
+                customers: canAccess('customers'),
+                users: canAccess('users'),
+                roles: canAccess('roles'),
+                permissions: canAccess('permissions'),
+                reports: canAccess('reports'),
+                settings: canAccess('settings'),
+                notifications: canAccess('notifications'),
+                traderTools: canAccess('trader_tools')
+            }
+        };
+    }, [canAccess, isSuperAdmin, loading]);
+};
