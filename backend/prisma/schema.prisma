@@ -625,8 +625,9 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  permissions RolePermission[]
-  users       UserRoleAssignment[]
+  permissions     RolePermission[]
+  users           UserRoleAssignment[]
+  defaultGroups   RolePermissionGroup[]
 }
 
 model Permission {
@@ -636,13 +637,17 @@ model Permission {
   nameAr      String?
   nameEn      String?
   module      String
+  category    String   @default("GENERAL")
   description String?
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roles       RolePermission[]
+  roles           RolePermission[]
+  groupPermissions PermissionGroupPermission[]
+  userOverrides   UserPermissionOverride[]
+  supplierEmployeePermissions SupplierEmployeePermission[]
 }
 
 model RolePermission {
@@ -651,6 +656,7 @@ model RolePermission {
   role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissionId String
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  effect       String   @default("ALLOW")
   canCreate    Boolean  @default(false)
   canRead      Boolean  @default(true)
   canUpdate    Boolean  @default(false)
@@ -671,6 +677,114 @@ model UserRoleAssignment {
   assignedAt DateTime @default(now())
 
   @@unique([userId, roleId])
+}
+
+model PermissionGroup {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  nameAr      String?
+  nameEn      String?
+  description String?
+  isSystemDefault Boolean @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions PermissionGroupPermission[]
+  roles       RolePermissionGroup[]
+  users       UserPermissionGroup[]
+}
+
+model PermissionGroupPermission {
+  id           String   @id @default(uuid())
+  groupId      String
+  group        PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  effect       String   @default("ALLOW")
+  createdAt    DateTime @default(now())
+
+  @@unique([groupId, permissionId])
+}
+
+model RolePermissionGroup {
+  id        String   @id @default(uuid())
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([roleId, groupId])
+}
+
+model UserPermissionGroup {
+  id        String   @id @default(uuid())
+  userId    String
+  groupId   String
+  group     PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  assignedBy String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, groupId])
+}
+
+model UserPermissionOverride {
+  id           String   @id @default(uuid())
+  userId       String
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  effect       String   @default("ALLOW")
+  reason       String?
+  assignedBy   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, permissionId])
+}
+
+model CustomerFeatureVisibility {
+  id                     String   @id @default(uuid())
+  customerId             String
+  featureCode            String
+  visibility             String   @default("SHOW")
+  conditionProfilePercent Int?
+  reason                 String?
+  assignedBy             String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([customerId, featureCode])
+}
+
+model SupplierEmployee {
+  id               String   @id @default(uuid())
+  supplierId       String
+  userId           String
+  roleWithinSupplier String @default("SUPPLIER_VIEWER")
+  jobTitle         String?
+  department       String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  permissions      SupplierEmployeePermission[]
+
+  @@unique([supplierId, userId])
+}
+
+model SupplierEmployeePermission {
+  id                 String   @id @default(uuid())
+  supplierEmployeeId String
+  supplierEmployee   SupplierEmployee @relation(fields: [supplierEmployeeId], references: [id], onDelete: Cascade)
+  permissionId       String
+  permission         Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  effect             String   @default("ALLOW")
+  createdAt          DateTime @default(now())
+
+  @@unique([supplierEmployeeId, permissionId])
 }
 
 model ModuleAccess {

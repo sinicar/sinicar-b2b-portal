@@ -164,13 +164,15 @@ async function main() {
   console.log('✅ Shipping zones created');
 
   const roles = [
-    { code: 'SUPER_ADMIN', name: 'Super Admin', nameAr: 'مدير عام', isSystem: true, sortOrder: 0 },
-    { code: 'ADMIN', name: 'Admin', nameAr: 'مدير', isSystem: true, sortOrder: 1 },
-    { code: 'CUSTOMER_OWNER', name: 'Customer Owner', nameAr: 'صاحب حساب', isSystem: true, sortOrder: 2 },
-    { code: 'CUSTOMER_STAFF', name: 'Customer Staff', nameAr: 'موظف', isSystem: true, sortOrder: 3 },
-    { code: 'SUPPLIER_LOCAL', name: 'Local Supplier', nameAr: 'مورد محلي', isSystem: true, sortOrder: 4 },
-    { code: 'SUPPLIER_INTERNATIONAL', name: 'International Supplier', nameAr: 'مورد دولي', isSystem: true, sortOrder: 5 },
-    { code: 'MARKETER', name: 'Marketer', nameAr: 'مسوق', isSystem: true, sortOrder: 6 }
+    { code: 'SUPER_ADMIN', name: 'Super Admin', nameAr: 'مدير عام', description: 'Full system access', isSystem: true, sortOrder: 0 },
+    { code: 'ADMIN', name: 'Admin', nameAr: 'مدير', description: 'Administrative access', isSystem: true, sortOrder: 1 },
+    { code: 'STAFF', name: 'Staff', nameAr: 'موظف', description: 'SINI CAR staff member', isSystem: true, sortOrder: 2 },
+    { code: 'CUSTOMER', name: 'Customer', nameAr: 'عميل', description: 'B2B customer account', isSystem: true, sortOrder: 3 },
+    { code: 'CUSTOMER_EMPLOYEE', name: 'Customer Employee', nameAr: 'موظف عميل', description: 'Employee of a customer', isSystem: true, sortOrder: 4 },
+    { code: 'SUPPLIER', name: 'Supplier', nameAr: 'مورد', description: 'Supplier account', isSystem: true, sortOrder: 5 },
+    { code: 'SUPPLIER_EMPLOYEE', name: 'Supplier Employee', nameAr: 'موظف مورد', description: 'Employee of a supplier', isSystem: true, sortOrder: 6 },
+    { code: 'MARKETER', name: 'Marketer', nameAr: 'مسوق', description: 'Affiliate marketer', isSystem: true, sortOrder: 7 },
+    { code: 'ADVERTISER', name: 'Advertiser', nameAr: 'معلن', description: 'Advertising account', isSystem: true, sortOrder: 8 }
   ];
 
   for (const role of roles) {
@@ -184,32 +186,89 @@ async function main() {
   console.log('✅ Roles created');
 
   const permissions = [
-    { code: 'products.view', name: 'View Products', nameAr: 'عرض المنتجات', module: 'products', sortOrder: 0 },
-    { code: 'products.create', name: 'Create Products', nameAr: 'إضافة منتجات', module: 'products', sortOrder: 1 },
-    { code: 'products.edit', name: 'Edit Products', nameAr: 'تعديل المنتجات', module: 'products', sortOrder: 2 },
-    { code: 'products.delete', name: 'Delete Products', nameAr: 'حذف المنتجات', module: 'products', sortOrder: 3 },
-    { code: 'orders.view', name: 'View Orders', nameAr: 'عرض الطلبات', module: 'orders', sortOrder: 0 },
-    { code: 'orders.create', name: 'Create Orders', nameAr: 'إنشاء طلبات', module: 'orders', sortOrder: 1 },
-    { code: 'orders.manage', name: 'Manage Orders', nameAr: 'إدارة الطلبات', module: 'orders', sortOrder: 2 },
-    { code: 'suppliers.view', name: 'View Suppliers', nameAr: 'عرض الموردين', module: 'suppliers', sortOrder: 0 },
-    { code: 'suppliers.manage', name: 'Manage Suppliers', nameAr: 'إدارة الموردين', module: 'suppliers', sortOrder: 1 },
-    { code: 'customers.view', name: 'View Customers', nameAr: 'عرض العملاء', module: 'customers', sortOrder: 0 },
-    { code: 'customers.manage', name: 'Manage Customers', nameAr: 'إدارة العملاء', module: 'customers', sortOrder: 1 },
-    { code: 'settings.view', name: 'View Settings', nameAr: 'عرض الإعدادات', module: 'settings', sortOrder: 0 },
-    { code: 'settings.manage', name: 'Manage Settings', nameAr: 'إدارة الإعدادات', module: 'settings', sortOrder: 1 },
-    { code: 'reports.view', name: 'View Reports', nameAr: 'عرض التقارير', module: 'reports', sortOrder: 0 },
-    { code: 'tools.access', name: 'Access Tools', nameAr: 'الوصول للأدوات', module: 'tools', sortOrder: 0 }
+    { code: 'VIEW_ADMIN_DASHBOARD', name: 'View Admin Dashboard', nameAr: 'عرض لوحة التحكم', module: 'admin', category: 'ADMIN', sortOrder: 0 },
+    { code: 'MANAGE_USERS', name: 'Manage Users', nameAr: 'إدارة المستخدمين', module: 'admin', category: 'ADMIN', sortOrder: 1 },
+    { code: 'MANAGE_PERMISSIONS', name: 'Manage Permissions', nameAr: 'إدارة الصلاحيات', module: 'admin', category: 'ADMIN', sortOrder: 2 },
+    { code: 'MANAGE_SETTINGS', name: 'Manage Settings', nameAr: 'إدارة الإعدادات', module: 'settings', category: 'ADMIN', sortOrder: 3 },
+    { code: 'VIEW_CUSTOMERS', name: 'View Customers', nameAr: 'عرض العملاء', module: 'customers', category: 'ADMIN', sortOrder: 4 },
+    { code: 'MANAGE_CUSTOMERS', name: 'Manage Customers', nameAr: 'إدارة العملاء', module: 'customers', category: 'ADMIN', sortOrder: 5 },
+    { code: 'VIEW_SUPPLIERS', name: 'View Suppliers', nameAr: 'عرض الموردين', module: 'suppliers', category: 'ADMIN', sortOrder: 6 },
+    { code: 'MANAGE_SUPPLIERS', name: 'Manage Suppliers', nameAr: 'إدارة الموردين', module: 'suppliers', category: 'ADMIN', sortOrder: 7 },
+    { code: 'MANAGE_INTERNATIONAL_SUPPLIERS', name: 'Manage International Suppliers', nameAr: 'إدارة الموردين الدوليين', module: 'suppliers', category: 'ADMIN', sortOrder: 8 },
+    { code: 'VIEW_CUSTOMER_PORTAL', name: 'View Customer Portal', nameAr: 'عرض بوابة العملاء', module: 'customer_portal', category: 'CUSTOMER_PORTAL', sortOrder: 0 },
+    { code: 'VIEW_TRADER_TOOLS', name: 'View Trader Tools', nameAr: 'عرض أدوات التاجر', module: 'tools', category: 'CUSTOMER_PORTAL', sortOrder: 1 },
+    { code: 'USE_TRADER_TOOLS', name: 'Use Trader Tools', nameAr: 'استخدام أدوات التاجر', module: 'tools', category: 'CUSTOMER_PORTAL', sortOrder: 2 },
+    { code: 'VIEW_INTERNATIONAL_PURCHASES', name: 'View International Purchases', nameAr: 'عرض المشتريات الدولية', module: 'international', category: 'CUSTOMER_PORTAL', sortOrder: 3 },
+    { code: 'MANAGE_INTERNATIONAL_PURCHASES', name: 'Manage International Purchases', nameAr: 'إدارة المشتريات الدولية', module: 'international', category: 'CUSTOMER_PORTAL', sortOrder: 4 },
+    { code: 'USE_AI_ASSISTANT', name: 'Use AI Assistant', nameAr: 'استخدام المساعد الذكي', module: 'ai', category: 'CUSTOMER_PORTAL', sortOrder: 5 },
+    { code: 'VIEW_PAGE_TRADER_TOOLS', name: 'View Trader Tools Page', nameAr: 'عرض صفحة أدوات التاجر', module: 'pages', category: 'PAGES', sortOrder: 0 },
+    { code: 'VIEW_PAGE_CUSTOMER_SERVICES', name: 'View Customer Services Page', nameAr: 'عرض صفحة خدمات العملاء', module: 'pages', category: 'PAGES', sortOrder: 1 },
+    { code: 'VIEW_PAGE_INTERNATIONAL_PURCHASES', name: 'View International Purchases Page', nameAr: 'عرض صفحة المشتريات الدولية', module: 'pages', category: 'PAGES', sortOrder: 2 },
+    { code: 'VIEW_SUPPLIER_PORTAL', name: 'View Supplier Portal', nameAr: 'عرض بوابة الموردين', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 0 },
+    { code: 'VIEW_SUPPLIER_DASHBOARD', name: 'View Supplier Dashboard', nameAr: 'عرض لوحة تحكم المورد', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 1 },
+    { code: 'MANAGE_SUPPLIER_PRODUCTS', name: 'Manage Supplier Products', nameAr: 'إدارة منتجات المورد', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 2 },
+    { code: 'VIEW_SUPPLIER_REQUESTS', name: 'View Supplier Requests', nameAr: 'عرض طلبات المورد', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 3 },
+    { code: 'RESPOND_TO_REQUESTS', name: 'Respond to Requests', nameAr: 'الرد على الطلبات', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 4 },
+    { code: 'MANAGE_SUPPLIER_EMPLOYEES', name: 'Manage Supplier Employees', nameAr: 'إدارة موظفي المورد', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 5 },
+    { code: 'VIEW_SUPPLIER_REPORTS', name: 'View Supplier Reports', nameAr: 'عرض تقارير المورد', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 6 },
+    { code: 'EXPORT_SUPPLIER_REPORTS', name: 'Export Supplier Reports', nameAr: 'تصدير تقارير المورد', module: 'supplier_portal', category: 'SUPPLIER_PORTAL', sortOrder: 7 },
+    { code: 'VIEW_REPORTS', name: 'View Reports', nameAr: 'عرض التقارير', module: 'reports', category: 'REPORTS', sortOrder: 0 },
+    { code: 'EXPORT_REPORTS', name: 'Export Reports', nameAr: 'تصدير التقارير', module: 'reports', category: 'REPORTS', sortOrder: 1 },
+    { code: 'VIEW_FEEDBACK_CENTER', name: 'View Feedback Center', nameAr: 'عرض مركز التغذية الراجعة', module: 'feedback', category: 'TOOLS', sortOrder: 0 },
+    { code: 'MANAGE_FEEDBACK', name: 'Manage Feedback', nameAr: 'إدارة التغذية الراجعة', module: 'feedback', category: 'TOOLS', sortOrder: 1 },
+    { code: 'VIEW_SEO_TOOLS', name: 'View SEO Tools', nameAr: 'عرض أدوات السيو', module: 'seo', category: 'TOOLS', sortOrder: 2 },
+    { code: 'MANAGE_SEO_SETTINGS', name: 'Manage SEO Settings', nameAr: 'إدارة إعدادات السيو', module: 'seo', category: 'TOOLS', sortOrder: 3 },
+    { code: 'VIEW_HELP_TEXT', name: 'View Help Text', nameAr: 'عرض نصوص المساعدة', module: 'help', category: 'TOOLS', sortOrder: 4 },
+    { code: 'MANAGE_HELP_TEXT', name: 'Manage Help Text', nameAr: 'إدارة نصوص المساعدة', module: 'help', category: 'TOOLS', sortOrder: 5 },
+    { code: 'CONFIGURE_AI_BEHAVIOR', name: 'Configure AI Behavior', nameAr: 'ضبط سلوك الذكاء الاصطناعي', module: 'ai', category: 'TOOLS', sortOrder: 6 },
+    { code: 'MANAGE_MESSAGE_TEMPLATES', name: 'Manage Message Templates', nameAr: 'إدارة قوالب الرسائل', module: 'messages', category: 'TOOLS', sortOrder: 7 },
+    { code: 'VIEW_TRADER_TOOLS_ADMIN', name: 'View Trader Tools Admin', nameAr: 'عرض إدارة أدوات التاجر', module: 'admin', category: 'ADMIN', sortOrder: 10 },
+    { code: 'TOGGLE_DARK_MODE_FOR_ACCOUNT', name: 'Toggle Dark Mode', nameAr: 'تبديل الوضع الداكن', module: 'account', category: 'ACCOUNT', sortOrder: 0 },
+    { code: 'products.view', name: 'View Products', nameAr: 'عرض المنتجات', module: 'products', category: 'PRODUCTS', sortOrder: 0 },
+    { code: 'products.create', name: 'Create Products', nameAr: 'إضافة منتجات', module: 'products', category: 'PRODUCTS', sortOrder: 1 },
+    { code: 'products.edit', name: 'Edit Products', nameAr: 'تعديل المنتجات', module: 'products', category: 'PRODUCTS', sortOrder: 2 },
+    { code: 'products.delete', name: 'Delete Products', nameAr: 'حذف المنتجات', module: 'products', category: 'PRODUCTS', sortOrder: 3 },
+    { code: 'orders.view', name: 'View Orders', nameAr: 'عرض الطلبات', module: 'orders', category: 'ORDERS', sortOrder: 0 },
+    { code: 'orders.create', name: 'Create Orders', nameAr: 'إنشاء طلبات', module: 'orders', category: 'ORDERS', sortOrder: 1 },
+    { code: 'orders.manage', name: 'Manage Orders', nameAr: 'إدارة الطلبات', module: 'orders', category: 'ORDERS', sortOrder: 2 },
+    { code: 'suppliers.view', name: 'View Suppliers List', nameAr: 'عرض قائمة الموردين', module: 'suppliers', category: 'SUPPLIERS', sortOrder: 0 },
+    { code: 'suppliers.manage', name: 'Manage Suppliers List', nameAr: 'إدارة قائمة الموردين', module: 'suppliers', category: 'SUPPLIERS', sortOrder: 1 },
+    { code: 'customers.view', name: 'View Customers List', nameAr: 'عرض قائمة العملاء', module: 'customers', category: 'CUSTOMERS', sortOrder: 0 },
+    { code: 'customers.manage', name: 'Manage Customers List', nameAr: 'إدارة قائمة العملاء', module: 'customers', category: 'CUSTOMERS', sortOrder: 1 },
+    { code: 'settings.view', name: 'View Settings', nameAr: 'عرض الإعدادات', module: 'settings', category: 'SETTINGS', sortOrder: 0 },
+    { code: 'settings.manage', name: 'Manage Settings', nameAr: 'إدارة الإعدادات', module: 'settings', category: 'SETTINGS', sortOrder: 1 },
+    { code: 'reports.view', name: 'View Reports List', nameAr: 'عرض التقارير', module: 'reports', category: 'REPORTS', sortOrder: 2 },
+    { code: 'tools.access', name: 'Access Tools', nameAr: 'الوصول للأدوات', module: 'tools', category: 'TOOLS', sortOrder: 8 }
   ];
 
   for (const perm of permissions) {
     await prisma.permission.upsert({
       where: { code: perm.code },
-      update: {},
+      update: { category: perm.category },
       create: perm
     });
   }
 
   console.log('✅ Permissions created');
+
+  const permissionGroups = [
+    { code: 'DEFAULT_ADMIN', name: 'Default Admin', nameAr: 'صلاحيات المدير الافتراضية', description: 'Full administrative access', isSystemDefault: true, sortOrder: 0 },
+    { code: 'SUPPORT_STAFF', name: 'Support Staff', nameAr: 'صلاحيات موظفي الدعم', description: 'Customer support permissions', isSystemDefault: true, sortOrder: 1 },
+    { code: 'BASIC_CUSTOMER', name: 'Basic Customer', nameAr: 'عميل أساسي', description: 'Basic customer portal access', isSystemDefault: true, sortOrder: 2 },
+    { code: 'VIP_CUSTOMER', name: 'VIP Customer', nameAr: 'عميل VIP', description: 'Full customer features including trader tools', isSystemDefault: true, sortOrder: 3 },
+    { code: 'POWER_SUPPLIER', name: 'Power Supplier', nameAr: 'مورد متميز', description: 'Full supplier portal access', isSystemDefault: true, sortOrder: 4 },
+    { code: 'BASIC_SUPPLIER', name: 'Basic Supplier', nameAr: 'مورد أساسي', description: 'Limited supplier access', isSystemDefault: true, sortOrder: 5 }
+  ];
+
+  for (const group of permissionGroups) {
+    await prisma.permissionGroup.upsert({
+      where: { code: group.code },
+      update: {},
+      create: group
+    });
+  }
+
+  console.log('✅ Permission groups created');
 
   const modules = [
     { moduleKey: 'products', moduleName: 'Products', moduleNameAr: 'المنتجات', sortOrder: 0 },

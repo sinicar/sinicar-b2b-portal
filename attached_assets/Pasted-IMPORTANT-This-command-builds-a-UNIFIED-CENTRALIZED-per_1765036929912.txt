@@ -1,0 +1,490 @@
+IMPORTANT — This command builds a UNIFIED, CENTRALIZED permission system
+for the entire SINI CAR platform.
+
+Do NOT keep scattered, hard-coded checks for permissions.
+Do NOT delete existing roles, but migrate them into a unified matrix.
+
+We are creating:
+
+- A global Role & Permission model.
+- Unified permission handling for:
+  • Internal staff (SINI CAR employees & admins)
+  • Customers (B2B clients)
+  • Suppliers (local & international)
+  • Marketers
+  • Advertisers
+  • Sub-users (employees of suppliers, and possibly employees of customers)
+- Ability to:
+  • Define permission groups.
+  • Assign permissions per role, per group, and per single user.
+  • Hide/show pages and tools per user or per customer.
+  • Control access based on profile completeness.
+  • Allow suppliers to create sub-users and manage their permissions.
+- A central “Permission Center” in Admin Panel.
+
+GOAL:
+Unify and organize ALL access control for the system in a single flexible matrix,
+with fine-grained control and easy UI for admins (and for supplier owners over their sub-users).
+
+────────────────────────────────
+1) Core Concepts & Data Models
+────────────────────────────────
+
+Define these models:
+
+A) Role (global roles)
+----------------------
+
+Role:
+- id
+- code (string, unique) e.g.:
+  • "ADMIN"
+  • "STAFF"
+  • "CUSTOMER"
+  • "SUPPLIER"
+  • "SUPPLIER_EMPLOYEE"
+  • "MARKETER"
+  • "ADVERTISER"
+  • "CUSTOMER_EMPLOYEE" (optional, if customers have internal sub-users)
+- name (display name)
+- description
+- isSystemRole (boolean)
+
+Every user has at least one global role (primaryRole), but can also have “assignedRoles” if needed.
+
+Extend User model:
+- primaryRoleId (FK to Role)
+- extraRoleIds (optional JSON list)
+- isActive (for account status)
+
+B) Permission (atomic capability)
+---------------------------------
+
+Permission:
+- id
+- code (string, unique), e.g.:
+  • "VIEW_ADMIN_DASHBOARD"
+  • "MANAGE_CUSTOMERS"
+  • "VIEW_CUSTOMER_PORTAL"
+  • "USE_TRADER_TOOLS"
+  • "VIEW_TRADER_TOOLS"
+  • "MANAGE_SUPPLIERS"
+  • "VIEW_SUPPLIER_PORTAL"
+  • "MANAGE_SUPPLIER_PRODUCTS"
+  • "MANAGE_SUPPLIER_EMPLOYEES"
+  • "VIEW_INTERNATIONAL_PURCHASES"
+  • "MANAGE_INTERNATIONAL_PURCHASES"
+  • "VIEW_REPORTS"
+  • "EXPORT_REPORTS"
+  • "VIEW_FEEDBACK_CENTER"
+  • "MANAGE_FEEDBACK"
+  • "MANAGE_SETTINGS"
+  • "VIEW_SEO_TOOLS"
+  • "USE_AI_ASSISTANT"
+  • "VIEW_PAGE_TRADER_TOOLS"
+  • "VIEW_PAGE_CUSTOMER_SERVICES"
+  • "VIEW_PAGE_INTERNATIONAL_PURCHASES"
+  • etc…
+
+- name (display label)
+- description
+- category (e.g. "ADMIN", "CUSTOMER_PORTAL", "SUPPLIER_PORTAL", "TOOLS", "REPORTS")
+
+C) PermissionGroup (bundles of permissions)
+-------------------------------------------
+
+PermissionGroup:
+- id
+- code (e.g. "DEFAULT_ADMIN", "POWER_SUPPLIER", "BASIC_CUSTOMER")
+- name
+- description
+- isSystemDefault (boolean)
+
+PermissionGroupPermission:
+- id
+- groupId (FK to PermissionGroup)
+- permissionId (FK to Permission)
+
+D) RolePermission (default permissions per role)
+-----------------------------------------------
+
+RolePermission:
+- id
+- roleId (FK to Role)
+- permissionId (FK to Permission)
+- effect ("ALLOW" or "DENY")
+
+E) UserPermissionOverride (per-user overrides)
+----------------------------------------------
+
+UserPermissionOverride:
+- id
+- userId (FK to User)
+- permissionId (FK to Permission)
+- effect ("ALLOW" or "DENY")
+
+F) CustomerFeatureVisibility (per-customer page/feature visibility)
+------------------------------------------------------------------
+
+For customer-level visibility (e.g. hide Trader Tools for specific customer):
+
+CustomerFeatureVisibility:
+- id
+- customerId (FK to User where role=CUSTOMER)
+- featureCode (e.g. "TRADER_TOOLS", "AI_TOOLS", "INTERNATIONAL_PURCHASES")
+- visibility ("SHOW", "HIDE", "RESTRICTED")
+- conditionProfileCompletionPercent (optional, e.g. require >= 80%)
+
+Example:
+- Customer “Saqr Parts”:
+  • featureCode = "TRADER_TOOLS"
+  • visibility = "HIDE"
+- Customer “Big Workshop”:
+  • featureCode = "TRADER_TOOLS"
+  • visibility = "RESTRICTED"
+  • conditionProfileCompletionPercent = 70
+
+G) SupplierEmployee (sub-users of suppliers)
+--------------------------------------------
+
+SupplierEmployee:
+- id
+- supplierId (FK to User with role=SUPPLIER)
+- userId (FK to User)
+- roleWithinSupplier (e.g. "SUPPLIER_MANAGER", "SUPPLIER_SALES", "SUPPLIER_VIEWER")
+- isActive
+
+We will reuse the same Permission model for supplier employees via a sub-scope:
+
+SupplierEmployeePermission:
+- id
+- supplierEmployeeId
+- permissionId
+- effect ("ALLOW" / "DENY")
+
+This allows supplier owners to grant/restrict actions inside their own portal:  
+e.g. “can view requests”, “can respond to quotes”, “can edit products”.
+
+────────────────────────────────
+2) Permission Resolution Logic
+────────────────────────────────
+
+Implement a central permission resolver function on backend:
+
+hasPermission(userId, permissionCode, context?):
+
+Resolution steps:
+
+1) Load user with:
+   - primaryRole
+   - extraRoleIds
+2) Load all RolePermissions for those roles.
+3) Load all PermissionGroups assigned to those roles (if you want linking).
+4) Load UserPermissionOverride for that user.
+5) Aggregate:
+   - Start from DENY by default.
+   - Apply role-based ALLOW/DENY.
+   - Apply group-based ALLOW/DENY.
+   - Finally apply user overrides (highest priority).
+
+Return:
+- true if final decision is ALLOW
+- false otherwise
+
+For customer-specific page visibility:
+- Additionally check CustomerFeatureVisibility by:
+  • featureCode
+  • profile completion logic.
+
+────────────────────────────────
+3) Page & Feature Mapping
+────────────────────────────────
+
+Every major page and feature should map to one or more Permission codes:
+
+Examples:
+
+- Admin Dashboard:
+  • "VIEW_ADMIN_DASHBOARD"
+
+- Customer Base (Customers CRM):
+  • "VIEW_CUSTOMERS"
+  • "MANAGE_CUSTOMERS"
+
+- Supplier Portal (global access):
+  • "VIEW_SUPPLIER_PORTAL"
+
+- Supplier Products:
+  • "MANAGE_SUPPLIER_PRODUCTS"
+
+- Trader Tools Center (Admin):
+  • "VIEW_TRADER_TOOLS_ADMIN"
+
+- Trader Tools in customer portal:
+  • "VIEW_TRADER_TOOLS"
+  • "USE_TRADER_TOOLS"
+
+- International Purchases Page:
+  • "VIEW_INTERNATIONAL_PURCHASES"
+  • "MANAGE_INTERNATIONAL_PURCHASES"
+
+- AI Tools:
+  • "USE_AI_ASSISTANT"
+  • "CONFIGURE_AI_BEHAVIOR"
+
+- SEO Tools:
+  • "VIEW_SEO_TOOLS"
+  • "MANAGE_SEO_SETTINGS"
+
+- Message Templates:
+  • "MANAGE_MESSAGE_TEMPLATES"
+
+- International Supplier Config:
+  • "MANAGE_INTERNATIONAL_SUPPLIERS"
+
+Rules:
+- For each route/component on frontend:
+  • Check permissions via an injected permission map from backend (or via token claims).
+  • If user lacks permission, either:
+    - Hide the menu entry, OR
+    - Show page “not authorized” with a message like:
+      "You don't have access to this page."
+      or
+      "Complete your profile to unlock more features."
+
+────────────────────────────────
+4) Central Permission Center (Admin UI)
+────────────────────────────────
+
+Add a new main section in Admin Panel:
+
+Menu label:
+- English: "Permission Center"
+- Arabic: "مركز الصلاحيات"
+
+Sub-sections:
+
+A) Roles Management
+-------------------
+- List roles with:
+  • Role code
+  • Name
+  • Description
+  • Number of users per role.
+- Ability:
+  • View / edit default permissions (RolePermissions).
+  • Assign default PermissionGroups to a role.
+
+B) Permission Groups Management
+-------------------------------
+- List groups:
+  • "Default Admin"
+  • "Support Staff"
+  • "Basic Customer"
+  • "VIP Customer"
+  • "Power Supplier"
+- For each group:
+  • View / add / remove permissions.
+  • Assign group to:
+    - Roles
+    - Specific users (e.g. VIP customer gets "VIP_CUSTOMER" group).
+
+C) Permissions Catalog
+----------------------
+- List all Permission codes, grouped by category.
+- Quick description of each permission.
+- Search & filter.
+
+D) Per-User Permissions
+-----------------------
+- Search user by name/email/phone.
+- View:
+  • Their role(s).
+  • Their groups.
+  • Effective permission summary.
+- Override UI:
+  • Add explicit ALLOW for a permission.
+  • Add explicit DENY for a permission.
+  • Remove overrides.
+
+E) Customer Feature Visibility (per customer)
+---------------------------------------------
+- For a selected customer:
+  • Show toggles:
+    - Show/Hide Trader Tools
+    - Show/Hide International Purchases
+    - Show/Hide AI Tools
+    - Show/Hide some tools like "Services"
+  • Option:
+    - "Require profile completion % >= X to show this feature."
+- Save to CustomerFeatureVisibility.
+
+────────────────────────────────
+5) Supplier Employees & Their Permissions (Supplier Portal)
+────────────────────────────────
+
+In Supplier Portal, for supplier owners (primary supplier account):
+
+Add pages:
+
+A) "My Employees" / "موظفي المورد"
+-----------------------------------
+- Supplier owner can:
+  • Add employees (create user with role=SUPPLIER_EMPLOYEE).
+  • Set:
+    - Name
+    - Email
+    - Phone
+    - Login username
+    - Temp password
+  • Activate / Deactivate employee.
+
+B) Employee Permissions (Supplier Scope)
+----------------------------------------
+- For each supplier employee:
+  • Manage which supplier-permissions they have, e.g.:
+    - VIEW_SUPPLIER_DASHBOARD
+    - MANAGE_SUPPLIER_PRODUCTS
+    - VIEW_SUPPLIER_REQUESTS
+    - RESPOND_TO_REQUESTS
+    - VIEW_SUPPLIER_REPORTS
+    - EXPORT_SUPPLIER_REPORTS
+  • Use a simple set of checkboxes driven by the same Permission model (or a sub-set of it).
+
+C) Supplier Reports for Employees
+---------------------------------
+- Supplier owner can see:
+  • Activity per employee (using Activity Log integration).
+  • Number of requests handled.
+  • Quotes sent, accepted, rejected.
+  • Sales per employee if relevant.
+
+────────────────────────────────
+6) Customer-Level Page Hiding & Profile Completion Gating
+────────────────────────────────
+
+Implement logic driven by CustomerFeatureVisibility:
+
+- When rendering customer portal menu:
+  • For each feature/page:
+    - Check:
+      - hasPermission(user, permissionCode)?
+      - If feature has CustomerFeatureVisibility entry:
+        • If visibility = "HIDE" → do not show the page.
+        • If visibility = "RESTRICTED":
+          - If profileCompletion < required → show disabled state / "Complete your profile".
+          - Else → show as normal.
+
+- Example:
+  - Customer "Saqr Parts":
+    • TRADER_TOOLS: visibility = HIDE
+    → No Trader Tools in their sidebar at all.
+
+  - Customer "Big Workshop":
+    • TRADER_TOOLS: visibility = RESTRICTED, profileCompletionPercent >= 80
+    → Show card "Complete your profile to unlock Trader Tools" until they complete profile.
+
+────────────────────────────────
+7) Account Creation from Admin Panel (User Types & Default Permissions)
+────────────────────────────────
+
+In Admin Panel, add “Create Account” flow for:
+
+- Customer
+- Supplier (local/international)
+- Marketer
+- Advertiser
+- Staff / Employee
+
+For each:
+- Admin chooses role + group(s).
+- Admin can set:
+  • username
+  • temp password
+- On creation:
+  • Attach default RolePermissions + assigned PermissionGroups.
+  • Default CustomerFeatureVisibility for that type if needed.
+
+Permissions for this action:
+- Only admins with "MANAGE_USERS" & "MANAGE_PERMISSIONS" can create such accounts.
+
+────────────────────────────────
+8) Dark Mode, SEO Tools, Help Pages — Permission Hooks (Design)
+────────────────────────────────
+
+This command does NOT implement dark mode or SEO tools themselves, but:
+
+- Define permissions for:
+  • "VIEW_SEO_TOOLS", "MANAGE_SEO_SETTINGS"
+  • "VIEW_HELP_TEXT", "MANAGE_HELP_TEXT"
+  • "TOGGLE_DARK_MODE_FOR_ACCOUNT" (user-level)
+- So when those modules are implemented, they already plug into the permission system.
+
+────────────────────────────────
+9) Technical Implementation Notes
+────────────────────────────────
+
+- Backend:
+  • Implement a central permission service with:
+    - hasPermission(userId, permissionCode)
+  • Use Zod/TypeScript for typing permission codes and models.
+  • Integrate into:
+    - Express middleware:
+      • requirePermission("CODE") wrapper for routes.
+    - Business logic checks, not only UI.
+
+- Frontend:
+  • On login, fetch a minimal permission snapshot for logged-in user:
+    GET /api/auth/me/permissions
+    returns:
+    {
+      "permissions": ["VIEW_CUSTOMER_PORTAL", "VIEW_TRADER_TOOLS", ...],
+      "features": {
+        "TRADER_TOOLS": { "visibility": "SHOW", "profileRequiredPercent": 70, "allowed": true },
+        ...
+      }
+    }
+  • Use this snapshot to:
+    - Hide/show menu items and buttons.
+    - Show “No access” or “Complete your profile” states.
+
+- Performance:
+  • Cache role/permission mappings in memory where possible.
+  • Avoid per-request heavy DB lookups by pre-loading permissions on login or using simple joins.
+
+────────────────────────────────
+10) Scope of this Command
+────────────────────────────────
+
+This command includes:
+
+- Data models:
+  • Role, Permission, PermissionGroup, RolePermission, UserPermissionOverride,
+    CustomerFeatureVisibility, SupplierEmployee, SupplierEmployeePermission.
+
+- Backend:
+  • Central permission resolver.
+  • Route-level middleware helpers.
+  • APIs for:
+    - Listing roles, permissions, groups.
+    - Managing group permissions.
+    - Managing role permissions.
+    - Per-user overrides.
+    - Customer feature visibility.
+
+- Frontend:
+  • Admin "Permission Center" with:
+    - Roles management.
+    - Permission groups management.
+    - Per-user permission control.
+    - Customer feature visibility UI.
+  • Supplier Portal:
+    - “My Employees” management.
+    - Supplier employee permissions.
+  • Customer portal:
+    - Menu/page visibility based on permissions + CustomerFeatureVisibility.
+
+This command does NOT:
+- Implement the AI auto-coder feature.
+- Implement SEO tools, dark mode, or help/tooltips themselves;
+  it only prepares permissions to control access to these modules when they are built.
