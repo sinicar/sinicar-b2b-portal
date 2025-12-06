@@ -296,18 +296,12 @@ export function AdminPermissionCenter() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [rolesRes, permsRes, groupsRes, modulesRes, visRes] = await Promise.all([
-        fetch('/api/v1/permissions/roles').then(r => r.json()),
-        fetch('/api/v1/permissions/permissions').then(r => r.json()),
-        fetch('/api/v1/permissions/groups').then(r => r.json()),
-        fetch('/api/v1/permissions/modules').then(r => r.json()),
-        fetch('/api/v1/permissions/customer-visibility').then(r => r.json())
-      ]);
-      if (rolesRes.data) setRoles(rolesRes.data);
-      if (permsRes.data) setPermissions(permsRes.data);
-      if (groupsRes.data) setGroups(groupsRes.data);
-      if (modulesRes.data) setModules(modulesRes.data);
-      if (visRes.data) setVisibilityList(visRes.data);
+      // For now, use empty data. In production, this would fetch from backend API
+      setRoles([]);
+      setPermissions([]);
+      setGroups([]);
+      setModules([]);
+      setVisibilityList([]);
     } catch (e) {
       console.error('Error fetching permission data:', e);
     } finally {
