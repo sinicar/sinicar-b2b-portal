@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { 
     AdminUser, Role, Permission, PermissionResource, PermissionAction,
-    PERMISSION_RESOURCE_LABELS, PERMISSION_ACTION_LABELS, RESOURCE_AVAILABLE_ACTIONS
+    PERMISSION_RESOURCE_LABELS, PERMISSION_ACTION_LABELS, RESOURCE_AVAILABLE_ACTIONS,
+    ExtendedUserRole, UserAccountStatus
 } from '../types';
 import { formatDateTime } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
@@ -12,7 +13,8 @@ import { Modal } from './Modal';
 import { 
     Users, Plus, Edit2, Trash2, UserCheck, UserX, Search, 
     Phone, Mail, Clock, Download, X, Check, AlertTriangle, Key,
-    Shield, Settings, ChevronDown, ChevronUp, Save, Lock
+    Shield, Settings, ChevronDown, ChevronUp, Save, Lock, Ban,
+    CheckCircle, XCircle, MessageCircle, Percent
 } from 'lucide-react';
 
 interface AdminUsersPageProps {
@@ -93,8 +95,12 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
     const canCreate = hasPermission('users', 'create');
     const canEdit = hasPermission('users', 'edit');
     const canDelete = hasPermission('users', 'delete');
+    const canApprove = hasPermission('users', 'approve') || hasPermission('users', 'edit');
     const [roleFilter, setRoleFilter] = useState<string>('ALL');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+    const [extendedRoleFilter, setExtendedRoleFilter] = useState<string>('ALL');
+    const [accountStatusFilter, setAccountStatusFilter] = useState<string>('ALL');
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
     
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -152,14 +158,19 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
         const matchesSearch = 
             user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.phone.includes(searchQuery);
+            user.phone.includes(searchQuery) ||
+            (user.whatsapp && user.whatsapp.includes(searchQuery)) ||
+            (user.clientCode && user.clientCode.toLowerCase().includes(searchQuery.toLowerCase()));
         
         const matchesRole = roleFilter === 'ALL' || user.roleId === roleFilter;
         const matchesStatus = statusFilter === 'ALL' || 
             (statusFilter === 'ACTIVE' && user.isActive) || 
             (statusFilter === 'INACTIVE' && !user.isActive);
         
-        return matchesSearch && matchesRole && matchesStatus;
+        const matchesExtendedRole = extendedRoleFilter === 'ALL' || user.extendedRole === extendedRoleFilter;
+        const matchesAccountStatus = accountStatusFilter === 'ALL' || user.accountStatus === accountStatusFilter;
+        
+        return matchesSearch && matchesRole && matchesStatus && matchesExtendedRole && matchesAccountStatus;
     });
 
     const resetForm = () => {
@@ -403,6 +414,98 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
         );
     };
 
+    const getExtendedRoleBadge = (role?: ExtendedUserRole) => {
+        const roleLabels: Record<ExtendedUserRole, { label: string; color: string }> = {
+            'ADMIN': { label: 'مدير', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+            'EMPLOYEE': { label: 'موظف', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+            'CUSTOMER': { label: 'عميل', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+            'SUPPLIER_LOCAL': { label: 'مورد محلي', color: 'bg-amber-100 text-amber-800 border-amber-200' },
+            'SUPPLIER_INTERNATIONAL': { label: 'مورد دولي', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+            'MARKETER': { label: 'مسوق', color: 'bg-pink-100 text-pink-800 border-pink-200' }
+        };
+        if (!role) return <span className="text-slate-400 text-xs">—</span>;
+        const config = roleLabels[role] || { label: role, color: 'bg-slate-100 text-slate-800 border-slate-200' };
+        return (
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${config.color}`}>
+                {config.label}
+            </span>
+        );
+    };
+
+    const getAccountStatusBadge = (status?: UserAccountStatus) => {
+        const statusConfig: Record<UserAccountStatus, { label: string; color: string; icon: React.ReactNode }> = {
+            'PENDING': { label: 'قيد الانتظار', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: <Clock size={12} /> },
+            'APPROVED': { label: 'مقبول', color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle size={12} /> },
+            'REJECTED': { label: 'مرفوض', color: 'bg-red-100 text-red-800 border-red-200', icon: <XCircle size={12} /> },
+            'BLOCKED': { label: 'محظور', color: 'bg-slate-100 text-slate-800 border-slate-200', icon: <Ban size={12} /> }
+        };
+        if (!status) return <span className="text-slate-400 text-xs">—</span>;
+        const config = statusConfig[status] || { label: status, color: 'bg-slate-100 text-slate-800 border-slate-200', icon: null };
+        return (
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${config.color}`}>
+                {config.icon} {config.label}
+            </span>
+        );
+    };
+
+    const getCompletionBar = (percent?: number) => {
+        const value = percent ?? 0;
+        const color = value >= 80 ? 'bg-green-500' : value >= 50 ? 'bg-yellow-500' : 'bg-red-500';
+        return (
+            <div className="flex items-center gap-2">
+                <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div className={`h-full ${color}`} style={{ width: `${value}%` }} />
+                </div>
+                <span className="text-xs text-slate-600">{value}%</span>
+            </div>
+        );
+    };
+
+    const handleApproveUser = async (userId: string) => {
+        setActionLoading(userId);
+        try {
+            const updatedUser = await mockApi.approveAdminUser(userId);
+            if (updatedUser) {
+                setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+                addToast('تم قبول المستخدم بنجاح', 'success');
+            }
+        } catch (e: any) {
+            addToast(e.message || 'فشل في قبول المستخدم', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleRejectUser = async (userId: string) => {
+        setActionLoading(userId);
+        try {
+            const updatedUser = await mockApi.rejectAdminUser(userId);
+            if (updatedUser) {
+                setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+                addToast('تم رفض المستخدم', 'success');
+            }
+        } catch (e: any) {
+            addToast(e.message || 'فشل في رفض المستخدم', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleBlockUser = async (userId: string) => {
+        setActionLoading(userId);
+        try {
+            const updatedUser = await mockApi.blockAdminUser(userId);
+            if (updatedUser) {
+                setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+                addToast('تم حظر المستخدم', 'success');
+            }
+        } catch (e: any) {
+            addToast(e.message || 'فشل في حظر المستخدم', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-8 flex items-center justify-center min-h-[400px]">
@@ -452,6 +555,34 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
                         <option value="ACTIVE">نشط</option>
                         <option value="INACTIVE">موقوف</option>
                     </select>
+                    
+                    <select
+                        value={extendedRoleFilter}
+                        onChange={e => setExtendedRoleFilter(e.target.value)}
+                        className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                        data-testid="select-extended-role-filter"
+                    >
+                        <option value="ALL">جميع الأنواع</option>
+                        <option value="ADMIN">مدير</option>
+                        <option value="EMPLOYEE">موظف</option>
+                        <option value="CUSTOMER">عميل</option>
+                        <option value="SUPPLIER_LOCAL">مورد محلي</option>
+                        <option value="SUPPLIER_INTERNATIONAL">مورد دولي</option>
+                        <option value="MARKETER">مسوق</option>
+                    </select>
+                    
+                    <select
+                        value={accountStatusFilter}
+                        onChange={e => setAccountStatusFilter(e.target.value)}
+                        className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                        data-testid="select-account-status-filter"
+                    >
+                        <option value="ALL">حالة الحساب</option>
+                        <option value="PENDING">قيد الانتظار</option>
+                        <option value="APPROVED">مقبول</option>
+                        <option value="REJECTED">مرفوض</option>
+                        <option value="BLOCKED">محظور</option>
+                    </select>
                 </div>
                 
                 <div className="flex gap-3">
@@ -492,110 +623,130 @@ const UsersTab: React.FC<UsersTabProps> = ({ onRefresh }) => {
                     <table className="w-full">
                         <thead>
                             <tr className="bg-slate-50 text-slate-600 text-sm">
-                                <th className="text-right py-4 px-6 font-bold">الاسم الكامل</th>
-                                <th className="text-right py-4 px-4 font-bold">اسم المستخدم</th>
-                                <th className="text-right py-4 px-4 font-bold">رقم الجوال</th>
-                                <th className="text-right py-4 px-4 font-bold">الدور</th>
-                                <th className="text-center py-4 px-4 font-bold">الحالة</th>
-                                <th className="text-right py-4 px-4 font-bold">آخر تسجيل دخول</th>
-                                <th className="text-center py-4 px-4 font-bold">الإجراءات</th>
+                                <th className="text-right py-4 px-4 font-bold">الاسم الكامل</th>
+                                <th className="text-right py-4 px-3 font-bold">كود العميل</th>
+                                <th className="text-right py-4 px-3 font-bold">الواتساب</th>
+                                <th className="text-right py-4 px-3 font-bold">نوع الحساب</th>
+                                <th className="text-center py-4 px-3 font-bold">حالة الحساب</th>
+                                <th className="text-center py-4 px-3 font-bold">الاكتمال</th>
+                                <th className="text-right py-4 px-3 font-bold">الدور الإداري</th>
+                                <th className="text-center py-4 px-3 font-bold">الحالة</th>
+                                <th className="text-center py-4 px-3 font-bold">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                    <td colSpan={9} className="py-12 text-center text-slate-400">
                                         لا توجد نتائج مطابقة للبحث
                                     </td>
                                 </tr>
                             ) : (
                                 filteredUsers.map(user => (
                                     <tr key={user.id} className="hover:bg-slate-50 transition-colors" data-testid={`row-user-${user.id}`}>
-                                        <td className="py-4 px-6">
+                                        <td className="py-4 px-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-[#0B1B3A] flex items-center justify-center text-white font-bold">
                                                     {user.fullName.charAt(0)}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-slate-800">{user.fullName}</p>
+                                                    <p className="text-xs text-slate-500">{user.username}</p>
                                                     {user.email && (
-                                                        <p className="text-xs text-slate-500 flex items-center gap-1">
-                                                            <Mail size={12} /> {user.email}
+                                                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                                                            <Mail size={10} /> {user.email}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4">
-                                            <span className="font-mono text-sm bg-slate-100 px-2 py-1 rounded">{user.username}</span>
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            <span className="flex items-center gap-1 text-slate-600">
-                                                <Phone size={14} className="text-slate-400" /> {user.phone}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-4">{getRoleBadge(user.roleId)}</td>
-                                        <td className="py-4 px-4 text-center">{getStatusBadge(user.isActive)}</td>
-                                        <td className="py-4 px-4">
-                                            {user.lastLoginAt ? (
-                                                <span className="flex items-center gap-1 text-slate-500 text-sm">
-                                                    <Clock size={14} /> {formatDateTime(user.lastLoginAt)}
-                                                </span>
+                                        <td className="py-4 px-3">
+                                            {user.clientCode ? (
+                                                <span className="font-mono text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded">{user.clientCode}</span>
                                             ) : (
-                                                <span className="text-slate-400 text-sm">لم يسجل دخول</span>
+                                                <span className="text-slate-400 text-xs">—</span>
                                             )}
                                         </td>
-                                        <td className="py-4 px-4">
-                                            <div className="flex items-center justify-center gap-1">
-                                                {canEdit ? (
+                                        <td className="py-4 px-3">
+                                            {user.whatsapp ? (
+                                                <span className="flex items-center gap-1 text-slate-600 text-sm">
+                                                    <MessageCircle size={14} className="text-green-500" /> {user.whatsapp}
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-slate-500 text-sm">
+                                                    <Phone size={14} className="text-slate-400" /> {user.phone}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-3">{getExtendedRoleBadge(user.extendedRole)}</td>
+                                        <td className="py-4 px-3 text-center">{getAccountStatusBadge(user.accountStatus)}</td>
+                                        <td className="py-4 px-3">{getCompletionBar(user.completionPercent)}</td>
+                                        <td className="py-4 px-3">{getRoleBadge(user.roleId)}</td>
+                                        <td className="py-4 px-3 text-center">{getStatusBadge(user.isActive)}</td>
+                                        <td className="py-4 px-3">
+                                            <div className="flex items-center justify-center gap-1 flex-wrap">
+                                                {canApprove && user.accountStatus === 'PENDING' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApproveUser(user.id)}
+                                                            disabled={actionLoading === user.id}
+                                                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                                                            title="قبول"
+                                                            data-testid={`button-approve-user-${user.id}`}
+                                                        >
+                                                            <CheckCircle size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRejectUser(user.id)}
+                                                            disabled={actionLoading === user.id}
+                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                                            title="رفض"
+                                                            data-testid={`button-reject-user-${user.id}`}
+                                                        >
+                                                            <XCircle size={16} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {canApprove && user.accountStatus !== 'BLOCKED' && user.accountStatus !== 'PENDING' && (
+                                                    <button
+                                                        onClick={() => handleBlockUser(user.id)}
+                                                        disabled={actionLoading === user.id}
+                                                        className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                                                        title="حظر"
+                                                        data-testid={`button-block-user-${user.id}`}
+                                                    >
+                                                        <Ban size={16} />
+                                                    </button>
+                                                )}
+                                                {canEdit && (
                                                     <>
                                                         <button
                                                             onClick={() => handleOpenEdit(user)}
-                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                             title="تعديل"
                                                             data-testid={`button-edit-user-${user.id}`}
                                                         >
-                                                            <Edit2 size={18} />
+                                                            <Edit2 size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleOpenResetPassword(user)}
-                                                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                                            className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                                                             title="إعادة تعيين كلمة المرور"
                                                             data-testid={`button-reset-password-${user.id}`}
                                                         >
-                                                            <Key size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleOpenToggle(user)}
-                                                            className={`p-2 rounded-lg transition-colors ${
-                                                                user.isActive 
-                                                                    ? 'text-amber-600 hover:bg-amber-50' 
-                                                                    : 'text-green-600 hover:bg-green-50'
-                                                            }`}
-                                                            title={user.isActive ? 'إيقاف' : 'تفعيل'}
-                                                            data-testid={`button-toggle-user-${user.id}`}
-                                                        >
-                                                            {user.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
+                                                            <Key size={16} />
                                                         </button>
                                                     </>
-                                                ) : (
-                                                    <span className="p-2 text-slate-300" title="لا صلاحية للتعديل">
-                                                        <Lock size={18} />
-                                                    </span>
                                                 )}
-                                                {canDelete ? (
+                                                {canDelete && (
                                                     <button
                                                         onClick={() => handleOpenDelete(user)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                         title="حذف"
                                                         data-testid={`button-delete-user-${user.id}`}
                                                     >
-                                                        <Trash2 size={18} />
+                                                        <Trash2 size={16} />
                                                     </button>
-                                                ) : (
-                                                    <span className="p-2 text-slate-300" title="لا صلاحية للحذف">
-                                                        <Trash2 size={18} />
-                                                    </span>
                                                 )}
                                             </div>
                                         </td>

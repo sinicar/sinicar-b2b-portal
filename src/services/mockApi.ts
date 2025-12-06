@@ -2973,7 +2973,12 @@ export const MockApi = {
               roleId: 'role-super-admin',
               isActive: true,
               lastLoginAt: new Date().toISOString(),
-              createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+              createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'ADMIN',
+              accountStatus: 'APPROVED',
+              completionPercent: 100,
+              whatsapp: '+966500000001',
+              clientCode: 'ADM-001'
           },
           {
               id: 'admin-2',
@@ -2985,7 +2990,12 @@ export const MockApi = {
               roleId: 'role-sales-manager',
               isActive: true,
               lastLoginAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-              createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+              createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'EMPLOYEE',
+              accountStatus: 'APPROVED',
+              completionPercent: 85,
+              whatsapp: '+966500000002',
+              clientCode: 'EMP-002'
           },
           {
               id: 'admin-3',
@@ -2995,7 +3005,11 @@ export const MockApi = {
               password: 'agent123',
               roleId: 'role-sales-agent',
               isActive: true,
-              createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
+              createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'EMPLOYEE',
+              accountStatus: 'APPROVED',
+              completionPercent: 70,
+              whatsapp: '+966500000003'
           },
           {
               id: 'admin-4',
@@ -3005,7 +3019,107 @@ export const MockApi = {
               password: 'viewer123',
               roleId: 'role-viewer',
               isActive: false,
-              createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+              createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'EMPLOYEE',
+              accountStatus: 'BLOCKED',
+              completionPercent: 50
+          },
+          {
+              id: 'customer-1',
+              fullName: 'عبدالله التاجر',
+              username: 'customer1',
+              phone: '0550000001',
+              email: 'customer1@example.com',
+              password: 'customer123',
+              roleId: 'role-viewer',
+              isActive: true,
+              createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'CUSTOMER',
+              accountStatus: 'APPROVED',
+              completionPercent: 90,
+              whatsapp: '+966550000001',
+              clientCode: 'C-10001',
+              isCustomer: true
+          },
+          {
+              id: 'customer-2',
+              fullName: 'فهد الجديد',
+              username: 'customer2',
+              phone: '0550000002',
+              password: 'customer123',
+              roleId: 'role-viewer',
+              isActive: false,
+              createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'CUSTOMER',
+              accountStatus: 'PENDING',
+              completionPercent: 40,
+              whatsapp: '+966550000002',
+              clientCode: 'C-10002',
+              isCustomer: true
+          },
+          {
+              id: 'supplier-1',
+              fullName: 'شركة الأمل للتوريد',
+              username: 'supplier1',
+              phone: '0560000001',
+              email: 'supplier1@alamal.com',
+              password: 'supplier123',
+              roleId: 'role-viewer',
+              isActive: true,
+              createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'SUPPLIER_LOCAL',
+              accountStatus: 'APPROVED',
+              completionPercent: 95,
+              whatsapp: '+966560000001',
+              clientCode: 'SL-20001',
+              isSupplier: true
+          },
+          {
+              id: 'supplier-2',
+              fullName: 'مصنع قوانغجو',
+              username: 'guangzhou_supplier',
+              phone: '+8613800000001',
+              email: 'supplier@guangzhou.cn',
+              password: 'supplier123',
+              roleId: 'role-viewer',
+              isActive: false,
+              createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'SUPPLIER_INTERNATIONAL',
+              accountStatus: 'PENDING',
+              completionPercent: 60,
+              whatsapp: '+8613800000001',
+              clientCode: 'SI-30001',
+              isSupplier: true
+          },
+          {
+              id: 'marketer-1',
+              fullName: 'سعيد المسوق',
+              username: 'marketer1',
+              phone: '0570000001',
+              password: 'marketer123',
+              roleId: 'role-viewer',
+              isActive: true,
+              createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'MARKETER',
+              accountStatus: 'APPROVED',
+              completionPercent: 80,
+              whatsapp: '+966570000001',
+              clientCode: 'M-40001'
+          },
+          {
+              id: 'marketer-2',
+              fullName: 'نورة المسوقة',
+              username: 'marketer2',
+              phone: '0570000002',
+              password: 'marketer123',
+              roleId: 'role-viewer',
+              isActive: false,
+              createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+              extendedRole: 'MARKETER',
+              accountStatus: 'REJECTED',
+              completionPercent: 30,
+              whatsapp: '+966570000002',
+              clientCode: 'M-40002'
           }
       ];
   },
@@ -3014,6 +3128,27 @@ export const MockApi = {
       let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.ADMIN_USERS) || 'null') as AdminUser[] | null;
       if (!users) {
           users = this.getDefaultAdminUsers();
+          localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      }
+      // Normalize legacy entries that lack new fields
+      let needsSave = false;
+      users = users.map(u => {
+          const normalized = { ...u };
+          if (!normalized.extendedRole) {
+              normalized.extendedRole = 'EMPLOYEE';
+              needsSave = true;
+          }
+          if (!normalized.accountStatus) {
+              normalized.accountStatus = normalized.isActive ? 'APPROVED' : 'PENDING';
+              needsSave = true;
+          }
+          if (normalized.completionPercent === undefined) {
+              normalized.completionPercent = 50;
+              needsSave = true;
+          }
+          return normalized;
+      });
+      if (needsSave) {
           localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
       }
       return users;
@@ -3031,11 +3166,30 @@ export const MockApi = {
       if (!userData.password || userData.password.trim() === '') {
           throw new Error('كلمة المرور مطلوبة');
       }
+
+      // Generate client code based on extendedRole
+      const generateClientCode = (role: string | undefined): string => {
+          const timestamp = Date.now().toString(36).slice(-4).toUpperCase();
+          switch (role) {
+              case 'CUSTOMER': return `C-${timestamp}`;
+              case 'SUPPLIER_LOCAL': return `SL-${timestamp}`;
+              case 'SUPPLIER_INTERNATIONAL': return `SI-${timestamp}`;
+              case 'MARKETER': return `M-${timestamp}`;
+              case 'ADMIN': return `ADM-${timestamp}`;
+              case 'EMPLOYEE': return `EMP-${timestamp}`;
+              default: return `U-${timestamp}`;
+          }
+      };
       
       const newUser: AdminUser = {
           ...userData,
           id: crypto.randomUUID(),
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          extendedRole: userData.extendedRole || 'EMPLOYEE',
+          accountStatus: userData.accountStatus || 'PENDING',
+          completionPercent: userData.completionPercent ?? 50,
+          whatsapp: userData.whatsapp || userData.phone,
+          clientCode: userData.clientCode || generateClientCode(userData.extendedRole)
       };
       
       users.push(newUser);
@@ -3127,6 +3281,74 @@ export const MockApi = {
           eventType: users[index].isActive ? 'USER_REACTIVATED' : 'USER_SUSPENDED',
           description: `تم ${action} المستخدم: ${users[index].fullName}`,
           metadata: { adminUserId: id, action: 'toggle_admin_user_status' }
+      });
+      
+      return users[index];
+  },
+
+  async approveAdminUser(id: string): Promise<AdminUser | null> {
+      const users = await this.getAdminUsers();
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index === -1) return null;
+      
+      users[index].accountStatus = 'APPROVED';
+      users[index].isActive = true;
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'USER_APPROVED',
+          description: `تم قبول حساب المستخدم: ${users[index].fullName}`,
+          metadata: { adminUserId: id, action: 'approve_admin_user' }
+      });
+      
+      return users[index];
+  },
+
+  async rejectAdminUser(id: string): Promise<AdminUser | null> {
+      const users = await this.getAdminUsers();
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index === -1) return null;
+      
+      users[index].accountStatus = 'REJECTED';
+      users[index].isActive = false;
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'USER_REJECTED',
+          description: `تم رفض حساب المستخدم: ${users[index].fullName}`,
+          metadata: { adminUserId: id, action: 'reject_admin_user' }
+      });
+      
+      return users[index];
+  },
+
+  async blockAdminUser(id: string): Promise<AdminUser | null> {
+      const users = await this.getAdminUsers();
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index === -1) return null;
+      
+      // Prevent blocking super admin
+      if (users[index].roleId === 'role-super-admin') {
+          throw new Error('لا يمكن حظر المشرف العام');
+      }
+      
+      users[index].accountStatus = 'BLOCKED';
+      users[index].isActive = false;
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USERS, JSON.stringify(users));
+      
+      internalRecordActivity({
+          userId: 'system',
+          userName: 'النظام',
+          eventType: 'USER_SUSPENDED',
+          description: `تم حظر حساب المستخدم: ${users[index].fullName}`,
+          metadata: { adminUserId: id, action: 'block_admin_user' }
       });
       
       return users[index];

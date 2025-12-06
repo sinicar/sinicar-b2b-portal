@@ -967,6 +967,15 @@ export interface AdminUser {
   lastLoginAt?: string;   // آخر تسجيل دخول
   createdAt: string;      // تاريخ الإنشاء
   createdBy?: string;     // أنشئ بواسطة
+  
+  // Extended fields for multi-role system
+  extendedRole?: ExtendedUserRole;      // نوع الدور الموسع
+  accountStatus?: UserAccountStatus;     // حالة الحساب (PENDING, APPROVED, REJECTED, BLOCKED)
+  completionPercent?: number;            // نسبة اكتمال الملف الشخصي
+  whatsapp?: string;                     // رقم الواتساب
+  clientCode?: string;                   // كود العميل الداخلي
+  isCustomer?: boolean;                  // هل هو عميل
+  isSupplier?: boolean;                  // هل هو مورد
 }
 
 // --- Roles & Permissions Types ---
