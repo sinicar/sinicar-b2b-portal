@@ -88,6 +88,7 @@ The **Admin Dashboard** provides comprehensive management tools including:
 - Advertising Management
 - Installment System Management
 - Organization & Team Settings (max employees, default permissions)
+- Abandoned Carts Tracking (auto-saved carts with 15-min inactivity threshold, admin view with filtering)
 
 # External Dependencies
 
