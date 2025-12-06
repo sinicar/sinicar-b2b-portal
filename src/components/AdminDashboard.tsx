@@ -34,6 +34,7 @@ import { AdminCustomerPortalSettings } from './AdminCustomerPortalSettings';
 import AdminAISettings from './AdminAISettings';
 import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
 import { AdminAlternativesPage } from './AdminAlternativesPage';
+import { AdminActivityLogPage } from './AdminActivityLogPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -758,7 +759,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     )}
                     {view === 'ACTIVITY_LOGS' && (
                         canAccess('activity_log') 
-                            ? <ActivityLogsView logs={activityLogs} page={logPage} setPage={setLogPage} perPage={LOGS_PER_PAGE} /> 
+                            ? <AdminActivityLogPage /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
