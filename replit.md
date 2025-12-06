@@ -172,8 +172,40 @@ src/
 - Multi-provider support (Gemini, Anthropic)
 - Real-time streaming responses
 
+# Backend Architecture (December 2024)
+
+## Backend Integration
+The application now includes a fully integrated Express.js backend with PostgreSQL (Prisma ORM):
+
+**Backend Server**:
+- Location: `backend/` directory
+- Port: 3001 (proxied through Vite on port 5000)
+- Auto-starts with Vite via custom plugin in `vite.local.config.ts`
+
+**Key API Endpoints** (all prefixed with `/api/v1`):
+- `/auth` - Authentication & session management
+- `/currencies` - Currency management & exchange rates
+- `/pricing` - International pricing engine (supplier groups, quality codes, brand codes, shipping methods/zones, roles)
+- `/organizations` - Organization management
+- `/customers` - Customer management
+- `/orders` - Order processing
+- `/permissions` - Permission management
+
+**Database**:
+- PostgreSQL with Prisma ORM
+- Schema: `backend/prisma/schema.prisma`
+- Soft delete pattern (isActive=false) for foreign key safety
+
+**Dev Server Behavior**:
+- Backend spawns automatically when Vite starts
+- Proper lifecycle handling (SIGTERM/SIGKILL cleanup)
+- Prevents orphaned processes on restart
+
 # Recent Changes (December 2024)
 
+- **Backend Integration**: Full Express.js + PostgreSQL backend with Prisma ORM
+- **International Pricing API**: Complete CRUD for currencies, exchange rates, supplier groups, quality codes, brand codes, shipping methods, shipping zones, and roles
+- **Vite Plugin**: Auto-spawn backend with proper process lifecycle management
 - Added AI Assistant floating chat widget with mock responses
 - Fixed toggle switches in AI Settings (z-index and pointer-events issues)
 - Created reusable ToggleSwitch component
