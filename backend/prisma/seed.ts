@@ -1,4 +1,4 @@
-import { PrismaClient, SupplierType } from '@prisma/client';
+import { PrismaClient, SupplierType, MessageChannel, MessageEvent } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -221,7 +221,10 @@ async function main() {
     { code: 'VIEW_HELP_TEXT', name: 'View Help Text', nameAr: 'عرض نصوص المساعدة', module: 'help', category: 'TOOLS', sortOrder: 4 },
     { code: 'MANAGE_HELP_TEXT', name: 'Manage Help Text', nameAr: 'إدارة نصوص المساعدة', module: 'help', category: 'TOOLS', sortOrder: 5 },
     { code: 'CONFIGURE_AI_BEHAVIOR', name: 'Configure AI Behavior', nameAr: 'ضبط سلوك الذكاء الاصطناعي', module: 'ai', category: 'TOOLS', sortOrder: 6 },
-    { code: 'MANAGE_MESSAGE_TEMPLATES', name: 'Manage Message Templates', nameAr: 'إدارة قوالب الرسائل', module: 'messages', category: 'TOOLS', sortOrder: 7 },
+    { code: 'VIEW_MESSAGE_TEMPLATES', name: 'View Message Templates', nameAr: 'عرض قوالب الرسائل', module: 'messages', category: 'TOOLS', sortOrder: 7 },
+    { code: 'MANAGE_MESSAGE_TEMPLATES', name: 'Manage Message Templates', nameAr: 'إدارة قوالب الرسائل', module: 'messages', category: 'TOOLS', sortOrder: 8 },
+    { code: 'SEND_TEST_MESSAGES', name: 'Send Test Messages', nameAr: 'إرسال رسائل تجريبية', module: 'messages', category: 'TOOLS', sortOrder: 9 },
+    { code: 'VIEW_MESSAGE_LOGS', name: 'View Message Logs', nameAr: 'عرض سجل الرسائل', module: 'messages', category: 'TOOLS', sortOrder: 10 },
     { code: 'VIEW_TRADER_TOOLS_ADMIN', name: 'View Trader Tools Admin', nameAr: 'عرض إدارة أدوات التاجر', module: 'admin', category: 'ADMIN', sortOrder: 10 },
     { code: 'TOGGLE_DARK_MODE_FOR_ACCOUNT', name: 'Toggle Dark Mode', nameAr: 'تبديل الوضع الداكن', module: 'account', category: 'ACCOUNT', sortOrder: 0 },
     { code: 'products.view', name: 'View Products', nameAr: 'عرض المنتجات', module: 'products', category: 'PRODUCTS', sortOrder: 0 },
@@ -355,6 +358,275 @@ async function main() {
   }
 
   console.log('✅ Feature flags created');
+
+  const messageTemplates = [
+    {
+      event: MessageEvent.QUOTE_CREATED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'ar',
+      name: 'إشعار إنشاء عرض سعر',
+      subject: null,
+      body: 'مرحباً {{customerName}}،\n\nتم إنشاء طلب عرض سعر جديد برقم {{quoteNumber}}.\nعدد القطع: {{itemCount}}\n\nسيتم مراجعة طلبك والرد عليك قريباً.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.QUOTE_CREATED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'en',
+      name: 'Quote Created Notification',
+      subject: null,
+      body: 'Hello {{customerName}},\n\nYour quote request #{{quoteNumber}} has been created.\nNumber of items: {{itemCount}}\n\nWe will review your request and respond shortly.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.QUOTE_CREATED,
+      channel: MessageChannel.EMAIL,
+      language: 'ar',
+      name: 'بريد إنشاء عرض سعر',
+      subject: 'تم إنشاء طلب عرض سعر جديد #{{quoteNumber}}',
+      body: '<h2>مرحباً {{customerName}}،</h2>\n<p>تم إنشاء طلب عرض سعر جديد برقم <strong>{{quoteNumber}}</strong>.</p>\n<p>عدد القطع المطلوبة: {{itemCount}}</p>\n<p>سيتم مراجعة طلبك والرد عليك في أقرب وقت ممكن.</p>\n<p><a href="{{link}}">اضغط هنا لمتابعة طلبك</a></p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.QUOTE_CREATED,
+      channel: MessageChannel.EMAIL,
+      language: 'en',
+      name: 'Quote Created Email',
+      subject: 'New Quote Request Created #{{quoteNumber}}',
+      body: '<h2>Hello {{customerName}},</h2>\n<p>Your quote request <strong>#{{quoteNumber}}</strong> has been created.</p>\n<p>Number of items requested: {{itemCount}}</p>\n<p>We will review your request and respond as soon as possible.</p>\n<p><a href="{{link}}">Click here to track your request</a></p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.QUOTE_APPROVED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'ar',
+      name: 'إشعار الموافقة على عرض السعر',
+      subject: null,
+      body: 'مرحباً {{customerName}}،\n\nتمت الموافقة على طلب عرض السعر رقم {{quoteNumber}}.\nالإجمالي: {{totalAmount}} {{currency}}\n\nيمكنك الآن إتمام الطلب.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.QUOTE_APPROVED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'en',
+      name: 'Quote Approved Notification',
+      subject: null,
+      body: 'Hello {{customerName}},\n\nYour quote request #{{quoteNumber}} has been approved.\nTotal: {{totalAmount}} {{currency}}\n\nYou can now proceed with your order.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.ORDER_CREATED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'ar',
+      name: 'إشعار إنشاء طلب',
+      subject: null,
+      body: 'مرحباً {{customerName}}،\n\nتم إنشاء طلبك بنجاح برقم {{orderNumber}}.\nالإجمالي: {{totalAmount}} {{currency}}\n\nشكراً لثقتكم بنا.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.ORDER_CREATED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'en',
+      name: 'Order Created Notification',
+      subject: null,
+      body: 'Hello {{customerName}},\n\nYour order #{{orderNumber}} has been created successfully.\nTotal: {{totalAmount}} {{currency}}\n\nThank you for your trust.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.ORDER_SHIPPED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'ar',
+      name: 'إشعار شحن الطلب',
+      subject: null,
+      body: 'مرحباً {{customerName}}،\n\nتم شحن طلبك رقم {{orderNumber}}.\nرقم التتبع: {{trackingNumber}}\nشركة الشحن: {{shippingCompany}}\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.ORDER_SHIPPED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'en',
+      name: 'Order Shipped Notification',
+      subject: null,
+      body: 'Hello {{customerName}},\n\nYour order #{{orderNumber}} has been shipped.\nTracking Number: {{trackingNumber}}\nShipping Company: {{shippingCompany}}\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.PASSWORD_RESET,
+      channel: MessageChannel.EMAIL,
+      language: 'ar',
+      name: 'بريد إعادة تعيين كلمة المرور',
+      subject: 'إعادة تعيين كلمة المرور - SINI CAR',
+      body: '<h2>مرحباً {{customerName}}،</h2>\n<p>لقد طلبت إعادة تعيين كلمة المرور الخاصة بك.</p>\n<p>رمز التحقق: <strong>{{resetCode}}</strong></p>\n<p>أو اضغط على الرابط التالي:</p>\n<p><a href="{{link}}">إعادة تعيين كلمة المرور</a></p>\n<p>صالح لمدة {{expiryMinutes}} دقيقة.</p>\n<p>إذا لم تطلب هذا، يرجى تجاهل هذا البريد.</p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.PASSWORD_RESET,
+      channel: MessageChannel.EMAIL,
+      language: 'en',
+      name: 'Password Reset Email',
+      subject: 'Password Reset - SINI CAR',
+      body: '<h2>Hello {{customerName}},</h2>\n<p>You have requested to reset your password.</p>\n<p>Verification code: <strong>{{resetCode}}</strong></p>\n<p>Or click the following link:</p>\n<p><a href="{{link}}">Reset Password</a></p>\n<p>Valid for {{expiryMinutes}} minutes.</p>\n<p>If you did not request this, please ignore this email.</p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.ACCOUNT_ACTIVATED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'ar',
+      name: 'إشعار تفعيل الحساب',
+      subject: null,
+      body: 'مرحباً {{customerName}}،\n\nتم تفعيل حسابك بنجاح في SINI CAR.\n\nيمكنك الآن تسجيل الدخول والبدء في استخدام المنصة.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.ACCOUNT_ACTIVATED,
+      channel: MessageChannel.WHATSAPP,
+      language: 'en',
+      name: 'Account Activated Notification',
+      subject: null,
+      body: 'Hello {{customerName}},\n\nYour SINI CAR account has been activated successfully.\n\nYou can now log in and start using the platform.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.WELCOME_MESSAGE,
+      channel: MessageChannel.EMAIL,
+      language: 'ar',
+      name: 'بريد الترحيب',
+      subject: 'مرحباً بك في SINI CAR',
+      body: '<h2>مرحباً {{customerName}}،</h2>\n<p>شكراً لانضمامك إلى منصة SINI CAR لقطع غيار السيارات B2B.</p>\n<p>نحن سعداء بانضمامك إلينا!</p>\n<h3>ما يمكنك فعله الآن:</h3>\n<ul>\n<li>تصفح كتالوج المنتجات</li>\n<li>طلب عروض أسعار</li>\n<li>التواصل مع الموردين</li>\n</ul>\n<p><a href="{{link}}">ابدأ الآن</a></p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.WELCOME_MESSAGE,
+      channel: MessageChannel.EMAIL,
+      language: 'en',
+      name: 'Welcome Email',
+      subject: 'Welcome to SINI CAR',
+      body: '<h2>Hello {{customerName}},</h2>\n<p>Thank you for joining SINI CAR B2B auto parts platform.</p>\n<p>We are happy to have you with us!</p>\n<h3>What you can do now:</h3>\n<ul>\n<li>Browse product catalog</li>\n<li>Request quotes</li>\n<li>Connect with suppliers</li>\n</ul>\n<p><a href="{{link}}">Get Started</a></p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.PAYMENT_REMINDER,
+      channel: MessageChannel.WHATSAPP,
+      language: 'ar',
+      name: 'تذكير بالدفع',
+      subject: null,
+      body: 'مرحباً {{customerName}}،\n\nهذا تذكير بأن الدفعة رقم {{paymentNumber}} بقيمة {{amount}} {{currency}} مستحقة في {{dueDate}}.\n\nيرجى إتمام الدفع لتجنب أي تأخير.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.PAYMENT_REMINDER,
+      channel: MessageChannel.WHATSAPP,
+      language: 'en',
+      name: 'Payment Reminder',
+      subject: null,
+      body: 'Hello {{customerName}},\n\nThis is a reminder that payment #{{paymentNumber}} of {{amount}} {{currency}} is due on {{dueDate}}.\n\nPlease complete the payment to avoid any delays.\n\nSINI CAR',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.SUPPLIER_APPLICATION_APPROVED,
+      channel: MessageChannel.EMAIL,
+      language: 'ar',
+      name: 'بريد قبول طلب المورد',
+      subject: 'تمت الموافقة على طلبك كمورد - SINI CAR',
+      body: '<h2>مرحباً {{supplierName}}،</h2>\n<p>يسعدنا إبلاغك بأنه تمت الموافقة على طلبك للانضمام كمورد في منصة SINI CAR.</p>\n<p>يمكنك الآن تسجيل الدخول والبدء في عرض منتجاتك.</p>\n<p><a href="{{link}}">الدخول إلى لوحة التحكم</a></p>',
+      isDefault: true,
+      isActive: true
+    },
+    {
+      event: MessageEvent.SUPPLIER_APPLICATION_APPROVED,
+      channel: MessageChannel.EMAIL,
+      language: 'en',
+      name: 'Supplier Application Approved Email',
+      subject: 'Your Supplier Application Approved - SINI CAR',
+      body: '<h2>Hello {{supplierName}},</h2>\n<p>We are pleased to inform you that your application to join as a supplier on SINI CAR has been approved.</p>\n<p>You can now log in and start listing your products.</p>\n<p><a href="{{link}}">Go to Dashboard</a></p>',
+      isDefault: true,
+      isActive: true
+    }
+  ];
+
+  for (const template of messageTemplates) {
+    const existing = await prisma.messageTemplate.findFirst({
+      where: { event: template.event, channel: template.channel, language: template.language }
+    });
+    if (!existing) {
+      await prisma.messageTemplate.create({ data: template });
+    }
+  }
+
+  console.log('✅ Message templates created');
+
+  const templateVariables = [
+    { event: MessageEvent.QUOTE_CREATED, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.QUOTE_CREATED, code: 'quoteNumber', name: 'Quote Number', nameAr: 'رقم عرض السعر', sampleValue: 'QT-2024-001', isRequired: true, sortOrder: 1 },
+    { event: MessageEvent.QUOTE_CREATED, code: 'itemCount', name: 'Item Count', nameAr: 'عدد القطع', sampleValue: '5', isRequired: false, sortOrder: 2 },
+    { event: MessageEvent.QUOTE_CREATED, code: 'link', name: 'Quote Link', nameAr: 'رابط عرض السعر', sampleValue: 'https://sinicar.com/quotes/123', isRequired: false, sortOrder: 3 },
+    { event: MessageEvent.QUOTE_APPROVED, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.QUOTE_APPROVED, code: 'quoteNumber', name: 'Quote Number', nameAr: 'رقم عرض السعر', sampleValue: 'QT-2024-001', isRequired: true, sortOrder: 1 },
+    { event: MessageEvent.QUOTE_APPROVED, code: 'totalAmount', name: 'Total Amount', nameAr: 'المبلغ الإجمالي', sampleValue: '5000', isRequired: true, sortOrder: 2 },
+    { event: MessageEvent.QUOTE_APPROVED, code: 'currency', name: 'Currency', nameAr: 'العملة', sampleValue: 'SAR', isRequired: false, sortOrder: 3 },
+    { event: MessageEvent.ORDER_CREATED, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.ORDER_CREATED, code: 'orderNumber', name: 'Order Number', nameAr: 'رقم الطلب', sampleValue: 'ORD-2024-001', isRequired: true, sortOrder: 1 },
+    { event: MessageEvent.ORDER_CREATED, code: 'totalAmount', name: 'Total Amount', nameAr: 'المبلغ الإجمالي', sampleValue: '5000', isRequired: true, sortOrder: 2 },
+    { event: MessageEvent.ORDER_CREATED, code: 'currency', name: 'Currency', nameAr: 'العملة', sampleValue: 'SAR', isRequired: false, sortOrder: 3 },
+    { event: MessageEvent.ORDER_SHIPPED, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.ORDER_SHIPPED, code: 'orderNumber', name: 'Order Number', nameAr: 'رقم الطلب', sampleValue: 'ORD-2024-001', isRequired: true, sortOrder: 1 },
+    { event: MessageEvent.ORDER_SHIPPED, code: 'trackingNumber', name: 'Tracking Number', nameAr: 'رقم التتبع', sampleValue: 'TRK123456', isRequired: false, sortOrder: 2 },
+    { event: MessageEvent.ORDER_SHIPPED, code: 'shippingCompany', name: 'Shipping Company', nameAr: 'شركة الشحن', sampleValue: 'أرامكس', isRequired: false, sortOrder: 3 },
+    { event: MessageEvent.PASSWORD_RESET, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.PASSWORD_RESET, code: 'resetCode', name: 'Reset Code', nameAr: 'رمز إعادة التعيين', sampleValue: '123456', isRequired: true, sortOrder: 1 },
+    { event: MessageEvent.PASSWORD_RESET, code: 'link', name: 'Reset Link', nameAr: 'رابط إعادة التعيين', sampleValue: 'https://sinicar.com/reset/abc123', isRequired: false, sortOrder: 2 },
+    { event: MessageEvent.PASSWORD_RESET, code: 'expiryMinutes', name: 'Expiry Minutes', nameAr: 'صلاحية بالدقائق', sampleValue: '30', isRequired: false, sortOrder: 3 },
+    { event: MessageEvent.WELCOME_MESSAGE, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.WELCOME_MESSAGE, code: 'link', name: 'Platform Link', nameAr: 'رابط المنصة', sampleValue: 'https://sinicar.com', isRequired: false, sortOrder: 1 },
+    { event: MessageEvent.PAYMENT_REMINDER, code: 'customerName', name: 'Customer Name', nameAr: 'اسم العميل', sampleValue: 'أحمد محمد', isRequired: true, sortOrder: 0 },
+    { event: MessageEvent.PAYMENT_REMINDER, code: 'paymentNumber', name: 'Payment Number', nameAr: 'رقم الدفعة', sampleValue: '3', isRequired: true, sortOrder: 1 },
+    { event: MessageEvent.PAYMENT_REMINDER, code: 'amount', name: 'Amount', nameAr: 'المبلغ', sampleValue: '1000', isRequired: true, sortOrder: 2 },
+    { event: MessageEvent.PAYMENT_REMINDER, code: 'currency', name: 'Currency', nameAr: 'العملة', sampleValue: 'SAR', isRequired: false, sortOrder: 3 },
+    { event: MessageEvent.PAYMENT_REMINDER, code: 'dueDate', name: 'Due Date', nameAr: 'تاريخ الاستحقاق', sampleValue: '2024-01-15', isRequired: true, sortOrder: 4 }
+  ];
+
+  for (const variable of templateVariables) {
+    const existing = await prisma.messageTemplateVariable.findFirst({
+      where: { event: variable.event, code: variable.code }
+    });
+    if (!existing) {
+      await prisma.messageTemplateVariable.create({ data: variable });
+    }
+  }
+
+  console.log('✅ Template variables created');
+
+  await prisma.messageSettings.upsert({
+    where: { key: 'global' },
+    update: {},
+    create: {
+      key: 'global',
+      defaultLanguage: 'ar',
+      enableWhatsApp: true,
+      enableEmail: true,
+      enableNotifications: true
+    }
+  });
+
+  console.log('✅ Message settings created');
 
   console.log('🎉 Database seeding completed!');
 }
