@@ -1192,3 +1192,42 @@ model MessageSettings {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
+
+// ============ Core Notification System ============
+
+model Notification {
+  id          String         @id @default(uuid())
+  userId      String
+  event       MessageEvent
+  title       String
+  body        String         @db.Text
+  link        String?
+  imageUrl    String?
+  priority    String         @default("normal")
+  category    String?
+  isRead      Boolean        @default(false)
+  readAt      DateTime?
+  metadata    String?
+  createdAt   DateTime       @default(now())
+  expiresAt   DateTime?
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@index([event])
+}
+
+model UserNotificationSettings {
+  id                  String       @id @default(uuid())
+  userId              String
+  event               MessageEvent
+  enableInApp         Boolean      @default(true)
+  enableEmail         Boolean      @default(true)
+  enableWhatsApp      Boolean      @default(false)
+  languagePreference  String       @default("ar")
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@unique([userId, event])
+  @@index([userId])
+}
