@@ -4,6 +4,7 @@ import { User, Product, BusinessProfile, AlternativePart } from '../types';
 import { MockApi } from '../services/mockApi';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
+import ProductImageViewer from './ProductImageViewer';
 
 interface ProductSearchPageProps {
     user: User;
@@ -316,6 +317,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                 <table className="w-full">
                                     <thead className="bg-white/5">
                                         <tr>
+                                            <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase w-12">{t('productImages.mainImage', 'صورة')}</th>
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'رقم القطعة' : 'Part #'}</th>
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'الاسم' : 'Name'}</th>
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'الماركة' : 'Brand'}</th>
@@ -327,7 +329,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                     <tbody className="divide-y divide-white/10">
                                         {searchResults.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                                                <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
                                                     {isSearching ? (
                                                         <div className="flex items-center justify-center gap-2">
                                                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -345,6 +347,15 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                                 
                                                 return (
                                                     <tr key={product.id} className="hover:bg-white/5 transition-colors" data-testid={`row-product-${product.id}`}>
+                                                        <td className="px-2 py-3 text-center">
+                                                            <ProductImageViewer
+                                                                mainImageUrl={product.mainImageUrl || product.image}
+                                                                imageGallery={product.imageGallery}
+                                                                productName={product.name}
+                                                                partNumber={product.partNumber}
+                                                                size="sm"
+                                                            />
+                                                        </td>
                                                         <td className="px-4 py-3 text-sm text-white font-mono">{product.partNumber}</td>
                                                         <td className="px-4 py-3 text-sm text-white">{product.name}</td>
                                                         <td className="px-4 py-3 text-sm text-gray-300">{product.brand || '-'}</td>

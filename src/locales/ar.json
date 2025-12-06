@@ -2864,6 +2864,28 @@
     "PENDING": "قيد الانتظار",
     "PROCESSING": "قيد المعالجة"
   },
+  "productImages": {
+    "viewImage": "عرض الصورة",
+    "noImage": "لا توجد صورة",
+    "loadError": "فشل تحميل الصورة",
+    "magnifierHint": "حرك الماوس على الصورة للتكبير",
+    "uploadImage": "رفع صورة",
+    "addToGallery": "إضافة للمعرض",
+    "removeImage": "حذف الصورة",
+    "setAsMain": "تعيين كصورة رئيسية",
+    "mainImage": "الصورة الرئيسية",
+    "gallery": "المعرض",
+    "imageOf": "صورة {{current}} من {{total}}",
+    "settings": {
+      "title": "إعدادات صور المنتجات",
+      "enabled": "تفعيل صور المنتجات",
+      "enabledDesc": "عرض صور المنتجات في نتائج البحث والتفاصيل",
+      "supplierUpload": "السماح للموردين بالرفع",
+      "supplierUploadDesc": "السماح للموردين برفع صور لمنتجاتهم",
+      "maxSize": "حجم الصورة الأقصى (ميغابايت)",
+      "maxSizeDesc": "الحجم الأقصى للملفات المرفوعة"
+    }
+  },
   "feedback": {
     "button": "إرسال ملاحظة",
     "title": "أرسل ملاحظتك",

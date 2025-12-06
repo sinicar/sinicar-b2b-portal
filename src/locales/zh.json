@@ -2460,6 +2460,28 @@
     "PENDING": "待处理",
     "PROCESSING": "处理中"
   },
+  "productImages": {
+    "viewImage": "查看图片",
+    "noImage": "无图片",
+    "loadError": "加载图片失败",
+    "magnifierHint": "将鼠标移到图片上放大",
+    "uploadImage": "上传图片",
+    "addToGallery": "添加到相册",
+    "removeImage": "删除图片",
+    "setAsMain": "设为主图",
+    "mainImage": "主图",
+    "gallery": "相册",
+    "imageOf": "图片 {{current}} / {{total}}",
+    "settings": {
+      "title": "产品图片设置",
+      "enabled": "启用产品图片",
+      "enabledDesc": "在搜索结果和详情中显示产品图片",
+      "supplierUpload": "允许供应商上传",
+      "supplierUploadDesc": "允许供应商为其产品上传图片",
+      "maxSize": "最大图片大小 (MB)",
+      "maxSizeDesc": "上传图片的最大文件大小"
+    }
+  },
   "feedback": {
     "button": "发送反馈",
     "title": "发送您的反馈",

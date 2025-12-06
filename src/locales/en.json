@@ -2860,6 +2860,28 @@
     "PENDING": "Pending",
     "PROCESSING": "Processing"
   },
+  "productImages": {
+    "viewImage": "View Image",
+    "noImage": "No Image",
+    "loadError": "Failed to load image",
+    "magnifierHint": "Move mouse over image to zoom",
+    "uploadImage": "Upload Image",
+    "addToGallery": "Add to Gallery",
+    "removeImage": "Remove Image",
+    "setAsMain": "Set as Main",
+    "mainImage": "Main Image",
+    "gallery": "Gallery",
+    "imageOf": "Image {{current}} of {{total}}",
+    "settings": {
+      "title": "Product Images Settings",
+      "enabled": "Enable Product Images",
+      "enabledDesc": "Show product images in search results and details",
+      "supplierUpload": "Allow Supplier Upload",
+      "supplierUploadDesc": "Allow suppliers to upload images for their products",
+      "maxSize": "Max Image Size (MB)",
+      "maxSizeDesc": "Maximum file size for uploaded images"
+    }
+  },
   "feedback": {
     "button": "Send Feedback",
     "title": "Send Your Feedback",

@@ -417,6 +417,10 @@ export interface Product {
   
   // قواعد رؤية الكمية للعملاء
   useVisibilityRuleForQty?: boolean;  // إذا true: تطبق قاعدة إخفاء الكمية على هذا المنتج
+  
+  // Product Images (Command 19)
+  mainImageUrl?: string | null;       // Main product image URL
+  imageGallery?: string[];            // Array of additional image URLs
 }
 
 export interface CartItem extends Product {
@@ -3563,6 +3567,8 @@ export interface SupplierProduct {
   isActive: boolean;
   description?: string;
   imageUrl?: string;
+  mainImageUrl?: string | null;       // Main product image URL
+  imageGallery?: string[];            // Array of additional image URLs
   createdAt: string;
   updatedAt: string;
 }

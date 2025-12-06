@@ -1,0 +1,278 @@
+IMPORTANT — This extends the existing SINI CAR system.
+Do NOT delete any existing product fields or pages.
+We are ADDING a full Product Images system for:
+- Main product image
+- Image gallery
+- Supplier product images
+- Display in search, product details, alternatives, and requests.
+
+The design must be ready to work with external storage (e.g. Cloudflare R2/S3),
+but should also have a simple local fallback for development.
+
+GOAL:
+1) Add image support to products and supplier products.
+2) Allow admins and suppliers to upload/update product images.
+3) Show images in:
+   - Product Search page (Command 8)
+   - Alternatives page (Command 7)
+   - Supplier Portal (Command 15)
+   - Any product detail drawers/cards.
+4) Use thumbnails and limited sizes to keep the UI fast.
+
+────────────────────────────────
+1) Backend — Data Model for Product Images
+────────────────────────────────
+
+A) Extend main Product model:
+- Add fields:
+  - mainImageUrl     (string, nullable)
+  - imageGalleryJson (JSON or text, nullable)  // list of URLs
+
+B) Extend SupplierProduct model (from Command 15):
+- Add fields:
+  - mainImageUrl     (string, nullable)
+  - imageGalleryJson (JSON or text, nullable)
+
+C) Optional (for future flexibility): separate table
+
+ProductImage:
+- id
+- productId       (FK to Product, nullable)
+- supplierProductId (FK to SupplierProduct, nullable)
+- url             (string)
+- isMain          (boolean)
+- sortOrder       (integer)
+- createdAt
+- createdByUserId
+
+For now, you can either:
+- Use simple fields on Product/SupplierProduct, OR
+- Use ProductImage table if you want full gallery control.
+But the API must be designed to support multiple images per product.
+
+Do NOT remove or modify existing fields.
+
+────────────────────────────────
+2) Backend — Upload Endpoints for Product Images
+────────────────────────────────
+
+We need dedicated upload APIs.
+
+A) Admin product image upload:
+  POST /api/admin/products/:id/images
+
+- Accepts multipart/form-data:
+  - file: image file (jpeg/png/webp)
+- Behavior:
+  - Validate file type (image only).
+  - Validate size (e.g. max 2–5 MB per image).
+  - Upload to storage layer:
+    • For now, use an abstract service (e.g. StorageService.uploadImage(file)).
+    • The implementation can later be switched to Cloudflare R2/S3.
+  - Generate one or more URLs:
+    • originalUrl
+    • thumbnailUrl (if you generate thumbnails now or later).
+  - Save mainImageUrl and/or append to imageGalleryJson / ProductImage.
+  - If no main image exists, set this new image as main.
+  - Return:
+    {
+      "success": true,
+      "mainImageUrl": "...",
+      "gallery": ["...", "..."]
+    }
+
+B) Supplier product image upload:
+  POST /api/supplier/products/:id/images
+
+- Same idea as admin upload, but:
+  - Only authenticated supplier with ownership of product can upload images.
+  - Validate product belongs to this supplier.
+
+C) Delete image from product:
+  DELETE /api/admin/products/:productId/images/:imageIdOrIndex
+
+  - If you use ProductImage table, delete by id.
+  - If using gallery JSON, remove by index.
+  - If deleting main image, set mainImageUrl to:
+    • next gallery image, or null if no images left.
+
+D) Optional: Reorder images
+  PUT /api/admin/products/:productId/images/reorder
+
+  - Accept array of image IDs or indexes in new order.
+  - Update sortOrder or gallery JSON accordingly.
+
+────────────────────────────────
+3) Storage Strategy (Design for External Storage)
+────────────────────────────────
+
+Implement a simple storage abstraction:
+
+StorageService:
+- uploadProductImage(file, options?) → returns { url, thumbnailUrl? }
+
+For now:
+- Implementation can write to:
+  - local filesystem in dev
+  - or a predefined bucket path (later R2/S3 integration).
+
+Constraints:
+- Enforce max resolution (e.g. 1600x1600) to avoid huge images.
+- Optionally generate a smaller thumbnail (e.g. 300x300).
+- Only accept jpeg, png, webp.
+
+Do NOT block features because of storage; just design the interface so it’s easy to switch later.
+
+────────────────────────────────
+4) Frontend — Admin Product Form Integration
+────────────────────────────────
+
+On Admin "Add/Edit Product" page:
+
+A) Add image section:
+- Show:
+  - Current main image (if exists)
+  - Gallery thumbnails.
+- Controls:
+  - "Upload main image" button (file input).
+  - "Add to gallery" button.
+  - Optionally "Remove" or "Set as main" on each image.
+
+B) Behavior:
+- When admin uploads an image:
+  - Call POST /api/admin/products/:id/images
+  - Update state with new mainImageUrl/gallery.
+- When admin deletes image:
+  - Call DELETE endpoint.
+  - Refresh gallery.
+
+C) Validation:
+- Show progress/loading while uploading.
+- Show errors if file too large or wrong type.
+
+────────────────────────────────
+5) Frontend — Supplier Product Form Integration
+────────────────────────────────
+
+On Supplier Portal (Command 15):
+
+A) "Add Product" and "Edit Product" pages:
+- Same pattern as admin:
+  - Main image preview.
+  - Gallery thumbnails.
+- Supplier can:
+  - Upload images for their products.
+  - Replace main image.
+  - Remove an image.
+
+B) API calls:
+- Use supplier endpoints:
+  POST /api/supplier/products/:id/images
+  DELETE /api/supplier/products/:productId/images/:imageIdOrIndex
+
+────────────────────────────────
+6) Frontend — Display Product Images in Customer Views
+────────────────────────────────
+
+A) Product Search Page (Command 8):
+- In product results table/list:
+  - Add a small image thumbnail column (left side).
+  - Clicking the product row or image opens:
+    • Product detail drawer with larger image and details.
+
+B) Alternatives Page (Command 7 & Command 8 integration):
+- If the alternative or main part has image:
+  - Show small image next to partNumber.
+  - If multiple images exist, use mainImageUrl.
+
+C) Product Detail Drawer (if exists):
+- Show:
+  - Big main image.
+  - Thumbnails of gallery below.
+- Clicking a thumbnail:
+  - Changes main image.
+- Optional:
+  - Lightbox overlay to view the image full-screen.
+
+D) Order / Request Detail:
+- When viewing details of a request (for admin or customer):
+  - If product has image:
+    • show small thumbnail next to item line.
+
+────────────────────────────────
+7) Placeholders and Fallbacks
+────────────────────────────────
+
+- If no image is available for a product:
+  - Use a default placeholder image:
+    • e.g. generic auto part icon.
+  - This placeholder should be a small, optimized asset.
+
+- The frontend must:
+  - Not break when image URL is missing or fails to load.
+  - Show placeholder instead.
+
+────────────────────────────────
+8) Performance & UX Considerations
+────────────────────────────────
+
+- Use small thumbnails in lists/search results:
+  - Do NOT load full high-res images in tables.
+- Lazy-load images where appropriate:
+  - Only load images in visible rows (if using virtualization).
+- Cache images on browser side (normal browser caching is enough).
+- Avoid blocking page load waiting for non-critical images.
+
+────────────────────────────────
+9) Integration with Settings (Command 12)
+────────────────────────────────
+
+Add settings keys:
+
+- "productImages.enabled" (boolean)
+- "productImages.maxSizeMb" (number)
+- "productImages.allowedTypes" (list: ["image/jpeg", "image/png", "image/webp"])
+- "productImages.enableSupplierUpload" (boolean)
+- "productImages.defaultPlaceholderUrl" (string)
+
+Use them to:
+- Enable/disable image features per environment or customer type.
+- Control file size limits.
+- Allow/disallow suppliers to upload images.
+
+────────────────────────────────
+10) Integration with Reports & Trader Tools (Optional Design)
+────────────────────────────────
+
+Future-friendly ideas (no need to fully implement now):
+
+- Reports:
+  • Count products with images vs. without.
+  • Top viewed products (with images).
+
+- Trader Tools:
+  • When creating new products from Excel or tools, allow admin to later attach images.
+
+────────────────────────────────
+11) Scope of this Command
+────────────────────────────────
+
+This command includes:
+- Backend:
+  • Product and SupplierProduct image fields.
+  • Image upload endpoints for admin and supplier.
+  • Delete/reorder APIs if needed.
+  • Storage abstraction for image files.
+- Frontend:
+  • Image upload & management in admin product form.
+  • Image upload & management in supplier product form.
+  • Image display in:
+    - Product Search
+    - Alternatives
+    - Product details
+    - Orders/requests
+
+It does NOT:
+- Implement external storage provider (R2/S3) fully in this step, but the design must be ready for it.
+- Require AI processing of images.
+- Replace any existing product fields or logic.
