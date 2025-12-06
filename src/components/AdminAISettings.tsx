@@ -769,16 +769,11 @@ export default function AdminAISettings() {
                   <label className="font-medium text-slate-800">{t('aiSettings.safety.contentModeration', 'مراقبة المحتوى')}</label>
                   <p className="text-sm text-slate-500">{t('aiSettings.safety.contentModerationDesc', 'تصفية المحتوى غير المناسب')}</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.enableContentModeration}
-                    onChange={(e) => updateSettings({ enableContentModeration: e.target.checked })}
-                    className="sr-only peer"
-                    data-testid="switch-moderation"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
+                <ToggleSwitch
+                  checked={settings.enableContentModeration}
+                  onChange={(checked) => updateSettings({ enableContentModeration: checked })}
+                  testId="switch-moderation"
+                />
               </div>
 
               {/* Blocked Topics */}
@@ -840,32 +835,22 @@ export default function AdminAISettings() {
                     <label className="font-medium text-slate-800">{t('aiSettings.safety.trackUsage', 'تتبع الاستخدام')}</label>
                     <p className="text-sm text-slate-500">{t('aiSettings.safety.trackUsageDesc', 'تسجيل استخدام الذكاء الاصطناعي')}</p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.trackUsage}
-                      onChange={(e) => updateSettings({ trackUsage: e.target.checked })}
-                      className="sr-only peer"
-                      data-testid="switch-track-usage"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
+                  <ToggleSwitch
+                    checked={settings.trackUsage}
+                    onChange={(checked) => updateSettings({ trackUsage: checked })}
+                    testId="switch-track-usage"
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="font-medium text-slate-800">{t('aiSettings.safety.trackCosts', 'تتبع التكاليف')}</label>
                     <p className="text-sm text-slate-500">{t('aiSettings.safety.trackCostsDesc', 'حساب تكاليف API')}</p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.trackCosts}
-                      onChange={(e) => updateSettings({ trackCosts: e.target.checked })}
-                      className="sr-only peer"
-                      data-testid="switch-track-costs"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
+                  <ToggleSwitch
+                    checked={settings.trackCosts}
+                    onChange={(checked) => updateSettings({ trackCosts: checked })}
+                    testId="switch-track-costs"
+                  />
                 </div>
               </div>
             </div>
