@@ -161,7 +161,11 @@ export async function sendEventMessage(
           userId: context.recipientId || '',
           title: renderedSubject || template.name,
           body: renderedBody,
+          event: event,
           data: context.metadata,
+          link: context.metadata?.link,
+          priority: context.metadata?.priority,
+          category: context.metadata?.category,
         });
         break;
         

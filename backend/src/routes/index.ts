@@ -14,6 +14,7 @@ import pricingRoutes from '../modules/pricing/pricing.routes';
 import permissionRoutes from '../modules/permissions/permission.routes';
 import settingsRoutes from '../modules/settings/settings.routes';
 import messagingRoutes from '../modules/messaging/messaging.routes';
+import notificationRoutes from '../modules/notifications/notification.routes';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.use('/pricing', pricingRoutes);
 router.use('/permissions', permissionRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/messaging', messagingRoutes);
+router.use('/notifications', notificationRoutes);
 
 router.get('/', (req: any, res: any) => {
   res.json({
@@ -52,7 +54,8 @@ router.get('/', (req: any, res: any) => {
       '/pricing',
       '/permissions',
       '/settings',
-      '/messaging'
+      '/messaging',
+      '/notifications'
     ]
   });
 });
