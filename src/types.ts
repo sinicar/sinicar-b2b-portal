@@ -3526,3 +3526,210 @@ export interface HomepageStats {
   referredOrders?: number;
   totalCommission?: number;
 }
+
+// ===== Supplier Portal Types (Command 15) =====
+
+// Supplier Type (Local or International)
+export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+
+// Supplier Request Status
+export type SupplierRequestStatus = 'NEW' | 'VIEWED' | 'QUOTED' | 'REJECTED' | 'ACCEPTED' | 'EXPIRED';
+
+// Supplier Product - Products that suppliers offer
+export interface SupplierProduct {
+  id: string;
+  supplierId: string;
+  sku: string;
+  oemNumber: string;
+  name: string;
+  nameEn?: string;
+  category: string;
+  brand: string;
+  model?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  purchasePrice: number;  // Price supplier sells to SINI CAR
+  minOrderQty: number;
+  stock: number;
+  deliveryTime: number;  // Days
+  isActive: boolean;
+  description?: string;
+  imageUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Supplier Product Insert type (for forms)
+export interface SupplierProductInsert {
+  sku: string;
+  oemNumber: string;
+  name: string;
+  nameEn?: string;
+  category: string;
+  brand: string;
+  model?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  purchasePrice: number;
+  minOrderQty: number;
+  stock: number;
+  deliveryTime: number;
+  description?: string;
+  imageUrl?: string;
+}
+
+// Supplier Request - Requests sent to suppliers for quotes
+export interface SupplierRequest {
+  id: string;
+  requestId: string;  // Links to main PurchaseRequest
+  supplierId: string;
+  supplierName?: string;
+  status: SupplierRequestStatus;
+  quotedPrice?: number;
+  stockAvailable?: number;
+  notes?: string;
+  responseDeadline?: string;
+  respondedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Related request details for display
+  partNumber?: string;
+  partName?: string;
+  quantity?: number;
+  customerName?: string;  // Obfuscated if needed
+  urgency?: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
+// Supplier Dashboard Stats
+export interface SupplierDashboardStats {
+  totalProducts: number;
+  activeProducts: number;
+  inactiveProducts: number;
+  requestsAssignedToday: number;
+  quotesSubmitted: number;
+  quotesAccepted: number;
+  quotesRejected: number;
+  pendingRequests: number;
+  averageResponseTime: number;  // Hours
+  supplierRating: number;  // 0-5
+  totalRevenue?: number;
+  thisMonthRevenue?: number;
+}
+
+// Supplier Settings
+export interface SupplierSettings {
+  id: string;
+  supplierId: string;
+  defaultPriceMarkup: number;  // Percentage
+  defaultDeliveryTime: number;  // Days
+  autoResponseEnabled: boolean;
+  autoResponseMessage?: string;
+  notifyOnNewRequest: boolean;
+  notifyOnQuoteAccepted: boolean;
+  notifyOnDeadlineApproaching: boolean;
+  preferredPaymentTerms?: string;
+  minOrderValue?: number;
+  maxDeliveryRadius?: string;
+  workingHours?: string;
+  holidays?: string[];
+}
+
+// Supplier Profile (Extended from User)
+export interface SupplierProfileExtended {
+  userId: string;
+  supplierType: SupplierType;
+  supplierCompanyName: string;
+  supplierVat?: string;
+  supplierCrNumber?: string;
+  supplierCatalogUrl?: string;
+  supplierRating: number;
+  supplierActiveProductsCount: number;
+  supplierTotalQuotesSubmitted: number;
+  supplierTotalQuotesAccepted: number;
+  supplierJoinedAt: string;
+  supplierVerifiedAt?: string;
+  supplierStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'BLOCKED';
+  supplierCategories?: string[];  // Categories they supply
+  supplierBrands?: string[];  // Brands they supply
+  supplierRegions?: string[];  // Regions they serve
+  contactEmail?: string;
+  contactPhone?: string;
+  contactWhatsapp?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+}
+
+// Supplier Product Filters
+export interface SupplierProductFilters {
+  search?: string;
+  category?: string;
+  brand?: string;
+  availability?: 'IN_STOCK' | 'OUT_OF_STOCK' | 'ALL';
+  isActive?: boolean;
+  sortBy?: 'name' | 'price' | 'stock' | 'createdAt' | 'updatedAt';
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+// Supplier Request Filters
+export interface SupplierRequestFilters {
+  status?: SupplierRequestStatus | 'ALL';
+  urgency?: 'LOW' | 'MEDIUM' | 'HIGH' | 'ALL';
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  sortBy?: 'createdAt' | 'responseDeadline' | 'quotedPrice';
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+// Supplier Excel Import Result
+export interface SupplierExcelImportResult {
+  success: boolean;
+  totalRows: number;
+  insertedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  errors: {
+    row: number;
+    field: string;
+    message: string;
+  }[];
+}
+
+// Supplier Quote Submission
+export interface SupplierQuoteSubmission {
+  requestId: string;
+  quotedPrice: number;
+  stockAvailable: number;
+  notes?: string;
+  deliveryTime?: number;
+  validUntil?: string;
+}
+
+// Supplier Activity Log Entry (extends ActivityLogEntry)
+export type SupplierActivityType = 
+  | 'SUPPLIER_PRODUCT_ADDED'
+  | 'SUPPLIER_PRODUCT_UPDATED'
+  | 'SUPPLIER_PRODUCT_DELETED'
+  | 'SUPPLIER_EXCEL_UPLOADED'
+  | 'SUPPLIER_QUOTE_SUBMITTED'
+  | 'SUPPLIER_REQUEST_REJECTED'
+  | 'SUPPLIER_SETTINGS_UPDATED'
+  | 'SUPPLIER_PROFILE_UPDATED';
+
+// Supplier Report Data
+export interface SupplierReportData {
+  period: 'week' | 'month' | 'quarter' | 'year';
+  requestsSent: number;
+  quotesSubmitted: number;
+  quotesAccepted: number;
+  quotesRejected: number;
+  topRequestedProducts: { productId: string; productName: string; count: number }[];
+  revenueGenerated: number;
+  averageResponseTime: number;
+  ratingTrend: number[];
+}
