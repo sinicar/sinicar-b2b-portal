@@ -201,6 +201,8 @@ The application now includes a fully integrated Express.js backend with PostgreS
 - `/customers` - Customer management
 - `/orders` - Order processing
 - `/permissions` - Permission management
+- `/messaging` - Message Templates & Communication Center (WhatsApp, Email, Notifications)
+- `/notifications` - Core Notification System (in-app notifications with user settings)
 
 **Database**:
 - PostgreSQL with Prisma ORM
@@ -214,6 +216,14 @@ The application now includes a fully integrated Express.js backend with PostgreS
 
 # Recent Changes (December 2024)
 
+- **Core Notification System (COMMAND 25A)**: Complete in-app notification system with:
+  - `Notification` and `UserNotificationSettings` Prisma models
+  - User-configurable notification preferences per event type
+  - 10-minute caching for settings to optimize performance
+  - Integration with Message Templates engine (channel: NOTIFICATION)
+  - Full CRUD API with pagination and authentication
+  - Automatic category assignment based on event types
+  - Zod validation for all mutation endpoints
 - **Backend Integration**: Full Express.js + PostgreSQL backend with Prisma ORM
 - **International Pricing API**: Complete CRUD for currencies, exchange rates, supplier groups, quality codes, brand codes, shipping methods, shipping zones, and roles
 - **Vite Plugin**: Auto-spawn backend with proper process lifecycle management
