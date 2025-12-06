@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, AlternativePart, PurchaseRequest, PurchaseRequestStatus } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -7866,6 +7866,205 @@ export const MockApi = {
           defaultPreferences: [],
           
           lastModifiedAt: new Date().toISOString()
+      };
+  },
+
+  // =============================================================================
+  // EXTENDED ACTIVITY LOG SYSTEM
+  // =============================================================================
+
+  determineActorType(user: User): ActorType {
+      if (user.extendedRole === 'ADMIN' || user.role === 'SUPER_ADMIN') return 'ADMIN';
+      if (user.extendedRole === 'EMPLOYEE' || user.employeeRole) return 'EMPLOYEE';
+      if (user.extendedRole === 'MARKETER') return 'MARKETER';
+      if (user.isSupplier || user.extendedRole?.startsWith('SUPPLIER_')) return 'SUPPLIER';
+      return 'CUSTOMER';
+  },
+
+  async logActivityExtended(params: {
+      actorId: string;
+      actorName?: string;
+      actorType: ActorType;
+      actionType: ActivityEventType;
+      entityType?: EntityType;
+      entityId?: string;
+      description: string;
+      page?: string;
+      metadata?: Record<string, any>;
+      ipAddress?: string;
+      userAgent?: string;
+  }): Promise<ActivityLogEntry> {
+      const logs = await this.getActivityLogs();
+      
+      const newLog: ActivityLogEntry = {
+          id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: params.actorId,
+          userName: params.actorName,
+          eventType: params.actionType,
+          actorType: params.actorType,
+          entityType: params.entityType,
+          entityId: params.entityId,
+          description: params.description,
+          page: params.page,
+          metadata: params.metadata,
+          ipAddress: params.ipAddress,
+          userAgent: params.userAgent,
+          createdAt: new Date().toISOString()
+      };
+      
+      logs.unshift(newLog);
+      
+      if (logs.length > 10000) {
+          logs.length = 10000;
+      }
+      
+      localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOGS, JSON.stringify(logs));
+      return newLog;
+  },
+
+  async getActivityLogsFiltered(filters: ActivityLogFilters): Promise<ActivityLogResponse> {
+      const logs = await this.getActivityLogs();
+      const page = filters.page || 1;
+      const pageSize = filters.pageSize || 50;
+      
+      let filtered = logs.filter(log => {
+          if (filters.actorType && log.actorType !== filters.actorType) return false;
+          if (filters.actorId && log.userId !== filters.actorId) return false;
+          if (filters.actionType && log.eventType !== filters.actionType) return false;
+          if (filters.entityType && log.entityType !== filters.entityType) return false;
+          if (filters.entityId && log.entityId !== filters.entityId) return false;
+          
+          if (filters.dateFrom) {
+              const logDate = new Date(log.createdAt);
+              const fromDate = new Date(filters.dateFrom);
+              if (logDate < fromDate) return false;
+          }
+          
+          if (filters.dateTo) {
+              const logDate = new Date(log.createdAt);
+              const toDate = new Date(filters.dateTo);
+              toDate.setHours(23, 59, 59, 999);
+              if (logDate > toDate) return false;
+          }
+          
+          return true;
+      });
+      
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      const total = filtered.length;
+      const startIndex = (page - 1) * pageSize;
+      const items = filtered.slice(startIndex, startIndex + pageSize);
+      
+      return {
+          items,
+          page,
+          pageSize,
+          total
+      };
+  },
+
+  async updateUserLastActivity(userId: string): Promise<void> {
+      const users = this.getUsers();
+      const userIndex = users.findIndex(u => u.id === userId);
+      if (userIndex !== -1) {
+          const user = users[userIndex];
+          const now = new Date();
+          const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt) : null;
+          
+          if (!lastActive || (now.getTime() - lastActive.getTime()) > 2 * 60 * 1000) {
+              users[userIndex] = {
+                  ...user,
+                  lastActiveAt: now.toISOString()
+              };
+              this.saveUsers(users);
+          }
+      }
+  },
+
+  async getOnlineUsersGrouped(onlineMinutes: number = 5): Promise<OnlineUsersResponse> {
+      const users = this.getUsers();
+      const cutoffTime = new Date(Date.now() - onlineMinutes * 60 * 1000);
+      
+      const onlineUsers = users.filter(u => {
+          if (!u.lastActiveAt) return false;
+          return new Date(u.lastActiveAt) >= cutoffTime;
+      });
+      
+      const response: OnlineUsersResponse = {
+          onlineCustomers: [],
+          onlineSuppliers: [],
+          onlineMarketers: [],
+          onlineEmployees: [],
+          onlineAdmins: []
+      };
+      
+      for (const user of onlineUsers) {
+          const onlineUser: OnlineUser = {
+              id: user.id,
+              name: user.name,
+              actorType: this.determineActorType(user),
+              role: user.role,
+              lastActivityAt: user.lastActiveAt || ''
+          };
+          
+          switch (onlineUser.actorType) {
+              case 'ADMIN':
+                  response.onlineAdmins.push(onlineUser);
+                  break;
+              case 'EMPLOYEE':
+                  response.onlineEmployees.push(onlineUser);
+                  break;
+              case 'MARKETER':
+                  response.onlineMarketers.push(onlineUser);
+                  break;
+              case 'SUPPLIER':
+                  response.onlineSuppliers.push(onlineUser);
+                  break;
+              default:
+                  response.onlineCustomers.push(onlineUser);
+          }
+      }
+      
+      return response;
+  },
+
+  async getActivityStats(): Promise<{
+      totalLogs: number;
+      todayLogs: number;
+      logsByActorType: Record<ActorType, number>;
+      logsByActionType: Record<string, number>;
+  }> {
+      const logs = await this.getActivityLogs();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayLogs = logs.filter(log => new Date(log.createdAt) >= today);
+      
+      const logsByActorType: Record<ActorType, number> = {
+          CUSTOMER: 0,
+          SUPPLIER: 0,
+          MARKETER: 0,
+          EMPLOYEE: 0,
+          ADMIN: 0
+      };
+      
+      const logsByActionType: Record<string, number> = {};
+      
+      for (const log of logs) {
+          if (log.actorType) {
+              logsByActorType[log.actorType]++;
+          }
+          if (log.eventType) {
+              logsByActionType[log.eventType] = (logsByActionType[log.eventType] || 0) + 1;
+          }
+      }
+      
+      return {
+          totalLogs: logs.length,
+          todayLogs: todayLogs.length,
+          logsByActorType,
+          logsByActionType
       };
   }
 };
