@@ -55,6 +55,17 @@ All data is persisted in the browser's `localStorage` through a mock API layer (
 
 ## Authentication & Authorization
 
+### Demo Users (للاختبار)
+
+| # | البريد الإلكتروني | كلمة المرور | الدور |
+|---|------------------|-------------|-------|
+| 1 | 1@sinicar.com | 1 | SUPER_ADMIN (مدير عام) |
+| 2 | 2@sinicar.com | 2 | ADMIN (مدير) |
+| 3 | 3@sinicar.com | 3 | STAFF (موظف) |
+| 4 | 4@sinicar.com | 4 | CUSTOMER (عميل) |
+| 5 | 5@sinicar.com | 5 | SUPPLIER (مورد) |
+| 6 | 6@sinicar.com | 6 | MARKETER (مسوق) |
+
 **Primary Roles:**
 - `SUPER_ADMIN` - Full admin access
 - `CUSTOMER_OWNER` - Business owner

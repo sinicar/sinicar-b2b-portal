@@ -1,4 +1,5 @@
 import { PrismaClient, SupplierType, MessageChannel, MessageEvent } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -184,6 +185,40 @@ async function main() {
   }
 
   console.log('✅ Roles created');
+
+  // Create demo users with simple numbered credentials
+  const demoUsers = [
+    { num: 1, name: 'مدير عام', role: 'SUPER_ADMIN' },
+    { num: 2, name: 'مدير', role: 'ADMIN' },
+    { num: 3, name: 'موظف', role: 'STAFF' },
+    { num: 4, name: 'عميل', role: 'CUSTOMER' },
+    { num: 5, name: 'مورد', role: 'SUPPLIER' },
+    { num: 6, name: 'مسوق', role: 'MARKETER' },
+  ];
+
+  for (const user of demoUsers) {
+    const hashedPassword = await bcrypt.hash(String(user.num), 10);
+    await prisma.user.upsert({
+      where: { clientId: `user-${user.num}` },
+      update: {},
+      create: {
+        clientId: `user-${user.num}`,
+        name: user.name,
+        email: `${user.num}@sinicar.com`,
+        phone: `05000000${user.num}`,
+        whatsapp: `05000000${user.num}`,
+        password: hashedPassword,
+        role: user.role,
+        status: 'ACTIVE',
+        isActive: true,
+        isCustomer: user.role === 'CUSTOMER',
+        isSupplier: user.role === 'SUPPLIER',
+        completionPercent: 100,
+      },
+    });
+  }
+
+  console.log('✅ Demo users created (1-6)');
 
   const permissions = [
     { code: 'VIEW_ADMIN_DASHBOARD', name: 'View Admin Dashboard', nameAr: 'عرض لوحة التحكم', module: 'admin', category: 'ADMIN', sortOrder: 0 },
