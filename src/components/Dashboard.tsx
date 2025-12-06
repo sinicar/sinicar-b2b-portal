@@ -860,6 +860,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
+    // Abandoned Cart Tracking - Save cart changes for admin tracking
+    useEffect(() => {
+        if (!user.id || user.isGuest) return;
+        
+        // Debounce cart saves to avoid excessive writes
+        const timer = setTimeout(async () => {
+            if (cart.length > 0) {
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                await MockApi.saveAbandonedCart(user.id, cart, total);
+            } else {
+                // Cart is empty, clear abandoned cart
+                await MockApi.clearAbandonedCart(user.id);
+            }
+        }, 2000); // 2 second debounce
+        
+        return () => clearTimeout(timer);
+    }, [cart, user.id, user.isGuest]);
+
     // Handle View Change Logic - Wrapped in Callback
     const handleSetView = useCallback(async (newView: typeof view) => {
         setView(newView);
@@ -1109,6 +1127,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 totalAmount: total,
                 branchId: user.branchId
             });
+            
+            // Mark abandoned cart as converted (order submitted)
+            await MockApi.convertAbandonedCart(user.id);
+            
             setCart([]);
             
             // Show Success Modal and auto hide after 3 seconds
