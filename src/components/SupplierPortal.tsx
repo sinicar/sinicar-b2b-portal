@@ -34,7 +34,7 @@ interface SupplierPortalProps {
   onLogout: () => void;
 }
 
-type SupplierView = 'DASHBOARD' | 'PRODUCTS' | 'REQUESTS' | 'SETTINGS' | 'NOTIFICATIONS';
+type SupplierView = 'DASHBOARD' | 'PRODUCTS' | 'REQUESTS' | 'SETTINGS' | 'NOTIFICATIONS' | 'TEAM';
 
 const SidebarItem = memo(({ icon, label, active, onClick, badge, collapsed, testId }: {
   icon: React.ReactNode;
@@ -371,6 +371,14 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
             testId="nav-notifications"
           />
           <SidebarItem 
+            icon={<Users size={20} />} 
+            label={t('supplier.team')} 
+            active={view === 'TEAM'} 
+            onClick={() => setView('TEAM')}
+            collapsed={collapsed}
+            testId="nav-team"
+          />
+          <SidebarItem 
             icon={<Settings size={20} />} 
             label={t('supplier.settings')} 
             active={view === 'SETTINGS'} 
@@ -409,6 +417,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
               {view === 'REQUESTS' && t('supplier.requests')}
               {view === 'SETTINGS' && t('supplier.settings')}
               {view === 'NOTIFICATIONS' && t('supplier.notifications')}
+              {view === 'TEAM' && t('supplier.team')}
             </h2>
           </div>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -468,6 +477,13 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
 
           {view === 'NOTIFICATIONS' && (
             <NotificationsPage user={user} />
+          )}
+
+          {view === 'TEAM' && (
+            <SupplierTeamView 
+              supplierId={user.id}
+              t={t}
+            />
           )}
         </main>
       </div>
@@ -1429,6 +1445,305 @@ const ImportModal = memo(({ onImport, onClose, result, t }: {
         </div>
       </div>
     </Modal>
+  );
+});
+
+interface SupplierEmployee {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  roleId: string;
+  roleName?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+const SupplierTeamView = memo(({ supplierId, t }: {
+  supplierId: string;
+  t: (key: string) => string;
+}) => {
+  const [employees, setEmployees] = useState<SupplierEmployee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<SupplierEmployee | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roles, setRoles] = useState<Array<{ id: string; code: string; name: string; nameAr?: string }>>([]);
+  const { addToast } = useToast();
+  const { i18n } = useTranslation();
+  const isRTL = getDirection(i18n.language) === 'rtl';
+
+  useEffect(() => {
+    loadEmployees();
+    loadRoles();
+  }, [supplierId]);
+
+  const loadEmployees = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/v1/permissions/suppliers/${supplierId}/employees`);
+      if (response.ok) {
+        const result = await response.json();
+        setEmployees(result.data || []);
+      } else {
+        setEmployees([]);
+      }
+    } catch (err) {
+      console.error('Error loading employees:', err);
+      setEmployees([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const response = await fetch('/api/v1/permissions/roles');
+      if (response.ok) {
+        const result = await response.json();
+        const rolesData = result.data || result;
+        setRoles(rolesData.filter((r: { code: string }) => r.code.startsWith('SUPPLIER_')));
+      }
+    } catch (err) {
+      console.error('Error loading roles:', err);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!editingEmployee) return;
+    setSaving(true);
+    try {
+      const method = editingEmployee.id ? 'PUT' : 'POST';
+      const url = editingEmployee.id 
+        ? `/api/v1/permissions/suppliers/${supplierId}/employees/${editingEmployee.id}`
+        : `/api/v1/permissions/suppliers/${supplierId}/employees`;
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...editingEmployee, supplierId })
+      });
+      
+      if (response.ok) {
+        addToast(editingEmployee.id ? t('supplier.employeeUpdated') : t('supplier.employeeAdded'), 'success');
+        setShowModal(false);
+        setEditingEmployee(null);
+        loadEmployees();
+      } else {
+        addToast(t('error'), 'error');
+      }
+    } catch (err) {
+      addToast(t('error'), 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (emp: SupplierEmployee) => {
+    if (!window.confirm(t('confirmDelete'))) return;
+    try {
+      const response = await fetch(`/api/v1/permissions/suppliers/${supplierId}/employees/${emp.id}`, { method: 'DELETE' });
+      if (response.ok) {
+        addToast(t('deleted'), 'success');
+        loadEmployees();
+      } else {
+        addToast(t('error'), 'error');
+      }
+    } catch (err) {
+      addToast(t('error'), 'error');
+    }
+  };
+
+  const filteredEmployees = employees.filter(emp => 
+    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="relative flex-1 w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder={t('search')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            data-testid="input-search-employees"
+          />
+        </div>
+        <button
+          onClick={() => {
+            setEditingEmployee({ id: '', name: '', email: '', roleId: '', isActive: true, createdAt: '' });
+            setShowModal(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
+          data-testid="button-add-employee"
+        >
+          <Plus size={18} />
+          {t('supplier.addEmployee')}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+        </div>
+      ) : filteredEmployees.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+          <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-600 mb-2">{t('supplier.noEmployees')}</h3>
+          <p className="text-slate-500">{t('supplier.addFirstEmployee')}</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-slate-700">{t('name')}</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-slate-700">{t('email')}</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-slate-700">{t('phone')}</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-slate-700">{t('role')}</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-slate-700">{t('status')}</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold text-slate-700"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredEmployees.map((emp) => (
+                  <tr key={emp.id} className="hover:bg-slate-50 transition-colors" data-testid={`row-employee-${emp.id}`}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
+                          {emp.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-slate-900">{emp.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600">{emp.email}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600">{emp.phone || '-'}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
+                        {emp.roleName || emp.roleId}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                        emp.isActive 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {emp.isActive ? t('active') : t('inactive')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => { setEditingEmployee(emp); setShowModal(true); }}
+                          className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          data-testid={`button-edit-employee-${emp.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(emp)}
+                          className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          data-testid={`button-delete-employee-${emp.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {showModal && editingEmployee && (
+        <Modal isOpen onClose={() => { setShowModal(false); setEditingEmployee(null); }} title={editingEmployee.id ? t('supplier.editEmployee') : t('supplier.addEmployee')}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('name')} *</label>
+              <input
+                type="text"
+                value={editingEmployee.name}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                data-testid="input-employee-name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('email')} *</label>
+              <input
+                type="email"
+                value={editingEmployee.email}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                data-testid="input-employee-email"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('phone')}</label>
+              <input
+                type="tel"
+                value={editingEmployee.phone || ''}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, phone: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                data-testid="input-employee-phone"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{t('role')} *</label>
+              <select
+                value={editingEmployee.roleId}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, roleId: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                data-testid="select-employee-role"
+              >
+                <option value="">{isRTL ? 'اختر الدور' : 'Select Role'}</option>
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>{isRTL ? (r.nameAr || r.name) : r.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="employee-active"
+                checked={editingEmployee.isActive}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, isActive: e.target.checked })}
+                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                data-testid="checkbox-employee-active"
+              />
+              <label htmlFor="employee-active" className="text-sm text-slate-700">{t('active')}</label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+            <button
+              onClick={() => { setShowModal(false); setEditingEmployee(null); }}
+              className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+              data-testid="button-cancel-employee"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || !editingEmployee.name || !editingEmployee.email || !editingEmployee.roleId}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              data-testid="button-save-employee"
+            >
+              {saving && <Loader2 size={16} className="animate-spin" />}
+              {saving ? t('saving') : t('save')}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
   );
 });
 

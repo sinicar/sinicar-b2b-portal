@@ -2779,7 +2779,14 @@
     "importError": "خطأ في استيراد الملف",
     "exportSuccess": "تم تصدير المنتجات بنجاح",
     "added": "مضاف",
-    "thisMonthRevenue": "إيرادات هذا الشهر"
+    "thisMonthRevenue": "إيرادات هذا الشهر",
+    "team": "الفريق",
+    "addEmployee": "إضافة موظف",
+    "editEmployee": "تعديل الموظف",
+    "employeeAdded": "تمت إضافة الموظف بنجاح",
+    "employeeUpdated": "تم تحديث الموظف بنجاح",
+    "noEmployees": "لا يوجد أعضاء فريق بعد",
+    "addFirstEmployee": "أضف أول عضو في فريقك للبدء"
   },
   "traderHistory": {
     "title": "سجل استخدام الأدوات",

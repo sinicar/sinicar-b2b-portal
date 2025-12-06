@@ -2775,7 +2775,14 @@
     "importError": "Error importing file",
     "exportSuccess": "Products exported successfully",
     "added": "added",
-    "thisMonthRevenue": "This Month Revenue"
+    "thisMonthRevenue": "This Month Revenue",
+    "team": "Team",
+    "addEmployee": "Add Employee",
+    "editEmployee": "Edit Employee",
+    "employeeAdded": "Employee added successfully",
+    "employeeUpdated": "Employee updated successfully",
+    "noEmployees": "No team members yet",
+    "addFirstEmployee": "Add your first team member to get started"
   },
   "traderHistory": {
     "title": "Tools Usage History",
