@@ -675,6 +675,23 @@
     "salesAgent": "सेल्स एजेंट",
     "viewer": "केवल व्यूअर"
   },
+  "homepage": {
+    "welcomeBack": "वापसी पर स्वागत है, {{name}}",
+    "totalOrders": "कुल ऑर्डर",
+    "pendingRequests": "लंबित अनुरोध",
+    "approvedOrders": "स्वीकृत ऑर्डर",
+    "quickActions": "त्वरित क्रियाएं",
+    "fastShipping": "तेज शिपिंग",
+    "fastShippingDesc": "प्रमुख शहरों में 24-48 घंटे के भीतर डिलीवरी",
+    "qualityGuarantee": "गुणवत्ता गारंटी",
+    "qualityGuaranteeDesc": "सभी पार्ट्स स्पष्ट वापसी नीति के साथ गारंटीड",
+    "support": "विशेषज्ञ सहायता",
+    "supportDesc": "आपकी मदद के लिए 24/7 सहायता टीम उपलब्ध",
+    "needHelp": "मदद चाहिए?",
+    "needHelpDesc": "हमारी टीम आपके किसी भी प्रश्न में सहायता के लिए तैयार है",
+    "callUs": "हमें कॉल करें",
+    "whatsapp": "व्हाट्सएप"
+  },
   "sidebar": {
     "mainMenu": "मुख्य मेनू",
     "management": "प्रबंधन",

@@ -675,6 +675,23 @@
     "salesAgent": "Sales Agent",
     "viewer": "Viewer Only"
   },
+  "homepage": {
+    "welcomeBack": "Welcome back, {{name}}",
+    "totalOrders": "Total Orders",
+    "pendingRequests": "Pending Requests",
+    "approvedOrders": "Approved Orders",
+    "quickActions": "Quick Actions",
+    "fastShipping": "Fast Shipping",
+    "fastShippingDesc": "Delivery within 24-48 hours to major cities",
+    "qualityGuarantee": "Quality Guarantee",
+    "qualityGuaranteeDesc": "All parts guaranteed with clear return policy",
+    "support": "Expert Support",
+    "supportDesc": "Support team available 24/7 to help you",
+    "needHelp": "Need Help?",
+    "needHelpDesc": "Our team is ready to assist you with any inquiries",
+    "callUs": "Call Us",
+    "whatsapp": "WhatsApp"
+  },
   "sidebar": {
     "mainMenu": "Main Menu",
     "management": "Management",

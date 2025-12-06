@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -8385,6 +8385,70 @@ export const MockApi = {
 
     const typeConfig = typeConfigs[type] || typeConfigs.DEFAULT;
 
+    // Default shortcuts based on customer type
+    const defaultShortcuts: HomepageShortcut[] = [
+      {
+        id: 'shortcut-search',
+        icon: 'search',
+        title: { ar: 'بحث القطع', en: 'Parts Search', hi: 'पार्ट्स खोजें', zh: '搜索配件' },
+        description: { ar: 'ابحث عن قطع الغيار برقم القطعة أو الوصف', en: 'Search parts by number or description', hi: 'नंबर या विवरण से पार्ट्स खोजें', zh: '按编号或描述搜索配件' },
+        link: 'PRODUCT_SEARCH',
+        colorClass: 'bg-blue-600',
+        isActive: true,
+        order: 1
+      },
+      {
+        id: 'shortcut-quote',
+        icon: 'file-text',
+        title: { ar: 'طلب تسعير', en: 'Quote Request', hi: 'कोटेशन अनुरोध', zh: '报价请求' },
+        description: { ar: 'ارفع ملف اكسل للحصول على تسعيرة كاملة', en: 'Upload Excel file for full quote', hi: 'पूर्ण कोटेशन के लिए एक्सेल फाइल अपलोड करें', zh: '上传Excel文件获取完整报价' },
+        link: 'QUOTE_REQUEST',
+        colorClass: 'bg-emerald-600',
+        isActive: true,
+        order: 2
+      },
+      {
+        id: 'shortcut-orders',
+        icon: 'package',
+        title: { ar: 'سجل الطلبات', en: 'Order History', hi: 'आदेश इतिहास', zh: '订单历史' },
+        description: { ar: 'تتبع جميع طلباتك السابقة والحالية', en: 'Track all your past and current orders', hi: 'अपने सभी पिछले और वर्तमान आदेशों को ट्रैक करें', zh: '跟踪所有过去和当前的订单' },
+        link: 'ORDERS',
+        colorClass: 'bg-orange-600',
+        isActive: true,
+        order: 3
+      },
+      {
+        id: 'shortcut-import',
+        icon: 'globe',
+        title: { ar: 'الاستيراد من الصين', en: 'Import from China', hi: 'चीन से आयात', zh: '从中国进口' },
+        description: { ar: 'اطلب قطع غير متوفرة محلياً', en: 'Order parts not available locally', hi: 'स्थानीय रूप से अनुपलब्ध पार्ट्स ऑर्डर करें', zh: '订购本地没有的配件' },
+        link: 'IMPORT_CHINA',
+        colorClass: 'bg-purple-600',
+        isActive: true,
+        order: 4
+      },
+      {
+        id: 'shortcut-tools',
+        icon: 'wrench',
+        title: { ar: 'أدوات التاجر', en: 'Trader Tools', hi: 'ट्रेडर टूल्स', zh: '交易工具' },
+        description: { ar: 'أدوات متقدمة للمقارنة والتحليل', en: 'Advanced comparison and analysis tools', hi: 'उन्नत तुलना और विश्लेषण उपकरण', zh: '高级比较和分析工具' },
+        link: 'TRADER_TOOLS',
+        colorClass: 'bg-indigo-600',
+        isActive: true,
+        order: 5
+      },
+      {
+        id: 'shortcut-alternatives',
+        icon: 'refresh-cw',
+        title: { ar: 'بدائل القطع', en: 'Part Alternatives', hi: 'पार्ट विकल्प', zh: '配件替代品' },
+        description: { ar: 'ابحث عن بدائل متوافقة للقطع', en: 'Find compatible part alternatives', hi: 'संगत पार्ट विकल्प खोजें', zh: '查找兼容的配件替代品' },
+        link: 'ALTERNATIVES',
+        colorClass: 'bg-teal-600',
+        isActive: true,
+        order: 6
+      }
+    ];
+
     return {
       customerType: type,
       layoutConfig: {
@@ -8408,6 +8472,16 @@ export const MockApi = {
         showArrows: true,
         transitionType: 'slide',
         banners: defaultBanners
+      },
+      shortcutsConfig: {
+        shortcuts: defaultShortcuts.filter(s => {
+          // Filter shortcuts based on customer type settings
+          if (s.link === 'PRODUCT_SEARCH' && !typeConfig.showProductSearchShortcut) return false;
+          if (s.link === 'TRADER_TOOLS' && !typeConfig.showTraderTools) return false;
+          if (s.link === 'QUOTE_REQUEST' && !typeConfig.showQuoteRequest) return false;
+          if (s.link === 'IMPORT_CHINA' && !typeConfig.showImportServices) return false;
+          return true;
+        })
       }
     };
   },

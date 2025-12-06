@@ -675,6 +675,23 @@
     "salesAgent": "销售代理",
     "viewer": "仅查看"
   },
+  "homepage": {
+    "welcomeBack": "欢迎回来，{{name}}",
+    "totalOrders": "总订单",
+    "pendingRequests": "待处理请求",
+    "approvedOrders": "已批准订单",
+    "quickActions": "快速操作",
+    "fastShipping": "快速发货",
+    "fastShippingDesc": "主要城市24-48小时内送达",
+    "qualityGuarantee": "质量保证",
+    "qualityGuaranteeDesc": "所有配件均有明确的退货政策保障",
+    "support": "专业支持",
+    "supportDesc": "24/7支持团队随时为您服务",
+    "needHelp": "需要帮助？",
+    "needHelpDesc": "我们的团队随时准备协助您解答任何问题",
+    "callUs": "联系我们",
+    "whatsapp": "WhatsApp"
+  },
   "sidebar": {
     "mainMenu": "主菜单",
     "management": "管理",

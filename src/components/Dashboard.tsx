@@ -49,6 +49,7 @@ import { searchProducts } from '../utils/arabicSearch';
 import { UsageIntroModal } from './UsageIntroModal';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
+import { DynamicHomePage } from './DynamicHomePage';
 import { MarketingBanner, MarketingPopup } from './MarketingDisplay';
 import { handlePartSearch, createSearchContext, PartSearchResult, filterProductsForCustomer } from '../services/searchService';
 import { TraderToolsHub } from './TraderToolsHub';
@@ -1370,6 +1371,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                     <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 h-full">
 
                         {view === 'HOME' && (
+                            <DynamicHomePage
+                                user={user}
+                                profile={profile}
+                                onNavigate={(viewName) => handleSetView(viewName as typeof view)}
+                                isRTL={dir === 'rtl'}
+                            />
+                        )}
+
+                        {view === 'HOME_LEGACY' && (
                              <div className="animate-fade-in flex flex-col gap-8">
                                 
                                 {/* Hero Marketing & Search */}

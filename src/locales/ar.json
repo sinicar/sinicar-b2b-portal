@@ -675,6 +675,23 @@
     "salesAgent": "مندوب مبيعات",
     "viewer": "مشاهد فقط"
   },
+  "homepage": {
+    "welcomeBack": "مرحباً بعودتك، {{name}}",
+    "totalOrders": "إجمالي الطلبات",
+    "pendingRequests": "طلبات قيد المعالجة",
+    "approvedOrders": "طلبات موافق عليها",
+    "quickActions": "إجراءات سريعة",
+    "fastShipping": "شحن سريع",
+    "fastShippingDesc": "توصيل خلال 24-48 ساعة للمدن الرئيسية",
+    "qualityGuarantee": "ضمان الجودة",
+    "qualityGuaranteeDesc": "جميع القطع مضمونة مع سياسة استبدال واضحة",
+    "support": "دعم فني متخصص",
+    "supportDesc": "فريق دعم متاح على مدار الساعة لمساعدتك",
+    "needHelp": "تحتاج مساعدة؟",
+    "needHelpDesc": "فريقنا جاهز لمساعدتك في أي استفسار",
+    "callUs": "اتصل بنا",
+    "whatsapp": "واتساب"
+  },
   "sidebar": {
     "mainMenu": "القائمة الرئيسية",
     "management": "الإدارة",
