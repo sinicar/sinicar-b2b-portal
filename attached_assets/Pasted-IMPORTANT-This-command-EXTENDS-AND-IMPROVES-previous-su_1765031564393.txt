@@ -1,0 +1,435 @@
+IMPORTANT — This command EXTENDS AND IMPROVES previous supplier logic (Commands 1–15).
+Do NOT delete any existing supplier features.
+We are UPGRADING the supplier system to:
+
+- Differentiate clearly between LOCAL and INTERNATIONAL suppliers.
+- Support full multi-currency pricing (RMB, SAR, USD, and others).
+- Allow each customer to choose their display currency.
+- Configure per-supplier or per-group profit margin.
+- Support Excel imports with QUALITY CODES and BRAND CODES.
+- Have AI-assisted translation and validation for supplier Excel files.
+- Add powerful shipping cost calculation based on admin-configured settings.
+
+GOAL:
+Build a robust “International Supplier & Pricing Engine” with:
+
+1) Supplier types: LOCAL vs INTERNATIONAL (different required fields).
+2) Currency system: base currency + multiple foreign currencies.
+3) Dynamic price conversion rules with adjustable sync percentage.
+4) Profit margin per supplier OR per supplier group.
+5) Quality codes + brand codes from Excel, fully configurable.
+6) AI-assisted Excel parsing (language & quality/brand mapping).
+7) Shipping cost calculation engine with admin-configurable rules.
+8) Customer profile currency preference.
+
+────────────────────────────────
+1) Supplier Types: LOCAL vs INTERNATIONAL
+────────────────────────────────
+
+Extend supplier (User) model:
+
+- supplierType:
+  • "LOCAL"
+  • "INTERNATIONAL"
+
+- For LOCAL suppliers:
+  • Required fields:
+    - companyName
+    - country (e.g. "Saudi Arabia")
+    - city
+    - phone/whatsapp
+    - VAT number (if applicable)
+    - CR number
+  • Default currency: SAR (or platform base currency).
+
+- For INTERNATIONAL suppliers:
+  • Required fields:
+    - companyName
+    - country (e.g. "China")
+    - contact email
+    - preferredCurrency (e.g. "CNY", "USD", "EUR")
+    - shippingOriginCity
+    - language (optional hint for AI)
+  • May have multiple allowedCurrencies (JSON list) for price lists they send.
+
+In Admin Panel:
+- Supplier creation/edit form must:
+  • Show different fields depending on supplierType.
+- In Supplier Portal:
+  • Show supplierType and preferredCurrency.
+
+────────────────────────────────
+2) Currency System & Base Configuration
+────────────────────────────────
+
+Introduce a currency configuration module:
+
+Base assumptions:
+- System has a base currency, e.g. "SAR".
+- International suppliers can upload prices in other currencies (CNY, USD, etc.).
+- Customers can choose their preferred display currency.
+
+Add models or settings:
+
+CurrencyConfig:
+- baseCurrency (e.g. "SAR")
+- supportedCurrencies: ["SAR", "CNY", "USD", "EUR", ...]
+- exchangeRates: key-value map:
+  {
+    "CNY": { "rateToBase": 0.52, "syncPercent": 100 },
+    "USD": { "rateToBase": 3.75, "syncPercent": 100 }
+  }
+- syncPercent (per currency) meaning:
+  • How much of real exchange rate is used (100% = 1:1 with stored rate).
+  • Admin can adjust to hedge risk (e.g. 105%).
+
+Store this in:
+- GlobalSetting keys, e.g.:
+  • "currency.base"
+  • "currency.supported"
+  • "currency.exchange"
+
+Admin UI:
+- Page: "Currencies & Exchange":
+  • Set baseCurrency.
+  • Configure list of supported currencies.
+  • Enter exchangeRate and syncPercent per currency.
+  • Option to update manually (AI/external API can be future command).
+
+────────────────────────────────
+3) Profit Margin per Supplier & Supplier Groups
+────────────────────────────────
+
+We need a flexible margin system:
+
+SupplierGroup:
+- id
+- name ("Major Suppliers", "Small Suppliers", "Online Suppliers", ...)
+- defaultMarginPercent (e.g. 15 for 15%)
+
+Supplier (User) extension:
+- groupId (nullable)
+- customMarginPercent (nullable)
+
+Rule:
+- Effective margin for a supplier:
+  1) If customMarginPercent is set → use it.
+  2) Else if groupId present → use SupplierGroup.defaultMarginPercent.
+  3) Else → use global default margin (from settings).
+
+Pricing formula:
+- Let:
+  • supplierPrice = price in supplier currency (from Excel or portal)
+  • exchangeRate = rateToBase for supplierCurrency (after syncPercent)
+  • marginPercent = effective margin for this supplier
+
+- Base price in system currency (e.g. SAR):
+  basePrice = supplierPrice * exchangeRate
+
+- Selling price to customer in base currency:
+  sellPriceBase = basePrice * (1 + marginPercent / 100)
+
+- If customer has preferredCurrency:
+  sellPriceCustomer = convert(sellPriceBase, customerCurrency)
+
+All this must be encapsulated in a pricing service function such as:
+calculateSellPrice({ supplierId, supplierCurrency, supplierPrice, customerCurrency })
+
+────────────────────────────────
+4) Customer Currency Preference
+────────────────────────────────
+
+Extend Customer/User model:
+
+- preferredCurrency (nullable)
+  • If set, UI and quotes show this currency by default.
+  • If not set → use baseCurrency.
+
+Customer Profile Page:
+- Add a drop-down for preferredCurrency (from supportedCurrencies).
+- When changed:
+  • Save to user profile.
+  • All prices in customer portal use this currency with visible note:
+    "Prices shown in [CurrencyName], converted from base currency."
+
+────────────────────────────────
+5) Excel Import: Quality Codes, Brand Codes, and Configurable Columns
+────────────────────────────────
+
+We already have Excel import for suppliers.
+Now we ADD:
+
+A) Quality codes configuration:
+
+QualityCode:
+- id
+- code (e.g. "MAO", "AKR", "TAG")
+- label (e.g. "Original", "Brand A", "Aftermarket", "Used")
+- description (text)
+- defaultMarginAdjust (optional, e.g. +2% or -3% on top of supplier margin)
+- isActive (boolean)
+
+Admin Panel:
+- Page/section: "Quality & Brand Codes"
+- Admin can:
+  • Add/Edit/Delete codes.
+  • Attach brand info if needed.
+
+B) Excel column mapping configuration:
+
+For each Excel import type (e.g. Supplier Product Import):
+
+ExcelImportTemplate:
+- id
+- name ("Default Supplier Import", "China Supplier Import", ...)
+- description
+- expectedColumns:
+  • partNumberColumn
+  • nameColumn
+  • quantityColumn
+  • priceColumn
+  • qualityCodeColumn
+  • currencyColumn (optional)
+  • brandCodeColumn (optional)
+- languageHint (optional, e.g. "zh", "en", "ar")
+- instructionsText (text) // explanation shown to supplier
+
+Admin can:
+- Configure which columns are required.
+- Configure codes explanation (text that appears when supplier downloads the template).
+- Generate template file (Excel) using this structure.
+
+C) Supplier download template:
+
+- In Supplier Portal, under "Import Excel":
+  • Supplier can download a template file based on their type/group.
+  • Template includes:
+    - Headers with correct column names.
+    - Instructions sheet with:
+      • Meaning of quality codes.
+      • Example rows.
+
+D) Handling quality codes on import:
+
+- When reading Excel:
+  • For each row, read qualityCodeColumn.
+  • Verify it exists in QualityCode table.
+  • If unknown:
+    - Mark row for review.
+    - Optionally let AI guess or suggest mapping, but require admin approval.
+
+- Map quality codes to:
+  • Quality level classification displayed in UI.
+  • Margin adjustments (if defaultMarginAdjust is used).
+
+────────────────────────────────
+6) AI-Assisted Excel Parsing & Translation
+────────────────────────────────
+
+For INTERNATIONAL suppliers:
+
+- Their Excel can be in any language.
+- Template has known column positions, but actual values (product names, descriptions) may be in Chinese, etc.
+
+AI logic:
+- When reading Excel:
+  • For text fields (like name/description):
+    - If languageHint is not Arabic/English:
+      - Send to AI translation pipeline.
+      - Store:
+        • originalName
+        • translatedNameAr
+        • translatedNameEn
+
+- If the product already exists in SINI CAR catalog with a canonical name:
+  • Keep SINI CAR name as the official productName.
+  • Store supplier name as alternativeName (per supplier).
+  • Use canonical name in all customer-facing UIs.
+  • Keep original names for reference and matching.
+
+- AI can also:
+  • Flag suspicious/invalid rows (missing price, invalid quantity).
+  • Suggest corrections (Optional: can be logged, admin reviews later).
+
+Implementation note:
+- Do NOT put AI calls in tight loops on every row in real-time for huge files.
+- For now, design the pipeline; internal batching / optimization can be added later.
+
+────────────────────────────────
+7) Approval Workflow for Supplier Excel Files
+────────────────────────────────
+
+When supplier uploads an Excel:
+
+A) Create a record for the upload:
+SupplierExcelUpload:
+- id
+- supplierId
+- templateId
+- originalFileUrl
+- status (PENDING_REVIEW, APPROVED, REJECTED, NEEDS_CORRECTION)
+- aiSummary (text)
+- adminComment (text)
+- createdAt
+- reviewedAt
+
+B) Workflow:
+
+1) Supplier uploads file → status = PENDING_REVIEW.
+2) System parses file, maps columns, applies AI translation, validates rows.
+3) Generate AI summary, e.g.:
+   - number of rows
+   - number of invalid rows
+   - unknown quality codes
+4) Admin review:
+   - Approve:
+     • Data flows into SupplierProduct table.
+     • Notify supplier (Command 11).
+   - Reject:
+     • With adminComment.
+     • Notify supplier with reasons.
+   - Needs correction:
+     • Supplier sees detail of issues and re-uploads corrected file.
+
+C) Supplier Portal:
+
+- Page: "My Uploads":
+  • Shows status, comments, issues found.
+
+────────────────────────────────
+8) Shipping Cost Calculation Engine
+────────────────────────────────
+
+Introduce shipping configuration:
+
+ShippingConfig:
+- shippingMethods: [
+  {
+    "code": "AIR",
+    "name": "Air Freight",
+    "baseRate": ...,
+    "perKgRate": ...,
+    "minCharge": ...,
+    "deliveryDays": ...
+  },
+  {
+    "code": "SEA",
+    "name": "Sea Freight",
+    ...
+  }
+]
+- countryZones: [
+  {
+    "country": "Saudi Arabia",
+    "zone": "MENA",
+    "extraRatePerKg": ...
+  },
+  ...
+]
+
+Admin UI:
+- Page/section: "Shipping Settings"
+  • Define shipping methods.
+  • Define zones/countries and extra charges.
+  • Define default shipping method per supplier/country.
+
+Customer-side:
+- On product or request:
+  • "Estimate Shipping Cost" button.
+  • User picks:
+    - destination country/city
+    - shipping method
+  • System calculates approximate shipping based on:
+    weight/volume from product data (if available) or default.
+
+Formula example:
+shippingCost = baseRate + (weightKg * perKgRate) + zoneExtra
+
+This module must be integrated with currency system so shipping prices show in customer’s preferred currency.
+
+────────────────────────────────
+9) Forcing Quality Code on Quote Requests
+────────────────────────────────
+
+For quote request forms:
+
+- Add required field: qualityCode (choice from configured QualityCode list).
+- Customer must choose:
+  • e.g. ORIGINAL / BRAND / AFTERMARKET / ANY
+- For each item:
+  • Optionally allow different quality per line item.
+
+Backend:
+- Store chosen qualityCode on request line.
+- Use it when picking suppliers or pricing (some suppliers may not support all qualities).
+
+────────────────────────────────
+10) Integration with Existing Modules (Commands 1–20)
+────────────────────────────────
+
+- Supplier Portal (Command 15):
+  • Must reflect supplierType, currency, margin group.
+  • Excel import uses templates and quality codes.
+
+- Supplier API (Command 20):
+  • For international suppliers, allow specifying currency in API payload.
+  • Pricing conversion uses same engine (exchange + margin).
+
+- Trader Tools Center (Command 16):
+  • Tools that suggest prices must use new pricing engine.
+
+- Reports Center (Command 9):
+  • Add dimensions:
+    - by supplierType (LOCAL vs INTERNATIONAL)
+    - by currency
+    - by qualityCode
+    - by supplier group
+
+────────────────────────────────
+11) Admin UI Requirements Summary
+────────────────────────────────
+
+New/updated Admin pages:
+
+1) "Supplier Types & Groups"
+   - Set supplierType fields.
+   - Manage supplier groups and default margins.
+
+2) "Currencies & Exchange Rates"
+   - Base currency
+   - Supported currencies
+   - Exchange rate & syncPercent
+
+3) "Quality & Brand Codes"
+   - Manage qualityCode list
+   - Explanations, margin adjustments
+
+4) "Excel Import Templates"
+   - Configure column mappings and instructions per template.
+
+5) "Shipping Settings"
+   - Define shipping methods and pricing parameters.
+
+6) "Supplier Excel Uploads Review"
+   - Approve/Reject/Request correction
+   - See AI summary & issues.
+
+────────────────────────────────
+12) Scope of this Command
+────────────────────────────────
+
+This command includes:
+- Supplier types (LOCAL/INTERNATIONAL).
+- Multi-currency configuration.
+- Profit margins per supplier & group.
+- Quality codes and brand codes system.
+- Excel import templates and column mappings.
+- AI-assisted Excel translation & validation (design; implementation can rely on existing AI layer).
+- Shipping cost calculation engine.
+- Customer currency preference.
+- Required quality code in quote requests.
+
+It does NOT:
+- Remove or downgrade any existing supplier/portal features.
+- Replace Supplier API logic, only extends it.
+- Replace general permissions system (will be a separate command).

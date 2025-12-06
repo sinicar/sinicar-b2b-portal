@@ -3,11 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // ============ Enums ============
+
+enum SupplierType {
+  LOCAL
+  INTERNATIONAL
+}
+
+enum UploadStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  NEEDS_CORRECTION
+}
 
 // ============ User & Auth Models ============
 
@@ -35,12 +47,14 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   
-  // New fields for extended role/status system
   isCustomer           Boolean   @default(true)
   isSupplier           Boolean   @default(false)
   completionPercent    Int       @default(0)
   whatsapp             String?
   clientCode           String?
+  
+  preferredCurrency    String?
+  preferredLanguage    String    @default("ar")
 
   parent               User?     @relation("UserHierarchy", fields: [parentId], references: [id])
   children             User[]    @relation("UserHierarchy")
@@ -50,6 +64,7 @@ model User {
   quoteRequests        QuoteRequest[]
   installmentRequests  InstallmentRequest[]
   activityLogs         ActivityLog[]
+  roleAssignments      UserRoleAssignment[]
 }
 
 model BusinessProfile {
@@ -184,15 +199,23 @@ model Product {
   id              String   @id @default(uuid())
   partNumber      String   @unique
   name            String
+  nameEn          String?
+  nameAr          String?
+  nameZh          String?
   brand           String?
   category        String?
   description     String?
   imageUrl        String?
+  imageGallery    String[]
   priceRetail     Float    @default(0)
   priceWholesale  Float    @default(0)
   priceVip        Float    @default(0)
   stock           Int      @default(0)
   isActive        Boolean  @default(true)
+  qualityCodeId   String?
+  qualityCode     QualityCode? @relation(fields: [qualityCodeId], references: [id])
+  brandCodeId     String?
+  brandCode       BrandCode? @relation(fields: [brandCodeId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -212,6 +235,7 @@ model Order {
   internalStatus  String   @default("NEW")
   internalNotes   String?
   totalAmount     Float    @default(0)
+  currency        String   @default("SAR")
   cancelledBy     String?
   cancelledAt     DateTime?
   createdAt       DateTime @default(now())
@@ -232,6 +256,7 @@ model OrderItem {
   quantity    Int
   unitPrice   Float
   totalPrice  Float
+  qualityCode String?
   createdAt   DateTime @default(now())
 }
 
@@ -255,6 +280,7 @@ model QuoteRequest {
   status       String   @default("NEW")
   resultReady  Boolean  @default(false)
   processedAt  DateTime?
+  qualityCode  String?
   createdAt    DateTime @default(now())
 
   items        QuoteItem[]
@@ -272,6 +298,7 @@ model QuoteItem {
   matchedPrice Float?
   notes        String?
   status       String   @default("PENDING")
+  qualityCode  String?
 }
 
 // ============ Installment Models ============
@@ -340,39 +367,98 @@ model InstallmentSettings {
   defaultCommission    Float   @default(5)
 }
 
-// ============ Supplier Models ============
+// ============ Supplier Models (Extended) ============
+
+model SupplierGroup {
+  id                   String   @id @default(uuid())
+  name                 String
+  nameAr               String?
+  nameEn               String?
+  description          String?
+  defaultMarginPercent Float    @default(15)
+  isActive             Boolean  @default(true)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  suppliers            SupplierProfile[]
+}
 
 model SupplierProfile {
-  id            String   @id @default(uuid())
-  customerId    String
-  companyName   String
-  contactName   String?
-  contactPhone  String?
-  contactEmail  String?
-  categories    String?
-  regions       String?
-  rating        Float    @default(0)
-  totalRevenue  Float    @default(0)
-  status        String   @default("PENDING")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                   String       @id @default(uuid())
+  customerId           String
+  companyName          String
+  contactName          String?
+  contactPhone         String?
+  contactEmail         String?
+  categories           String?
+  regions              String?
+  rating               Float        @default(0)
+  totalRevenue         Float        @default(0)
+  status               String       @default("PENDING")
+  
+  supplierType         SupplierType @default(LOCAL)
+  groupId              String?
+  group                SupplierGroup? @relation(fields: [groupId], references: [id])
+  customMarginPercent  Float?
+  
+  country              String?
+  city                 String?
+  vatNumber            String?
+  crNumber             String?
+  preferredCurrency    String       @default("SAR")
+  allowedCurrencies    String[]
+  shippingOriginCity   String?
+  languageHint         String?
+  
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
-  catalogItems  SupplierCatalogItem[]
+  catalogItems         SupplierCatalogItem[]
+  excelUploads         SupplierExcelUpload[]
 }
 
 model SupplierCatalogItem {
-  id           String   @id @default(uuid())
-  supplierId   String
-  supplier     SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  partNumber   String
-  partName     String?
-  brand        String?
-  price        Float
-  stock        Int      @default(0)
-  leadTimeDays Int      @default(7)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(uuid())
+  supplierId      String
+  supplier        SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  partNumber      String
+  partName        String?
+  originalName    String?
+  translatedNameAr String?
+  translatedNameEn String?
+  brand           String?
+  price           Float
+  currency        String   @default("SAR")
+  qualityCodeId   String?
+  qualityCode     QualityCode? @relation(fields: [qualityCodeId], references: [id])
+  brandCodeId     String?
+  brandCode       BrandCode? @relation(fields: [brandCodeId], references: [id])
+  stock           Int      @default(0)
+  leadTimeDays    Int      @default(7)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SupplierExcelUpload {
+  id              String       @id @default(uuid())
+  supplierId      String
+  supplier        SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  templateId      String?
+  template        ExcelImportTemplate? @relation(fields: [templateId], references: [id])
+  originalFileName String
+  originalFileUrl String
+  status          UploadStatus @default(PENDING_REVIEW)
+  aiSummary       String?
+  adminComment    String?
+  rowsTotal       Int          @default(0)
+  rowsValid       Int          @default(0)
+  rowsInvalid     Int          @default(0)
+  unknownCodes    String[]
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime     @default(now())
 }
 
 model SupplierMarketplaceSettings {
@@ -381,6 +467,255 @@ model SupplierMarketplaceSettings {
   enableMarketplace        Boolean @default(true)
   hideRealSupplierFromCustomer Boolean @default(false)
   markupPercentage         Float   @default(0)
+}
+
+// ============ Currency & Pricing Models ============
+
+model Currency {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  nameAr        String?
+  nameEn        String?
+  symbol        String
+  isBase        Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  exchangeRates ExchangeRate[]
+}
+
+model ExchangeRate {
+  id            String   @id @default(uuid())
+  currencyId    String
+  currency      Currency @relation(fields: [currencyId], references: [id], onDelete: Cascade)
+  rateToBase    Float
+  syncPercent   Float    @default(100)
+  effectiveFrom DateTime @default(now())
+  effectiveTo   DateTime?
+  isActive      Boolean  @default(true)
+  updatedBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([currencyId, effectiveFrom])
+}
+
+// ============ Quality & Brand Codes ============
+
+model QualityCode {
+  id                  String   @id @default(uuid())
+  code                String   @unique
+  label               String
+  labelAr             String?
+  labelEn             String?
+  labelHi             String?
+  labelZh             String?
+  description         String?
+  defaultMarginAdjust Float    @default(0)
+  sortOrder           Int      @default(0)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  products            Product[]
+  catalogItems        SupplierCatalogItem[]
+}
+
+model BrandCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  nameAr      String?
+  nameEn      String?
+  logoUrl     String?
+  country     String?
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products     Product[]
+  catalogItems SupplierCatalogItem[]
+}
+
+// ============ Excel Import Templates ============
+
+model ExcelImportTemplate {
+  id                  String   @id @default(uuid())
+  name                String
+  nameAr              String?
+  nameEn              String?
+  description         String?
+  templateType        String   @default("SUPPLIER_PRODUCT")
+  languageHint        String?
+  instructionsText    String?
+  instructionsTextAr  String?
+  templateFileUrl     String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  columns             TemplateColumn[]
+  uploads             SupplierExcelUpload[]
+}
+
+model TemplateColumn {
+  id           String   @id @default(uuid())
+  templateId   String
+  template     ExcelImportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  columnKey    String
+  columnName   String
+  columnNameAr String?
+  columnIndex  Int
+  isRequired   Boolean  @default(false)
+  dataType     String   @default("TEXT")
+  defaultValue String?
+  validation   String?
+  sortOrder    Int      @default(0)
+}
+
+// ============ Shipping Configuration ============
+
+model ShippingMethod {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  nameAr        String?
+  nameEn        String?
+  description   String?
+  baseRate      Float    @default(0)
+  perKgRate     Float    @default(0)
+  minCharge     Float    @default(0)
+  deliveryDays  Int      @default(7)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ShippingZone {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  nameAr        String?
+  countries     String[]
+  extraRatePerKg Float   @default(0)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ============ Permission System ============
+
+model Role {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  nameAr      String?
+  nameEn      String?
+  description String?
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       UserRoleAssignment[]
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  nameAr      String?
+  nameEn      String?
+  module      String
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  canCreate    Boolean  @default(false)
+  canRead      Boolean  @default(true)
+  canUpdate    Boolean  @default(false)
+  canDelete    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([roleId, permissionId])
+}
+
+model UserRoleAssignment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(true)
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  @@unique([userId, roleId])
+}
+
+model ModuleAccess {
+  id           String   @id @default(uuid())
+  moduleKey    String   @unique
+  moduleName   String
+  moduleNameAr String?
+  description  String?
+  isEnabled    Boolean  @default(true)
+  requiredRole String?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ============ Global Settings ============
+
+model GlobalSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  valueType   String   @default("STRING")
+  category    String   @default("GENERAL")
+  label       String?
+  labelAr     String?
+  description String?
+  isEditable  Boolean  @default(true)
+  isVisible   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  name        String
+  nameAr      String?
+  description String?
+  isEnabled   Boolean  @default(false)
+  enabledFor  String[]
+  metadata    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ============ Advertising Models ============
@@ -441,12 +776,15 @@ model ToolConfig {
   id                   String   @id @default(uuid())
   toolKey              String   @unique
   displayName          String
+  displayNameAr        String?
   description          String?
+  descriptionAr        String?
   isEnabled            Boolean  @default(true)
   dailyLimit           Int?
   monthlyLimit         Int?
   requiredPriceLevel   String?
   allowedCustomerTypes String?
+  requiredPermission   String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
