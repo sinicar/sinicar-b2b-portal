@@ -352,6 +352,19 @@ export interface BusinessProfile {
   // Customer Segments/Tags - for segmentation and marketing
   segments?: string[];
   tags?: string[];
+  
+  // CRM Enhancement Fields (Command 14)
+  email?: string;
+  whatsapp?: string;
+  assignedMarketerId?: string;
+  assignedEmployeeId?: string;
+  completionPercent?: number;           // Profile completion percentage 0-100
+  lastActivityAt?: string;              // From Activity Log
+  abandonedCartsCount?: number;
+  activeRequestsCount?: number;
+  totalSpent?: number;
+  totalApprovedOrders?: number;
+  totalRejectedOrders?: number;
 }
 
 export interface Product {
@@ -1126,6 +1139,55 @@ export interface ActivityLogFilters {
 
 export interface ActivityLogResponse {
   items: ActivityLogEntry[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+// --- Customer CRM Types (Command 14) ---
+
+export interface CustomerNote {
+  id: string;
+  customerId: string;
+  text: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export type CustomerActivityLevel = 'ACTIVE_TODAY' | 'ACTIVE_WEEK' | 'INACTIVE_30' | 'ALL';
+export type CustomerOrderBehavior = 'HIGH_VOLUME' | 'REJECTED_REQUESTS' | 'ABANDONED_CARTS' | 'ALL';
+
+export interface AdminCustomerFilters {
+  search?: string;
+  customerType?: CustomerType | 'ALL';
+  status?: CustomerStatus | 'ALL';
+  assignedMarketerId?: string;
+  assignedEmployeeId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  activityFrom?: string;
+  activityTo?: string;
+  activityLevel?: CustomerActivityLevel;
+  orderBehavior?: CustomerOrderBehavior;
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'name' | 'lastActivityAt' | 'createdAt' | 'totalOrdersCount';
+  sortDirection?: 'asc' | 'desc';
+}
+
+export interface AdminCustomerSummary {
+  totalOrders: number;
+  totalRequests: number;
+  totalApproved: number;
+  totalRejected: number;
+  totalSpent: number;
+  abandonedCartsCount: number;
+  activeRequestsCount: number;
+}
+
+export interface AdminCustomerResponse {
+  items: BusinessProfile[];
   page: number;
   pageSize: number;
   total: number;

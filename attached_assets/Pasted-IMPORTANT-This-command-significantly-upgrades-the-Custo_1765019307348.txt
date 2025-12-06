@@ -1,0 +1,296 @@
+IMPORTANT — This command significantly upgrades the Customer Base page.
+Do NOT delete old data or break existing flows.
+We are ADDING a powerful, dynamic, filterable, action-ready Customer Management system
+integrated with settings, permissions, reports, notifications, and roles.
+
+GOAL:
+1) Upgrade the Customer Base page (Admin Panel) to a full-featured CRM-like module.
+2) Include:
+   - Advanced filters
+   - Detailed customer profile
+   - Activity summary
+   - Orders/requests summary
+   - Settings overrides (Command 12)
+   - Fast actions (approve / reject / block / send notification)
+   - View notes / add notes
+   - Assign marketer / supplier / employee
+   - Show documents (uploaded Excel, forms, trader tools outputs)
+3) Ensure full integration with:
+   - Reports Center (Command 9)
+   - Activity Log (Command 10)
+   - Notifications System (Command 11)
+   - Settings System (Command 12)
+   - Dynamic Home Page (Command 13)
+
+────────────────────────────────
+1) Backend – Extend Customer model fields (if missing)
+────────────────────────────────
+
+Ensure Customer/User model has:
+- id
+- name
+- companyName (optional)
+- phone
+- whatsapp (optional)
+- email
+- vatNumber (optional)
+- crNumber (optional)
+- customerType (WORKSHOP, RENTAL, INSURANCE, RETAIL, WHOLESALE, etc.)
+- role (CUSTOMER)
+- assignedMarketerId (optional)
+- assignedEmployeeId (optional)
+- status (PENDING, APPROVED, REJECTED, BLOCKED)
+- createdAt
+- updatedAt
+- lastActivityAt (from Command 10)
+- completionPercent (profile completeness)
+
+No deletion of existing fields — only add missing ones if needed.
+
+────────────────────────────────
+2) Backend – Enhanced Customer API
+────────────────────────────────
+
+Extend /api/admin/customers with:
+
+A) GET /api/admin/customers
+   - Supports advanced filtering:
+     • search (name, phone, whatsapp, email, company)
+     • customerType
+     • status
+     • assignedMarketerId
+     • assignedEmployeeId
+     • dateFrom/dateTo (registration date)
+     • activityFrom/activityTo (lastActivityAt)
+   - Supports sorting:
+     • by name
+     • by lastActivityAt
+     • by createdAt
+     • by number of orders (optional if easy)
+   - Pagination required.
+   - Return summary fields for listing.
+
+B) GET /api/admin/customers/:id
+   - Return full profile including:
+     • Basic info
+     • Uploaded documents (if any)
+     • Notes
+     • Assigned marketer/employee
+     • Summary stats:
+        - totalOrders
+        - totalRequests
+        - totalApproved
+        - totalRejected
+        - totalSpent
+        - abandonedCartsCount
+        - activeRequestsCount
+     • Last activity logs (from ActivityLog, Command 10)
+     • Effective settings (Command 12)
+
+C) PUT /api/admin/customers/:id
+   - Update editable profile fields:
+     • name, phone, whatsapp, email
+     • customerType
+     • assignedMarketerId
+     • assignedEmployeeId
+     • completionPercent
+   - Do NOT remove fields.
+
+D) PUT /api/admin/customers/:id/status
+   - Update status: APPROVED / REJECTED / BLOCKED / UNBLOCKED
+   - Trigger notifications (Command 11)
+   - Log activity (Command 10)
+
+E) POST /api/admin/customers/:id/notes
+   - Add admin note to the customer's record:
+     • text
+     • createdBy (employee/admin)
+
+F) GET /api/admin/customers/:id/notes
+   - Paginated notes list.
+
+G) GET /api/admin/customers/:id/orders-summary
+   - Returns aggregated stats linked to Reports API.
+
+────────────────────────────────
+3) Frontend – Customer Base Page (Admin Panel)
+────────────────────────────────
+
+### A) Page Structure
+Split into:
+1. Filters Panel
+2. Main Table
+3. Customer Detail Drawer/Page (when a row is clicked)
+
+---
+
+### B) Filters Panel (Advanced)
+Filters to include:
+- Search (name/phone/email/company)
+- CustomerType (dropdown)
+- Status (pending/approved/rejected/blocked)
+- Marketer (dropdown auto-completed)
+- Assigned employee (dropdown)
+- Registration date range
+- Last active date range
+- Activity level:
+  • “Active today”
+  • “Active this week”
+  • “Inactive 30+ days”
+- Orders behavior:
+  • “High volume customers”
+  • “Customers with rejected requests”
+  • “Customers with abandoned carts”
+
+Each filter triggers the search ONLY when:
+- admin presses “Search” button.
+
+---
+
+### C) Main Table (Powerful Listing)
+Columns:
+- Name
+- Company name (if exists)
+- Phone / WhatsApp
+- CustomerType
+- Status (with color badge)
+- Assigned marketer
+- Assigned employee
+- completionPercent (% + a small circular indicator)
+- Requests count
+- Approved orders
+- Rejected orders
+- Last activity (e.g. “5 minutes ago”)
+
+Row Actions:
+- Open Profile
+- Approve / Reject / Block
+- Mark all notifications as read
+- Send notification (manual)
+- Add note
+
+Table Features:
+- Sorting
+- Pagination
+- Highlight inactive customers (optional setting)
+- Click row → open full drawer
+
+---
+
+### D) Customer Detail Drawer (Full Profile View)
+Sections:
+
+1) Profile Details:
+   - name, phone, whatsapp, email
+   - customerType
+   - status
+   - assigned marketer / employee
+   - completionPercent with visual bar
+   - button: “Go to Reports for this Customer”
+
+2) Activity Overview (summary cards):
+   - Total Requests
+   - Approved
+   - Rejected
+   - In Progress
+   - Abandoned Carts
+   - Total Spent
+
+3) Activity Timeline:
+   - Show last 20–50 actions from ActivityLog.
+
+4) Orders/Requests Panel:
+   - Small table showing recent 10 requests with:
+     • ID
+     • Date
+     • Status
+     • Amount
+
+   - Button: “Open full history” → goes to Reports Center with this customerId pre-filtered.
+
+5) Notes:
+   - Add note (textarea + Save)
+   - List all notes
+
+6) Settings Overrides (Command 12):
+   - Show customer-specific settings
+   - Buttons:
+     • Save override
+     • Reset override (fall back to customerType/global)
+
+7) Documents & Files:
+   - Customer uploads from trader tools:
+     • VIN extraction files
+     • Price comparisons
+     • PDF conversions
+     • Excel uploads
+   - Links to view or download
+
+8) Quick Actions:
+   - Approve / Reject / Block
+   - Send notification
+   - Reset password (optional future)
+   - Open chat/feedback history (Command 18 later)
+
+---
+
+────────────────────────────────
+4) Integration with Other Modules
+────────────────────────────────
+
+A) Reports Center (Command 9)
+- Add button “View in Reports” in customer drawer.
+- Pre-fill filter customerId.
+
+B) Activity Log (Command 10)
+- Show timeline inside customer drawer.
+- Add link: “Open full activity log”.
+
+C) Notifications (Command 11)
+- Show count of unread notifications per customer in main table.
+- In customer drawer:
+   - Add button: “Send notification to customer”.
+
+D) Settings (Command 12)
+- Customer detail drawer includes:
+   • Per-customer overrides (save + reset)
+
+E) Dynamic Home (Command 13)
+- CustomerType that appears in this page affects which home layout they receive.
+
+────────────────────────────────
+5) Performance & Compute Rules
+────────────────────────────────
+
+- Implement all features fully.
+- Optimize by:
+  • Pagination for customer list.
+  • Pagination for notes and activity logs.
+  • Server-side filtering.
+  • Cache marketer/employee dropdown lists on frontend to avoid repeated API calls.
+- No AI or WebSockets required here.
+- No removal of any function.
+
+────────────────────────────────
+6) Scope of this command
+────────────────────────────────
+
+This command includes:
+- Backend:
+  • Enhanced customer endpoints
+  • Notes API
+  • Summary/report integration
+- Frontend (Admin):
+  • Full Customer Base page redesign
+  • Advanced filters
+  • Strong table with actions
+  • Customer detail drawer/page
+  • Activity + reports + notes + settings overrides
+
+This command does NOT:
+- Replace reports center
+- Replace dynamic home page
+- Replace notifications logic
+- Replace marketer/supplier modules
+
+It only upgrades the Customer Base module into an advanced CRM layer inside SINI CAR.

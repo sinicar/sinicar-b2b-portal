@@ -1,5 +1,5 @@
 
-import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse } from '../types';
+import { BusinessProfile, User, Product, Order, OrderStatus, UserRole, CustomerType, Branch, Banner, SiteSettings, QuoteRequest, EmployeeRole, SearchHistoryItem, MissingProductRequest, QuoteItem, ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry, AccountOpeningRequest, AccountRequestStatus, Notification, NotificationType, ActivityLogEntry, ActivityEventType, OrderInternalStatus, PriceLevel, BusinessCustomerType, QuoteItemApprovalStatus, QuoteRequestStatus, MissingStatus, MissingSource, CustomerStatus, ExcelColumnPreset, AdminUser, Role, Permission, PermissionResource, PermissionAction, MarketingCampaign, CampaignStatus, CampaignAudienceType, ConfigurablePriceLevel, ProductPriceEntry, CustomerPricingProfile, GlobalPricingSettings, PricingAuditLogEntry, ToolKey, ToolConfig, CustomerToolsOverride, ToolUsageRecord, SupplierPriceRecord, VinExtractionRecord, PriceComparisonSession, SupplierCatalogItem, SupplierMarketplaceSettings, SupplierProfile, Marketer, CustomerReferral, MarketerCommissionEntry, MarketerSettings, CommissionStatus, Advertiser, AdCampaign, AdSlot, AdSlotRotationState, InstallmentRequest, InstallmentOffer, InstallmentSettings, CustomerCreditProfile, InstallmentRequestStatus, InstallmentOfferStatus, InstallmentPaymentSchedule, InstallmentPaymentInstallment, SinicarDecisionPayload, InstallmentStats, PaymentFrequency, Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationSettings, OrganizationActivityLog, TeamInvitation, OrganizationStats, CustomerPortalSettings, MultilingualText, NavMenuItemConfig, DashboardSectionConfig, HeroBannerConfig, AnnouncementConfig, InfoCardConfig, PortalFeatureToggles, PortalDesignSettings, AISettings, AIConversation, AIChatMessage, AIUsageLog, SavedPriceComparison, SavedVinExtraction, SavedQuoteTemplate, FileConversionRecord, SecuritySettings, LoginRecord, CouponCode, LoyaltySettings, CustomerLoyalty, AdvancedNotificationSettings, CartItem, AbandonedCart, HomepageCustomerType, HomepageConfig, HomepageBanner, HomepageLayoutConfig, HomepageStats, HomepageShortcut, AlternativePart, PurchaseRequest, PurchaseRequestStatus, ActorType, EntityType, ActivityLogFilters, ActivityLogResponse, OnlineUser, OnlineUsersResponse, AdminCustomerFilters, AdminCustomerResponse, AdminCustomerSummary, CustomerNote } from '../types';
 import { buildPartIndex, normalizePartNumberRaw } from '../utils/partNumberUtils';
 import * as XLSX from 'xlsx';
 
@@ -1011,6 +1011,239 @@ export const MockApi = {
           users[uIdx].riskyLoginFlag = false;
           localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       }
+  },
+
+  // --- CRM Customer APIs (Command 14) ---
+
+  async getAdminCustomers(filters: AdminCustomerFilters): Promise<AdminCustomerResponse> {
+      let customers = await this.getCustomersDatabase();
+      
+      // Apply filters
+      if (filters.search) {
+          const lower = filters.search.toLowerCase();
+          customers = customers.filter(c => 
+              c.companyName.toLowerCase().includes(lower) ||
+              c.phone?.includes(lower) ||
+              c.email?.toLowerCase().includes(lower) ||
+              c.whatsapp?.includes(lower) ||
+              c.city?.toLowerCase().includes(lower)
+          );
+      }
+      
+      if (filters.customerType && filters.customerType !== 'ALL') {
+          customers = customers.filter(c => c.customerType === filters.customerType);
+      }
+      
+      if (filters.status && filters.status !== 'ALL') {
+          customers = customers.filter(c => c.status === filters.status);
+      }
+      
+      if (filters.assignedMarketerId) {
+          customers = customers.filter(c => c.assignedMarketerId === filters.assignedMarketerId);
+      }
+      
+      if (filters.assignedEmployeeId) {
+          customers = customers.filter(c => c.assignedEmployeeId === filters.assignedEmployeeId);
+      }
+      
+      // Date filters
+      if (filters.dateFrom) {
+          customers = customers.filter(c => (c.lastLoginAt || '') >= filters.dateFrom!);
+      }
+      if (filters.dateTo) {
+          customers = customers.filter(c => (c.lastLoginAt || '') <= filters.dateTo!);
+      }
+      
+      // Activity level filter
+      if (filters.activityLevel && filters.activityLevel !== 'ALL') {
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+          
+          if (filters.activityLevel === 'ACTIVE_TODAY') {
+              customers = customers.filter(c => (c.lastActivityAt || c.lastLoginAt || '') >= today);
+          } else if (filters.activityLevel === 'ACTIVE_WEEK') {
+              customers = customers.filter(c => (c.lastActivityAt || c.lastLoginAt || '') >= weekAgo);
+          } else if (filters.activityLevel === 'INACTIVE_30') {
+              customers = customers.filter(c => (c.lastActivityAt || c.lastLoginAt || '') < thirtyDaysAgo);
+          }
+      }
+      
+      // Order behavior filter
+      if (filters.orderBehavior && filters.orderBehavior !== 'ALL') {
+          if (filters.orderBehavior === 'HIGH_VOLUME') {
+              customers = customers.filter(c => (c.totalOrdersCount || 0) > 10);
+          } else if (filters.orderBehavior === 'REJECTED_REQUESTS') {
+              customers = customers.filter(c => (c.totalRejectedOrders || 0) > 0);
+          } else if (filters.orderBehavior === 'ABANDONED_CARTS') {
+              customers = customers.filter(c => (c.abandonedCartsCount || 0) > 0);
+          }
+      }
+      
+      // Sorting
+      const sortBy = filters.sortBy || 'lastActivityAt';
+      const sortDir = filters.sortDirection || 'desc';
+      customers.sort((a, b) => {
+          let valA: any, valB: any;
+          switch (sortBy) {
+              case 'name': valA = a.companyName; valB = b.companyName; break;
+              case 'lastActivityAt': valA = a.lastActivityAt || a.lastLoginAt || ''; valB = b.lastActivityAt || b.lastLoginAt || ''; break;
+              case 'createdAt': valA = a.lastLoginAt || ''; valB = b.lastLoginAt || ''; break;
+              case 'totalOrdersCount': valA = a.totalOrdersCount || 0; valB = b.totalOrdersCount || 0; break;
+              default: valA = a.lastLoginAt || ''; valB = b.lastLoginAt || '';
+          }
+          if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+          if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+          return 0;
+      });
+      
+      // Pagination
+      const page = filters.page || 1;
+      const pageSize = filters.pageSize || 15;
+      const start = (page - 1) * pageSize;
+      const paginatedItems = customers.slice(start, start + pageSize);
+      
+      return {
+          items: paginatedItems,
+          page,
+          pageSize,
+          total: customers.length
+      };
+  },
+
+  async getCustomerById(customerId: string): Promise<{profile: BusinessProfile; summary: AdminCustomerSummary; recentActivity: ActivityLogEntry[]} | null> {
+      const customers = await this.getCustomersDatabase();
+      const profile = customers.find(c => c.userId === customerId);
+      if (!profile) return null;
+      
+      // Get orders data
+      const orders = await this.getAllOrders();
+      const customerOrders = orders.filter(o => o.userId === customerId || o.businessId === customerId);
+      
+      // Get quotes data
+      const quotes = await this.getAllQuoteRequests();
+      const customerQuotes = quotes.filter(q => q.userId === customerId);
+      
+      // Get abandoned carts
+      const abandonedCarts = await this.getAbandonedCarts();
+      const customerCarts = abandonedCarts.filter(c => c.userId === customerId);
+      
+      // Calculate summary
+      const summary: AdminCustomerSummary = {
+          totalOrders: customerOrders.length,
+          totalRequests: customerQuotes.length,
+          totalApproved: customerOrders.filter(o => o.status === 'APPROVED' || o.status === 'DELIVERED').length,
+          totalRejected: customerOrders.filter(o => o.status === 'CANCELLED').length,
+          totalSpent: customerOrders.reduce((acc, o) => acc + o.totalAmount, 0),
+          abandonedCartsCount: customerCarts.length,
+          activeRequestsCount: customerQuotes.filter(q => q.status === 'NEW' || q.status === 'UNDER_REVIEW').length
+      };
+      
+      // Get recent activity
+      const activityLogs = await this.getActivityLogs();
+      const recentActivity = activityLogs
+          .filter(l => l.userId === customerId)
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 20);
+      
+      return { profile, summary, recentActivity };
+  },
+
+  async updateCustomerProfile(customerId: string, updates: Partial<BusinessProfile>): Promise<void> {
+      const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
+      const idx = profiles.findIndex((p: BusinessProfile) => p.userId === customerId);
+      
+      if (idx !== -1) {
+          // Only update allowed fields
+          const allowedFields = ['companyName', 'phone', 'whatsapp', 'email', 'customerType', 'assignedMarketerId', 'assignedEmployeeId', 'completionPercent', 'city', 'region'];
+          allowedFields.forEach(field => {
+              if (updates[field as keyof BusinessProfile] !== undefined) {
+                  (profiles[idx] as any)[field] = updates[field as keyof BusinessProfile];
+              }
+          });
+          localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+          
+          internalRecordActivity({
+              userId: 'super-admin',
+              userName: 'System Admin',
+              role: 'SUPER_ADMIN',
+              eventType: 'OTHER',
+              description: `تم تحديث بيانات العميل`,
+              metadata: { targetUserId: customerId, updates }
+          });
+      }
+  },
+
+  // Customer Notes API
+  async addCustomerNote(customerId: string, text: string, createdBy: string, createdByName: string): Promise<CustomerNote> {
+      const notes = JSON.parse(localStorage.getItem('CUSTOMER_NOTES') || '[]');
+      const note: CustomerNote = {
+          id: `note-${Date.now()}`,
+          customerId,
+          text,
+          createdBy,
+          createdByName,
+          createdAt: new Date().toISOString()
+      };
+      notes.push(note);
+      localStorage.setItem('CUSTOMER_NOTES', JSON.stringify(notes));
+      
+      internalRecordActivity({
+          userId: createdBy,
+          userName: createdByName,
+          role: 'SUPER_ADMIN',
+          eventType: 'OTHER',
+          description: `تم إضافة ملاحظة للعميل`,
+          metadata: { targetUserId: customerId, noteId: note.id }
+      });
+      
+      return note;
+  },
+
+  async getCustomerNotes(customerId: string, page: number = 1, pageSize: number = 10): Promise<{notes: CustomerNote[]; total: number}> {
+      const notes = JSON.parse(localStorage.getItem('CUSTOMER_NOTES') || '[]') as CustomerNote[];
+      const customerNotes = notes
+          .filter(n => n.customerId === customerId)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      const start = (page - 1) * pageSize;
+      return {
+          notes: customerNotes.slice(start, start + pageSize),
+          total: customerNotes.length
+      };
+  },
+
+  async getCustomerOrdersSummary(customerId: string): Promise<{orders: Order[]; stats: {pending: number; approved: number; rejected: number; total: number}}> {
+      const orders = await this.getAllOrders();
+      const customerOrders = orders
+          .filter(o => o.userId === customerId || o.businessId === customerId)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 10);
+      
+      const allCustomerOrders = orders.filter(o => o.userId === customerId || o.businessId === customerId);
+      
+      return {
+          orders: customerOrders,
+          stats: {
+              pending: allCustomerOrders.filter(o => o.status === 'PENDING').length,
+              approved: allCustomerOrders.filter(o => o.status === 'APPROVED' || o.status === 'DELIVERED').length,
+              rejected: allCustomerOrders.filter(o => o.status === 'CANCELLED').length,
+              total: allCustomerOrders.length
+          }
+      };
+  },
+
+  // Get Marketers for dropdown
+  async getMarketersForDropdown(): Promise<{id: string; name: string}[]> {
+      const marketers = await this.getMarketers();
+      return marketers.map(m => ({ id: m.id, name: m.name }));
+  },
+
+  // Get Employees/AdminUsers for dropdown
+  async getEmployeesForDropdown(): Promise<{id: string; name: string}[]> {
+      const admins = await this.getAdminUsers();
+      return admins.map(a => ({ id: a.id, name: a.fullName }));
   },
 
   // --- End Customer Management ---
