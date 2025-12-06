@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification, AdminUser, Role, PermissionResource } from '../types';
 import { 
-    LayoutDashboard, Users, ShoppingBag, Settings, FileText, LogOut, 
+    LayoutDashboard, Users, ShoppingBag, ShoppingCart, Settings, FileText, LogOut, 
     CheckCircle, SearchX, Download, Globe, XCircle, Info, Truck, Check, 
     UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3, 
     TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, 
@@ -32,6 +32,7 @@ import { AdminAdvertisingPage } from './AdminAdvertisingPage';
 import { AdminOrganizationSettings } from './AdminOrganizationSettings';
 import { AdminCustomerPortalSettings } from './AdminCustomerPortalSettings';
 import AdminAISettings from './AdminAISettings';
+import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -46,7 +47,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -59,6 +60,7 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'ACCOUNT_REQUESTS': 'account_requests',
     'ACTIVITY_LOGS': 'activity_log',
     'ORDERS_MANAGER': 'orders',
+    'ABANDONED_CARTS': 'orders',
     'ADMIN_USERS': 'users',
     'MARKETING': 'settings_general',
     'PRICING': 'settings_general',
@@ -83,6 +85,7 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
     'ACTIVITY_LOGS': 'adminDashboard.views.activityLogs',
     'ORDERS_MANAGER': 'adminDashboard.views.ordersManager',
+    'ABANDONED_CARTS': 'adminDashboard.views.abandonedCarts',
     'ADMIN_USERS': 'adminDashboard.views.adminUsers',
     'MARKETING': 'adminDashboard.views.marketing',
     'PRICING': 'adminDashboard.views.pricing',
@@ -364,6 +367,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('orders') && (
                         <NavItem icon={<ShoppingBag size={20} />} label={t('adminDashboard.customerOrders')} active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
                     )}
+                    {canAccess('orders') && (
+                        <NavItem icon={<ShoppingCart size={20} />} label={t('adminDashboard.abandonedCarts', 'السلات المتروكة')} active={view === 'ABANDONED_CARTS'} onClick={() => setView('ABANDONED_CARTS')} />
+                    )}
                     {canAccess('account_requests') && (
                         <NavItem icon={<UserPlus size={20} />} label={t('adminDashboard.accountRequests')} active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
                     )}
@@ -435,6 +441,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <h2 className="text-xl font-black text-slate-800 tracking-tight">
                         {view === 'DASHBOARD' && t('adminDashboard.pageTitles.dashboard')}
                         {view === 'ORDERS_MANAGER' && t('adminDashboard.pageTitles.ordersManager')}
+                        {view === 'ABANDONED_CARTS' && t('adminDashboard.pageTitles.abandonedCarts', 'السلات المتروكة')}
                         {view === 'ACTIVITY_LOGS' && t('adminDashboard.pageTitles.activityLogs')}
                         {view === 'ACCOUNT_REQUESTS' && t('adminDashboard.pageTitles.accountRequests')}
                         {view === 'CUSTOMERS' && t('adminDashboard.pageTitles.customers')}
@@ -709,6 +716,11 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'ORDERS_MANAGER' && (
                         canAccess('orders') 
                             ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'ABANDONED_CARTS' && (
+                        canAccess('orders') 
+                            ? <AdminAbandonedCartsPage onRefresh={fetchAllData} /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ACCOUNT_REQUESTS' && (

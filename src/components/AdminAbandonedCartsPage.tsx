@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { AbandonedCart, ExtendedUserRole } from '../types';
@@ -14,7 +14,7 @@ interface AdminAbandonedCartsPageProps {
     onRefresh?: () => void;
 }
 
-export const AdminAbandonedCartsPage: React.FC<AdminAbandonedCartsPageProps> = ({ onRefresh }) => {
+export const AdminAbandonedCartsPage: FC<AdminAbandonedCartsPageProps> = ({ onRefresh }) => {
     const { t } = useTranslation();
     const [carts, setCarts] = useState<AbandonedCart[]>([]);
     const [loading, setLoading] = useState(true);

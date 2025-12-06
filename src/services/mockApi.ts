@@ -2347,8 +2347,8 @@ export const MockApi = {
       
       if (index === -1) return false;
       
-      carts[index].status = 'CONVERTED';
-      carts[index].lastUpdatedAt = new Date().toISOString();
+      // Remove the cart entirely when converted (order submitted)
+      carts.splice(index, 1);
       localStorage.setItem(STORAGE_KEYS.ABANDONED_CARTS, JSON.stringify(carts));
       return true;
   },
