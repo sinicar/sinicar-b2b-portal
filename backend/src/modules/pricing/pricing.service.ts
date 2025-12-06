@@ -230,6 +230,194 @@ export class PricingService {
       data
     });
   }
+
+  async deleteSupplierGroup(id: string): Promise<void> {
+    await prisma.supplierGroup.delete({ where: { id } });
+  }
+
+  async getQualityCodes() {
+    return prisma.qualityCode.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' }
+    });
+  }
+
+  async createQualityCode(data: {
+    code: string;
+    label: string;
+    labelAr?: string;
+    labelEn?: string;
+    description?: string;
+    defaultMarginAdjust?: number;
+  }) {
+    return prisma.qualityCode.create({ data });
+  }
+
+  async updateQualityCode(id: string, data: Partial<{
+    code: string;
+    label: string;
+    labelAr: string;
+    labelEn: string;
+    description: string;
+    defaultMarginAdjust: number;
+    isActive: boolean;
+    sortOrder: number;
+  }>) {
+    return prisma.qualityCode.update({ where: { id }, data });
+  }
+
+  async deleteQualityCode(id: string): Promise<void> {
+    await prisma.qualityCode.delete({ where: { id } });
+  }
+
+  async getBrandCodes() {
+    return prisma.brandCode.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' }
+    });
+  }
+
+  async createBrandCode(data: {
+    code: string;
+    name: string;
+    nameAr?: string;
+    nameEn?: string;
+    logoUrl?: string;
+    country?: string;
+    description?: string;
+  }) {
+    return prisma.brandCode.create({ data });
+  }
+
+  async updateBrandCode(id: string, data: Partial<{
+    code: string;
+    name: string;
+    nameAr: string;
+    nameEn: string;
+    logoUrl: string;
+    country: string;
+    description: string;
+    isActive: boolean;
+    sortOrder: number;
+  }>) {
+    return prisma.brandCode.update({ where: { id }, data });
+  }
+
+  async deleteBrandCode(id: string): Promise<void> {
+    await prisma.brandCode.delete({ where: { id } });
+  }
+
+  async getShippingMethods() {
+    return prisma.shippingMethod.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' }
+    });
+  }
+
+  async createShippingMethod(data: {
+    code: string;
+    name: string;
+    nameAr?: string;
+    nameEn?: string;
+    description?: string;
+    baseRate?: number;
+    perKgRate?: number;
+    minCharge?: number;
+    deliveryDays?: number;
+  }) {
+    return prisma.shippingMethod.create({ data });
+  }
+
+  async updateShippingMethod(id: string, data: Partial<{
+    code: string;
+    name: string;
+    nameAr: string;
+    nameEn: string;
+    description: string;
+    baseRate: number;
+    perKgRate: number;
+    minCharge: number;
+    deliveryDays: number;
+    isActive: boolean;
+    sortOrder: number;
+  }>) {
+    return prisma.shippingMethod.update({ where: { id }, data });
+  }
+
+  async deleteShippingMethod(id: string): Promise<void> {
+    await prisma.shippingMethod.delete({ where: { id } });
+  }
+
+  async getShippingZones() {
+    return prisma.shippingZone.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' }
+    });
+  }
+
+  async createShippingZone(data: {
+    code: string;
+    name: string;
+    nameAr?: string;
+    countries?: string[];
+    extraRatePerKg?: number;
+  }) {
+    return prisma.shippingZone.create({ data });
+  }
+
+  async updateShippingZone(id: string, data: Partial<{
+    code: string;
+    name: string;
+    nameAr: string;
+    countries: string[];
+    extraRatePerKg: number;
+    isActive: boolean;
+    sortOrder: number;
+  }>) {
+    return prisma.shippingZone.update({ where: { id }, data });
+  }
+
+  async deleteShippingZone(id: string): Promise<void> {
+    await prisma.shippingZone.delete({ where: { id } });
+  }
+
+  async getRoles() {
+    return prisma.role.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' }
+    });
+  }
+
+  async createRole(data: {
+    code: string;
+    name: string;
+    nameAr?: string;
+    nameEn?: string;
+    description?: string;
+    isSystem?: boolean;
+  }) {
+    return prisma.role.create({ data });
+  }
+
+  async updateRole(id: string, data: Partial<{
+    code: string;
+    name: string;
+    nameAr: string;
+    nameEn: string;
+    description: string;
+    isActive: boolean;
+    sortOrder: number;
+  }>) {
+    return prisma.role.update({ where: { id }, data });
+  }
+
+  async deleteRole(id: string): Promise<void> {
+    const role = await prisma.role.findUnique({ where: { id } });
+    if (role?.isSystem) {
+      throw new Error('Cannot delete system roles');
+    }
+    await prisma.role.delete({ where: { id } });
+  }
 }
 
 export const pricingService = new PricingService();

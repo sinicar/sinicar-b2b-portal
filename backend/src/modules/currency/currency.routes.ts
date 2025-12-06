@@ -13,6 +13,15 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/exchange-rates', async (req: Request, res: Response) => {
+  try {
+    const rates = await currencyService.getAllExchangeRates();
+    return successResponse(res, rates, 'Exchange rates retrieved successfully');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
 router.get('/base', async (req: Request, res: Response) => {
   try {
     const baseCurrency = await currencyService.getBaseCurrency();

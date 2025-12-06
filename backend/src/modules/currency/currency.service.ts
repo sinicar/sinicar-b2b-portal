@@ -24,6 +24,14 @@ export class CurrencyService {
     });
   }
 
+  async getAllExchangeRates() {
+    return prisma.exchangeRate.findMany({
+      where: { isActive: true },
+      include: { currency: true },
+      orderBy: { effectiveFrom: 'desc' }
+    });
+  }
+
   async getCurrencyByCode(code: string): Promise<Currency | null> {
     return prisma.currency.findUnique({
       where: { code: code.toUpperCase() }
