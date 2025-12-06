@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { authRepository } from './auth.repository';
 import { env } from '../../config/env';
-import { UnauthorizedError, BadRequestError, NotFoundError } from '../../utils/errors';
+import { UnauthorizedError, BadRequestError, NotFoundError, AccountStatusError } from '../../utils/errors';
 import { LoginInput, RegisterInput, PublicRole } from '../../schemas/auth.schema';
 
 interface TokenPayload {
@@ -38,8 +38,8 @@ export class AuthService {
         throw new UnauthorizedError('معرف العميل أو كلمة المرور غير صحيحة');
       }
 
-      if (!user.isActive || user.status !== 'ACTIVE') {
-        throw new UnauthorizedError('الحساب غير نشط أو موقوف');
+      if (!user.isActive) {
+        throw new UnauthorizedError('الحساب غير نشط');
       }
 
       if (user.failedLoginAttempts >= 5) {
@@ -57,13 +57,15 @@ export class AuthService {
         throw new UnauthorizedError('معرف العميل أو كلمة المرور غير صحيحة');
       }
 
-      if (user.status !== 'ACTIVE' && user.status !== 'APPROVED') {
-        const statusMessages: Record<string, string> = {
-          'PENDING': 'ACCOUNT_PENDING: حسابك قيد المراجعة. يرجى انتظار الموافقة',
-          'REJECTED': 'ACCOUNT_REJECTED: تم رفض طلب تسجيل حسابك',
-          'BLOCKED': 'ACCOUNT_BLOCKED: تم حظر حسابك. يرجى التواصل مع الدعم'
+      const allowedStatuses = ['ACTIVE', 'APPROVED'];
+      if (!allowedStatuses.includes(user.status)) {
+        const statusErrors: Record<string, { errorCode: string; message: string }> = {
+          'PENDING': { errorCode: 'ACCOUNT_PENDING', message: 'حسابك قيد المراجعة. يرجى انتظار الموافقة' },
+          'REJECTED': { errorCode: 'ACCOUNT_REJECTED', message: 'تم رفض طلب تسجيل حسابك' },
+          'BLOCKED': { errorCode: 'ACCOUNT_BLOCKED', message: 'تم حظر حسابك. يرجى التواصل مع الدعم' }
         };
-        throw new UnauthorizedError(statusMessages[user.status] || 'ACCOUNT_INACTIVE: الحساب غير نشط');
+        const statusError = statusErrors[user.status] || { errorCode: 'ACCOUNT_INACTIVE', message: 'الحساب غير نشط' };
+        throw new AccountStatusError(statusError.errorCode, statusError.message);
       }
 
       await authRepository.updateLastLogin(user.id);

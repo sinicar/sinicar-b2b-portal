@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError, ValidationError } from '../utils/errors';
+import { AppError, ValidationError, AccountStatusError } from '../utils/errors';
 import { env } from '../config/env';
 
 export function errorHandler(
@@ -15,6 +15,14 @@ export function errorHandler(
       success: false,
       error: err.message,
       errors: err.errors
+    });
+  }
+
+  if (err instanceof AccountStatusError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      error: err.errorCode,
+      message: err.message
     });
   }
 

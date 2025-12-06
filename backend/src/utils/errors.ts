@@ -22,6 +22,17 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+export class AccountStatusError extends Error {
+  errorCode: string;
+  statusCode: number;
+
+  constructor(errorCode: string, message: string) {
+    super(message);
+    this.errorCode = errorCode;
+    this.statusCode = 401;
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(message: string = 'غير مسموح') {
     super(message, 403);
