@@ -109,7 +109,21 @@ const translations: Record<string, Record<string, string>> = {
     saveMatrix: 'حفظ التغييرات',
     matrixUpdated: 'تم تحديث المصفوفة بنجاح',
     selectAll: 'تحديد الكل',
-    unselectAll: 'إلغاء الكل'
+    unselectAll: 'إلغاء الكل',
+    features: 'المميزات',
+    featureFlags: 'إدارة المميزات',
+    ownerType: 'نوع المالك',
+    ownerId: 'معرف المالك',
+    customerLabel: 'عميل',
+    supplierLabel: 'مورد',
+    selectOwner: 'اختر المالك',
+    loadFeatures: 'تحميل المميزات',
+    enabled: 'مفعل',
+    disabled: 'معطل',
+    noFeaturesLoaded: 'اختر نوع المالك والمعرف ثم اضغط تحميل',
+    saveFeatures: 'حفظ المميزات',
+    featuresSaved: 'تم حفظ المميزات بنجاح',
+    globalDefault: 'الافتراضي العام'
   },
   en: {
     permissionCenter: 'Permission Center',
@@ -162,7 +176,21 @@ const translations: Record<string, Record<string, string>> = {
     saveMatrix: 'Save Changes',
     matrixUpdated: 'Matrix updated successfully',
     selectAll: 'Select All',
-    unselectAll: 'Unselect All'
+    unselectAll: 'Unselect All',
+    features: 'Features',
+    featureFlags: 'Feature Management',
+    ownerType: 'Owner Type',
+    ownerId: 'Owner ID',
+    customerLabel: 'Customer',
+    supplierLabel: 'Supplier',
+    selectOwner: 'Select Owner',
+    loadFeatures: 'Load Features',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    noFeaturesLoaded: 'Select owner type and ID, then click Load',
+    saveFeatures: 'Save Features',
+    featuresSaved: 'Features saved successfully',
+    globalDefault: 'Global Default'
   },
   hi: {
     permissionCenter: 'अनुमति केंद्र',
@@ -262,7 +290,25 @@ const translations: Record<string, Record<string, string>> = {
   }
 };
 
-type TabType = 'roles' | 'permissions' | 'groups' | 'visibility' | 'matrix' | 'users';
+type TabType = 'roles' | 'permissions' | 'groups' | 'visibility' | 'matrix' | 'users' | 'features';
+
+interface FeatureFlag {
+  id: string;
+  key: string;
+  name: string;
+  nameAr?: string;
+  description?: string;
+  isEnabled: boolean;
+}
+
+interface FeatureAccess {
+  featureCode: string;
+  featureName: string;
+  featureNameAr?: string;
+  description?: string;
+  globalEnabled: boolean;
+  isEnabled: boolean;
+}
 
 interface UserOverride {
   permissionCode: string;
@@ -341,6 +387,13 @@ export function AdminPermissionCenter() {
   const [showUserDrawer, setShowUserDrawer] = useState(false);
   const [userOverrides, setUserOverrides] = useState<UserOverride[]>([]);
   const [savingOverrides, setSavingOverrides] = useState(false);
+  
+  const [featureOwnerType, setFeatureOwnerType] = useState<'CUSTOMER' | 'SUPPLIER'>('CUSTOMER');
+  const [featureOwnerId, setFeatureOwnerId] = useState('');
+  const [featureAccess, setFeatureAccess] = useState<FeatureAccess[]>([]);
+  const [featuresLoading, setFeaturesLoading] = useState(false);
+  const [savingFeatures, setSavingFeatures] = useState(false);
+  const [featuresLoaded, setFeaturesLoaded] = useState(false);
 
   const categories = useMemo(() => {
     const cats = new Set(permissions.map(p => p.category).filter(Boolean));
@@ -853,6 +906,10 @@ export function AdminPermissionCenter() {
           <UserCheck className="h-4 w-4" />
           {isRTL ? 'المستخدمين والاستثناءات' : 'Users & Overrides'}
         </button>
+        <button className={tabButtonClass('features')} onClick={() => setActiveTab('features')} data-testid="tab-features">
+          <ToggleLeft className="h-4 w-4" />
+          {t.features}
+        </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -1349,6 +1406,169 @@ export function AdminPermissionCenter() {
                   )}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'features' && (
+            <div className="space-y-4">
+              <div className={cardClass}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <ToggleLeft className="h-5 w-5 text-blue-600" />
+                  {t.featureFlags}
+                </h3>
+                
+                <div className="flex flex-wrap items-end gap-4 mb-6">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t.ownerType}</label>
+                    <select
+                      value={featureOwnerType}
+                      onChange={(e) => {
+                        setFeatureOwnerType(e.target.value as 'CUSTOMER' | 'SUPPLIER');
+                        setFeaturesLoaded(false);
+                        setFeatureAccess([]);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      data-testid="select-feature-owner-type"
+                    >
+                      <option value="CUSTOMER">{t.customerLabel}</option>
+                      <option value="SUPPLIER">{t.supplierLabel}</option>
+                    </select>
+                  </div>
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t.ownerId}</label>
+                    <input
+                      type="text"
+                      value={featureOwnerId}
+                      onChange={(e) => {
+                        setFeatureOwnerId(e.target.value);
+                        setFeaturesLoaded(false);
+                      }}
+                      placeholder={isRTL ? 'أدخل معرف المالك...' : 'Enter owner ID...'}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      data-testid="input-feature-owner-id"
+                    />
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!featureOwnerId.trim()) {
+                        showToast(isRTL ? 'يرجى إدخال معرف المالك' : 'Please enter owner ID', 'error');
+                        return;
+                      }
+                      setFeaturesLoading(true);
+                      try {
+                        const token = await getBackendToken();
+                        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+                        if (token) headers['Authorization'] = `Bearer ${token}`;
+                        
+                        const res = await fetch(`/api/v1/permission-center/features/access?ownerType=${featureOwnerType}&ownerId=${featureOwnerId}`, { headers });
+                        const data = await res.json();
+                        if (data.success) {
+                          setFeatureAccess(data.data.features || []);
+                          setFeaturesLoaded(true);
+                        } else {
+                          showToast(data.error || 'Failed to load features', 'error');
+                        }
+                      } catch (e) {
+                        console.error('Error loading features:', e);
+                        showToast(isRTL ? 'فشل تحميل المميزات' : 'Failed to load features', 'error');
+                      }
+                      setFeaturesLoading(false);
+                    }}
+                    disabled={featuresLoading || !featureOwnerId.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    data-testid="button-load-features"
+                  >
+                    {featuresLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
+                    {t.loadFeatures}
+                  </button>
+                </div>
+
+                {!featuresLoaded ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <ToggleLeft className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>{t.noFeaturesLoaded}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {featureAccess.map(feature => (
+                      <div
+                        key={feature.featureCode}
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                        data-testid={`feature-row-${feature.featureCode}`}
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {isRTL ? feature.featureNameAr || feature.featureName : feature.featureName}
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{feature.description}</p>
+                          <p className="text-xs text-gray-400 mt-1 font-mono">{feature.featureCode}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className={`text-xs px-2 py-1 rounded-full ${feature.globalEnabled ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'}`}>
+                            {t.globalDefault}: {feature.globalEnabled ? t.enabled : t.disabled}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setFeatureAccess(prev => prev.map(f => 
+                                f.featureCode === feature.featureCode 
+                                  ? { ...f, isEnabled: !f.isEnabled }
+                                  : f
+                              ));
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${feature.isEnabled ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                            data-testid={`toggle-feature-${feature.featureCode}`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${feature.isEnabled ? (isRTL ? 'translate-x-1' : 'translate-x-6') : (isRTL ? 'translate-x-6' : 'translate-x-1')}`} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex justify-end pt-4">
+                      <button
+                        onClick={async () => {
+                          setSavingFeatures(true);
+                          try {
+                            const token = await getBackendToken();
+                            const headers: HeadersInit = { 'Content-Type': 'application/json' };
+                            if (token) headers['Authorization'] = `Bearer ${token}`;
+                            
+                            const res = await fetch('/api/v1/permission-center/features/access', {
+                              method: 'PUT',
+                              headers,
+                              body: JSON.stringify({
+                                ownerType: featureOwnerType,
+                                ownerId: featureOwnerId,
+                                features: featureAccess.map(f => ({
+                                  featureCode: f.featureCode,
+                                  isEnabled: f.isEnabled
+                                }))
+                              })
+                            });
+                            
+                            const data = await res.json();
+                            if (data.success) {
+                              showToast(t.featuresSaved, 'success');
+                            } else {
+                              showToast(data.error || 'Failed to save features', 'error');
+                            }
+                          } catch (e) {
+                            console.error('Error saving features:', e);
+                            showToast(isRTL ? 'فشل حفظ المميزات' : 'Failed to save features', 'error');
+                          }
+                          setSavingFeatures(false);
+                        }}
+                        disabled={savingFeatures}
+                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        data-testid="button-save-features"
+                      >
+                        {savingFeatures ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        {t.saveFeatures}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </>

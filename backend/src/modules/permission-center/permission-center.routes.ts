@@ -278,4 +278,107 @@ router.put('/users/:id/overrides', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// ============ Feature Flags ============
+
+router.get('/features', async (req: AuthRequest, res: Response) => {
+  try {
+    const features = await permissionService.getFeatures();
+    return successResponse(res, features, 'تم جلب المميزات بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error fetching features:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
+const featureAccessQuerySchema = z.object({
+  ownerType: z.enum(['CUSTOMER', 'SUPPLIER']),
+  ownerId: z.string().min(1)
+});
+
+router.get('/features/access', async (req: AuthRequest, res: Response) => {
+  try {
+    const parseResult = featureAccessQuerySchema.safeParse(req.query);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'يرجى تحديد نوع المالك والمعرف',
+        details: parseResult.error.errors
+      });
+    }
+
+    const { ownerType, ownerId } = parseResult.data;
+    const access = await permissionService.getFeatureAccess(ownerType, ownerId);
+    
+    return successResponse(res, {
+      ownerType,
+      ownerId,
+      features: access
+    }, 'تم جلب صلاحيات المميزات بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error fetching feature access:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
+const updateFeatureAccessSchema = z.object({
+  ownerType: z.enum(['CUSTOMER', 'SUPPLIER']),
+  ownerId: z.string().min(1),
+  features: z.array(z.object({
+    featureCode: z.string(),
+    isEnabled: z.boolean()
+  }))
+});
+
+router.put('/features/access', async (req: AuthRequest, res: Response) => {
+  try {
+    const parseResult = updateFeatureAccessSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'بيانات غير صالحة',
+        details: parseResult.error.errors
+      });
+    }
+
+    const { ownerType, ownerId, features } = parseResult.data;
+    const updated = await permissionService.updateFeatureAccess(ownerType, ownerId, features);
+
+    return successResponse(res, {
+      ownerType,
+      ownerId,
+      features: updated
+    }, 'تم تحديث صلاحيات المميزات بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error updating feature access:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
+router.get('/features/check', async (req: AuthRequest, res: Response) => {
+  try {
+    const ownerType = req.query.ownerType as 'CUSTOMER' | 'SUPPLIER';
+    const ownerId = req.query.ownerId as string;
+    const featureCode = req.query.featureCode as string;
+
+    if (!ownerType || !ownerId || !featureCode) {
+      return res.status(400).json({
+        success: false,
+        error: 'يرجى تحديد جميع المعاملات'
+      });
+    }
+
+    const isEnabled = await permissionService.isFeatureEnabled(ownerType, ownerId, featureCode);
+    
+    return successResponse(res, {
+      ownerType,
+      ownerId,
+      featureCode,
+      isEnabled
+    }, 'تم التحقق من الميزة بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error checking feature:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
 export default router;
