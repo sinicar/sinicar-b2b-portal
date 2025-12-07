@@ -95,13 +95,32 @@ router.get('/definitions/:code',
 
 router.post('/:code/run', 
   authMiddleware,
-  requirePermission('REPORTS_RUN', 'create'),
+  requirePermission('REPORTS_ACCESS', 'create'),
   async (req: AuthRequest, res: Response) => {
     try {
       const { code } = req.params;
       const filters: ReportFilters = req.body.filters || {};
       const userId = req.user?.id || 'anonymous';
       const userRole = req.user?.role || 'CUSTOMER_OWNER';
+
+      if (filters.dateFrom && isNaN(Date.parse(filters.dateFrom))) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid dateFrom format'
+        });
+      }
+      if (filters.dateTo && isNaN(Date.parse(filters.dateTo))) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid dateTo format'
+        });
+      }
+      if (filters.page && (isNaN(parseInt(filters.page, 10)) || parseInt(filters.page, 10) < 1)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid page number'
+        });
+      }
 
       const result = await reportService.runReport(code, filters, userId, userRole);
 

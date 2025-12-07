@@ -790,6 +790,19 @@ async function main() {
       sortOrder: 1
     },
     {
+      code: 'QUOTES_OVERVIEW',
+      name: 'Quotes Overview Report',
+      nameAr: 'تقرير نظرة عامة على طلبات التسعير',
+      nameEn: 'Quotes Overview Report',
+      description: 'Counts and totals of quotes by status, customer and date range',
+      descriptionAr: 'إحصائيات ومجاميع طلبات التسعير حسب الحالة والعميل والفترة الزمنية',
+      descriptionEn: 'Counts and totals of quotes by status, customer and date range',
+      category: 'QUOTES',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'STAFF', 'SALES_MANAGER', 'SALES_STAFF'],
+      isActive: true,
+      sortOrder: 1
+    },
+    {
       code: 'SUPPLIER_PERFORMANCE',
       name: 'Supplier Performance Report',
       nameAr: 'تقرير أداء الموردين',

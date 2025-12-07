@@ -35,6 +35,121 @@ class ReportRegistry {
 
   private registerDefaultHandlers() {
     this.register({
+      code: 'QUOTES_OVERVIEW',
+      handler: async (filters, userId) => {
+        const PAGE_SIZE = 50;
+        const page = parseInt(filters.page || '1', 10);
+        const skip = (page - 1) * PAGE_SIZE;
+
+        const whereClause: any = {};
+
+        if (filters.dateFrom) {
+          whereClause.createdAt = { ...whereClause.createdAt, gte: new Date(filters.dateFrom) };
+        }
+        if (filters.dateTo) {
+          const endDate = new Date(filters.dateTo);
+          endDate.setHours(23, 59, 59, 999);
+          whereClause.createdAt = { ...whereClause.createdAt, lte: endDate };
+        }
+        if (filters.customerId) {
+          whereClause.userId = filters.customerId;
+        }
+        if (filters.status) {
+          whereClause.status = filters.status;
+        }
+
+        const [quotes, totalCount] = await Promise.all([
+          prisma.quoteRequest.findMany({
+            where: whereClause,
+            include: {
+              items: true,
+              user: { select: { id: true, name: true, companyName: true } }
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: PAGE_SIZE
+          }),
+          prisma.quoteRequest.count({ where: whereClause })
+        ]);
+
+        const allQuotesForAggregation = await prisma.quoteRequest.findMany({
+          where: whereClause,
+          include: { items: true, user: { select: { id: true, name: true, companyName: true } } }
+        });
+
+        const statusCounts: Record<string, number> = {};
+        const customerAggregation: Record<string, { customerId: string; customerName: string; count: number; totalAmount: number }> = {};
+        let totalApproved = 0;
+        let totalRejected = 0;
+        let totalPending = 0;
+        let totalAmountApproved = 0;
+
+        for (const quote of allQuotesForAggregation) {
+          const status = quote.status || 'UNKNOWN';
+          statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+          const quoteTotal = quote.items.reduce((sum, item) => sum + (item.matchedPrice || 0) * item.requestedQty, 0);
+
+          if (status === 'APPROVED' || status === 'COMPLETED') {
+            totalApproved++;
+            totalAmountApproved += quoteTotal;
+          } else if (status === 'REJECTED' || status === 'CANCELLED') {
+            totalRejected++;
+          } else {
+            totalPending++;
+          }
+
+          const custId = quote.userId;
+          const custName = quote.user?.name || quote.userName || quote.companyName || 'Unknown Customer';
+          if (!customerAggregation[custId]) {
+            customerAggregation[custId] = { customerId: custId, customerName: custName, count: 0, totalAmount: 0 };
+          }
+          customerAggregation[custId].count++;
+          customerAggregation[custId].totalAmount += quoteTotal;
+        }
+
+        const byStatus = Object.entries(statusCounts).map(([status, count]) => ({ status, count }));
+        const byCustomer = Object.values(customerAggregation).sort((a, b) => b.count - a.count).slice(0, 10);
+
+        const rows = quotes.map(q => ({
+          id: q.id,
+          number: q.id.slice(0, 8).toUpperCase(),
+          customerName: q.user?.name || q.userName || q.companyName || 'Unknown',
+          status: q.status,
+          amount: q.items.reduce((sum, item) => sum + (item.matchedPrice || 0) * item.requestedQty, 0),
+          createdAt: q.createdAt.toISOString()
+        }));
+
+        return {
+          success: true,
+          data: {
+            summary: {
+              totalQuotes: allQuotesForAggregation.length,
+              totalApproved,
+              totalRejected,
+              totalPending,
+              totalAmountApproved: Math.round(totalAmountApproved * 100) / 100
+            },
+            byStatus,
+            byCustomer,
+            rows,
+            pagination: {
+              page,
+              pageSize: PAGE_SIZE,
+              totalCount,
+              totalPages: Math.ceil(totalCount / PAGE_SIZE)
+            }
+          },
+          metadata: {
+            generatedAt: new Date().toISOString(),
+            filters,
+            rowCount: rows.length
+          }
+        };
+      }
+    });
+
+    this.register({
       code: 'SALES_SUMMARY',
       handler: async (filters, userId) => {
         return {

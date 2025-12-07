@@ -14,7 +14,13 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  TrendingUp,
+  Users,
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle
 } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
@@ -36,7 +42,35 @@ interface ReportFilters {
   dateTo?: string;
   status?: string;
   category?: string;
+  customerId?: string;
+  page?: string;
   [key: string]: string | undefined;
+}
+
+interface QuotesOverviewData {
+  summary: {
+    totalQuotes: number;
+    totalApproved: number;
+    totalRejected: number;
+    totalPending: number;
+    totalAmountApproved: number;
+  };
+  byStatus: Array<{ status: string; count: number }>;
+  byCustomer: Array<{ customerId: string; customerName: string; count: number; totalAmount: number }>;
+  rows: Array<{
+    id: string;
+    number: string;
+    customerName: string;
+    status: string;
+    amount: number;
+    createdAt: string;
+  }>;
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
 }
 
 interface ReportResult {
@@ -85,8 +119,12 @@ export const AdminReportsCenterPage = () => {
     dateFrom: '',
     dateTo: '',
     status: '',
-    category: ''
+    category: '',
+    customerId: '',
+    page: '1'
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadDefinitions();
@@ -266,6 +304,255 @@ export const AdminReportsCenterPage = () => {
     );
   };
 
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'NEW': 'bg-blue-100 text-blue-800',
+      'PENDING': 'bg-yellow-100 text-yellow-800',
+      'APPROVED': 'bg-green-100 text-green-800',
+      'COMPLETED': 'bg-green-100 text-green-800',
+      'REJECTED': 'bg-red-100 text-red-800',
+      'CANCELLED': 'bg-gray-100 text-gray-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, { ar: string; en: string }> = {
+      'NEW': { ar: 'جديد', en: 'New' },
+      'PENDING': { ar: 'معلق', en: 'Pending' },
+      'APPROVED': { ar: 'موافق عليه', en: 'Approved' },
+      'COMPLETED': { ar: 'مكتمل', en: 'Completed' },
+      'REJECTED': { ar: 'مرفوض', en: 'Rejected' },
+      'CANCELLED': { ar: 'ملغى', en: 'Cancelled' }
+    };
+    return labels[status]?.[isRTL ? 'ar' : 'en'] || status;
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    if (!selectedReport) return;
+    setCurrentPage(newPage);
+    setRunningReport(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/reports/${selectedReport.code}/run`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ filters: { ...filters, page: String(newPage) } })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to run report');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setReportResult(data.data);
+      }
+    } catch (error: any) {
+      addToast(error.message || (isRTL ? 'فشل في تحميل الصفحة' : 'Failed to load page'), 'error');
+    } finally {
+      setRunningReport(false);
+    }
+  };
+
+  const renderQuotesOverview = (data: QuotesOverviewData) => {
+    const { summary, byStatus, byCustomer, rows, pagination } = data;
+    const maxStatusCount = Math.max(...byStatus.map(s => s.count), 1);
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4" data-testid="quotes-overview-summary">
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              <span className="text-sm text-blue-700">{isRTL ? 'إجمالي الطلبات' : 'Total Quotes'}</span>
+            </div>
+            <div className="text-2xl font-bold text-blue-900" data-testid="text-total-quotes">
+              {summary.totalQuotes.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <span className="text-sm text-green-700">{isRTL ? 'موافق عليها' : 'Approved'}</span>
+            </div>
+            <div className="text-2xl font-bold text-green-900" data-testid="text-total-approved">
+              {summary.totalApproved.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-5 h-5 text-red-600" />
+              <span className="text-sm text-red-700">{isRTL ? 'مرفوضة' : 'Rejected'}</span>
+            </div>
+            <div className="text-2xl font-bold text-red-900" data-testid="text-total-rejected">
+              {summary.totalRejected.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-yellow-600" />
+              <span className="text-sm text-yellow-700">{isRTL ? 'معلقة' : 'Pending'}</span>
+            </div>
+            <div className="text-2xl font-bold text-yellow-900" data-testid="text-total-pending">
+              {summary.totalPending.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-purple-700">{isRTL ? 'قيمة الموافقات' : 'Approved Amount'}</span>
+            </div>
+            <div className="text-2xl font-bold text-purple-900" data-testid="text-total-amount">
+              {summary.totalAmountApproved.toLocaleString()} <span className="text-sm font-normal">SAR</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <TrendingUp size={16} />
+              {isRTL ? 'توزيع الحالات' : 'Status Distribution'}
+            </h4>
+            <div className="space-y-3" data-testid="quotes-by-status">
+              {byStatus.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <span className={`text-xs px-2 py-1 rounded-full min-w-[80px] text-center ${getStatusColor(item.status)}`}>
+                    {getStatusLabel(item.status)}
+                  </span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-full rounded-full transition-all"
+                      style={{ width: `${(item.count / maxStatusCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 min-w-[40px] text-right">
+                    {item.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Users size={16} />
+              {isRTL ? 'أعلى العملاء' : 'Top Customers'}
+            </h4>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto" data-testid="quotes-by-customer">
+              {byCustomer.length > 0 ? byCustomer.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">{item.customerName}</div>
+                    <div className="text-xs text-gray-500">{item.count} {isRTL ? 'طلب' : 'quotes'}</div>
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700">
+                    {item.totalAmount.toLocaleString()} SAR
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center text-gray-500 py-4">
+                  {isRTL ? 'لا توجد بيانات' : 'No data'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-700 mb-4">
+            {isRTL ? 'قائمة الطلبات' : 'Quote List'}
+          </h4>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200" data-testid="quotes-rows-table">
+              <thead className="bg-white">
+                <tr>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'الرقم' : 'Number'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'العميل' : 'Customer'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'الحالة' : 'Status'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'المبلغ' : 'Amount'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'التاريخ' : 'Date'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {rows.length > 0 ? rows.map((row, idx) => (
+                  <tr key={row.id} className="hover:bg-gray-50" data-testid={`quote-row-${idx}`}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600">
+                      #{row.number}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {row.customerName}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(row.status)}`}>
+                        {getStatusLabel(row.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {row.amount.toLocaleString()} SAR
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(row.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                      {isRTL ? 'لا توجد طلبات' : 'No quotes found'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-500">
+                {isRTL 
+                  ? `صفحة ${pagination.page} من ${pagination.totalPages} (${pagination.totalCount} طلب)`
+                  : `Page ${pagination.page} of ${pagination.totalPages} (${pagination.totalCount} quotes)`}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1 || runningReport}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-100 transition"
+                  data-testid="button-prev-page"
+                >
+                  {isRTL ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+                <span className="px-3 py-1 text-sm font-medium text-gray-700">
+                  {pagination.page}
+                </span>
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.totalPages || runningReport}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-100 transition"
+                  data-testid="button-next-page"
+                >
+                  {isRTL ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -404,24 +691,53 @@ export const AdminReportsCenterPage = () => {
                         data-testid="select-status"
                       >
                         <option value="">{isRTL ? 'الكل' : 'All'}</option>
-                        <option value="ACTIVE">{isRTL ? 'نشط' : 'Active'}</option>
-                        <option value="PENDING">{isRTL ? 'معلق' : 'Pending'}</option>
-                        <option value="COMPLETED">{isRTL ? 'مكتمل' : 'Completed'}</option>
+                        {selectedReport?.code === 'QUOTES_OVERVIEW' ? (
+                          <>
+                            <option value="NEW">{isRTL ? 'جديد' : 'New'}</option>
+                            <option value="PENDING">{isRTL ? 'معلق' : 'Pending'}</option>
+                            <option value="APPROVED">{isRTL ? 'موافق عليه' : 'Approved'}</option>
+                            <option value="REJECTED">{isRTL ? 'مرفوض' : 'Rejected'}</option>
+                            <option value="COMPLETED">{isRTL ? 'مكتمل' : 'Completed'}</option>
+                            <option value="CANCELLED">{isRTL ? 'ملغى' : 'Cancelled'}</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="ACTIVE">{isRTL ? 'نشط' : 'Active'}</option>
+                            <option value="PENDING">{isRTL ? 'معلق' : 'Pending'}</option>
+                            <option value="COMPLETED">{isRTL ? 'مكتمل' : 'Completed'}</option>
+                          </>
+                        )}
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {isRTL ? 'الفئة' : 'Category'}
-                      </label>
-                      <input
-                        type="text"
-                        value={filters.category || ''}
-                        onChange={e => setFilters({ ...filters, category: e.target.value })}
-                        placeholder={isRTL ? 'أدخل الفئة' : 'Enter category'}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        data-testid="input-category"
-                      />
-                    </div>
+                    {selectedReport?.code === 'QUOTES_OVERVIEW' ? (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {isRTL ? 'معرف العميل' : 'Customer ID'}
+                        </label>
+                        <input
+                          type="text"
+                          value={filters.customerId || ''}
+                          onChange={e => setFilters({ ...filters, customerId: e.target.value })}
+                          placeholder={isRTL ? 'اختياري' : 'Optional'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          data-testid="input-customer-id"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {isRTL ? 'الفئة' : 'Category'}
+                        </label>
+                        <input
+                          type="text"
+                          value={filters.category || ''}
+                          onChange={e => setFilters({ ...filters, category: e.target.value })}
+                          placeholder={isRTL ? 'أدخل الفئة' : 'Enter category'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          data-testid="input-category"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -487,43 +803,51 @@ export const AdminReportsCenterPage = () => {
               )}
 
               {reportResult && (
-                <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      {isRTL ? 'نتائج التقرير' : 'Report Results'}
-                    </h3>
-                    {reportResult.metadata && (
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Clock size={14} />
-                          {new Date(reportResult.metadata.generatedAt).toLocaleString(isRTL ? 'ar-SA' : 'en-US')}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Info size={14} />
-                          {reportResult.metadata.rowCount} {isRTL ? 'صف' : 'rows'}
-                        </span>
-                      </div>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        {isRTL ? 'نتائج التقرير' : 'Report Results'}
+                      </h3>
+                      {reportResult.metadata && (
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Clock size={14} />
+                            {new Date(reportResult.metadata.generatedAt).toLocaleString(isRTL ? 'ar-SA' : 'en-US')}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Info size={14} />
+                            {reportResult.metadata.rowCount} {isRTL ? 'صف' : 'rows'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedReport?.code === 'QUOTES_OVERVIEW' && (reportResult as any).data ? (
+                      renderQuotesOverview((reportResult as any).data as QuotesOverviewData)
+                    ) : (
+                      <>
+                        {reportResult.summary && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">
+                              {isRTL ? 'الملخص' : 'Summary'}
+                            </h4>
+                            {renderSummary(reportResult.summary)}
+                          </div>
+                        )}
+
+                        {reportResult.breakdown && reportResult.breakdown.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">
+                              {isRTL ? 'التفاصيل' : 'Breakdown'}
+                            </h4>
+                            {renderBreakdown(reportResult.breakdown)}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
-
-                  {reportResult.summary && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        {isRTL ? 'الملخص' : 'Summary'}
-                      </h4>
-                      {renderSummary(reportResult.summary)}
-                    </div>
-                  )}
-
-                  {reportResult.breakdown && reportResult.breakdown.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        {isRTL ? 'التفاصيل' : 'Breakdown'}
-                      </h4>
-                      {renderBreakdown(reportResult.breakdown)}
-                    </div>
-                  )}
                 </div>
               )}
             </>
