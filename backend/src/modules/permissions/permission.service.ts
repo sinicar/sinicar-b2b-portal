@@ -1,4 +1,5 @@
 import prisma from '../../lib/prisma';
+import { Role, Permission, RolePermission, UserRoleAssignment } from '@prisma/client';
 
 export interface UserPermissions {
   userId: string;
@@ -28,12 +29,65 @@ export interface UserPermissionSnapshot {
   features: Record<string, FeatureVisibility>;
 }
 
+interface PermissionCache {
+  roles: Role[] | null;
+  rolesLastUpdated: number;
+  permissions: Permission[] | null;
+  permissionsLastUpdated: number;
+  rolePermissions: Map<string, RolePermission[]>;
+  rolePermissionsLastUpdated: Map<string, number>;
+}
+
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+const cache: PermissionCache = {
+  roles: null,
+  rolesLastUpdated: 0,
+  permissions: null,
+  permissionsLastUpdated: 0,
+  rolePermissions: new Map(),
+  rolePermissionsLastUpdated: new Map(),
+};
+
+export function invalidatePermissionCache(type?: 'roles' | 'permissions' | 'rolePermissions' | 'all'): void {
+  if (!type || type === 'all') {
+    cache.roles = null;
+    cache.rolesLastUpdated = 0;
+    cache.permissions = null;
+    cache.permissionsLastUpdated = 0;
+    cache.rolePermissions.clear();
+    cache.rolePermissionsLastUpdated.clear();
+    return;
+  }
+  if (type === 'roles') {
+    cache.roles = null;
+    cache.rolesLastUpdated = 0;
+  }
+  if (type === 'permissions') {
+    cache.permissions = null;
+    cache.permissionsLastUpdated = 0;
+  }
+  if (type === 'rolePermissions') {
+    cache.rolePermissions.clear();
+    cache.rolePermissionsLastUpdated.clear();
+  }
+}
+
 export class PermissionService {
   async getAllRoles(): Promise<Role[]> {
-    return prisma.role.findMany({
+    const now = Date.now();
+    if (cache.roles && now - cache.rolesLastUpdated < CACHE_TTL_MS) {
+      return cache.roles;
+    }
+
+    const roles = await prisma.role.findMany({
       where: { isActive: true },
       orderBy: [{ isSystem: 'desc' }, { sortOrder: 'asc' }]
     });
+
+    cache.roles = roles;
+    cache.rolesLastUpdated = now;
+    return roles;
   }
 
   async getRoleById(id: string): Promise<Role | null> {
@@ -66,10 +120,19 @@ export class PermissionService {
   }
 
   async getAllPermissions(): Promise<Permission[]> {
-    return prisma.permission.findMany({
+    const now = Date.now();
+    if (cache.permissions && now - cache.permissionsLastUpdated < CACHE_TTL_MS) {
+      return cache.permissions;
+    }
+
+    const permissions = await prisma.permission.findMany({
       where: { isActive: true },
       orderBy: [{ module: 'asc' }, { sortOrder: 'asc' }]
     });
+
+    cache.permissions = permissions;
+    cache.permissionsLastUpdated = now;
+    return permissions;
   }
 
   async getPermissionsByModule(module: string): Promise<Permission[]> {
@@ -135,6 +198,53 @@ export class PermissionService {
         roleId_permissionId: { roleId, permissionId }
       }
     });
+    invalidatePermissionCache('rolePermissions');
+  }
+
+  async getRolesPermissionsMatrix(): Promise<{
+    roles: Role[];
+    permissions: Permission[];
+    matrix: Record<string, string[]>;
+  }> {
+    const [roles, permissions] = await Promise.all([
+      this.getAllRoles(),
+      this.getAllPermissions(),
+    ]);
+
+    const allRolePermissions = await prisma.rolePermission.findMany({
+      where: { roleId: { in: roles.map(r => r.id) } },
+      select: { roleId: true, permissionId: true },
+    });
+
+    const matrix: Record<string, string[]> = {};
+    for (const role of roles) {
+      matrix[role.id] = allRolePermissions
+        .filter(rp => rp.roleId === role.id)
+        .map(rp => rp.permissionId);
+    }
+
+    return { roles, permissions, matrix };
+  }
+
+  async updateRolePermissions(roleId: string, permissionIds: string[]): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.rolePermission.deleteMany({ where: { roleId } });
+
+      if (permissionIds.length > 0) {
+        await tx.rolePermission.createMany({
+          data: permissionIds.map(permissionId => ({
+            roleId,
+            permissionId,
+            canCreate: true,
+            canRead: true,
+            canUpdate: true,
+            canDelete: true,
+          })),
+        });
+      }
+    });
+    
+    invalidatePermissionCache('rolePermissions');
   }
 
   async getUserRoles(userId: string): Promise<UserRoleAssignment[]> {
