@@ -418,12 +418,14 @@ async function main() {
   console.log('✅ Supplier groups created');
 
   const featureFlags = [
-    { key: 'feature.ai_translation', name: 'AI Translation', nameAr: 'الترجمة الذكية', isEnabled: true },
-    { key: 'feature.supplier_marketplace', name: 'Supplier Marketplace', nameAr: 'سوق الموردين', isEnabled: true },
-    { key: 'feature.installments', name: 'Installment System', nameAr: 'نظام التقسيط', isEnabled: true },
-    { key: 'feature.trader_tools', name: 'Trader Tools', nameAr: 'أدوات التاجر', isEnabled: true },
-    { key: 'feature.product_images', name: 'Product Images', nameAr: 'صور المنتجات', isEnabled: true },
-    { key: 'feature.price_comparison', name: 'Price Comparison', nameAr: 'مقارنة الأسعار', isEnabled: true }
+    { key: 'TRADER_TOOLS', name: 'Trader Tools', nameAr: 'أدوات التاجر', description: 'Access to trader tools and utilities', isEnabled: true },
+    { key: 'PRICE_COMPARISON', name: 'Price Comparison', nameAr: 'مقارنة الأسعار', description: 'Compare prices across suppliers', isEnabled: true },
+    { key: 'VIN_HELPER', name: 'VIN Helper', nameAr: 'مساعد رقم الهيكل', description: 'VIN decoding and vehicle lookup', isEnabled: true },
+    { key: 'INTL_SUPPLIERS', name: 'International Suppliers', nameAr: 'الموردين الدوليين', description: 'Access to international supplier network', isEnabled: true },
+    { key: 'AI_ASSISTANT', name: 'AI Assistant', nameAr: 'المساعد الذكي', description: 'AI-powered chat assistant', isEnabled: true },
+    { key: 'SUPPLIER_MARKETPLACE', name: 'Supplier Marketplace', nameAr: 'سوق الموردين', description: 'Browse and connect with suppliers', isEnabled: true },
+    { key: 'INSTALLMENTS', name: 'Installment System', nameAr: 'نظام التقسيط', description: 'Payment installment options', isEnabled: true },
+    { key: 'BULK_ORDERS', name: 'Bulk Orders', nameAr: 'الطلبات الجماعية', description: 'Place orders for multiple items at once', isEnabled: true }
   ];
 
   for (const ff of featureFlags) {

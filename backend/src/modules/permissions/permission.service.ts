@@ -1017,6 +1017,91 @@ export class PermissionService {
       permissions: Object.values(effectivePermissions)
     };
   }
+
+  // ============ Feature Flags ============
+
+  private featureCache = new Map<string, { data: any; timestamp: number }>();
+  private FEATURE_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+  async getFeatures() {
+    const cacheKey = 'all_features';
+    const cached = this.featureCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.FEATURE_CACHE_TTL) {
+      return cached.data;
+    }
+
+    const features = await prisma.featureFlag.findMany({
+      orderBy: { name: 'asc' }
+    });
+    
+    this.featureCache.set(cacheKey, { data: features, timestamp: Date.now() });
+    return features;
+  }
+
+  async getFeatureAccess(ownerType: 'CUSTOMER' | 'SUPPLIER', ownerId: string) {
+    const cacheKey = `access_${ownerType}_${ownerId}`;
+    const cached = this.featureCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.FEATURE_CACHE_TTL) {
+      return cached.data;
+    }
+
+    const features = await this.getFeatures();
+    const access = await prisma.featureAccess.findMany({
+      where: { ownerType, ownerId }
+    });
+
+    const accessMap = new Map(access.map(a => [a.featureCode, a.isEnabled]));
+    
+    const result = features.map((f: any) => ({
+      featureCode: f.key,
+      featureName: f.name,
+      featureNameAr: f.nameAr,
+      description: f.description,
+      globalEnabled: f.isEnabled,
+      isEnabled: accessMap.has(f.key) ? accessMap.get(f.key) : f.isEnabled
+    }));
+
+    this.featureCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return result;
+  }
+
+  async updateFeatureAccess(ownerType: 'CUSTOMER' | 'SUPPLIER', ownerId: string, features: { featureCode: string; isEnabled: boolean }[]) {
+    const cacheKey = `access_${ownerType}_${ownerId}`;
+    this.featureCache.delete(cacheKey);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.featureAccess.deleteMany({
+        where: { ownerType, ownerId }
+      });
+
+      if (features.length > 0) {
+        await tx.featureAccess.createMany({
+          data: features.map(f => ({
+            ownerType,
+            ownerId,
+            featureCode: f.featureCode,
+            isEnabled: f.isEnabled
+          }))
+        });
+      }
+    });
+
+    return this.getFeatureAccess(ownerType, ownerId);
+  }
+
+  async isFeatureEnabled(ownerType: 'CUSTOMER' | 'SUPPLIER', ownerId: string, featureCode: string): Promise<boolean> {
+    const access = await this.getFeatureAccess(ownerType, ownerId);
+    const feature = access.find((f: any) => f.featureCode === featureCode);
+    return feature ? feature.isEnabled : false;
+  }
+
+  invalidateFeatureCache(ownerType?: string, ownerId?: string) {
+    if (ownerType && ownerId) {
+      this.featureCache.delete(`access_${ownerType}_${ownerId}`);
+    } else {
+      this.featureCache.clear();
+    }
+  }
 }
 
 export const permissionService = new PermissionService();

@@ -887,6 +887,23 @@ model FeatureFlag {
   metadata    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  featureAccess FeatureAccess[]
+}
+
+model FeatureAccess {
+  id          String   @id @default(uuid())
+  ownerType   String
+  ownerId     String
+  featureCode String
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  feature     FeatureFlag @relation(fields: [featureCode], references: [key])
+  
+  @@unique([ownerType, ownerId, featureCode])
+  @@index([ownerType, ownerId])
 }
 
 // ============ Advertising Models ============
