@@ -16,6 +16,7 @@ import settingsRoutes from '../modules/settings/settings.routes';
 import messagingRoutes from '../modules/messaging/messaging.routes';
 import notificationRoutes from '../modules/notifications/notification.routes';
 import permissionCenterRoutes from '../modules/permission-center/permission-center.routes';
+import reportRoutes from '../modules/reports/report.routes';
 
 const router = Router();
 
@@ -36,6 +37,7 @@ router.use('/settings', settingsRoutes);
 router.use('/messaging', messagingRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/permission-center', permissionCenterRoutes);
+router.use('/reports', reportRoutes);
 
 router.get('/', (req: any, res: any) => {
   res.json({
@@ -58,7 +60,8 @@ router.get('/', (req: any, res: any) => {
       '/settings',
       '/messaging',
       '/notifications',
-      '/permission-center'
+      '/permission-center',
+      '/reports'
     ]
   });
 });
