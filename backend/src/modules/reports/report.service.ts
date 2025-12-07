@@ -152,27 +152,162 @@ class ReportRegistry {
     this.register({
       code: 'SALES_SUMMARY',
       handler: async (filters, userId) => {
+        const PAGE_SIZE = 50;
+        const page = parseInt(filters.page || '1', 10);
+        const skip = (page - 1) * PAGE_SIZE;
+
+        // Build where clause using indexed fields at SQL level
+        const whereClause: any = {};
+        
+        if (filters.dateFrom) {
+          whereClause.createdAt = { ...whereClause.createdAt, gte: new Date(filters.dateFrom) };
+        }
+        if (filters.dateTo) {
+          const endDate = new Date(filters.dateTo);
+          endDate.setHours(23, 59, 59, 999);
+          whereClause.createdAt = { ...whereClause.createdAt, lte: endDate };
+        }
+        if (filters.customerId) {
+          whereClause.userId = filters.customerId;
+        }
+        // Filter by productId at SQL level using items relation
+        if (filters.productId) {
+          whereClause.items = {
+            some: { productId: filters.productId }
+          };
+        }
+
+        // Get aggregates using Prisma aggregate queries (SQL-level)
+        const [aggregateResult, totalCount] = await Promise.all([
+          prisma.order.aggregate({
+            where: whereClause,
+            _sum: { totalAmount: true },
+            _count: { id: true }
+          }),
+          prisma.order.count({ where: whereClause })
+        ]);
+
+        const totalSalesAmount = aggregateResult._sum.totalAmount || 0;
+        const totalInvoices = aggregateResult._count.id || 0;
+        const avgInvoiceValue = totalInvoices > 0 ? totalSalesAmount / totalInvoices : 0;
+
+        // Group by customer using Prisma groupBy (SQL-level)
+        const customerAggregates = await prisma.order.groupBy({
+          by: ['userId'],
+          where: whereClause,
+          _sum: { totalAmount: true },
+          _count: { id: true },
+          orderBy: { _sum: { totalAmount: 'desc' } },
+          take: 10
+        });
+
+        // Get customer names for the top customers
+        const customerIds = customerAggregates.map(c => c.userId);
+        const customers = await prisma.user.findMany({
+          where: { id: { in: customerIds } },
+          select: { id: true, name: true }
+        });
+        const customerNameMap = new Map(customers.map(c => [c.id, c.name || 'Unknown']));
+
+        const byCustomer = customerAggregates.map(c => ({
+          customerId: c.userId,
+          customerName: customerNameMap.get(c.userId) || 'Unknown',
+          totalAmount: c._sum.totalAmount || 0,
+          count: c._count.id || 0
+        }));
+
+        // Group by product using OrderItem aggregation (SQL-level)
+        const itemWhereClause: any = {};
+        if (filters.productId) {
+          itemWhereClause.productId = filters.productId;
+        }
+        // Filter items by parent order criteria
+        itemWhereClause.order = whereClause;
+
+        const productAggregates = await prisma.orderItem.groupBy({
+          by: ['productId'],
+          where: itemWhereClause,
+          _sum: { totalPrice: true, quantity: true },
+          orderBy: { _sum: { totalPrice: 'desc' } },
+          take: 10
+        });
+
+        // Get product names
+        const productIds = productAggregates.map(p => p.productId).filter(Boolean) as string[];
+        const products = await prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true }
+        });
+        const productNameMap = new Map(products.map(p => [p.id, p.name]));
+
+        const byProduct = productAggregates.map(p => ({
+          productId: p.productId || 'unknown',
+          productName: p.productId ? (productNameMap.get(p.productId) || 'Unknown Product') : 'Unknown Product',
+          totalAmount: p._sum.totalPrice || 0,
+          qty: p._sum.quantity || 0
+        }));
+
+        // Group by day - fetch orders and aggregate in JS (limited to 1000 for efficiency)
+        const ordersForDayAgg = await prisma.order.findMany({
+          where: whereClause,
+          select: { createdAt: true, totalAmount: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1000
+        });
+
+        const dayMap = new Map<string, number>();
+        for (const order of ordersForDayAgg) {
+          const dateKey = order.createdAt.toISOString().split('T')[0];
+          dayMap.set(dateKey, (dayMap.get(dateKey) || 0) + order.totalAmount);
+        }
+        const byDay = Array.from(dayMap.entries())
+          .map(([date, totalAmount]) => ({ date, totalAmount }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .slice(-30);
+
+        // Paginated rows using Prisma skip/take (SQL-level pagination)
+        const orders = await prisma.order.findMany({
+          where: whereClause,
+          include: {
+            user: { select: { id: true, name: true } }
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: PAGE_SIZE
+        });
+
+        const rows = orders.map(order => ({
+          id: order.id,
+          number: order.id.slice(-8).toUpperCase(),
+          customerName: order.user?.name || 'Unknown',
+          amount: order.totalAmount,
+          status: order.status,
+          createdAt: order.createdAt.toISOString()
+        }));
+
         return {
           success: true,
           data: {
-            totalSales: 125000,
-            totalOrders: 45,
-            averageOrderValue: 2777.78,
-            topProducts: [
-              { name: 'قطعة غيار 1', quantity: 15, revenue: 25000 },
-              { name: 'قطعة غيار 2', quantity: 12, revenue: 18000 },
-              { name: 'قطعة غيار 3', quantity: 10, revenue: 15000 }
-            ],
-            salesByDay: [
-              { date: '2024-01-01', total: 5000 },
-              { date: '2024-01-02', total: 7500 },
-              { date: '2024-01-03', total: 3000 }
-            ]
+            totals: {
+              totalSalesAmount: Math.round(totalSalesAmount * 100) / 100,
+              totalInvoices,
+              avgInvoiceValue: Math.round(avgInvoiceValue * 100) / 100
+            },
+            byCustomer,
+            byProduct,
+            byDay,
+            rows,
+            pagination: {
+              page,
+              pageSize: PAGE_SIZE,
+              totalCount,
+              totalPages: Math.ceil(totalCount / PAGE_SIZE)
+            }
           },
           metadata: {
             generatedAt: new Date().toISOString(),
             filters,
-            rowCount: 3
+            rowCount: rows.length
           }
         };
       }

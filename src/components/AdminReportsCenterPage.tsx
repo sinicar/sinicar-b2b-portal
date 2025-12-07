@@ -20,7 +20,8 @@ import {
   DollarSign,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Package
 } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
@@ -63,6 +64,31 @@ interface QuotesOverviewData {
     customerName: string;
     status: string;
     amount: number;
+    createdAt: string;
+  }>;
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+interface SalesSummaryData {
+  totals: {
+    totalSalesAmount: number;
+    totalInvoices: number;
+    avgInvoiceValue: number;
+  };
+  byCustomer: Array<{ customerId: string; customerName: string; totalAmount: number; count: number }>;
+  byProduct: Array<{ productId: string; productName: string; totalAmount: number; qty: number }>;
+  byDay: Array<{ date: string; totalAmount: number }>;
+  rows: Array<{
+    id: string;
+    number: string;
+    customerName: string;
+    amount: number;
+    status: string;
     createdAt: string;
   }>;
   pagination: {
@@ -121,6 +147,7 @@ export const AdminReportsCenterPage = () => {
     status: '',
     category: '',
     customerId: '',
+    productId: '',
     page: '1'
   });
 
@@ -553,6 +580,218 @@ export const AdminReportsCenterPage = () => {
     );
   };
 
+  const renderSalesSummary = (data: SalesSummaryData) => {
+    const { totals, byCustomer, byProduct, byDay, rows, pagination } = data;
+    const maxDayAmount = Math.max(...byDay.map(d => d.totalAmount), 1);
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-testid="sales-summary-totals">
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-5 h-5 text-green-600" />
+              <span className="text-sm text-green-700">{isRTL ? 'إجمالي المبيعات' : 'Total Sales'}</span>
+            </div>
+            <div className="text-2xl font-bold text-green-900" data-testid="text-total-sales">
+              {totals.totalSalesAmount.toLocaleString()} <span className="text-sm font-normal">SAR</span>
+            </div>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              <span className="text-sm text-blue-700">{isRTL ? 'عدد الفواتير' : 'Total Invoices'}</span>
+            </div>
+            <div className="text-2xl font-bold text-blue-900" data-testid="text-total-invoices">
+              {totals.totalInvoices.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-purple-700">{isRTL ? 'متوسط قيمة الفاتورة' : 'Avg Invoice Value'}</span>
+            </div>
+            <div className="text-2xl font-bold text-purple-900" data-testid="text-avg-invoice">
+              {totals.avgInvoiceValue.toLocaleString()} <span className="text-sm font-normal">SAR</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <Calendar size={16} />
+            {isRTL ? 'المبيعات اليومية' : 'Daily Sales'}
+          </h4>
+          <div className="space-y-2 max-h-[200px] overflow-y-auto" data-testid="sales-by-day">
+            {byDay.length > 0 ? byDay.slice(-14).map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <span className="text-xs text-gray-600 min-w-[80px]">
+                  {new Date(item.date).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                </span>
+                <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div
+                    className="bg-green-500 h-full rounded-full transition-all"
+                    style={{ width: `${(item.totalAmount / maxDayAmount) * 100}%` }}
+                  />
+                </div>
+                <span className="text-sm font-medium text-gray-700 min-w-[80px] text-right">
+                  {item.totalAmount.toLocaleString()} SAR
+                </span>
+              </div>
+            )) : (
+              <div className="text-center text-gray-500 py-4">
+                {isRTL ? 'لا توجد بيانات' : 'No data'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Users size={16} />
+              {isRTL ? 'أعلى العملاء' : 'Top Customers'}
+            </h4>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto" data-testid="sales-by-customer">
+              {byCustomer.length > 0 ? byCustomer.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">{item.customerName}</div>
+                    <div className="text-xs text-gray-500">{item.count} {isRTL ? 'طلب' : 'orders'}</div>
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700">
+                    {item.totalAmount.toLocaleString()} SAR
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center text-gray-500 py-4">
+                  {isRTL ? 'لا توجد بيانات' : 'No data'}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Package size={16} />
+              {isRTL ? 'أعلى المنتجات' : 'Top Products'}
+            </h4>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto" data-testid="sales-by-product">
+              {byProduct.length > 0 ? byProduct.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">{item.productName}</div>
+                    <div className="text-xs text-gray-500">{item.qty} {isRTL ? 'وحدة' : 'units'}</div>
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700">
+                    {item.totalAmount.toLocaleString()} SAR
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center text-gray-500 py-4">
+                  {isRTL ? 'لا توجد بيانات' : 'No data'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-700 mb-4">
+            {isRTL ? 'قائمة الطلبات' : 'Orders List'}
+          </h4>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200" data-testid="sales-rows-table">
+              <thead className="bg-white">
+                <tr>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'الرقم' : 'Number'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'العميل' : 'Customer'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'الحالة' : 'Status'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'المبلغ' : 'Amount'}
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    {isRTL ? 'التاريخ' : 'Date'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {rows.length > 0 ? rows.map((row, idx) => (
+                  <tr key={row.id} className="hover:bg-gray-50" data-testid={`sales-row-${idx}`}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600">
+                      #{row.number}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {row.customerName}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        row.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                        row.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        row.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {row.amount.toLocaleString()} SAR
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(row.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                      {isRTL ? 'لا توجد طلبات' : 'No orders found'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-500">
+                {isRTL 
+                  ? `صفحة ${pagination.page} من ${pagination.totalPages} (${pagination.totalCount} طلب)`
+                  : `Page ${pagination.page} of ${pagination.totalPages} (${pagination.totalCount} orders)`}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1 || runningReport}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-100 transition"
+                  data-testid="button-prev-page"
+                >
+                  {isRTL ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+                <span className="px-3 py-1 text-sm font-medium text-gray-700">
+                  {pagination.page}
+                </span>
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.totalPages || runningReport}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-100 transition"
+                  data-testid="button-next-page"
+                >
+                  {isRTL ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -709,20 +948,37 @@ export const AdminReportsCenterPage = () => {
                         )}
                       </select>
                     </div>
-                    {selectedReport?.code === 'QUOTES_OVERVIEW' ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {isRTL ? 'معرف العميل' : 'Customer ID'}
-                        </label>
-                        <input
-                          type="text"
-                          value={filters.customerId || ''}
-                          onChange={e => setFilters({ ...filters, customerId: e.target.value })}
-                          placeholder={isRTL ? 'اختياري' : 'Optional'}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          data-testid="input-customer-id"
-                        />
-                      </div>
+                    {(selectedReport?.code === 'QUOTES_OVERVIEW' || selectedReport?.code === 'SALES_SUMMARY') ? (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {isRTL ? 'معرف العميل' : 'Customer ID'}
+                          </label>
+                          <input
+                            type="text"
+                            value={filters.customerId || ''}
+                            onChange={e => setFilters({ ...filters, customerId: e.target.value })}
+                            placeholder={isRTL ? 'اختياري' : 'Optional'}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            data-testid="input-customer-id"
+                          />
+                        </div>
+                        {selectedReport?.code === 'SALES_SUMMARY' && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {isRTL ? 'معرف المنتج' : 'Product ID'}
+                            </label>
+                            <input
+                              type="text"
+                              value={filters.productId || ''}
+                              onChange={e => setFilters({ ...filters, productId: e.target.value })}
+                              placeholder={isRTL ? 'اختياري' : 'Optional'}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              data-testid="input-product-id"
+                            />
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -826,6 +1082,8 @@ export const AdminReportsCenterPage = () => {
 
                     {selectedReport?.code === 'QUOTES_OVERVIEW' && (reportResult as any).data ? (
                       renderQuotesOverview((reportResult as any).data as QuotesOverviewData)
+                    ) : selectedReport?.code === 'SALES_SUMMARY' && (reportResult as any).data ? (
+                      renderSalesSummary((reportResult as any).data as SalesSummaryData)
                     ) : (
                       <>
                         {reportResult.summary && (
