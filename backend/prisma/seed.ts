@@ -289,6 +289,48 @@ async function main() {
 
   console.log('✅ Permissions created');
 
+  const adminRole = await prisma.role.findUnique({ where: { code: 'ADMIN' } });
+  const managePermsPerm = await prisma.permission.findUnique({ where: { code: 'MANAGE_PERMISSIONS' } });
+  
+  if (adminRole && managePermsPerm) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: { roleId: adminRole.id, permissionId: managePermsPerm.id }
+      },
+      update: {},
+      create: {
+        roleId: adminRole.id,
+        permissionId: managePermsPerm.id,
+        canCreate: true,
+        canRead: true,
+        canUpdate: true,
+        canDelete: true
+      }
+    });
+    console.log('✅ ADMIN role assigned MANAGE_PERMISSIONS');
+  }
+
+  const staffRole = await prisma.role.findUnique({ where: { code: 'STAFF' } });
+  const viewDashPerm = await prisma.permission.findUnique({ where: { code: 'VIEW_ADMIN_DASHBOARD' } });
+  
+  if (staffRole && viewDashPerm) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: { roleId: staffRole.id, permissionId: viewDashPerm.id }
+      },
+      update: {},
+      create: {
+        roleId: staffRole.id,
+        permissionId: viewDashPerm.id,
+        canCreate: false,
+        canRead: true,
+        canUpdate: false,
+        canDelete: false
+      }
+    });
+    console.log('✅ STAFF role assigned VIEW_ADMIN_DASHBOARD');
+  }
+
   const permissionGroups = [
     { code: 'DEFAULT_ADMIN', name: 'Default Admin', nameAr: 'صلاحيات المدير الافتراضية', description: 'Full administrative access', isSystemDefault: true, sortOrder: 0 },
     { code: 'SUPPORT_STAFF', name: 'Support Staff', nameAr: 'صلاحيات موظفي الدعم', description: 'Customer support permissions', isSystemDefault: true, sortOrder: 1 },

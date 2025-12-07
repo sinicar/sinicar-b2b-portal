@@ -331,8 +331,43 @@ export class PermissionService {
     };
   }
 
-  async hasPermission(userId: string, permissionCode: string, action: 'create' | 'read' | 'update' | 'delete' = 'read'): Promise<boolean> {
-    const userPermissions = await this.getUserPermissions(userId);
+  async hasPermission(userIdOrClientId: string, permissionCode: string, action: 'create' | 'read' | 'update' | 'delete' = 'read'): Promise<boolean> {
+    let user = await prisma.user.findUnique({
+      where: { id: userIdOrClientId },
+      select: { id: true, role: true }
+    });
+
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { clientId: userIdOrClientId },
+        select: { id: true, role: true }
+      });
+    }
+
+    if (!user) return false;
+
+    if (user.role === 'SUPER_ADMIN') {
+      return true;
+    }
+
+    const role = user.role ? await prisma.role.findUnique({ where: { code: user.role } }) : null;
+    if (role) {
+      const rolePermission = await prisma.rolePermission.findFirst({
+        where: { roleId: role.id, permission: { code: permissionCode } },
+        include: { permission: true }
+      });
+      
+      if (rolePermission) {
+        switch (action) {
+          case 'create': return rolePermission.canCreate;
+          case 'read': return rolePermission.canRead;
+          case 'update': return rolePermission.canUpdate;
+          case 'delete': return rolePermission.canDelete;
+        }
+      }
+    }
+
+    const userPermissions = await this.getUserPermissionsById(user.id);
     const permission = userPermissions.permissions.find(p => p.code === permissionCode);
     
     if (!permission) return false;
@@ -344,6 +379,56 @@ export class PermissionService {
       case 'delete': return permission.canDelete;
       default: return false;
     }
+  }
+
+  async getUserPermissionsById(userId: string): Promise<UserPermissions> {
+    const userRoles = await prisma.userRoleAssignment.findMany({
+      where: { userId, isActive: true },
+      include: { role: true }
+    });
+    const roleIds = userRoles.map(ur => ur.roleId);
+
+    const rolePermissions = await prisma.rolePermission.findMany({
+      where: { roleId: { in: roleIds } },
+      include: { permission: true }
+    });
+
+    const permissionMap = new Map<string, {
+      code: string;
+      module: string;
+      canCreate: boolean;
+      canRead: boolean;
+      canUpdate: boolean;
+      canDelete: boolean;
+    }>();
+
+    for (const rp of rolePermissions) {
+      const existing = permissionMap.get(rp.permission.code);
+      if (existing) {
+        existing.canCreate = existing.canCreate || rp.canCreate;
+        existing.canRead = existing.canRead || rp.canRead;
+        existing.canUpdate = existing.canUpdate || rp.canUpdate;
+        existing.canDelete = existing.canDelete || rp.canDelete;
+      } else {
+        permissionMap.set(rp.permission.code, {
+          code: rp.permission.code,
+          module: rp.permission.module,
+          canCreate: rp.canCreate,
+          canRead: rp.canRead,
+          canUpdate: rp.canUpdate,
+          canDelete: rp.canDelete
+        });
+      }
+    }
+
+    const modules = [...new Set(Array.from(permissionMap.values()).map(p => p.module))];
+
+    return {
+      userId,
+      roles: userRoles.map(ur => ur.role.code),
+      permissions: Array.from(permissionMap.values()),
+      modules
+    };
   }
 
   async getAllModules(): Promise<ModuleAccess[]> {
