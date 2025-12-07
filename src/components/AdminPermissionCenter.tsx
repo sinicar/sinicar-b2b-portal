@@ -344,7 +344,8 @@ interface UserDetails {
 
 export function AdminPermissionCenter() {
   const { i18n } = useTranslation();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
+  const showToast = addToast;
   const lang = i18n.language?.substring(0, 2) || 'ar';
   const t = translations[lang] || translations.ar;
   const isRTL = lang === 'ar';
