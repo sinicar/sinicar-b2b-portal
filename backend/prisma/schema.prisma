@@ -526,6 +526,23 @@ model SupplierMarketplaceSettings {
   markupPercentage         Float   @default(0)
 }
 
+model SupplierUser {
+  id              String   @id @default(uuid())
+  supplierId      String
+  userId          String
+  roleCode        String   @default("SUPPLIER_STAFF")
+  isOwner         Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  jobTitle        String?
+  invitedBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([supplierId, userId])
+  @@index([supplierId])
+  @@index([userId])
+}
+
 // ============ Currency & Pricing Models ============
 
 model Currency {

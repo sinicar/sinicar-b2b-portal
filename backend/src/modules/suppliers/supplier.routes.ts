@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { supplierService } from './supplier.service';
+import { supplierUserService } from './supplier-user.service';
 import { authMiddleware, adminOnly, AuthRequest } from '../../middleware/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { asyncHandler } from '../../middleware/error.middleware';
-import { successResponse, createdResponse, paginatedResponse } from '../../utils/response';
+import { successResponse, createdResponse, paginatedResponse, errorResponse } from '../../utils/response';
 import { parsePaginationParams } from '../../utils/pagination';
 import {
   createSupplierProfileSchema,
@@ -12,6 +13,22 @@ import {
   bulkUploadCatalogSchema,
   marketplaceSearchSchema
 } from '../../schemas/supplier.schema';
+import { z } from 'zod';
+
+const addSubUserSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  roleCode: z.enum(['SUPPLIER_OWNER', 'SUPPLIER_MANAGER', 'SUPPLIER_STAFF']),
+  jobTitle: z.string().optional(),
+  password: z.string().min(4).optional()
+});
+
+const updateSubUserSchema = z.object({
+  roleCode: z.enum(['SUPPLIER_OWNER', 'SUPPLIER_MANAGER', 'SUPPLIER_STAFF']).optional(),
+  isActive: z.boolean().optional(),
+  jobTitle: z.string().optional()
+});
 
 const router = Router();
 
@@ -112,6 +129,73 @@ router.put('/:id/catalog/:itemId', authMiddleware, asyncHandler(async (req: Auth
 router.delete('/:id/catalog/:itemId', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
   const result = await supplierService.deleteCatalogItem(req.params.itemId, req.params.id, req.user!.id);
   successResponse(res, result, result.message);
+}));
+
+// ============ Sub-Users Management (Supplier Portal) ============
+
+router.get('/me/sub-users/roles', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const roles = await supplierUserService.getSupplierRoles();
+  successResponse(res, roles);
+}));
+
+router.get('/me/sub-users', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user!.id;
+  const supplierId = await supplierUserService.getSupplierIdForUser(userId);
+  
+  if (!supplierId) {
+    return errorResponse(res, 'لم يتم العثور على ملف المورد', 404);
+  }
+
+  const isOwner = await supplierUserService.isUserOwner(userId, supplierId);
+  if (!isOwner) {
+    return errorResponse(res, 'يجب أن تكون مالك المورد لعرض أعضاء الفريق', 403);
+  }
+
+  const pagination = parsePaginationParams(req.query);
+  const result = await supplierUserService.listSubUsers(supplierId, pagination);
+  paginatedResponse(res, result);
+}));
+
+router.post('/me/sub-users', authMiddleware, validate(addSubUserSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user!.id;
+  const supplierId = await supplierUserService.getSupplierIdForUser(userId);
+  
+  if (!supplierId) {
+    return errorResponse(res, 'لم يتم العثور على ملف المورد', 404);
+  }
+
+  const isOwner = await supplierUserService.isUserOwner(userId, supplierId);
+  if (!isOwner) {
+    return errorResponse(res, 'يجب أن تكون مالك المورد لإضافة أعضاء', 403);
+  }
+
+  try {
+    const subUser = await supplierUserService.addSubUser(supplierId, userId, req.body);
+    createdResponse(res, subUser, 'تم إضافة العضو بنجاح');
+  } catch (e: any) {
+    errorResponse(res, e.message || 'فشل إضافة العضو', 400);
+  }
+}));
+
+router.put('/me/sub-users/:id', authMiddleware, validate(updateSubUserSchema), asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user!.id;
+  const supplierId = await supplierUserService.getSupplierIdForUser(userId);
+  
+  if (!supplierId) {
+    return errorResponse(res, 'لم يتم العثور على ملف المورد', 404);
+  }
+
+  const isOwner = await supplierUserService.isUserOwner(userId, supplierId);
+  if (!isOwner) {
+    return errorResponse(res, 'يجب أن تكون مالك المورد لتعديل أعضاء', 403);
+  }
+
+  try {
+    const subUser = await supplierUserService.updateSubUser(supplierId, req.params.id, req.body);
+    successResponse(res, subUser, 'تم تحديث العضو بنجاح');
+  } catch (e: any) {
+    errorResponse(res, e.message || 'فشل تحديث العضو', 400);
+  }
 }));
 
 export default router;

@@ -1639,7 +1639,30 @@ export const MockApi = {
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     }
 
-    // Ensure demo supplier user exists for testing supplier portal
+    // Ensure demo supplier user (user-5) exists for testing supplier portal - aligns with backend
+    const demoSupplier5Exists = users.find((u: User) => u.clientId === 'user-5');
+    if (!demoSupplier5Exists) {
+        const demoSupplier5User: User = {
+            id: 'supplier-user-5',
+            clientId: 'user-5',
+            name: 'شركة الأمل للتوريد',
+            email: '5@sinicar.com',
+            phone: '050000005',
+            password: '5',
+            role: 'CUSTOMER_OWNER',
+            searchLimit: 100,
+            searchUsed: 0,
+            status: 'ACTIVE',
+            isApproved: true,
+            accountStatus: 'ACTIVE',
+            isSupplier: true,
+            extendedRole: 'SUPPLIER_LOCAL'
+        };
+        users.push(demoSupplier5User);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+
+    // Also keep SL-20001 supplier for backward compatibility
     const demoSupplierExists = users.find((u: User) => u.clientId === 'SL-20001');
     if (!demoSupplierExists) {
         const demoSupplierUser: User = {

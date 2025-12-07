@@ -172,8 +172,11 @@ async function main() {
     { code: 'CUSTOMER_EMPLOYEE', name: 'Customer Employee', nameAr: 'موظف عميل', description: 'Employee of a customer', isSystem: true, sortOrder: 4 },
     { code: 'SUPPLIER', name: 'Supplier', nameAr: 'مورد', description: 'Supplier account', isSystem: true, sortOrder: 5 },
     { code: 'SUPPLIER_EMPLOYEE', name: 'Supplier Employee', nameAr: 'موظف مورد', description: 'Employee of a supplier', isSystem: true, sortOrder: 6 },
-    { code: 'MARKETER', name: 'Marketer', nameAr: 'مسوق', description: 'Affiliate marketer', isSystem: true, sortOrder: 7 },
-    { code: 'ADVERTISER', name: 'Advertiser', nameAr: 'معلن', description: 'Advertising account', isSystem: true, sortOrder: 8 }
+    { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'مالك مورد', description: 'Owner of supplier company', isSystem: true, sortOrder: 7 },
+    { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'مدير مورد', description: 'Manager in supplier company', isSystem: true, sortOrder: 8 },
+    { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'موظف مورد', description: 'Staff member in supplier company', isSystem: true, sortOrder: 9 },
+    { code: 'MARKETER', name: 'Marketer', nameAr: 'مسوق', description: 'Affiliate marketer', isSystem: true, sortOrder: 10 },
+    { code: 'ADVERTISER', name: 'Advertiser', nameAr: 'معلن', description: 'Advertising account', isSystem: true, sortOrder: 11 }
   ];
 
   for (const role of roles) {
@@ -219,6 +222,53 @@ async function main() {
   }
 
   console.log('✅ Demo users created (1-6)');
+
+  // Create SupplierProfile and SupplierUser for user-5 (supplier demo user)
+  const supplierUser = await prisma.user.findFirst({
+    where: { clientId: 'user-5' }
+  });
+
+  if (supplierUser) {
+    const supplierProfileId = 'supplier-profile-1';
+    await prisma.supplierProfile.upsert({
+      where: { id: supplierProfileId },
+      update: {},
+      create: {
+        id: supplierProfileId,
+        customerId: supplierUser.id,
+        companyName: 'شركة الأمل للتوريد',
+        contactName: 'مورد',
+        contactEmail: supplierUser.email || '5@sinicar.com',
+        contactPhone: supplierUser.phone || '050000005',
+        country: 'SA',
+        city: 'الرياض',
+        vatNumber: '300000000000001',
+        crNumber: '1010000001',
+        preferredCurrency: 'SAR',
+        supplierType: SupplierType.LOCAL,
+        status: 'ACTIVE',
+        rating: 4.5,
+      }
+    });
+
+    // Create SupplierUser record (owner)
+    const supplierUserId = `supplier-user-${supplierUser.id}`;
+    await prisma.supplierUser.upsert({
+      where: { id: supplierUserId },
+      update: {},
+      create: {
+        id: supplierUserId,
+        supplierId: supplierProfileId,
+        userId: supplierUser.id,
+        roleCode: 'SUPPLIER_OWNER',
+        isOwner: true,
+        isActive: true,
+        jobTitle: 'المدير العام',
+      }
+    });
+
+    console.log('✅ SupplierProfile and SupplierUser created for user-5');
+  }
 
   const permissions = [
     { code: 'VIEW_ADMIN_DASHBOARD', name: 'View Admin Dashboard', nameAr: 'عرض لوحة التحكم', module: 'admin', category: 'ADMIN', sortOrder: 0 },

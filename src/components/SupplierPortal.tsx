@@ -483,6 +483,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
             <SupplierTeamView 
               supplierId={user.id}
               t={t}
+              currentUser={user}
             />
           )}
         </main>
@@ -1451,42 +1452,111 @@ const ImportModal = memo(({ onImport, onClose, result, t }: {
 interface SupplierEmployee {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
-  roleId: string;
+  roleCode: string;
   roleName?: string;
+  roleNameAr?: string;
+  isOwner: boolean;
   isActive: boolean;
+  jobTitle?: string;
   createdAt: string;
 }
 
-const SupplierTeamView = memo(({ supplierId, t }: {
+const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
   supplierId: string;
   t: (key: string) => string;
+  currentUser?: { id: string; role?: string; isSupplier?: boolean; clientId?: string } | null;
 }) => {
   const [employees, setEmployees] = useState<SupplierEmployee[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<SupplierEmployee | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<Partial<SupplierEmployee> | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [roles, setRoles] = useState<Array<{ id: string; code: string; name: string; nameAr?: string }>>([]);
+  const [roles, setRoles] = useState<Array<{ code: string; name: string; nameAr?: string }>>([]);
+  const [newPassword, setNewPassword] = useState('');
+  const [isOwner, setIsOwner] = useState<boolean>(false);
+  const [ownerCheckDone, setOwnerCheckDone] = useState(false);
   const { addToast } = useToast();
   const { i18n } = useTranslation();
   const isRTL = getDirection(i18n.language) === 'rtl';
 
+  const getBackendToken = async (): Promise<string | null> => {
+    // Verify current mock user has supplier role before proceeding
+    if (!currentUser?.isSupplier && currentUser?.role !== 'SUPPLIER') {
+      console.error('Current user is not a supplier');
+      return null;
+    }
+
+    // Use user-specific backend token key to avoid cross-user token reuse
+    const tokenKey = `backend_token_${currentUser?.id || 'default'}`;
+    let backendToken = localStorage.getItem(tokenKey);
+    if (backendToken) return backendToken;
+
+    // Get the current user's clientId for backend login
+    const clientId = currentUser?.clientId;
+    if (!clientId) {
+      console.error('No clientId found for current user');
+      return null;
+    }
+
+    try {
+      // Attempt to login to backend with the current user's credentials
+      // Note: For demo, we use the mock password pattern (clientId = user-N, password = N)
+      const userNum = clientId.replace('user-', '');
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: clientId, password: userNum, loginType: 'owner' })
+      });
+      const data = await res.json();
+      if (data.success && data.data?.accessToken) {
+        localStorage.setItem(tokenKey, data.data.accessToken);
+        return data.data.accessToken;
+      }
+    } catch (e) {
+      console.error('Failed to get backend token:', e);
+    }
+    return null;
+  };
+
   useEffect(() => {
     loadEmployees();
     loadRoles();
-  }, [supplierId]);
+  }, [supplierId, currentUser?.id]);
 
   const loadEmployees = async () => {
     setLoading(true);
     try {
-      // For now, use empty employees list. In production, this would fetch from backend API
-      setEmployees([]);
+      const token = await getBackendToken();
+      if (!token) {
+        setEmployees([]);
+        setIsOwner(false);
+        setOwnerCheckDone(true);
+        setLoading(false);
+        return;
+      }
+      
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/v1/suppliers/me/sub-users?page=1&limit=50', { headers });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setEmployees(data.data);
+        // If API returns success, current user is an owner (backend enforces owner-only access)
+        setIsOwner(true);
+      } else {
+        setEmployees([]);
+        // API returned error - user is not an owner or doesn't have access
+        setIsOwner(false);
+      }
+      setOwnerCheckDone(true);
     } catch (err) {
       console.error('Error loading employees:', err);
       setEmployees([]);
+      setOwnerCheckDone(true);
     } finally {
       setLoading(false);
     }
@@ -1494,10 +1564,28 @@ const SupplierTeamView = memo(({ supplierId, t }: {
 
   const loadRoles = async () => {
     try {
-      // For now, use empty roles. In production, this would fetch from backend API
-      setRoles([]);
+      const token = await getBackendToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/v1/suppliers/me/sub-users/roles', { headers });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setRoles(data.data);
+      } else {
+        setRoles([
+          { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'مالك مورد' },
+          { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'مدير مورد' },
+          { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'موظف مورد' }
+        ]);
+      }
     } catch (err) {
       console.error('Error loading roles:', err);
+      setRoles([
+        { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'مالك مورد' },
+        { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'مدير مورد' },
+        { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'موظف مورد' }
+      ]);
     }
   };
 
@@ -1505,24 +1593,79 @@ const SupplierTeamView = memo(({ supplierId, t }: {
     if (!editingEmployee) return;
     setSaving(true);
     try {
-      // For now, just show success. In production, this would save to backend API
-      addToast(editingEmployee.id ? t('supplier.employeeUpdated') : t('supplier.employeeAdded'), 'success');
-      setShowModal(false);
-      setEditingEmployee(null);
-      loadEmployees();
+      const token = await getBackendToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      if (editingEmployee.id) {
+        const res = await fetch(`/api/v1/suppliers/me/sub-users/${editingEmployee.id}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            roleCode: editingEmployee.roleCode,
+            isActive: editingEmployee.isActive,
+            jobTitle: editingEmployee.jobTitle
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          addToast(isRTL ? 'تم تحديث العضو بنجاح' : 'Member updated successfully', 'success');
+          setShowModal(false);
+          setEditingEmployee(null);
+          loadEmployees();
+        } else {
+          addToast(data.error || t('error'), 'error');
+        }
+      } else {
+        const res = await fetch('/api/v1/suppliers/me/sub-users', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            name: editingEmployee.name,
+            email: editingEmployee.email,
+            phone: editingEmployee.phone,
+            roleCode: editingEmployee.roleCode,
+            jobTitle: editingEmployee.jobTitle,
+            password: newPassword || undefined
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          addToast(isRTL ? 'تم إضافة العضو بنجاح' : 'Member added successfully', 'success');
+          setShowModal(false);
+          setEditingEmployee(null);
+          setNewPassword('');
+          loadEmployees();
+        } else {
+          addToast(data.error || t('error'), 'error');
+        }
+      }
     } catch (err) {
+      console.error('Error saving employee:', err);
       addToast(t('error'), 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (emp: SupplierEmployee) => {
-    if (!window.confirm(t('confirmDelete'))) return;
+  const handleToggleActive = async (emp: SupplierEmployee) => {
     try {
-      // For now, just show success. In production, this would delete from backend API
-      addToast(t('deleted'), 'success');
-      loadEmployees();
+      const token = await getBackendToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/v1/suppliers/me/sub-users/${emp.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ isActive: !emp.isActive })
+      });
+      const data = await res.json();
+      if (data.success) {
+        addToast(emp.isActive ? (isRTL ? 'تم تعطيل العضو' : 'Member deactivated') : (isRTL ? 'تم تفعيل العضو' : 'Member activated'), 'success');
+        loadEmployees();
+      } else {
+        addToast(data.error || t('error'), 'error');
+      }
     } catch (err) {
       addToast(t('error'), 'error');
     }
@@ -1530,7 +1673,7 @@ const SupplierTeamView = memo(({ supplierId, t }: {
 
   const filteredEmployees = employees.filter(emp => 
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (emp.email && emp.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -1547,17 +1690,20 @@ const SupplierTeamView = memo(({ supplierId, t }: {
             data-testid="input-search-employees"
           />
         </div>
-        <button
-          onClick={() => {
-            setEditingEmployee({ id: '', name: '', email: '', roleId: '', isActive: true, createdAt: '' });
-            setShowModal(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
-          data-testid="button-add-employee"
-        >
-          <Plus size={18} />
-          {t('supplier.addEmployee')}
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => {
+              setEditingEmployee({ name: '', email: '', phone: '', roleCode: 'SUPPLIER_STAFF', isActive: true, isOwner: false });
+              setNewPassword('');
+              setShowModal(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
+            data-testid="button-add-employee"
+          >
+            <Plus size={18} />
+            {t('supplier.addEmployee')}
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -1598,9 +1744,16 @@ const SupplierTeamView = memo(({ supplierId, t }: {
                     <td className="px-4 py-3 text-sm text-slate-600">{emp.email}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">{emp.phone || '-'}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
-                        {emp.roleName || emp.roleId}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium inline-block w-fit">
+                          {isRTL ? (emp.roleNameAr || emp.roleName || emp.roleCode) : (emp.roleName || emp.roleCode)}
+                        </span>
+                        {emp.isOwner && (
+                          <span className="px-2 py-0.5 mt-1 text-[10px] rounded-full bg-yellow-100 text-yellow-700 font-bold inline-block w-fit">
+                            {isRTL ? 'مالك' : 'Owner'}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 text-xs rounded-full font-medium ${
@@ -1612,22 +1765,27 @@ const SupplierTeamView = memo(({ supplierId, t }: {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => { setEditingEmployee(emp); setShowModal(true); }}
-                          className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          data-testid={`button-edit-employee-${emp.id}`}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(emp)}
-                          className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          data-testid={`button-delete-employee-${emp.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                      {isOwner && (
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => { setEditingEmployee(emp); setShowModal(true); }}
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            data-testid={`button-edit-employee-${emp.id}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          {!emp.isOwner && (
+                            <button
+                              onClick={() => handleToggleActive(emp)}
+                              className={`p-2 rounded-lg transition-colors ${emp.isActive ? 'text-slate-500 hover:text-red-600 hover:bg-red-50' : 'text-slate-500 hover:text-green-600 hover:bg-green-50'}`}
+                              data-testid={`button-toggle-employee-${emp.id}`}
+                              title={emp.isActive ? (isRTL ? 'تعطيل' : 'Deactivate') : (isRTL ? 'تفعيل' : 'Activate')}
+                            >
+                              {emp.isActive ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1673,22 +1831,45 @@ const SupplierTeamView = memo(({ supplierId, t }: {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t('role')} *</label>
               <select
-                value={editingEmployee.roleId}
-                onChange={(e) => setEditingEmployee({ ...editingEmployee, roleId: e.target.value })}
+                value={editingEmployee.roleCode || ''}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, roleCode: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 data-testid="select-employee-role"
               >
                 <option value="">{isRTL ? 'اختر الدور' : 'Select Role'}</option>
                 {roles.map(r => (
-                  <option key={r.id} value={r.id}>{isRTL ? (r.nameAr || r.name) : r.name}</option>
+                  <option key={r.code} value={r.code}>{isRTL ? (r.nameAr || r.name) : r.name}</option>
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{isRTL ? 'المسمى الوظيفي' : 'Job Title'}</label>
+              <input
+                type="text"
+                value={editingEmployee.jobTitle || ''}
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, jobTitle: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                data-testid="input-employee-job-title"
+              />
+            </div>
+            {!editingEmployee.id && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{isRTL ? 'كلمة المرور' : 'Password'}</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={isRTL ? 'اختياري - سيتم توليده تلقائياً' : 'Optional - auto-generated if empty'}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  data-testid="input-employee-password"
+                />
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="employee-active"
-                checked={editingEmployee.isActive}
+                checked={editingEmployee.isActive ?? true}
                 onChange={(e) => setEditingEmployee({ ...editingEmployee, isActive: e.target.checked })}
                 className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                 data-testid="checkbox-employee-active"
@@ -1698,7 +1879,7 @@ const SupplierTeamView = memo(({ supplierId, t }: {
           </div>
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
             <button
-              onClick={() => { setShowModal(false); setEditingEmployee(null); }}
+              onClick={() => { setShowModal(false); setEditingEmployee(null); setNewPassword(''); }}
               className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
               data-testid="button-cancel-employee"
             >
@@ -1706,7 +1887,7 @@ const SupplierTeamView = memo(({ supplierId, t }: {
             </button>
             <button
               onClick={handleSave}
-              disabled={saving || !editingEmployee.name || !editingEmployee.email || !editingEmployee.roleId}
+              disabled={saving || !editingEmployee.name || !editingEmployee.roleCode}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
               data-testid="button-save-employee"
             >
