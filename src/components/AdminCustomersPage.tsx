@@ -5,11 +5,11 @@ import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLe
 import { MockApi } from '../services/mockApi';
 import { 
     Search, Filter, ChevronRight, ChevronLeft, Eye, EyeOff, ShieldAlert, 
-    CheckCircle, XCircle, Clock, MoreHorizontal, UserCheck, 
+    CheckCircle, XCircle, Clock, MoreHorizontal, UserCheck, Users, UserPlus,
     Building2, MapPin, Phone, Briefcase, Lock, Key, 
     Trash2, AlertTriangle, Activity, Database, FileText, 
     RefreshCcw, UserMinus, Plus, Minus, X, ChevronDown, ChevronUp,
-    Send, StickyNote, Percent, User as UserIcon, CalendarDays, Bell
+    Send, StickyNote, Percent, User as UserIcon, CalendarDays, Bell, Mail, Hash, MapPinned, Save
 } from 'lucide-react';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
@@ -56,6 +56,27 @@ export const AdminCustomersPage: React.FC = () => {
     type ValidSortKey = NonNullable<AdminCustomerFilters['sortBy']>;
     const [sortConfig, setSortConfig] = useState<{key: ValidSortKey, direction: 'asc' | 'desc'}>({ key: 'totalOrdersCount', direction: 'desc' });
     const [selectedCustomer, setSelectedCustomer] = useState<BusinessProfile | null>(null);
+    
+    // Add Customer Modal State
+    const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+    const [addingCustomer, setAddingCustomer] = useState(false);
+    const [newCustomerForm, setNewCustomerForm] = useState({
+        companyName: '',
+        phone: '',
+        email: '',
+        city: '',
+        region: '',
+        customerType: 'AUTO_PARTS_SHOP',
+        crNumber: '',
+        taxNumber: '',
+        nationalAddress: '',
+        contactPerson: '',
+        priceLevel: 'LEVEL_1',
+        status: 'ACTIVE',
+        searchPointsTotal: 0,
+        branchesCount: 1,
+        internalNotes: ''
+    });
     
     // Dropdown data
     const [marketers, setMarketers] = useState<{id: string; name: string}[]>([]);
@@ -174,6 +195,63 @@ export const AdminCustomersPage: React.FC = () => {
         setCurrentPage(1);
     };
 
+    // Reset Add Customer Form
+    const resetAddCustomerForm = () => {
+        setNewCustomerForm({
+            companyName: '',
+            phone: '',
+            email: '',
+            city: '',
+            region: '',
+            customerType: 'AUTO_PARTS_SHOP',
+            crNumber: '',
+            taxNumber: '',
+            nationalAddress: '',
+            contactPerson: '',
+            priceLevel: 'LEVEL_1',
+            status: 'ACTIVE',
+            searchPointsTotal: 0,
+            branchesCount: 1,
+            internalNotes: ''
+        });
+    };
+
+    // Handle Add Customer Submit
+    const handleAddCustomer = async () => {
+        if (!newCustomerForm.companyName.trim()) {
+            addToast(t('adminCustomers.addCustomer.errors.companyNameRequired'), 'error');
+            return;
+        }
+        if (!newCustomerForm.phone.trim()) {
+            addToast(t('adminCustomers.addCustomer.errors.phoneRequired'), 'error');
+            return;
+        }
+        if (!newCustomerForm.city.trim()) {
+            addToast(t('adminCustomers.addCustomer.errors.cityRequired'), 'error');
+            return;
+        }
+
+        setAddingCustomer(true);
+        try {
+            await MockApi.createCustomerFromAdmin(newCustomerForm);
+            addToast(t('adminCustomers.addCustomer.success'), 'success');
+            setShowAddCustomerModal(false);
+            resetAddCustomerForm();
+            loadCustomers();
+            // Reload stats
+            const stats = await MockApi.getCustomerStats();
+            setStatsSummary({ 
+                total: stats.total, 
+                active: stats.active, 
+                suspended: stats.suspended + stats.blocked 
+            });
+        } catch (error) {
+            addToast(t('adminCustomers.addCustomer.errors.failed'), 'error');
+        } finally {
+            setAddingCustomer(false);
+        }
+    };
+
     // Pagination - now using server-side totalCount
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
@@ -216,15 +294,16 @@ export const AdminCustomersPage: React.FC = () => {
                     </div>
                     <div className="p-3 bg-red-50 rounded-lg text-red-600"><ShieldAlert size={20}/></div>
                 </div>
-                {/* Top Customer (Quick View) */}
-                <div className="bg-gradient-to-br from-[#0B1B3A] to-[#1a2e56] text-white p-4 rounded-xl shadow-md border border-slate-700">
-                    <p className="text-[#C8A04F] text-xs font-bold uppercase mb-1 flex items-center gap-1"><Activity size={12}/> {t('adminCustomers.stats.mostActiveCustomer')}</p>
-                    {topOrders[0] ? (
-                        <div>
-                            <p className="font-bold truncate">{topOrders[0].companyName}</p>
-                            <p className="text-xs text-slate-300">{topOrders[0].totalOrdersCount} {t('common.order')}</p>
-                        </div>
-                    ) : <p className="text-xs text-slate-400">{t('common.noData')}</p>}
+                {/* Add Customer Button */}
+                <div 
+                    onClick={() => setShowAddCustomerModal(true)}
+                    className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white p-4 rounded-xl shadow-md border border-emerald-400 cursor-pointer hover:from-emerald-600 hover:to-emerald-700 transition-all flex flex-col justify-center items-center gap-2"
+                    data-testid="button-add-customer"
+                >
+                    <div className="p-3 bg-white/20 rounded-lg">
+                        <UserPlus size={24}/>
+                    </div>
+                    <p className="text-sm font-bold">{t('adminCustomers.addCustomer.button')}</p>
                 </div>
             </div>
 
@@ -464,11 +543,368 @@ export const AdminCustomersPage: React.FC = () => {
                     }}
                 />
             )}
+
+            {/* --- ADD CUSTOMER MODAL --- */}
+            {showAddCustomerModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-fade-in">
+                        {/* Modal Header */}
+                        <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 p-5 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/20 rounded-lg">
+                                    <UserPlus className="text-white" size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">{t('adminCustomers.addCustomer.title')}</h2>
+                                    <p className="text-emerald-100 text-sm">{t('adminCustomers.addCustomer.subtitle')}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => { setShowAddCustomerModal(false); resetAddCustomerForm(); }}
+                                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                data-testid="button-close-add-customer-modal"
+                            >
+                                <X className="text-white" size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {/* Company Name */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Building2 size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.companyName')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={newCustomerForm.companyName}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, companyName: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder={t('adminCustomers.addCustomer.placeholders.companyName')}
+                                        data-testid="input-new-customer-company-name"
+                                    />
+                                </div>
+
+                                {/* Phone */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Phone size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.phone')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="tel"
+                                        value={newCustomerForm.phone}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, phone: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder="05xxxxxxxx"
+                                        dir="ltr"
+                                        data-testid="input-new-customer-phone"
+                                    />
+                                </div>
+
+                                {/* Email */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Mail size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.email')}
+                                    </label>
+                                    <input 
+                                        type="email"
+                                        value={newCustomerForm.email}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, email: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder="example@email.com"
+                                        dir="ltr"
+                                        data-testid="input-new-customer-email"
+                                    />
+                                </div>
+
+                                {/* City */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <MapPin size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.city')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <select 
+                                        value={newCustomerForm.city}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, city: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        data-testid="select-new-customer-city"
+                                    >
+                                        <option value="">{t('adminCustomers.addCustomer.placeholders.selectCity')}</option>
+                                        <option value="الرياض">الرياض</option>
+                                        <option value="جدة">جدة</option>
+                                        <option value="مكة المكرمة">مكة المكرمة</option>
+                                        <option value="المدينة المنورة">المدينة المنورة</option>
+                                        <option value="الدمام">الدمام</option>
+                                        <option value="الخبر">الخبر</option>
+                                        <option value="الأحساء">الأحساء</option>
+                                        <option value="القطيف">القطيف</option>
+                                        <option value="تبوك">تبوك</option>
+                                        <option value="بريدة">بريدة</option>
+                                        <option value="حائل">حائل</option>
+                                        <option value="أبها">أبها</option>
+                                        <option value="خميس مشيط">خميس مشيط</option>
+                                        <option value="نجران">نجران</option>
+                                        <option value="جازان">جازان</option>
+                                    </select>
+                                </div>
+
+                                {/* Region */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <MapPinned size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.region')}
+                                    </label>
+                                    <select 
+                                        value={newCustomerForm.region}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, region: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        data-testid="select-new-customer-region"
+                                    >
+                                        <option value="">{t('adminCustomers.addCustomer.placeholders.selectRegion')}</option>
+                                        <option value="المنطقة الوسطى">المنطقة الوسطى</option>
+                                        <option value="المنطقة الغربية">المنطقة الغربية</option>
+                                        <option value="المنطقة الشرقية">المنطقة الشرقية</option>
+                                        <option value="المنطقة الشمالية">المنطقة الشمالية</option>
+                                        <option value="المنطقة الجنوبية">المنطقة الجنوبية</option>
+                                    </select>
+                                </div>
+
+                                {/* Customer Type */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Briefcase size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.customerType')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <select 
+                                        value={newCustomerForm.customerType}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, customerType: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        data-testid="select-new-customer-type"
+                                    >
+                                        <option value="AUTO_PARTS_SHOP">{t('adminCustomers.addCustomer.types.autoPartsShop')}</option>
+                                        <option value="MAINTENANCE_CENTER">{t('adminCustomers.addCustomer.types.maintenanceCenter')}</option>
+                                        <option value="AUTO_SHOWROOM">{t('adminCustomers.addCustomer.types.autoShowroom')}</option>
+                                        <option value="CAR_RENTAL">{t('adminCustomers.addCustomer.types.carRental')}</option>
+                                        <option value="GOVERNMENT">{t('adminCustomers.addCustomer.types.government')}</option>
+                                        <option value="OTHER">{t('adminCustomers.addCustomer.types.other')}</option>
+                                    </select>
+                                </div>
+
+                                {/* Price Level */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Percent size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.priceLevel')}
+                                    </label>
+                                    <select 
+                                        value={newCustomerForm.priceLevel}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, priceLevel: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        data-testid="select-new-customer-price-level"
+                                    >
+                                        <option value="LEVEL_1">{t('adminCustomers.addCustomer.priceLevels.level1')}</option>
+                                        <option value="LEVEL_2">{t('adminCustomers.addCustomer.priceLevels.level2')}</option>
+                                        <option value="LEVEL_3">{t('adminCustomers.addCustomer.priceLevels.level3')}</option>
+                                        <option value="SPECIAL">{t('adminCustomers.addCustomer.priceLevels.special')}</option>
+                                    </select>
+                                </div>
+
+                                {/* CR Number */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Hash size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.crNumber')}
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={newCustomerForm.crNumber}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, crNumber: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder="1010xxxxxx"
+                                        dir="ltr"
+                                        data-testid="input-new-customer-cr-number"
+                                    />
+                                </div>
+
+                                {/* Tax Number */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <FileText size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.taxNumber')}
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={newCustomerForm.taxNumber}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, taxNumber: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder="3xxxxxxxxxxxxxxx"
+                                        dir="ltr"
+                                        data-testid="input-new-customer-tax-number"
+                                    />
+                                </div>
+
+                                {/* National Address */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <MapPin size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.nationalAddress')}
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={newCustomerForm.nationalAddress}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, nationalAddress: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder={t('adminCustomers.addCustomer.placeholders.nationalAddress')}
+                                        data-testid="input-new-customer-national-address"
+                                    />
+                                </div>
+
+                                {/* Contact Person */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <UserIcon size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.contactPerson')}
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={newCustomerForm.contactPerson}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, contactPerson: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder={t('adminCustomers.addCustomer.placeholders.contactPerson')}
+                                        data-testid="input-new-customer-contact-person"
+                                    />
+                                </div>
+
+                                {/* Search Points */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Search size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.searchPoints')}
+                                    </label>
+                                    <input 
+                                        type="number"
+                                        value={newCustomerForm.searchPointsTotal}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, searchPointsTotal: parseInt(e.target.value) || 0})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder="0"
+                                        min="0"
+                                        dir="ltr"
+                                        data-testid="input-new-customer-search-points"
+                                    />
+                                </div>
+
+                                {/* Branches Count */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <Building2 size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.branchesCount')}
+                                    </label>
+                                    <input 
+                                        type="number"
+                                        value={newCustomerForm.branchesCount}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, branchesCount: parseInt(e.target.value) || 1})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                                        placeholder="1"
+                                        min="1"
+                                        dir="ltr"
+                                        data-testid="input-new-customer-branches-count"
+                                    />
+                                </div>
+
+                                {/* Status */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        {t('adminCustomers.addCustomer.fields.status')}
+                                    </label>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewCustomerForm({...newCustomerForm, status: 'ACTIVE'})}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${newCustomerForm.status === 'ACTIVE' ? 'bg-green-100 text-green-700 border-2 border-green-400' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'}`}
+                                            data-testid="button-status-active"
+                                        >
+                                            <CheckCircle size={16} className="inline ml-2" />
+                                            {t('adminCustomers.status.active')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewCustomerForm({...newCustomerForm, status: 'PENDING'})}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${newCustomerForm.status === 'PENDING' ? 'bg-blue-100 text-blue-700 border-2 border-blue-400' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'}`}
+                                            data-testid="button-status-pending"
+                                        >
+                                            <Clock size={16} className="inline ml-2" />
+                                            {t('adminCustomers.status.pending')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewCustomerForm({...newCustomerForm, status: 'SUSPENDED'})}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${newCustomerForm.status === 'SUSPENDED' ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-400' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'}`}
+                                            data-testid="button-status-suspended"
+                                        >
+                                            <XCircle size={16} className="inline ml-2" />
+                                            {t('adminCustomers.status.suspended')}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Internal Notes */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                        <StickyNote size={14} className="inline ml-1" />
+                                        {t('adminCustomers.addCustomer.fields.internalNotes')}
+                                    </label>
+                                    <textarea 
+                                        value={newCustomerForm.internalNotes}
+                                        onChange={(e) => setNewCustomerForm({...newCustomerForm, internalNotes: e.target.value})}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all resize-none"
+                                        placeholder={t('adminCustomers.addCustomer.placeholders.internalNotes')}
+                                        rows={3}
+                                        data-testid="textarea-new-customer-notes"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="bg-slate-50 p-5 border-t border-slate-200 flex justify-between items-center gap-4">
+                            <button 
+                                onClick={() => { setShowAddCustomerModal(false); resetAddCustomerForm(); }}
+                                className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+                                data-testid="button-cancel-add-customer"
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button 
+                                onClick={handleAddCustomer}
+                                disabled={addingCustomer}
+                                className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                                data-testid="button-submit-add-customer"
+                            >
+                                {addingCustomer ? (
+                                    <>
+                                        <RefreshCcw size={18} className="animate-spin" />
+                                        {t('adminCustomers.addCustomer.saving')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={18} />
+                                        {t('adminCustomers.addCustomer.submit')}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-import { Users, FileSpreadsheet, LockKeyhole, MessageSquare, Package, ClipboardList, ExternalLink, DollarSign, Calendar } from 'lucide-react';
+import { FileSpreadsheet, LockKeyhole, MessageSquare, Package, ClipboardList, ExternalLink, DollarSign, Calendar } from 'lucide-react';
 
 interface DetailPanelProps {
     customer: BusinessProfile;

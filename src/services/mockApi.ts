@@ -976,6 +976,94 @@ export const MockApi = {
       return true;
   },
 
+  async createCustomerFromAdmin(data: {
+    companyName: string;
+    phone: string;
+    email?: string;
+    city: string;
+    region?: string;
+    customerType: string;
+    crNumber?: string;
+    taxNumber?: string;
+    nationalAddress?: string;
+    contactPerson?: string;
+    branchesCount?: number;
+    priceLevel?: string;
+    status?: string;
+    searchPointsTotal?: number;
+    internalNotes?: string;
+  }): Promise<BusinessProfile> {
+    await delay(100);
+    
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]') as User[];
+    const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]') as BusinessProfile[];
+    
+    const newId = `cust-${Date.now().toString().slice(-8)}`;
+    const now = new Date().toISOString();
+    
+    const newUser: User = {
+      id: newId,
+      name: data.companyName,
+      phone: data.phone,
+      email: data.email || '',
+      password: '123456',
+      role: 'CUSTOMER',
+      status: (data.status as any) || 'ACTIVE',
+      isActive: data.status !== 'SUSPENDED' && data.status !== 'BLOCKED',
+      searchLimit: data.searchPointsTotal || 0,
+      priceLevel: (data.priceLevel as any) || 'LEVEL_1',
+      createdAt: now,
+      updatedAt: now,
+      clientId: `CLT-${Date.now().toString().slice(-6)}`
+    };
+    
+    const newProfile: BusinessProfile = {
+      userId: newId,
+      companyName: data.companyName,
+      phone: data.phone,
+      email: data.email,
+      region: data.region || '',
+      city: data.city,
+      crNumber: data.crNumber || '',
+      taxNumber: data.taxNumber || '',
+      nationalAddress: data.nationalAddress || '',
+      customerType: data.customerType as any,
+      deviceFingerprint: '',
+      branches: [],
+      isApproved: true,
+      status: (data.status as any) || 'ACTIVE',
+      assignedPriceLevel: (data.priceLevel as any) || 'LEVEL_1',
+      priceVisibility: 'VISIBLE',
+      searchPointsTotal: data.searchPointsTotal || 0,
+      searchPointsRemaining: data.searchPointsTotal || 0,
+      staffLimit: 5,
+      internalNotes: data.internalNotes,
+      totalOrdersCount: 0,
+      totalQuotesCount: 0,
+      totalSearchesCount: 0,
+      lastLoginAt: null,
+      lastActivityAt: now,
+      completionPercent: 100
+    };
+    
+    users.push(newUser);
+    profiles.push(newProfile);
+    
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+    
+    internalRecordActivity({
+      userId: 'super-admin',
+      userName: 'System Admin',
+      role: 'SUPER_ADMIN',
+      eventType: 'OTHER',
+      description: `تم إنشاء حساب عميل جديد: ${data.companyName}`,
+      metadata: { newCustomerId: newId, companyName: data.companyName }
+    });
+    
+    return newProfile;
+  },
+
   async updateCustomerPriceVisibility(customerId: string, visibility: 'VISIBLE' | 'HIDDEN'): Promise<void> {
       const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || '[]');
       const pIdx = profiles.findIndex((p: BusinessProfile) => p.userId === customerId);

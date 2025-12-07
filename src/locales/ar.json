@@ -1011,6 +1011,68 @@
       "pending": "قيد التفعيل",
       "inactive": "غير نشط"
     },
+    "stats": {
+      "totalCustomers": "إجمالي العملاء",
+      "activeCustomers": "عملاء نشطين",
+      "blockedSuspended": "موقوفين/محظورين",
+      "mostActiveCustomer": "الأكثر نشاطاً"
+    },
+    "addCustomer": {
+      "button": "إضافة عميل جديد",
+      "title": "إضافة عميل جديد",
+      "subtitle": "أدخل بيانات العميل الجديد",
+      "saving": "جاري الحفظ...",
+      "submit": "حفظ العميل",
+      "success": "تم إنشاء حساب العميل بنجاح",
+      "fields": {
+        "companyName": "اسم المنشأة",
+        "phone": "رقم الجوال",
+        "email": "البريد الإلكتروني",
+        "city": "المدينة",
+        "region": "المنطقة",
+        "customerType": "نوع النشاط",
+        "priceLevel": "مستوى التسعير",
+        "crNumber": "رقم السجل التجاري",
+        "taxNumber": "الرقم الضريبي",
+        "nationalAddress": "العنوان الوطني",
+        "contactPerson": "الشخص المسؤول",
+        "searchPoints": "نقاط البحث",
+        "branchesCount": "عدد الفروع",
+        "status": "حالة الحساب",
+        "internalNotes": "ملاحظات داخلية"
+      },
+      "placeholders": {
+        "companyName": "أدخل اسم المنشأة أو الشركة",
+        "selectCity": "اختر المدينة",
+        "selectRegion": "اختر المنطقة",
+        "nationalAddress": "مثال: RRRD1234, 1234, حي النخيل, الرياض",
+        "contactPerson": "اسم الشخص المسؤول",
+        "internalNotes": "ملاحظات داخلية للإدارة فقط..."
+      },
+      "types": {
+        "autoPartsShop": "محل قطع غيار",
+        "maintenanceCenter": "مركز صيانة",
+        "autoShowroom": "معرض سيارات",
+        "carRental": "شركة تأجير سيارات",
+        "government": "جهة حكومية",
+        "other": "أخرى"
+      },
+      "priceLevels": {
+        "level1": "المستوى الأول (افتراضي)",
+        "level2": "المستوى الثاني",
+        "level3": "المستوى الثالث",
+        "special": "تسعير خاص"
+      },
+      "errors": {
+        "companyNameRequired": "اسم المنشأة مطلوب",
+        "phoneRequired": "رقم الجوال مطلوب",
+        "cityRequired": "المدينة مطلوبة",
+        "failed": "فشل في إنشاء حساب العميل"
+      }
+    },
+    "errors": {
+      "loadFailed": "فشل في تحميل بيانات العملاء"
+    },
     "panel": {
       "title": "ملف العميل",
       "tabs": {

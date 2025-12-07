@@ -964,7 +964,8 @@
     "stats": {
       "totalCustomers": "Total Customers",
       "activeCustomers": "Active Customers",
-      "suspendedBlocked": "Suspended/Blocked"
+      "suspendedBlocked": "Suspended/Blocked",
+      "mostActiveCustomer": "Most Active Customer"
     },
     "searchPlaceholder": "Search by business name, phone, or city...",
     "allStatuses": "All Statuses",
@@ -1006,6 +1007,62 @@
       "blocked": "Blocked",
       "pending": "Pending Activation",
       "inactive": "Inactive"
+    },
+    "addCustomer": {
+      "button": "Add New Customer",
+      "title": "Add New Customer",
+      "subtitle": "Enter the new customer details",
+      "saving": "Saving...",
+      "submit": "Save Customer",
+      "success": "Customer account created successfully",
+      "fields": {
+        "companyName": "Company Name",
+        "phone": "Phone Number",
+        "email": "Email Address",
+        "city": "City",
+        "region": "Region",
+        "customerType": "Business Type",
+        "priceLevel": "Price Level",
+        "crNumber": "Commercial Register Number",
+        "taxNumber": "Tax Number",
+        "nationalAddress": "National Address",
+        "contactPerson": "Contact Person",
+        "searchPoints": "Search Points",
+        "branchesCount": "Number of Branches",
+        "status": "Account Status",
+        "internalNotes": "Internal Notes"
+      },
+      "placeholders": {
+        "companyName": "Enter company or business name",
+        "selectCity": "Select city",
+        "selectRegion": "Select region",
+        "nationalAddress": "e.g., RRRD1234, 1234, Al Nakheel, Riyadh",
+        "contactPerson": "Contact person name",
+        "internalNotes": "Internal notes for admin only..."
+      },
+      "types": {
+        "autoPartsShop": "Auto Parts Shop",
+        "maintenanceCenter": "Maintenance Center",
+        "autoShowroom": "Auto Showroom",
+        "carRental": "Car Rental Company",
+        "government": "Government Entity",
+        "other": "Other"
+      },
+      "priceLevels": {
+        "level1": "Level 1 (Default)",
+        "level2": "Level 2",
+        "level3": "Level 3",
+        "special": "Special Pricing"
+      },
+      "errors": {
+        "companyNameRequired": "Company name is required",
+        "phoneRequired": "Phone number is required",
+        "cityRequired": "City is required",
+        "failed": "Failed to create customer account"
+      }
+    },
+    "errors": {
+      "loadFailed": "Failed to load customer data"
     },
     "panel": {
       "title": "Customer Profile",
