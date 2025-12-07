@@ -184,6 +184,68 @@ Be concise and helpful.`;
     const result = await this.chat(messages, { systemPrompt });
     return result.content;
   }
+
+  async parseCommand(command: string, language: string = 'ar'): Promise<{
+    type: string;
+    action: string;
+    target: string;
+    params: Record<string, any>;
+    confidence: number;
+    description: string;
+    descriptionAr: string;
+  }> {
+    const systemPrompt = `You are a command parser for a B2B admin portal. Parse natural language commands in Arabic or English and extract structured information.
+
+Available command types:
+- create_page: Create a new dynamic page
+- edit_content: Modify existing content
+- translate: Translate content to another language
+- add_user: Add a new user
+- edit_user: Edit user details
+- add_permission: Add a new permission
+- edit_permission: Modify permissions
+- add_customer: Add a new customer
+- edit_customer: Edit customer details
+- edit_settings: Modify system settings
+- create_role: Create a new role
+- unknown: Command not recognized
+
+Respond ONLY with valid JSON in this format:
+{
+  "type": "command_type",
+  "action": "create|edit|delete|view",
+  "target": "what is being affected",
+  "params": { "extracted parameters" },
+  "confidence": 0.0 to 1.0,
+  "description": "English description of what will happen",
+  "descriptionAr": "Arabic description of what will happen"
+}`;
+
+    const prompt = `Parse this command: "${command}"`;
+
+    try {
+      const result = await this.simpleChat(prompt, systemPrompt);
+      const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleanedResult);
+      
+      // Normalize type to use underscores (AI might return spaces)
+      if (parsed.type) {
+        parsed.type = parsed.type.toLowerCase().replace(/\s+/g, '_');
+      }
+      
+      return parsed;
+    } catch (error) {
+      return {
+        type: 'unknown',
+        action: 'unknown',
+        target: command,
+        params: {},
+        confidence: 0.1,
+        description: 'Unable to parse command',
+        descriptionAr: 'تعذر تحليل الأمر'
+      };
+    }
+  }
 }
 
 export const aiService = new AIService();

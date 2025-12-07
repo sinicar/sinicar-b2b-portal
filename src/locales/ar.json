@@ -861,6 +861,7 @@
     "customerPortalSettings": "إعدادات بوابة العميل",
     "aiSettings": "إعدادات الذكاء الاصطناعي",
     "aiTraining": "تدريب الذكاء الاصطناعي",
+    "aiCommandCenter": "مركز أوامر AI",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -886,7 +887,8 @@
       "customerPortal": "إعدادات بوابة العميل",
       "teamSettings": "المنظمات والفرق",
       "aiSettings": "إعدادات الذكاء الاصطناعي",
-      "aiTraining": "إدارة تدريب الذكاء الاصطناعي"
+      "aiTraining": "إدارة تدريب الذكاء الاصطناعي",
+      "aiCommandCenter": "مركز أوامر الذكاء الاصطناعي"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",
@@ -942,7 +944,8 @@
       "teamSettings": "المنظمات والفرق",
       "customerPortal": "بوابة العميل",
       "aiSettings": "الذكاء الاصطناعي",
-      "aiTraining": "تدريب الذكاء الاصطناعي"
+      "aiTraining": "تدريب الذكاء الاصطناعي",
+      "aiCommandCenter": "مركز أوامر AI"
     },
     "onlineUsers": {
       "title": "العملاء المتصلين الآن",

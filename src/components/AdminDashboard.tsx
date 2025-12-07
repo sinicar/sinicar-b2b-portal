@@ -9,7 +9,7 @@ import {
     UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3, 
     TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, Shield, 
     Database, Server, ExternalLink, Plus, Layers, Megaphone, DollarSign,
-    Wrench, Store, UserCheck, Palette, Bot, Brain
+    Wrench, Store, UserCheck, Palette, Bot, Brain, Terminal
 } from 'lucide-react';
 import { LanguageSwitcherLight } from './LanguageSwitcher';
 import { AdminSettings } from './AdminSettings';
@@ -41,6 +41,7 @@ import { AdminInternationalPricingPage } from './AdminInternationalPricingPage';
 import { AdminPermissionCenter } from './AdminPermissionCenter';
 import { AdminReportsCenterPage } from './AdminReportsCenterPage';
 import AdminAITrainingPage from './AdminAITrainingPage';
+import AdminAICommandCenter from './AdminAICommandCenter';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
 import { formatDateTime } from '../utils/dateUtils';
@@ -57,7 +58,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'AI_COMMAND_CENTER' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -85,6 +86,7 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'CUSTOMER_PORTAL': 'settings_general',
     'AI_SETTINGS': 'settings_general',
     'AI_TRAINING': 'settings_general',
+    'AI_COMMAND_CENTER': 'settings_general',
     'ALTERNATIVES': 'products',
     'NOTIFICATIONS': 'dashboard',
     'INTERNATIONAL_PRICING': 'settings_general',
@@ -118,6 +120,7 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'CUSTOMER_PORTAL': 'adminDashboard.views.customerPortal',
     'AI_SETTINGS': 'adminDashboard.views.aiSettings',
     'AI_TRAINING': 'adminDashboard.views.aiTraining',
+    'AI_COMMAND_CENTER': 'adminDashboard.views.aiCommandCenter',
     'ALTERNATIVES': 'adminDashboard.views.alternatives',
     'NOTIFICATIONS': 'adminDashboard.views.notifications',
     'INTERNATIONAL_PRICING': 'adminDashboard.views.internationalPricing',
@@ -465,6 +468,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <NavItem icon={<Brain size={20} />} label={t('adminDashboard.aiTraining', 'تدريب الذكاء الاصطناعي')} active={view === 'AI_TRAINING'} onClick={() => setView('AI_TRAINING')} />
                     )}
                     {canAccess('settings_general') && (
+                        <NavItem icon={<Terminal size={20} />} label={t('adminDashboard.aiCommandCenter', 'مركز أوامر AI')} active={view === 'AI_COMMAND_CENTER'} onClick={() => setView('AI_COMMAND_CENTER')} />
+                    )}
+                    {canAccess('settings_general') && (
                         <NavItem icon={<Globe size={20} />} label={t('adminDashboard.internationalPricing', 'التسعير الدولي')} active={view === 'INTERNATIONAL_PRICING'} onClick={() => setView('INTERNATIONAL_PRICING')} />
                     )}
                     {canAccess('settings_general') && (
@@ -783,6 +789,11 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'AI_TRAINING' && (
                         canAccess('settings_general') 
                             ? <AdminAITrainingPage /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'AI_COMMAND_CENTER' && (
+                        canAccess('settings_general') 
+                            ? <AdminAICommandCenter /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     

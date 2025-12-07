@@ -183,4 +183,29 @@ router.post('/generate-description', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/parse-command', async (req: Request, res: Response) => {
+  try {
+    const { command, language } = req.body;
+
+    if (!command) {
+      return res.status(400).json({ error: 'Command is required' });
+    }
+
+    const parsedCommand = await aiService.parseCommand(command, language || 'ar');
+
+    res.json({ 
+      success: true,
+      parsedCommand,
+      originalCommand: command,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Command Parsing Error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Command parsing error' 
+    });
+  }
+});
+
 export default router;

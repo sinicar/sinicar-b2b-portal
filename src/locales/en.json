@@ -857,6 +857,7 @@
     "customerPortalSettings": "Customer Portal Settings",
     "aiSettings": "AI Settings",
     "aiTraining": "AI Training",
+    "aiCommandCenter": "AI Command Center",
     "connected": "System Connected",
     "slowConnection": "Slow Connection",
     "disconnected": "Disconnected",
@@ -882,7 +883,8 @@
       "customerPortal": "Customer Portal Settings",
       "teamSettings": "Organizations & Teams",
       "aiSettings": "AI Settings",
-      "aiTraining": "AI Training Management"
+      "aiTraining": "AI Training Management",
+      "aiCommandCenter": "AI Command Center"
     },
     "stats": {
       "totalRevenue": "Total Revenue",
@@ -938,7 +940,8 @@
       "teamSettings": "Organizations & Teams",
       "customerPortal": "Customer Portal",
       "aiSettings": "AI Settings",
-      "aiTraining": "AI Training"
+      "aiTraining": "AI Training",
+      "aiCommandCenter": "AI Command Center"
     },
     "onlineUsers": {
       "title": "Online Customers",
