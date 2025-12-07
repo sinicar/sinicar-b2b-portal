@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { reportService, ReportFilters } from './report.service';
+import { reportAIService, AIPromptType } from './report-ai.service';
 import { authMiddleware, AuthRequest } from '../../middleware/auth.middleware';
 import { requirePermission } from '../../middleware/permission.middleware';
 
@@ -127,6 +128,62 @@ router.post('/:code/run',
   }
 );
 
+router.post('/:code/analyze',
+  authMiddleware,
+  requirePermission('REPORTS_AI_ACCESS', 'create'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { code } = req.params;
+      const filters: ReportFilters = req.body.filters || {};
+      const mode: AIPromptType = req.body.mode === 'INSIGHTS' ? 'INSIGHTS' : 'SUMMARY';
+      const userId = req.user?.id || 'anonymous';
+      const userRole = req.user?.role || 'CUSTOMER_OWNER';
+
+      const reportResult = await reportService.runReport(code, filters, userId, userRole);
+
+      if (!reportResult.success) {
+        const statusCode = reportResult.error === 'Report not found' ? 404 :
+                           reportResult.error === 'Access denied to this report' ? 403 : 400;
+        return res.status(statusCode).json({
+          success: false,
+          error: reportResult.error
+        });
+      }
+
+      const aiResult = await reportAIService.analyzeReport(
+        code,
+        reportResult.data,
+        filters,
+        mode,
+        userId
+      );
+
+      if (!aiResult.success) {
+        const statusCode = aiResult.rateLimited ? 429 : 500;
+        return res.status(statusCode).json({
+          success: false,
+          error: aiResult.error
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          aiText: aiResult.aiText,
+          cached: aiResult.cached,
+          mode
+        }
+      });
+    } catch (error: any) {
+      console.error('Failed to analyze report:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to analyze report'
+      });
+    }
+  }
+);
+
 router.get('/logs', 
   authMiddleware,
   requirePermission('REPORTS_ACCESS', 'read'),
@@ -149,6 +206,33 @@ router.get('/logs',
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve execution logs'
+      });
+    }
+  }
+);
+
+router.get('/ai-logs',
+  authMiddleware,
+  requirePermission('REPORTS_AI_ACCESS', 'read'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { reportCode, limit } = req.query;
+
+      const logs = await reportAIService.getAnalysisLogs(
+        reportCode as string | undefined,
+        limit ? parseInt(limit as string) : 50
+      );
+
+      res.json({
+        success: true,
+        data: logs,
+        count: logs.length
+      });
+    } catch (error: any) {
+      console.error('Failed to get AI analysis logs:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve AI analysis logs'
       });
     }
   }

@@ -329,6 +329,7 @@ async function main() {
     { code: 'REPORTS_ACCESS', name: 'Access Reports Center', nameAr: 'الوصول لمركز التقارير', module: 'reports', category: 'REPORTS', sortOrder: 3 },
     { code: 'REPORTS_RUN', name: 'Run Reports', nameAr: 'تشغيل التقارير', module: 'reports', category: 'REPORTS', sortOrder: 4 },
     { code: 'REPORTS_EXPORT', name: 'Export Reports', nameAr: 'تصدير التقارير', module: 'reports', category: 'REPORTS', sortOrder: 5 },
+    { code: 'REPORTS_AI_ACCESS', name: 'AI Report Analysis', nameAr: 'تحليل التقارير بالذكاء الاصطناعي', module: 'reports', category: 'REPORTS', sortOrder: 6 },
     { code: 'tools.access', name: 'Access Tools', nameAr: 'الوصول للأدوات', module: 'tools', category: 'TOOLS', sortOrder: 8 }
   ];
 

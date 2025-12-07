@@ -39,6 +39,7 @@ import AdminFeedbackCenter from './AdminFeedbackCenter';
 import AdminMessagingCenter from './AdminMessagingCenter';
 import { AdminInternationalPricingPage } from './AdminInternationalPricingPage';
 import { AdminPermissionCenter } from './AdminPermissionCenter';
+import { AdminReportsCenterPage } from './AdminReportsCenterPage';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
 import { formatDateTime } from '../utils/dateUtils';
@@ -55,7 +56,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -85,7 +86,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'ALTERNATIVES': 'products',
     'NOTIFICATIONS': 'dashboard',
     'INTERNATIONAL_PRICING': 'settings_general',
-    'PERMISSION_CENTER': 'settings_general'
+    'PERMISSION_CENTER': 'settings_general',
+    'REPORTS_CENTER': 'settings_general'
 };
 
 const VIEW_LABELS_KEYS: Record<ViewType, string> = {
@@ -116,7 +118,8 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'ALTERNATIVES': 'adminDashboard.views.alternatives',
     'NOTIFICATIONS': 'adminDashboard.views.notifications',
     'INTERNATIONAL_PRICING': 'adminDashboard.views.internationalPricing',
-    'PERMISSION_CENTER': 'adminDashboard.views.permissionCenter'
+    'PERMISSION_CENTER': 'adminDashboard.views.permissionCenter',
+    'REPORTS_CENTER': 'adminDashboard.views.reportsCenter'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -461,6 +464,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Shield size={20} />} label={t('adminDashboard.permissionCenter', 'مركز الصلاحيات')} active={view === 'PERMISSION_CENTER'} onClick={() => setView('PERMISSION_CENTER')} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<BarChart3 size={20} />} label={t('adminDashboard.reportsCenter', 'مركز التقارير')} active={view === 'REPORTS_CENTER'} onClick={() => setView('REPORTS_CENTER')} />
+                    )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
                     <button onClick={onLogout} className="flex items-center gap-3 text-red-400 hover:text-white text-sm font-bold w-full px-4 py-3 hover:bg-slate-800 rounded-xl transition-colors">
@@ -500,6 +506,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'NOTIFICATIONS' && t('adminDashboard.pageTitles.notifications', 'الإشعارات')}
                         {view === 'INTERNATIONAL_PRICING' && t('adminDashboard.pageTitles.internationalPricing', 'التسعير الدولي والموردين')}
                         {view === 'PERMISSION_CENTER' && t('adminDashboard.pageTitles.permissionCenter', 'مركز الصلاحيات')}
+                        {view === 'REPORTS_CENTER' && t('adminDashboard.pageTitles.reportsCenter', 'مركز التقارير')}
                         {['PRODUCTS'].includes(view) && t('adminDashboard.pageTitles.products')}
                     </h2>
                     <div className="flex items-center gap-4">
@@ -777,6 +784,12 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {view === 'PERMISSION_CENTER' && (
                         canAccess('settings_general') 
                             ? <AdminPermissionCenter /> 
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    
+                    {view === 'REPORTS_CENTER' && (
+                        canAccess('settings_general') 
+                            ? <AdminReportsCenterPage /> 
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     
