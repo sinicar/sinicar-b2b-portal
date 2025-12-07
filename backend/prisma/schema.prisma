@@ -1308,3 +1308,20 @@ model ReportExecutionLog {
   @@index([status])
   @@index([createdAt])
 }
+
+model ReportAIAnalysisLog {
+  id             String   @id @default(uuid())
+  reportCode     String
+  userId         String
+  filtersSummary String?
+  aiPromptType   String
+  aiResponse     String?
+  durationMs     Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([reportCode])
+  @@index([userId])
+  @@index([aiPromptType])
+  @@index([createdAt])
+  @@index([userId, reportCode, filtersSummary])
+}
