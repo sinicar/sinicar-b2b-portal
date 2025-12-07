@@ -1265,3 +1265,46 @@ model UserNotificationSettings {
   @@unique([userId, event])
   @@index([userId])
 }
+
+// ============ Reports Center ============
+
+model ReportDefinition {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  nameAr        String?
+  nameEn        String?
+  description   String?
+  descriptionAr String?
+  descriptionEn String?
+  category      String   @default("GENERAL")
+  allowedRoles  String[] @default([])
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  executionLogs ReportExecutionLog[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([category])
+}
+
+model ReportExecutionLog {
+  id             String   @id @default(uuid())
+  reportCode     String
+  userId         String
+  filtersSummary String?
+  status         String   @default("SUCCESS")
+  durationMs     Int      @default(0)
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+
+  report ReportDefinition @relation(fields: [reportCode], references: [code])
+
+  @@index([reportCode])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
