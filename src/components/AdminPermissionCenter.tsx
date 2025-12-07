@@ -104,7 +104,12 @@ const translations: Record<string, Record<string, string>> = {
     nameAr: 'الاسم بالعربية',
     managePermissions: 'إدارة الأدوار والصلاحيات ومجموعات الصلاحيات',
     usersCount: 'المستخدمين',
-    permissionsCount: 'الصلاحيات'
+    permissionsCount: 'الصلاحيات',
+    permissionMatrix: 'مصفوفة الصلاحيات',
+    saveMatrix: 'حفظ التغييرات',
+    matrixUpdated: 'تم تحديث المصفوفة بنجاح',
+    selectAll: 'تحديد الكل',
+    unselectAll: 'إلغاء الكل'
   },
   en: {
     permissionCenter: 'Permission Center',
@@ -152,7 +157,12 @@ const translations: Record<string, Record<string, string>> = {
     nameAr: 'Arabic Name',
     managePermissions: 'Manage roles, permissions, and permission groups',
     usersCount: 'Users',
-    permissionsCount: 'Permissions'
+    permissionsCount: 'Permissions',
+    permissionMatrix: 'Permission Matrix',
+    saveMatrix: 'Save Changes',
+    matrixUpdated: 'Matrix updated successfully',
+    selectAll: 'Select All',
+    unselectAll: 'Unselect All'
   },
   hi: {
     permissionCenter: 'अनुमति केंद्र',
@@ -252,7 +262,7 @@ const translations: Record<string, Record<string, string>> = {
   }
 };
 
-type TabType = 'roles' | 'permissions' | 'groups' | 'visibility';
+type TabType = 'roles' | 'permissions' | 'groups' | 'visibility' | 'matrix';
 
 export function AdminPermissionCenter() {
   const { i18n } = useTranslation();
@@ -272,6 +282,8 @@ export function AdminPermissionCenter() {
   const [groups, setGroups] = useState<PermissionGroup[]>([]);
   const [modules, setModules] = useState<ModuleAccess[]>([]);
   const [visibilityList, setVisibilityList] = useState<CustomerFeatureVisibility[]>([]);
+  const [matrix, setMatrix] = useState<Record<string, string[]>>({});
+  const [savingMatrix, setSavingMatrix] = useState(false);
   
   const [editingRole, setEditingRole] = useState<Partial<Role> | null>(null);
   const [editingGroup, setEditingGroup] = useState<Partial<PermissionGroup> | null>(null);
@@ -296,14 +308,40 @@ export function AdminPermissionCenter() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // For now, use empty data. In production, this would fetch from backend API
-      setRoles([]);
-      setPermissions([]);
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const matrixRes = await fetch('/api/v1/permission-center/roles-permissions', { headers });
+      if (matrixRes.ok) {
+        const matrixData = await matrixRes.json();
+        if (matrixData.success && matrixData.data) {
+          setRoles(matrixData.data.roles || []);
+          setPermissions(matrixData.data.permissions || []);
+          setMatrix(matrixData.data.matrix || {});
+          
+          const uniqueModules = [...new Set((matrixData.data.permissions || []).map((p: Permission) => p.module))];
+          setModules(uniqueModules.map((m: string) => ({
+            moduleKey: m,
+            moduleName: m,
+            moduleNameAr: m
+          })));
+        }
+      } else {
+        console.warn('Failed to fetch matrix, using empty data');
+        setRoles([]);
+        setPermissions([]);
+        setMatrix({});
+        setModules([]);
+      }
+      
       setGroups([]);
-      setModules([]);
       setVisibilityList([]);
     } catch (e) {
       console.error('Error fetching permission data:', e);
+      showToast(isRTL ? 'خطأ في تحميل البيانات' : 'Error loading data', 'error');
     } finally {
       setLoading(false);
     }
@@ -548,6 +586,45 @@ export function AdminPermissionCenter() {
     }
   };
 
+  const toggleMatrixPermission = (roleId: string, permissionId: string) => {
+    setMatrix(prev => {
+      const current = prev[roleId] || [];
+      if (current.includes(permissionId)) {
+        return { ...prev, [roleId]: current.filter(id => id !== permissionId) };
+      } else {
+        return { ...prev, [roleId]: [...current, permissionId] };
+      }
+    });
+  };
+
+  const handleSaveRolePermissions = async (roleId: string) => {
+    setSavingMatrix(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`/api/v1/permission-center/roles/${roleId}/permissions`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ permissionIds: matrix[roleId] || [] })
+      });
+
+      if (res.ok) {
+        showToast(t.matrixUpdated || 'تم تحديث المصفوفة بنجاح', 'success');
+      } else {
+        const error = await res.json();
+        showToast(error.error || (isRTL ? 'خطأ في الحفظ' : 'Error saving'), 'error');
+      }
+    } catch (e) {
+      showToast(isRTL ? 'خطأ في الحفظ' : 'Error saving', 'error');
+    } finally {
+      setSavingMatrix(false);
+    }
+  };
+
   const tabButtonClass = (tab: TabType) => 
     `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
       activeTab === tab 
@@ -595,6 +672,10 @@ export function AdminPermissionCenter() {
         <button className={tabButtonClass('visibility')} onClick={() => setActiveTab('visibility')} data-testid="tab-visibility">
           <Eye className="h-4 w-4" />
           {t.customerVisibility}
+        </button>
+        <button className={tabButtonClass('matrix')} onClick={() => setActiveTab('matrix')} data-testid="tab-matrix">
+          <Settings className="h-4 w-4" />
+          {t.permissionMatrix || 'مصفوفة الصلاحيات'}
         </button>
       </div>
 
@@ -892,6 +973,89 @@ export function AdminPermissionCenter() {
                 </tbody>
               </table>
               {visibilityList.length === 0 && (
+                <div className="text-center py-12 text-gray-500">{t.noResults}</div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'matrix' && (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse min-w-[800px]">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300 sticky left-0 bg-gray-50 dark:bg-gray-700 z-10">
+                        {t.permissions}
+                      </th>
+                      {roles.map(role => (
+                        <th key={role.id} className="px-3 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">
+                          <div className="flex flex-col items-center gap-1">
+                            <span>{isRTL ? role.nameAr || role.name : role.name}</span>
+                            {role.isSystem && (
+                              <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded">
+                                {t.system}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {permissions.map((perm) => (
+                      <tr key={perm.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50" data-testid={`row-matrix-${perm.id}`}>
+                        <td className="px-4 py-2 text-sm sticky left-0 bg-white dark:bg-gray-800 z-10">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900 dark:text-white">{isRTL ? perm.nameAr || perm.name : perm.name}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{perm.code}</span>
+                          </div>
+                        </td>
+                        {roles.map(role => {
+                          const isChecked = (matrix[role.id] || []).includes(perm.id);
+                          const isSuperAdmin = role.code === 'SUPER_ADMIN';
+                          return (
+                            <td key={role.id} className="px-3 py-2 text-center">
+                              <button
+                                onClick={() => !isSuperAdmin && toggleMatrixPermission(role.id, perm.id)}
+                                disabled={isSuperAdmin}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  isSuperAdmin 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'hover:bg-gray-100 dark:hover:bg-gray-600'
+                                }`}
+                                data-testid={`toggle-${role.id}-${perm.id}`}
+                              >
+                                {isChecked ? (
+                                  <Check className="h-5 w-5 text-green-600" />
+                                ) : (
+                                  <X className="h-5 w-5 text-gray-300 dark:text-gray-600" />
+                                )}
+                              </button>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {roles.filter(r => r.code !== 'SUPER_ADMIN').map(role => (
+                  <button
+                    key={role.id}
+                    onClick={() => handleSaveRolePermissions(role.id)}
+                    disabled={savingMatrix}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait transition-colors"
+                    data-testid={`button-save-role-${role.id}`}
+                  >
+                    <Save className="h-4 w-4" />
+                    {savingMatrix ? t.saving : `${t.save} - ${isRTL ? role.nameAr || role.name : role.name}`}
+                  </button>
+                ))}
+              </div>
+
+              {permissions.length === 0 && (
                 <div className="text-center py-12 text-gray-500">{t.noResults}</div>
               )}
             </div>
