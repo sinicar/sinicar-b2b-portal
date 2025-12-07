@@ -860,6 +860,7 @@
     "advertising": "الإعلانات",
     "customerPortalSettings": "إعدادات بوابة العميل",
     "aiSettings": "إعدادات الذكاء الاصطناعي",
+    "aiTraining": "تدريب الذكاء الاصطناعي",
     "connected": "النظام متصل",
     "slowConnection": "اتصال بطيء",
     "disconnected": "غير متصل",
@@ -884,7 +885,8 @@
       "advertising": "إدارة الإعلانات",
       "customerPortal": "إعدادات بوابة العميل",
       "teamSettings": "المنظمات والفرق",
-      "aiSettings": "إعدادات الذكاء الاصطناعي"
+      "aiSettings": "إعدادات الذكاء الاصطناعي",
+      "aiTraining": "إدارة تدريب الذكاء الاصطناعي"
     },
     "stats": {
       "totalRevenue": "إجمالي المبيعات",
@@ -939,7 +941,8 @@
       "advertising": "الإعلانات",
       "teamSettings": "المنظمات والفرق",
       "customerPortal": "بوابة العميل",
-      "aiSettings": "الذكاء الاصطناعي"
+      "aiSettings": "الذكاء الاصطناعي",
+      "aiTraining": "تدريب الذكاء الاصطناعي"
     },
     "onlineUsers": {
       "title": "العملاء المتصلين الآن",

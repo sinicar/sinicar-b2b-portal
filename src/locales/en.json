@@ -856,6 +856,7 @@
     "advertising": "Advertising",
     "customerPortalSettings": "Customer Portal Settings",
     "aiSettings": "AI Settings",
+    "aiTraining": "AI Training",
     "connected": "System Connected",
     "slowConnection": "Slow Connection",
     "disconnected": "Disconnected",
@@ -880,7 +881,8 @@
       "advertising": "Advertising Management",
       "customerPortal": "Customer Portal Settings",
       "teamSettings": "Organizations & Teams",
-      "aiSettings": "AI Settings"
+      "aiSettings": "AI Settings",
+      "aiTraining": "AI Training Management"
     },
     "stats": {
       "totalRevenue": "Total Revenue",
@@ -935,7 +937,8 @@
       "advertising": "Advertising",
       "teamSettings": "Organizations & Teams",
       "customerPortal": "Customer Portal",
-      "aiSettings": "AI Settings"
+      "aiSettings": "AI Settings",
+      "aiTraining": "AI Training"
     },
     "onlineUsers": {
       "title": "Online Customers",
