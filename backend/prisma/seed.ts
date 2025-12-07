@@ -364,6 +364,46 @@ async function main() {
     console.log('✅ ADMIN role assigned MANAGE_PERMISSIONS');
   }
 
+  // Assign REPORTS_ACCESS to SUPER_ADMIN, ADMIN, and STAFF
+  const reportsAccessPerm = await prisma.permission.findUnique({ where: { code: 'REPORTS_ACCESS' } });
+  const superAdminRole = await prisma.role.findUnique({ where: { code: 'SUPER_ADMIN' } });
+
+  if (superAdminRole && reportsAccessPerm) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: { roleId: superAdminRole.id, permissionId: reportsAccessPerm.id }
+      },
+      update: {},
+      create: {
+        roleId: superAdminRole.id,
+        permissionId: reportsAccessPerm.id,
+        canCreate: true,
+        canRead: true,
+        canUpdate: true,
+        canDelete: true
+      }
+    });
+    console.log('✅ SUPER_ADMIN role assigned REPORTS_ACCESS');
+  }
+
+  if (adminRole && reportsAccessPerm) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: { roleId: adminRole.id, permissionId: reportsAccessPerm.id }
+      },
+      update: {},
+      create: {
+        roleId: adminRole.id,
+        permissionId: reportsAccessPerm.id,
+        canCreate: true,
+        canRead: true,
+        canUpdate: true,
+        canDelete: true
+      }
+    });
+    console.log('✅ ADMIN role assigned REPORTS_ACCESS');
+  }
+
   const staffRole = await prisma.role.findUnique({ where: { code: 'STAFF' } });
   const viewDashPerm = await prisma.permission.findUnique({ where: { code: 'VIEW_ADMIN_DASHBOARD' } });
   
@@ -383,6 +423,24 @@ async function main() {
       }
     });
     console.log('✅ STAFF role assigned VIEW_ADMIN_DASHBOARD');
+  }
+
+  if (staffRole && reportsAccessPerm) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: { roleId: staffRole.id, permissionId: reportsAccessPerm.id }
+      },
+      update: {},
+      create: {
+        roleId: staffRole.id,
+        permissionId: reportsAccessPerm.id,
+        canCreate: true,
+        canRead: true,
+        canUpdate: false,
+        canDelete: false
+      }
+    });
+    console.log('✅ STAFF role assigned REPORTS_ACCESS');
   }
 
   const permissionGroups = [
