@@ -326,6 +326,9 @@ async function main() {
     { code: 'settings.view', name: 'View Settings', nameAr: 'عرض الإعدادات', module: 'settings', category: 'SETTINGS', sortOrder: 0 },
     { code: 'settings.manage', name: 'Manage Settings', nameAr: 'إدارة الإعدادات', module: 'settings', category: 'SETTINGS', sortOrder: 1 },
     { code: 'reports.view', name: 'View Reports List', nameAr: 'عرض التقارير', module: 'reports', category: 'REPORTS', sortOrder: 2 },
+    { code: 'REPORTS_ACCESS', name: 'Access Reports Center', nameAr: 'الوصول لمركز التقارير', module: 'reports', category: 'REPORTS', sortOrder: 3 },
+    { code: 'REPORTS_RUN', name: 'Run Reports', nameAr: 'تشغيل التقارير', module: 'reports', category: 'REPORTS', sortOrder: 4 },
+    { code: 'REPORTS_EXPORT', name: 'Export Reports', nameAr: 'تصدير التقارير', module: 'reports', category: 'REPORTS', sortOrder: 5 },
     { code: 'tools.access', name: 'Access Tools', nameAr: 'الوصول للأدوات', module: 'tools', category: 'TOOLS', sortOrder: 8 }
   ];
 
@@ -756,6 +759,135 @@ async function main() {
   });
 
   console.log('✅ Message settings created');
+
+  // ============ Report Definitions ============
+  const reportDefinitions = [
+    {
+      code: 'SALES_SUMMARY',
+      name: 'Sales Summary Report',
+      nameAr: 'تقرير ملخص المبيعات',
+      nameEn: 'Sales Summary Report',
+      description: 'Overview of sales performance with totals and trends',
+      descriptionAr: 'نظرة عامة على أداء المبيعات مع الإجماليات والاتجاهات',
+      descriptionEn: 'Overview of sales performance with totals and trends',
+      category: 'SALES',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'STAFF'],
+      isActive: true,
+      sortOrder: 0
+    },
+    {
+      code: 'QUOTES_STATUS',
+      name: 'Quotes Status Report',
+      nameAr: 'تقرير حالة طلبات التسعير',
+      nameEn: 'Quotes Status Report',
+      description: 'Status breakdown of all quote requests',
+      descriptionAr: 'تفصيل حالات جميع طلبات التسعير',
+      descriptionEn: 'Status breakdown of all quote requests',
+      category: 'QUOTES',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'STAFF'],
+      isActive: true,
+      sortOrder: 1
+    },
+    {
+      code: 'SUPPLIER_PERFORMANCE',
+      name: 'Supplier Performance Report',
+      nameAr: 'تقرير أداء الموردين',
+      nameEn: 'Supplier Performance Report',
+      description: 'Performance metrics for all suppliers',
+      descriptionAr: 'مقاييس أداء جميع الموردين',
+      descriptionEn: 'Performance metrics for all suppliers',
+      category: 'SUPPLIERS',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+      isActive: true,
+      sortOrder: 2
+    },
+    {
+      code: 'STOCK_LEVELS',
+      name: 'Stock Levels Report',
+      nameAr: 'تقرير مستويات المخزون',
+      nameEn: 'Stock Levels Report',
+      description: 'Current stock levels and low stock alerts',
+      descriptionAr: 'مستويات المخزون الحالية وتنبيهات انخفاض المخزون',
+      descriptionEn: 'Current stock levels and low stock alerts',
+      category: 'INVENTORY',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'STAFF'],
+      isActive: true,
+      sortOrder: 3
+    },
+    {
+      code: 'CUSTOMER_ACTIVITY',
+      name: 'Customer Activity Report',
+      nameAr: 'تقرير نشاط العملاء',
+      nameEn: 'Customer Activity Report',
+      description: 'Customer engagement and activity metrics',
+      descriptionAr: 'مقاييس تفاعل ونشاط العملاء',
+      descriptionEn: 'Customer engagement and activity metrics',
+      category: 'CUSTOMERS',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+      isActive: true,
+      sortOrder: 4
+    },
+    {
+      code: 'REVENUE_BREAKDOWN',
+      name: 'Revenue Breakdown Report',
+      nameAr: 'تقرير تفصيل الإيرادات',
+      nameEn: 'Revenue Breakdown Report',
+      description: 'Detailed revenue analysis by category and time period',
+      descriptionAr: 'تحليل تفصيلي للإيرادات حسب الفئة والفترة الزمنية',
+      descriptionEn: 'Detailed revenue analysis by category and time period',
+      category: 'FINANCE',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN'],
+      isActive: true,
+      sortOrder: 5
+    },
+    {
+      code: 'ORDER_FULFILLMENT',
+      name: 'Order Fulfillment Report',
+      nameAr: 'تقرير تنفيذ الطلبات',
+      nameEn: 'Order Fulfillment Report',
+      description: 'Order processing and fulfillment metrics',
+      descriptionAr: 'مقاييس معالجة وتنفيذ الطلبات',
+      descriptionEn: 'Order processing and fulfillment metrics',
+      category: 'ORDERS',
+      allowedRoles: ['SUPER_ADMIN', 'ADMIN', 'STAFF'],
+      isActive: true,
+      sortOrder: 6
+    },
+    {
+      code: 'USER_AUDIT_LOG',
+      name: 'User Audit Log Report',
+      nameAr: 'تقرير سجل تدقيق المستخدمين',
+      nameEn: 'User Audit Log Report',
+      description: 'Audit trail of user actions and system events',
+      descriptionAr: 'سجل تتبع إجراءات المستخدمين وأحداث النظام',
+      descriptionEn: 'Audit trail of user actions and system events',
+      category: 'AUDIT',
+      allowedRoles: ['SUPER_ADMIN'],
+      isActive: true,
+      sortOrder: 7
+    }
+  ];
+
+  for (const report of reportDefinitions) {
+    await prisma.reportDefinition.upsert({
+      where: { code: report.code },
+      update: {
+        name: report.name,
+        nameAr: report.nameAr,
+        nameEn: report.nameEn,
+        description: report.description,
+        descriptionAr: report.descriptionAr,
+        descriptionEn: report.descriptionEn,
+        category: report.category,
+        allowedRoles: report.allowedRoles,
+        isActive: report.isActive,
+        sortOrder: report.sortOrder
+      },
+      create: report
+    });
+  }
+
+  console.log('✅ Report definitions created');
 
   console.log('🎉 Database seeding completed!');
 }
