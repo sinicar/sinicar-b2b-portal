@@ -17,6 +17,9 @@ import { ToastContainer } from './components/Toast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { getDirection } from './services/i18n';
 import AIAssistant from './components/AIAssistant';
+import FloatingAIButton from './components/FloatingAIButton';
+import AICommandModal from './components/AICommandModal';
+import { ProgrammingModeProvider } from './services/ProgrammingModeContext';
 import './services/i18n';
 
 const getLoginLoadingSteps = (t: (key: string) => string) => [
@@ -648,9 +651,13 @@ export default function App() {
         <LanguageProvider>
             <ToastProvider>
               <OrganizationProvider>
-                <ToastContainer />
-                <AppContent />
-                <AIAssistant />
+                <ProgrammingModeProvider>
+                  <ToastContainer />
+                  <AppContent />
+                  <AIAssistant />
+                  <FloatingAIButton />
+                  <AICommandModal />
+                </ProgrammingModeProvider>
               </OrganizationProvider>
             </ToastProvider>
         </LanguageProvider>
