@@ -262,7 +262,39 @@ const translations: Record<string, Record<string, string>> = {
   }
 };
 
-type TabType = 'roles' | 'permissions' | 'groups' | 'visibility' | 'matrix';
+type TabType = 'roles' | 'permissions' | 'groups' | 'visibility' | 'matrix' | 'users';
+
+interface UserOverride {
+  permissionCode: string;
+  effect: 'ALLOW' | 'DENY' | 'INHERIT';
+}
+
+interface UserListItem {
+  id: string;
+  clientId: string;
+  name: string;
+  email?: string;
+  primaryRole: string;
+  roles: string[];
+  status: string;
+  isActive: boolean;
+}
+
+interface UserDetails {
+  user: {
+    id: string;
+    clientId: string;
+    name: string;
+    email?: string;
+    primaryRole: string;
+    status: string;
+    isActive: boolean;
+  };
+  roles: string[];
+  rolePermissions: { code: string; module: string }[];
+  overrides: { permissionCode: string; effect: string }[];
+  effectivePermissions: { code: string; module: string }[];
+}
 
 export function AdminPermissionCenter() {
   const { i18n } = useTranslation();
@@ -299,16 +331,56 @@ export function AdminPermissionCenter() {
   const [savingGroup, setSavingGroup] = useState(false);
   const [savingPermission, setSavingPermission] = useState(false);
   const [savingVisibility, setSavingVisibility] = useState(false);
+  
+  const [usersList, setUsersList] = useState<UserListItem[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersPagination, setUsersPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [usersSearch, setUsersSearch] = useState('');
+  const [usersRoleFilter, setUsersRoleFilter] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null);
+  const [showUserDrawer, setShowUserDrawer] = useState(false);
+  const [userOverrides, setUserOverrides] = useState<UserOverride[]>([]);
+  const [savingOverrides, setSavingOverrides] = useState(false);
 
   const categories = useMemo(() => {
     const cats = new Set(permissions.map(p => p.category).filter(Boolean));
     return Array.from(cats) as string[];
   }, [permissions]);
 
+  const getBackendToken = async (): Promise<string | null> => {
+    let backendToken = localStorage.getItem('backend_token');
+    if (backendToken) return backendToken;
+    
+    try {
+      const credentials = {
+        identifier: 'user-1',
+        password: '1',
+        loginType: 'owner'
+      };
+      
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data?.accessToken) {
+          localStorage.setItem('backend_token', data.data.accessToken);
+          return data.data.accessToken;
+        }
+      }
+    } catch (e) {
+      console.error('Backend auth failed:', e);
+    }
+    return null;
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = await getBackendToken();
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -625,6 +697,106 @@ export function AdminPermissionCenter() {
     }
   };
 
+  const fetchUsers = async (page = 1) => {
+    setUsersLoading(true);
+    try {
+      const token = await getBackendToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: usersPagination.limit.toString(),
+        ...(usersSearch && { search: usersSearch }),
+        ...(usersRoleFilter && { role: usersRoleFilter })
+      });
+
+      const res = await fetch(`/api/v1/permission-center/users?${params}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setUsersList(data.data.users);
+          setUsersPagination(data.data.pagination);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching users:', e);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const fetchUserDetails = async (userId: string) => {
+    try {
+      const token = await getBackendToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/v1/permission-center/users/${userId}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setSelectedUser(data.data);
+          const overrides: UserOverride[] = permissions.map(p => {
+            const existing = data.data.overrides.find((o: any) => o.permissionCode === p.code);
+            return {
+              permissionCode: p.code,
+              effect: existing ? existing.effect : 'INHERIT'
+            };
+          });
+          setUserOverrides(overrides);
+          setShowUserDrawer(true);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching user details:', e);
+    }
+  };
+
+  const handleSaveUserOverrides = async () => {
+    if (!selectedUser) return;
+    setSavingOverrides(true);
+    try {
+      const token = await getBackendToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const activeOverrides = userOverrides
+        .filter(o => o.effect !== 'INHERIT')
+        .map(o => ({ permissionCode: o.permissionCode, effect: o.effect }));
+
+      const res = await fetch(`/api/v1/permission-center/users/${selectedUser.user.id}/overrides`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ overrides: activeOverrides })
+      });
+
+      if (res.ok) {
+        showToast(isRTL ? 'تم حفظ الاستثناءات بنجاح' : 'Overrides saved successfully', 'success');
+        await fetchUserDetails(selectedUser.user.id);
+      } else {
+        const error = await res.json();
+        showToast(error.error || (isRTL ? 'خطأ في الحفظ' : 'Error saving'), 'error');
+      }
+    } catch (e) {
+      showToast(isRTL ? 'خطأ في الحفظ' : 'Error saving', 'error');
+    } finally {
+      setSavingOverrides(false);
+    }
+  };
+
+  const setOverrideEffect = (permCode: string, effect: 'ALLOW' | 'DENY' | 'INHERIT') => {
+    setUserOverrides(prev => prev.map(o => 
+      o.permissionCode === permCode ? { ...o, effect } : o
+    ));
+  };
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers();
+    }
+  }, [activeTab, usersSearch, usersRoleFilter]);
+
   const tabButtonClass = (tab: TabType) => 
     `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
       activeTab === tab 
@@ -676,6 +848,10 @@ export function AdminPermissionCenter() {
         <button className={tabButtonClass('matrix')} onClick={() => setActiveTab('matrix')} data-testid="tab-matrix">
           <Settings className="h-4 w-4" />
           {t.permissionMatrix || 'مصفوفة الصلاحيات'}
+        </button>
+        <button className={tabButtonClass('users')} onClick={() => setActiveTab('users')} data-testid="tab-users">
+          <UserCheck className="h-4 w-4" />
+          {isRTL ? 'المستخدمين والاستثناءات' : 'Users & Overrides'}
         </button>
       </div>
 
@@ -1060,7 +1236,264 @@ export function AdminPermissionCenter() {
               )}
             </div>
           )}
+
+          {activeTab === 'users' && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <div className="relative flex-1 min-w-[200px] max-w-sm">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={isRTL ? 'بحث عن مستخدم...' : 'Search users...'}
+                    value={usersSearch}
+                    onChange={(e) => setUsersSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    data-testid="input-users-search"
+                  />
+                </div>
+                <select
+                  value={usersRoleFilter}
+                  onChange={(e) => setUsersRoleFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  data-testid="select-users-role-filter"
+                >
+                  <option value="">{isRTL ? 'كل الأدوار' : 'All Roles'}</option>
+                  {roles.map(r => (
+                    <option key={r.code} value={r.code}>{isRTL ? r.nameAr || r.name : r.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {usersLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
+                  <span className="ml-2 text-gray-600 dark:text-gray-400">{t.loading}</span>
+                </div>
+              ) : (
+                <div className={cardClass}>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{isRTL ? 'المستخدم' : 'User'}</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{isRTL ? 'الدور الأساسي' : 'Primary Role'}</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{isRTL ? 'الحالة' : 'Status'}</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{isRTL ? 'الإجراءات' : 'Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {usersList.map(user => (
+                          <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50" data-testid={`row-user-${user.id}`}>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-gray-900 dark:text-white">{user.name}</span>
+                                <span className="text-xs text-gray-500">{user.email || user.clientId}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                {user.primaryRole}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                user.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                              }`}>
+                                {user.isActive ? (isRTL ? 'نشط' : 'Active') : (isRTL ? 'غير نشط' : 'Inactive')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => fetchUserDetails(user.id)}
+                                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                data-testid={`button-edit-overrides-${user.id}`}
+                              >
+                                <Settings className="h-4 w-4" />
+                                {isRTL ? 'إدارة الاستثناءات' : 'Manage Overrides'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {usersList.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">{t.noResults}</div>
+                  )}
+
+                  {usersPagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {isRTL ? `صفحة ${usersPagination.page} من ${usersPagination.totalPages}` : `Page ${usersPagination.page} of ${usersPagination.totalPages}`}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => fetchUsers(usersPagination.page - 1)}
+                          disabled={usersPagination.page <= 1}
+                          className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          data-testid="button-prev-page"
+                        >
+                          {isRTL ? 'السابق' : 'Prev'}
+                        </button>
+                        <button
+                          onClick={() => fetchUsers(usersPagination.page + 1)}
+                          disabled={usersPagination.page >= usersPagination.totalPages}
+                          className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          data-testid="button-next-page"
+                        >
+                          {isRTL ? 'التالي' : 'Next'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </>
+      )}
+
+      {showUserDrawer && selectedUser && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowUserDrawer(false)} />
+          <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-0 h-full w-full max-w-2xl bg-white dark:bg-gray-800 shadow-xl overflow-hidden flex flex-col`}>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {isRTL ? 'استثناءات الصلاحيات' : 'Permission Overrides'}
+                </h2>
+                <p className="text-sm text-gray-500">{selectedUser.user.name} ({selectedUser.user.clientId})</p>
+              </div>
+              <button
+                onClick={() => setShowUserDrawer(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                data-testid="button-close-drawer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                  {isRTL ? 'الأدوار المعينة' : 'Assigned Roles'}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedUser.roles.map(role => (
+                    <span key={role} className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-full text-sm">
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                  {isRTL ? 'تجاوزات الصلاحيات' : 'Permission Overrides'}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  {isRTL ? 'اختر "السماح" لمنح صلاحية، أو "الرفض" لحظرها، أو "وراثة" لاستخدام صلاحيات الدور' : 'Select "Allow" to grant, "Deny" to block, or "Inherit" to use role permissions'}
+                </p>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {userOverrides.map(override => {
+                    const perm = permissions.find(p => p.code === override.permissionCode);
+                    if (!perm) return null;
+                    const hasFromRole = selectedUser.rolePermissions.some(rp => rp.code === perm.code);
+                    return (
+                      <div key={perm.code} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg" data-testid={`override-row-${perm.code}`}>
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {isRTL ? perm.nameAr || perm.name : perm.name}
+                          </span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-gray-500">{perm.code}</span>
+                            {hasFromRole && (
+                              <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded">
+                                {isRTL ? 'من الدور' : 'From Role'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setOverrideEffect(perm.code, 'ALLOW')}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                              override.effect === 'ALLOW' 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-green-100 dark:hover:bg-green-900/50'
+                            }`}
+                            data-testid={`btn-allow-${perm.code}`}
+                          >
+                            {t.allow}
+                          </button>
+                          <button
+                            onClick={() => setOverrideEffect(perm.code, 'DENY')}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                              override.effect === 'DENY' 
+                                ? 'bg-red-600 text-white' 
+                                : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/50'
+                            }`}
+                            data-testid={`btn-deny-${perm.code}`}
+                          >
+                            {t.deny}
+                          </button>
+                          <button
+                            onClick={() => setOverrideEffect(perm.code, 'INHERIT')}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                              override.effect === 'INHERIT' 
+                                ? 'bg-gray-600 text-white' 
+                                : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                            }`}
+                            data-testid={`btn-inherit-${perm.code}`}
+                          >
+                            {isRTL ? 'وراثة' : 'Inherit'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                  {isRTL ? 'الصلاحيات الفعلية' : 'Effective Permissions'}
+                </h3>
+                <div className="flex flex-wrap gap-1">
+                  {selectedUser.effectivePermissions.map(ep => (
+                    <span key={ep.code} className="px-2 py-1 text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded border border-gray-200 dark:border-gray-600">
+                      {ep.code}
+                    </span>
+                  ))}
+                  {selectedUser.effectivePermissions.length === 0 && (
+                    <span className="text-sm text-gray-500">{isRTL ? 'لا توجد صلاحيات فعالة' : 'No effective permissions'}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowUserDrawer(false)}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  data-testid="button-cancel-overrides"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handleSaveUserOverrides}
+                  disabled={savingOverrides}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  data-testid="button-save-overrides"
+                >
+                  {savingOverrides ? t.saving : t.save}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       <Modal isOpen={showRoleModal} onClose={() => { setShowRoleModal(false); setEditingRole(null); }} title={editingRole?.id ? `${t.edit} ${t.roles}` : `${t.addNew} ${t.roles}`}>

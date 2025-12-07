@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authMiddleware, AuthRequest } from '../../middleware/auth.middleware';
 import { permissionService } from '../permissions/permission.service';
 import { successResponse, errorResponse } from '../../utils/response';
+import prisma from '../../lib/prisma';
 
 const router = Router();
 
@@ -102,6 +103,177 @@ router.put('/roles/:id/permissions', async (req: AuthRequest, res: Response) => 
     return successResponse(res, { roleId, permissionIds }, 'تم تحديث صلاحيات الدور بنجاح');
   } catch (error: any) {
     console.error('[Permission Center] Error updating role permissions:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
+router.get('/users', async (req: AuthRequest, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const search = (req.query.search as string) || '';
+    const roleFilter = req.query.role as string;
+
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { clientId: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (roleFilter) {
+      where.role = roleFilter;
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          clientId: true,
+          name: true,
+          email: true,
+          role: true,
+          status: true,
+          isActive: true,
+          createdAt: true,
+          roleAssignments: {
+            where: { isActive: true },
+            include: { role: true }
+          }
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    const formatted = users.map(u => ({
+      id: u.id,
+      clientId: u.clientId,
+      name: u.name,
+      email: u.email,
+      primaryRole: u.role,
+      roles: [u.role, ...u.roleAssignments.map(ra => ra.role.code)].filter((v, i, a) => a.indexOf(v) === i),
+      status: u.status,
+      isActive: u.isActive,
+      createdAt: u.createdAt
+    }));
+
+    return successResponse(res, {
+      users: formatted,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    }, 'تم جلب المستخدمين بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error fetching users:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
+router.get('/users/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        clientId: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        isActive: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'المستخدم غير موجود'
+      });
+    }
+
+    const resolved = await permissionService.resolveUserPermissions(userId);
+    const overrides = await permissionService.getUserOverrides(userId);
+
+    return successResponse(res, {
+      user: {
+        id: user.id,
+        clientId: user.clientId,
+        name: user.name,
+        email: user.email,
+        primaryRole: user.role,
+        status: user.status,
+        isActive: user.isActive
+      },
+      roles: resolved.roles,
+      rolePermissions: resolved.rolePermissions,
+      overrides,
+      effectivePermissions: resolved.effectivePermissions
+    }, 'تم جلب تفاصيل المستخدم بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error fetching user details:', error);
+    return errorResponse(res, error.message);
+  }
+});
+
+const updateOverridesSchema = z.object({
+  overrides: z.array(z.object({
+    permissionCode: z.string(),
+    effect: z.enum(['ALLOW', 'DENY'])
+  }))
+});
+
+router.put('/users/:id/overrides', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'المستخدم غير موجود'
+      });
+    }
+
+    if (user.role === 'SUPER_ADMIN') {
+      return res.status(403).json({
+        success: false,
+        error: 'لا يمكن تعديل صلاحيات المدير العام'
+      });
+    }
+
+    const parseResult = updateOverridesSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'بيانات غير صالحة',
+        details: parseResult.error.errors
+      });
+    }
+
+    const { overrides } = parseResult.data;
+    await permissionService.setUserOverrides(userId, overrides, req.user?.id);
+
+    const resolved = await permissionService.resolveUserPermissions(userId);
+    const updatedOverrides = await permissionService.getUserOverrides(userId);
+
+    return successResponse(res, {
+      overrides: updatedOverrides,
+      effectivePermissions: resolved.effectivePermissions
+    }, 'تم تحديث استثناءات الصلاحيات بنجاح');
+  } catch (error: any) {
+    console.error('[Permission Center] Error updating user overrides:', error);
     return errorResponse(res, error.message);
   }
 });
