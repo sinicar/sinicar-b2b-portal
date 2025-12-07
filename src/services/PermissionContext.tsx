@@ -17,6 +17,7 @@ interface PermissionContextType {
     loading: boolean;
     effectivePermissions: EffectivePermission[];
     hasPermission: (resource: PermissionResource, action: PermissionAction) => boolean;
+    can: (permissionCode: string) => boolean;
     canAccess: (resource: PermissionResource) => boolean;
     isSuperAdmin: boolean;
     refreshPermissions: () => Promise<void>;
@@ -136,6 +137,29 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
         return hasPermission(resource, 'view');
     }, [hasPermission]);
 
+    const can = useCallback((permissionCode: string): boolean => {
+        if (!adminUser || !adminUser.isActive) return false;
+        if (isSuperAdmin) return true;
+
+        const perm = effectivePermissions.find(p => 
+            p.permissionKey === permissionCode ||
+            p.permissionKey.toUpperCase() === permissionCode.toUpperCase()
+        );
+        
+        if (perm) {
+            return perm.effect === 'ALLOW';
+        }
+
+        if (role?.permissions) {
+            const found = role.permissions.some(p => 
+                `${p.resource}:${p.actions?.[0] || ''}`.toUpperCase() === permissionCode.toUpperCase()
+            );
+            if (found) return true;
+        }
+
+        return false;
+    }, [adminUser, role, isSuperAdmin, effectivePermissions]);
+
     const refreshPermissions = useCallback(async () => {
         await loadPermissions(adminUser);
     }, [loadPermissions, adminUser]);
@@ -146,6 +170,7 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
         loading,
         effectivePermissions,
         hasPermission,
+        can,
         canAccess,
         isSuperAdmin,
         refreshPermissions,
