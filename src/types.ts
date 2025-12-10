@@ -1,8 +1,4390 @@
+
+export type UserRole = 
+  | 'SUPER_ADMIN' 
+  | 'CUSTOMER_OWNER' // Was ADMIN
+  | 'CUSTOMER_STAFF'; // Was EMPLOYEE
+
+// Extended User Role for multi-role system (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER, MARKETER)
+export type ExtendedUserRole = 
+  | 'SUPER_ADMIN'              // مشرف عام
+  | 'ADMIN'                    // مدير النظام
+  | 'EMPLOYEE'                 // موظف
+  | 'CUSTOMER'                 // عميل
+  | 'SUPPLIER_LOCAL'           // مورد محلي
+  | 'SUPPLIER_INTERNATIONAL'   // مورد دولي
+  | 'MARKETER';                // مسوق
+
+// User Account Status for approval workflow
+export type UserAccountStatus = 
+  | 'PENDING'    // قيد الانتظار
+  | 'APPROVED'   // مقبول
+  | 'REJECTED'   // مرفوض
+  | 'BLOCKED';   // محظور
+
+export enum EmployeeRole {
+  MANAGER = 'MANAGER', // Can view prices, order, manage
+  BUYER = 'BUYER' // Can browse, add to cart (needs approval)
+}
+
+export enum CustomerType {
+  SPARE_PARTS_SHOP = 'محل قطع غيار',
+  RENTAL_COMPANY = 'شركة تأجير سيارات',
+  SALES_REP = 'مندوب مبيعات',
+  MAINTENANCE_CENTER = 'مركز صيانة',
+  INSURANCE_COMPANY = 'شركة تأمين'
+}
+
+// --- Account Opening Request Types (New) ---
+
+export type CustomerCategory =
+  | 'SPARE_PARTS_SHOP'     // محل قطع غيار
+  | 'INSURANCE_COMPANY'    // شركة تأمين
+  | 'RENTAL_COMPANY'       // شركة تأجير سيارات
+  | 'MAINTENANCE_CENTER'   // مركز صيانة
+  | 'SALES_REP';           // مندوب مبيعات
+
+// Updated Statuses
+export type AccountRequestStatus = 
+  | 'NEW'           // طلب جديد
+  | 'UNDER_REVIEW'  // قيد المراجعة
+  | 'APPROVED'      // تم الموافقة
+  | 'REJECTED'      // مرفوض
+  | 'ON_HOLD';      // مؤجل
+
+// Admin Decision Enums
+export type PriceLevel = 'LEVEL_1' | 'LEVEL_2' | 'LEVEL_3' | 'SPECIAL';
+
+export type BusinessCustomerType =
+  | 'PARTS_SHOP'        // محل قطع غيار
+  | 'RENTAL_COMPANY'    // شركة تأجير سيارات
+  | 'INSURANCE_COMPANY' // شركة تأمين
+  | 'SALES_AGENT'       // مندوب مبيعات
+  | 'FLEET_CUSTOMER'    // عميل أسطول سيارات
+  | 'OTHER';
+
+// Document Upload Types
+export interface UploadedDocument {
+  id: string;
+  name: string;           // اسم الملف
+  type: 'CR_CERTIFICATE' | 'VAT_CERTIFICATE' | 'NATIONAL_ID' | 'NATIONAL_ADDRESS' | 'OTHER';
+  fileType: string;       // MIME type (pdf, image/*)
+  fileSize: number;       // Size in bytes
+  base64Data?: string;    // For demo/mock - in production would be a URL
+  uploadedAt: string;
+}
+
+export interface AccountOpeningRequest {
+  id: string;
+  category: CustomerCategory;     // نوع النشاط
+  status: AccountRequestStatus;   // NEW عند الإنشاء
+
+  // بيانات عامة
+  businessName?: string;          // اسم المنشأة أو الشركة (إجباري للشركات والمحلات)
+  fullName?: string;              // الاسم الكامل (للمندوب)
+  contactPerson?: string;         // شخص التواصل (للعرض فقط)
+  phone: string;                  // رقم جوال للتواصل
+  email?: string;
+
+  // المستندات المرفقة
+  documents?: UploadedDocument[];
+
+  // للشركات والمحلات فقط:
+  commercialRegNumber?: string;   // السجل التجاري
+  vatNumber?: string;             // الرقم الضريبي
+  nationalAddress?: string;       // العنوان الوطني
+  branchesCount?: number;         // عدد الفروع
+
+  // للمندوب:
+  representativeRegion?: string;  // المنطقة/المدن التي يغطيها
+  representativeClientsType?: string; // نوع العملاء الذين يخدمهم
+  approximateClientsCount?: string;    // عدد العملاء التقريبي
+
+  // معلومات عامة:
+  country?: string;
+  city?: string;
+  hasImportedBefore?: boolean;
+  previousDealingsNotes?: string;
+  expectedMonthlyVolume?: string; // حجم التعامل التقريبي شهريًا أو سنويًا
+  notes?: string;                 // ملاحظات إضافية
+
+  // --- Admin Review Fields (New) ---
+  reviewedBy?: string | null;             // اسم أو معرف الأدمن الذي راجع الطلب
+  reviewedAt?: string | null;             // تاريخ المراجعة
+  adminNotes?: string | null;             // ملاحظات داخلية للأدمن
+
+  assignedPriceLevel?: PriceLevel | null; // مستوى التسعير المخصص للعميل
+  assignedCustomerType?: BusinessCustomerType | null;
+
+  // Search Permissions
+  allowedSearchPoints?: number;           // (Legacy Field kept for compat)
+  searchPointsInitial?: number | null;    // رصيد نقاط البحث الأولي
+  searchPointsMonthly?: number | null;    // رصيد شهري يتم منحه (اختياري)
+  searchDailyLimit?: number | null;       // حد أقصى يومي للبحث (اختياري)
+
+  // Portal Access
+  portalAccessStart?: string | null;      // تاريخ بداية صلاحية الدخول
+  portalAccessEnd?: string | null;        // تاريخ نهاية الصلاحية (أو null = مفتوحة)
+
+  // Staff Permissions
+  canCreateStaff?: boolean;               // هل يُسمح له بإضافة موظفين؟
+  maxStaffUsers?: number | null;          // أقصى عدد للموظفين المسموحين
+
+  createdCustomerId?: string | null;      // في المستقبل: رقم العميل عند تحويل الطلب إلى حساب فعلي
+
+  createdAt: string;
+  updatedAt?: string;
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
+}
+
+// ------------------------------------------
+
+// --- Enhanced Customer & User Types for Admin Base ---
+
+export type CustomerStatus =
+  | 'ACTIVE'          // فعال
+  | 'SUSPENDED'       // موقوف مؤقتًا
+  | 'BLOCKED'         // محظور نهائيًا
+  | 'PENDING'         // قيد التفعيل
+  | 'INACTIVE';       // غير نشط (لا يستخدم النظام)
+
+// نوع رؤية الأسعار للعميل
+export type PriceVisibilityType =
+  | 'VISIBLE'         // أسعار ظاهرة دائماً (بدون نظام نقاط)
+  | 'HIDDEN';         // أسعار مخفية (تحتاج نقاط بحث للكشف)
+
+export type StaffStatus = 'ACTIVE' | 'SUSPENDED' | 'BLOCKED';
+
+export interface Branch {
+  id: string;
+  name: string;
+  city: string;
+  address: string;
+  phone?: string;
+  mapUrl?: string;
+}
+
+export interface User {
+  id: string;
+  clientId: string; // The login ID (e.g., 100200) for Owners, or Phone for Staff
+  name: string;
+  email: string; // Kept for contact purposes only
+  password?: string; // For Owners
+  role: UserRole;
+  
+  // Relationship Fields
+  parentId?: string; // If staff, links to the main account (Customer Owner ID)
+  businessId?: string; // The Company/Entity ID (Shared between Owner and Staff)
+  
+  isActive?: boolean; // For banning users
+  branchId?: string; // Which branch they belong to
+  employeeRole?: EmployeeRole; // Specific permissions
+  phone?: string;
+  
+  // Staff Specific
+  activationCode?: string; // كود التفعيل للدخول
+
+  // Search Credits Logic (New)
+  searchLimit?: number;  // الحد الأقصى لنقاط البحث (0 = بحث مفتوح)
+  searchUsed?: number;   // عدد عمليات البحث المستخدمة
+  lastSearchDate?: string; // لتصفير العداد يومياً (YYYY-MM-DD)
+
+  // Notifications & Badges (New)
+  hasUnreadOrders?: boolean; // يظهر شارة حمراء على سجل الطلبات
+  lastOrdersViewedAt?: string;
+  hasUnreadQuotes?: boolean; // يظهر شارة حمراء على طلبات التسعير
+  lastQuotesViewedAt?: string;
+
+  // API Integration Preparation Fields (New)
+  priceLevel?: string; // مستوى التسعير (A, B, C) - Legacy string, consider migrating to PriceLevel type
+  isApproved?: boolean; // حالة الاعتماد من النظام الخارجي
+  customerType?: string; // نوع العميل من النظام الخارجي
+
+  // --- New Security & Status Fields ---
+  status?: CustomerStatus; // New refined status
+  lastLoginAt?: string | null;
+  failedLoginAttempts?: number;
+  riskyLoginFlag?: boolean;
+  
+  // --- Activity Tracking ---
+  lastActiveAt?: string; // ISO timestamp of last heartbeat (for online status)
+  
+  // --- Guest Mode ---
+  isGuest?: boolean; // Flag for guest users with restricted access
+
+  // --- Extended Role/Status System (New) ---
+  extendedRole?: ExtendedUserRole; // Extended role type (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER_*, MARKETER)
+  accountStatus?: UserAccountStatus; // Approval workflow status (PENDING, APPROVED, REJECTED, BLOCKED)
+  isCustomer?: boolean;              // Flag: User is a customer
+  isSupplier?: boolean;              // Flag: User is a supplier (can be both customer + supplier)
+  completionPercent?: number;        // Profile completion percentage (0-100)
+  whatsapp?: string;                 // WhatsApp contact number
+  clientCode?: string;               // Internal client code (optional)
+}
+
+// --- Notifications System (New) ---
+export type NotificationType =
+  | 'ORDER_STATUS_CHANGED'
+  | 'SEARCH_POINTS_ADDED'
+  | 'QUOTE_PROCESSED'
+  | 'GENERAL'
+  | 'ACCOUNT_UPDATE'
+  | 'IMPORT_UPDATE'
+  | 'SYSTEM'
+  | 'MARKETING'
+  | 'ACCOUNT_APPROVED'
+  | 'ACCOUNT_REJECTED'
+  | 'NEW_PURCHASE_REQUEST'
+  | 'NEW_MESSAGE'
+  | 'NEW_CUSTOMER_REGISTERED'
+  | 'CUSTOMER_ORDER'
+  | 'SUPPLIER_REQUEST_ASSIGNED'
+  | 'NEW_ACCOUNT_REQUEST'
+  | 'NEW_QUOTE_REQUEST'
+  | 'NEW_IMPORT_REQUEST'
+  | 'ABANDONED_CART_ALERT';
+
+export type NotificationRelatedType = 
+  | 'ORDER'
+  | 'REQUEST'
+  | 'ACCOUNT'
+  | 'QUOTE'
+  | 'IMPORT'
+  | 'PRODUCT'
+  | 'USER'
+  | 'CART';
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+  link?: string;
+  relatedType?: NotificationRelatedType;
+  relatedId?: string;
+  readAt?: string;
+}
+
+export interface NotificationsResponse {
+  items: Notification[];
+  unreadCount: number;
+  total: number;
+}
+
+export interface BusinessProfile {
+  userId: string; // Links to the main User ID (Owner)
+  companyName: string; // Usually the user name for main account
+  phone: string;
+  region: string;
+  city: string;
+  crNumber: string; // Commercial Registration
+  taxNumber: string;
+  nationalAddress: string;
+  
+  // Legacy Type
+  customerType: CustomerType;
+  
+  deviceFingerprint: string;
+  branches: Branch[];
+  isApproved: boolean; // Approved by System #1
+
+  // --- New Advanced Fields for Admin Base ---
+  
+  // Enhanced Type & Status
+  businessCustomerType?: BusinessCustomerType; // Mapped from AccountRequest
+  assignedPriceLevel?: PriceLevel;             // LEVEL_1 / LEVEL_2 ...
+  status?: CustomerStatus;
+  
+  // نوع رؤية الأسعار - VISIBLE = ظاهرة دائماً, HIDDEN = تحتاج نقاط بحث
+  priceVisibility?: PriceVisibilityType;
+  
+  // Access Control
+  portalAccessStart?: string | null;
+  portalAccessEnd?: string | null;
+  suspendedUntil?: string | null; // If suspended, until when?
+
+  // Search Points Wallet
+  searchPointsTotal?: number;          // مجموع النقاط الممنوحة
+  searchPointsRemaining?: number;      // المتبقية (Alternative source of truth to User.searchLimit)
+
+  // Staff Limits
+  staffLimit?: number | null;          // الحد الأقصى لعدد الموظفين
+  
+  // Security
+  lastLoginAt?: string | null;
+  lastLoginIp?: string | null;
+  failedLoginAttempts?: number;        // محاولات فاشلة منذ آخر نجاح
+  riskyLoginFlag?: boolean;            // علم أن هذا العميل لديه سلوك دخول غريب
+  
+  // Internal Notes
+  internalNotes?: string;
+
+  // Customer Documents (from account opening request)
+  documents?: UploadedDocument[];
+
+  // Aggregated Stats (Computed on fly or cached)
+  totalOrdersCount?: number;
+  totalQuotesCount?: number;
+  totalImportRequestsCount?: number;
+  totalInvoicesCount?: number;         // عدد الطلبات التي تحولت إلى فاتورة
+  totalSearchesCount?: number;         // إجمالي عمليات البحث
+  missingRequestsCount?: number;       // عدد النواقص المسجلة منه
+  
+  // Marketing Campaigns - dismissed campaign IDs
+  dismissedCampaignIds?: string[];
+  
+  // Supplier Marketplace - Customer can act as supplier
+  canActAsSupplier?: boolean;
+  supplierProfileId?: string;
+  supplierApprovedAt?: string;
+  supplierApprovedBy?: string;
+  
+  // Marketer Referral - if customer was referred
+  referredByMarketerId?: string;
+  referredAt?: string;
+  
+  // Trader Tools - customer-specific tool access
+  toolsOverrideId?: string;
+  
+  // Customer Segments/Tags - for segmentation and marketing
+  segments?: string[];
+  tags?: string[];
+  
+  // CRM Enhancement Fields (Command 14)
+  email?: string;
+  whatsapp?: string;
+  assignedMarketerId?: string;
+  assignedEmployeeId?: string;
+  completionPercent?: number;           // Profile completion percentage 0-100
+  lastActivityAt?: string;              // From Activity Log
+  abandonedCartsCount?: number;
+  activeRequestsCount?: number;
+  totalSpent?: number;
+  totalApprovedOrders?: number;
+  totalRejectedOrders?: number;
+}
+
+export interface Product {
+  id: string;
+  partNumber: string;         // رقم الصنف من عمود "رقم الصنف"
+  name: string;               // اسم الصنف من عمود "اسم الصنف"
+  
+  // Legacy fields (kept for backward compatibility)
+  brand?: string;             // Changan, MG - now optional
+  price?: number;             // Legacy price field - optional
+  stock?: number;             // Legacy stock - optional
+  image?: string;
+  
+  // Marketing fields
+  oldPrice?: number;
+  isOnSale?: boolean;
+  isNew?: boolean;
+  description?: string;       // من " المواصفات"
+  category?: string;
+  
+  // مستويات التسعير من نظام أونيكس برو:
+  priceRetail?: number | null;        // من "سعر التجزئة"
+  priceWholesale?: number | null;     // من "سعر الجملة"
+  priceWholeWholesale?: number | null;// من "سعر جملة الجملة"
+  priceEcommerce?: number | null;     // من "سعر المتجر الالكتروني"
+
+  // الكميات:
+  qtyStore103?: number | null;        // من "  كمية المخزن 103"
+  qtyStore105?: number | null;        // من "  كمية المخزن 105"
+  qtyTotal?: number | null;           // من "الإجمالي"
+
+  // حقول إضافية (اختيارية):
+  manufacturerPartNumber?: string | null; // من "رقم التصنيع"
+  carName?: string | null;              // من " اسم السيارة"
+  globalCategory?: string | null;       // من " التصنيف العالمي"
+  modelYear?: string | null;            // من " سنة الصنع"
+  quality?: string | null;              // من "الجودة"
+
+  // مواقع الرفوف (اختيارية):
+  rack103?: string | null;             // من "رف المخزن 103"
+  rack105?: string | null;             // من "رف المخزن 105"
+
+  // حقول نظامية:
+  createdAt?: string;
+  updatedAt?: string;
+  
+  // Search Indexing Fields (Optional)
+  normalizedPart?: string;
+  numericPartCore?: string;
+  
+  // قواعد رؤية الكمية للعملاء
+  useVisibilityRuleForQty?: boolean;  // إذا true: تطبق قاعدة إخفاء الكمية على هذا المنتج
+  
+  // Product Images (Command 19)
+  mainImageUrl?: string | null;       // Main product image URL
+  imageGallery?: string[];            // Array of additional image URLs
+}
+
+export interface CartItem extends Product {
+  quantity: number;
+}
+
+export enum OrderStatus {
+  PENDING = 'بانتظار الموافقة',
+  APPROVED = 'تم الاعتماد',
+  REJECTED = 'مرفوض',
+  SHIPPED = 'تم الشحن',
+  DELIVERED = 'تم التسليم',
+  CANCELLED = 'تم الإلغاء' // Added Cancelled
+}
+
+// --- Internal Order Logic (Admin Only) ---
+export type OrderInternalStatus =
+  | 'NEW'                    // طلب جديد – لم يبدأ العمل عليه
+  | 'SENT_TO_WAREHOUSE'      // تم إرسال الطلب للمستودع
+  | 'WAITING_PAYMENT'        // في انتظار تأكيد تحويل العميل
+  | 'PAYMENT_CONFIRMED'      // تم تأكيد التحويل / السداد
+  | 'SALES_INVOICE_CREATED'  // تم إصدار فاتورة مبيعات
+  | 'READY_FOR_SHIPMENT'     // جاهز للشحن/التسليم
+  | 'COMPLETED_INTERNAL'     // مكتمل داخليًا
+  | 'CANCELLED_INTERNAL';    // ملغى من قبل الإدارة داخليًا
+
+export interface InternalStatusHistoryItem {
+  status: OrderInternalStatus;
+  changedAt: string;
+  changedBy: string; // Admin Name
+}
+
+export interface Order {
+  id: string;
+  userId: string; // The actual user who made the order (Owner or Staff)
+  businessId?: string; // Links order to the Business Profile
+  createdByUserId?: string; // Same as userId, redundant but for clarity
+  createdByName?: string; // Name of the person who clicked submit
+
+  items: CartItem[];
+  totalAmount: number;
+  status: OrderStatus;
+  date: string;
+  branchId?: string; // Which branch ordered this
+  
+  // Cancellation Logic
+  cancelledBy?: 'CUSTOMER' | 'ADMIN';
+  cancelledAt?: string;
+
+  // --- Admin Internal Workflow Fields ---
+  internalStatus?: OrderInternalStatus;
+  internalNotes?: string;
+  internalStatusHistory?: InternalStatusHistoryItem[];
+  
+  // Badge tracking - for admin unread notification
+  isNew?: boolean;
+}
+
+// --- Abandoned Cart Tracking ---
+export type AbandonedCartStatus = 'ACTIVE' | 'CONVERTED';
+
+export interface AbandonedCart {
+  id: string;
+  userId: string;
+  userName?: string;
+  whatsapp?: string;
+  phone?: string;
+  extendedRole?: ExtendedUserRole;
+  items: CartItem[];
+  totalAmount: number;
+  lastUpdatedAt: string;
+  status: AbandonedCartStatus;
+  createdAt: string;
+}
+
+// --- Alternative Parts (Cross References) ---
+export type AlternativeSourceType = 'CUSTOMER_UPLOAD' | 'SYSTEM';
+
+export interface AlternativePart {
+  id: string;
+  mainPartNumber: string;
+  altPartNumber: string;
+  description?: string;
+  brand?: string;
+  sourceType: AlternativeSourceType;
+  sourceUserId?: string;
+  sourceUserName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AlternativeUploadResult {
+  success: boolean;
+  rowsProcessed: number;
+  rowsInserted: number;
+  rowsSkipped: number;
+  errors?: string[];
+}
+
+// --- Purchase Request (from Product Search Page) ---
+export type PurchaseRequestStatus = 'NEW' | 'REVIEWING' | 'APPROVED' | 'REJECTED' | 'PARTIALLY_APPROVED';
+
+export interface PurchaseRequestItem {
+  id: string;
+  productId: string;
+  partNumber: string;
+  productName: string;
+  quantity: number;
+  priceAtRequest?: number;
+  notes?: string;
+}
+
+export interface PurchaseRequest {
+  id: string;
+  customerId: string;
+  customerName?: string;
+  companyName?: string;
+  createdAt: string;
+  updatedAt?: string;
+  status: PurchaseRequestStatus;
+  source: 'PRODUCT_SEARCH_PAGE';
+  items: PurchaseRequestItem[];
+  totalItemsCount: number;
+  notes?: string;
+  createdByUserId: string;
+  createdByName?: string;
+  adminReviewedBy?: string;
+  adminReviewedAt?: string;
+  adminNote?: string;
+  isNew?: boolean;
+}
+
+// --- Bulk Quote Logic (Enhanced for Admin Review) ---
+
+export type QuoteRequestStatus =
+  | 'NEW'               // جديد – لم يفتح من الأدمن
+  | 'UNDER_REVIEW'      // قيد المراجعة في لوحة التحكم
+  | 'PARTIALLY_APPROVED'// جزء من الأصناف معتمد وجزء ناقص
+  | 'APPROVED'          // تم التسعير الكامل
+  | 'QUOTED'            // Legacy compatible
+  | 'PROCESSED'         // Legacy compatible
+  | 'REJECTED';         // تم رفض الطلب بالكامل
+
+export type PriceType = 'OEM' | 'AFTERMARKET' | 'BOTH';
+
+// Updated Item Statuses: PENDING (New), APPROVED (Matched), MISSING (Not Found), REJECTED (Admin rejected)
+export type QuoteItemApprovalStatus = 'PENDING' | 'APPROVED' | 'MISSING' | 'REJECTED';
+
+// Legacy: MATCHED, NOT_FOUND, APPROVED, REJECTED kept for compatibility with old data
+export type QuoteItemStatus = 'PENDING' | 'MATCHED' | 'NOT_FOUND' | 'APPROVED' | 'REJECTED' | 'MISSING';
+
+export interface QuoteItem {
+  partNumber: string;
+  partName: string; // Name from excel
+  requestedQty: number;
+  
+  // New Admin Review Fields
+  approvalStatus?: QuoteItemApprovalStatus;
+  adminNote?: string; // Reason for rejection or note
+  rowIndex?: number; // Row index in original excel
+
+  // Fields populated after matching
+  matchedProductId?: string;
+  matchedProductName?: string;
+  matchedPrice?: number;
+  isAvailable?: boolean;
+  totalPrice?: number; // Calculated after approval
+  
+  // Legacy fields
+  status?: QuoteItemStatus; 
+  notes?: string; 
+}
+
+export interface QuoteRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  companyName: string;
+  date: string;
+  
+  status: QuoteRequestStatus; // NEW, UNDER_REVIEW, APPROVED, PARTIALLY_APPROVED...
+  
+  items: QuoteItem[];
+  totalQuotedAmount?: number;
+  priceType?: PriceType; // Selected price type
+  processedDate?: string; // When admin finalized it
+
+  // Admin Review Metadata
+  adminReviewedBy?: string;
+  adminReviewedAt?: string;
+  adminGeneralNote?: string;
+  
+  approvedItemsCount?: number;
+  missingItemsCount?: number;
+  resultReady?: boolean; // Is ready for customer download
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
+}
+
+// --- Missing Parts (Nawaqis) ---
+
+export type MissingSource = 'QUOTE' | 'SEARCH';
+
+// حالة التوفر عند البحث
+export type MissingAvailabilityStatus = 'not_found' | 'out_of_stock';
+
+// مصدر البحث
+export type SearchSourceType = 'heroSearch' | 'catalogSearch' | 'quoteRequest';
+
+export type MissingStatus =
+  | 'NEW'            // نقص جديد لم يُعالَج بعد
+  | 'UNDER_REVIEW'   // تحت الدراسة
+  | 'ORDER_PLANNED'  // تم جدولة طلب استيراد
+  | 'ORDERED'        // تم طلبه من المورد/الصين
+  | 'ADDED_TO_STOCK' // تم إضافته كمنتج في النظام
+  | 'IGNORED';       // تم تجاهله أو لا جدوى منه
+
+export interface MissingProductRequest {
+  id: string;
+  userId: string; // Initiator
+  source?: MissingSource; // 'QUOTE' or 'SEARCH'
+  query: string;     // Part number or text searched
+  createdAt: string;
+  
+  // Identity info
+  userName?: string; 
+  branchId?: string;
+  
+  // New fields for structured tracking (Optional for compatibility)
+  partNumber?: string;
+  normalizedPartNumber?: string;
+  name?: string;
+  brand?: string;
+  carModel?: string;
+  quantityRequested?: number;
+
+  // If from QUOTE
+  quoteRequestId?: string;
+  quoteItemId?: string;
+
+  // Aggregation & Stats
+  totalRequestsCount?: number;      // How many times this item was requested
+  uniqueCustomersCount?: number;    // How many unique customers
+  customerIds?: string[];           // List of user IDs who requested this
+  lastRequestedAt?: string;         // Most recent request date
+  
+  // Search Pipeline Fields (New)
+  availabilityStatus?: MissingAvailabilityStatus;  // 'not_found' or 'out_of_stock'
+  searchSource?: SearchSourceType;                  // 'heroSearch', 'catalogSearch', etc.
+  searchCount?: number;                             // عدد مرات البحث عن نفس القطعة (للتجميع)
+  lastSearchDate?: string;                          // آخر تاريخ بحث (YYYY-MM-DD)
+  productId?: string;                               // معرف المنتج إذا كان موجودًا لكن نفذت الكمية
+
+  // Management
+  status?: MissingStatus;
+  adminNotes?: string;
+  importRequestId?: string;         // Link to future import request
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
+}
+
+// --- Search Service Types ---
+
+export type SearchResultType = 'NOT_FOUND' | 'FOUND_OUT_OF_STOCK' | 'FOUND_AVAILABLE';
+
+export interface SearchResult {
+  type: SearchResultType;
+  product?: Product;           // المنتج إذا تم العثور عليه
+  normalizedQuery?: string;    // الاستعلام بعد التطبيع
+}
+
+// --- New Features Interfaces ---
+
+export interface SearchHistoryItem {
+  id: string;
+  userId: string;
+  productId: string;
+  partNumber: string;
+  productName: string;
+  viewedAt: string;      // ISO date
+  priceSnapshot: number; // السعر وقت العرض
+}
+
+// --- Import From China Logic (Expanded) ---
+
+export type ImportRequestStatus =
+  | 'NEW'                      // طلب جديد – بانتظار مراجعة فريق صيني كار
+  | 'UNDER_REVIEW'             // قيد المراجعة / التواصل مع العميل
+  | 'WAITING_CUSTOMER_EXCEL'   // في انتظار ملف Excel من العميل
+  | 'PRICING_IN_PROGRESS'      // يتم إعداد عرض السعر
+  | 'PRICING_SENT'             // تم إرسال عرض السعر للعميل
+  | 'WAITING_CUSTOMER_APPROVAL'// في انتظار موافقة العميل على عرض السعر
+  | 'APPROVED_BY_CUSTOMER'     // العميل وافق على العرض – بدأ الاستيراد
+  | 'IN_FACTORY'               // الطلب في المصنع/التجهيز
+  | 'SHIPMENT_BOOKED'          // تم حجز الشحن
+  | 'ON_THE_SEA'               // الشحنة في البحر
+  | 'IN_PORT'                  // الشحنة في الميناء
+  | 'CUSTOMS_CLEARED'          // تم التخليص الجمركي
+  | 'ON_THE_WAY'               // في الطريق للمستودع / للعميل
+  | 'DELIVERED'                // تم التسليم
+  | 'CANCELLED'                // ملغي
+  | 'IN_REVIEW'                // Legacy compatible
+  | 'CONTACTED'                // Legacy compatible
+  | 'CLOSED';                  // Legacy compatible
+
+export interface ImportRequestTimelineEntry {
+  status: ImportRequestStatus;
+  note?: string | null;
+  changedAt: string;     // ISO date
+  changedBy: string;     // اسم أو معرف المستخدم (أدمن أو عميل)
+  actorRole: 'ADMIN' | 'CUSTOMER';
+}
+
+export interface ImportRequest {
+  id: string;
+  customerId: string;         // المنشأة
+  createdByUserId?: string;    // المستخدم الذي أنشأ الطلب
+  businessName?: string;       // اسم المنشأة/الشركة
+  createdAt: string;
+  updatedAt?: string;
+
+  // بيانات أساسية من نموذج العميل:
+  branchesCount?: number;      // عدد الفروع
+  targetCarBrands: string[];  // الشركات التي يريد توفير قطع غيارها
+  brandPreferences?: string;  // الماركات المطلوبة (legacy alias)
+  hasImportedBefore: boolean; // هل سبق له الاستيراد من الصين؟
+  previousImportDetails?: string; // وصف مختصر إذا كانت الإجابة نعم
+
+  serviceMode: 'FULL_SERVICE' | 'GOODS_ONLY';
+  // FULL_SERVICE = نحن نشتري ونشحن ونخلص له (استيراد كامل)
+  // GOODS_ONLY  = نجهز البضاعة فقط وهو يتولى الشحن والتخليص
+
+  preferredPorts?: string;      // الميناء أو منفذ الوصول المفضل
+  estimatedAnnualValue?: string; // قيمة أو كمية الاستيراد التقريبية سنوياً
+  paymentPreference?: string;    // تفضيل طريقة الدفع
+
+  notes?: string;              // ملاحظات إضافية من العميل
+  status: ImportRequestStatus; // NEW عند الإنشاء
+
+  // ملف Excel الخاص بقطع الاستيراد:
+  customerExcelFileName?: string | null;
+  customerExcelUploadedAt?: string | null;
+
+  // بيانات التسعير:
+  pricingPreparedBy?: string | null;
+  pricingPreparedAt?: string | null;
+  pricingFileNameForCustomer?: string | null; // اسم ملف التسعير (Excel/PDF) المخزّن
+  pricingTotalAmount?: number | null;
+
+  // موافقة العميل على عرض السعر:
+  customerApprovedAt?: string | null;
+  customerApprovalNote?: string | null;
+
+  // خط الزمن:
+  timeline?: ImportRequestTimelineEntry[];
+
+  // ملاحظات إدارية داخلية:
+  adminNotes?: string | null;
+  assignedSalesRepId?: string | null; // الموظف المسؤول عن الاستيراد
+  
+  // Admin Badge Tracking
+  isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
+}
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  colorClass: string; // Tailwind class for gradient
+  buttonText: string;
+  imageUrl?: string;
+  link?: string;
+  isActive: boolean;
+}
+
+export interface WebhookConfig {
+  id: string;
+  name: string;
+  url: string;
+  events: string[];
+  isActive: boolean;
+  secret: string;
+  lastTriggered?: string;
+  status: 'Healthy' | 'Failing' | 'Inactive';
+}
+
+export interface ApiConfig {
+  baseUrl: string;
+  authToken: string;
+  enableLiveSync: boolean;
+  endpoints: {
+    products: string;
+    orders: string;
+    customers: string;
+  };
+  webhookSecret?: string;
+  // Advanced Integration Features
+  environment: 'SANDBOX' | 'PRODUCTION';
+  syncInterval: 'REALTIME' | '15MIN' | 'HOURLY' | 'DAILY';
+  syncEntities: {
+    products: boolean;
+    inventory: boolean;
+    prices: boolean;
+    customers: boolean;
+    orders: boolean;
+  };
+  webhooks: { url: string; events: string[]; active: boolean }[];
+  fieldMapping: string; // JSON String for mapping
+  debugMode: boolean;
+  rateLimit: string; // Requests per minute
+  // New Data Sharing Settings
+  sharedData?: string[]; // Which data types to share via API
+  syncDirection?: 'PULL' | 'PUSH' | 'BIDIRECTIONAL'; // Direction of sync
+  timeout?: string; // Connection timeout in seconds
+  retryOnFail?: boolean; // Retry failed requests
+}
+
+// Status Labels Configuration - Centralized status display names
+export interface StatusLabelItem {
+  label: string;
+  color: string;
+  bgColor: string;
+  icon?: string;
+  isDefault?: boolean;
+  isSystem?: boolean;
+  sortOrder?: number;
+}
+
+export interface StatusLabelsConfig {
+  orderStatus: Record<string, StatusLabelItem>;
+  orderInternalStatus: Record<string, StatusLabelItem>;
+  accountRequestStatus: Record<string, StatusLabelItem>;
+  quoteRequestStatus: Record<string, StatusLabelItem>;
+  quoteItemStatus: Record<string, StatusLabelItem>;
+  missingStatus: Record<string, StatusLabelItem>;
+  importRequestStatus: Record<string, StatusLabelItem>;
+  customerStatus: Record<string, StatusLabelItem>;
+  staffStatus: Record<string, StatusLabelItem>;
+}
+
+export interface SiteSettings {
+  siteName: string;
+  description?: string;
+  supportPhone: string;
+  supportWhatsapp?: string;
+  supportEmail: string;
+  announcementBarColor: string;
+  fontFamily: string; // 'Almarai', 'Cairo', 'Tajawal'
+  apiConfig: ApiConfig;
+  // New Fields
+  maintenanceMode: boolean;
+  primaryColor: string;
+  logoUrl: string;
+  // Text Manager
+  uiTexts?: Record<string, string>;
+  // News Ticker Settings
+  tickerEnabled?: boolean;
+  tickerText?: string;
+  tickerSpeed?: number;
+  tickerBgColor?: string;
+  tickerTextColor?: string;
+  // Status Labels Configuration
+  statusLabels?: StatusLabelsConfig;
+  
+  // --- Product Visibility & Search Settings ---
+  minVisibleQty?: number;           // أقل كمية لظهور المنتج للعملاء (default: 1)
+  stockThreshold?: number;          // عتبة المخزون لتحديد "نفذت الكمية" (default: 0)
+  
+  // --- Why Sini Car Section ---
+  whySiniCarTitle?: string;         // عنوان القسم
+  whySiniCarFeatures?: FeatureCard[]; // بطاقات المميزات
+  
+  // --- Guest Mode Settings ---
+  guestModeEnabled?: boolean;       // تفعيل/إيقاف الدخول كضيف
+  
+  // --- Guest Visibility Controls ---
+  guestSettings?: GuestModeSettings;
+  
+  // --- إعدادات نقاط البحث التلقائية حسب حالة الطلب ---
+  orderStatusPointsConfig?: OrderStatusPointsConfig;
+  
+  // --- نصوص صفحات الدخول والتسجيل ---
+  authPageTexts?: AuthPageTexts;
+  
+  // --- إعدادات الشاشة المنبثقة للكميات ---
+  quantityModalSettings?: QuantityModalSettings;
+  
+  // --- Product Images Settings (Command 19) ---
+  productImagesSettings?: ProductImagesSettings;
+}
+
+export interface ProductImagesSettings {
+  enabled: boolean;                     // Show product images in search and details
+  supplierUploadEnabled: boolean;       // Allow suppliers to upload images
+  maxSizeMb: number;                    // Max file size in MB (default: 5)
+  allowedTypes: string[];               // Allowed MIME types
+  defaultPlaceholderUrl?: string;       // Custom placeholder image URL
+}
+
+// نصوص صفحات الدخول والتسجيل القابلة للتعديل
+export interface AuthPageTexts {
+  // صفحة تسجيل الدخول
+  loginTitle?: string;
+  loginSubtitle?: string;
+  loginClientIdLabel?: string;
+  loginClientIdPlaceholder?: string;
+  loginPasswordLabel?: string;
+  loginPasswordPlaceholder?: string;
+  loginButtonText?: string;
+  loginForgotPasswordText?: string;
+  loginNoAccountText?: string;
+  loginRegisterLinkText?: string;
+  
+  // صفحة طلب فتح حساب
+  registerTitle?: string;
+  registerSubtitle?: string;
+  registerBusinessNameLabel?: string;
+  registerBusinessNamePlaceholder?: string;
+  registerOwnerNameLabel?: string;
+  registerOwnerNamePlaceholder?: string;
+  registerPhoneLabel?: string;
+  registerPhonePlaceholder?: string;
+  registerEmailLabel?: string;
+  registerEmailPlaceholder?: string;
+  registerCityLabel?: string;
+  registerCityPlaceholder?: string;
+  registerBusinessTypeLabel?: string;
+  registerNotesLabel?: string;
+  registerNotesPlaceholder?: string;
+  registerButtonText?: string;
+  registerHaveAccountText?: string;
+  registerLoginLinkText?: string;
+}
+
+// إعدادات الشاشة المنبثقة للكميات
+export interface QuantityModalSettings {
+  mode: 'draggable' | 'hideSearch'; // وضع السحب أو إخفاء نتائج البحث
+  defaultPosition?: { x: number; y: number }; // الموقع الافتراضي للنافذة
+}
+
+// إعدادات النقاط المضافة تلقائياً عند تغيير حالة الطلب
+export interface OrderStatusPointsConfig {
+  enabled: boolean;                              // تفعيل/إيقاف الإضافة التلقائية
+  pointsPerStatus: Record<string, number>;       // النقاط لكل حالة (مثل: DELIVERED: 5)
+}
+
+// Guest Mode Visibility Settings - Controls what guests can see/access
+export interface GuestModeSettings {
+  // What sections are visible (but blurred) on home page
+  showBusinessTypes?: boolean;      // قسم "من نخدم" (أنواع الأعمال)
+  showMainServices?: boolean;       // قسم الخدمات الرئيسية
+  showHowItWorks?: boolean;         // قسم "كيف تعمل المنظومة"
+  showWhySiniCar?: boolean;         // قسم "لماذا صيني كار"
+  showCart?: boolean;               // عربة التسوق الجانبية
+  showMarketingCards?: boolean;     // بطاقات التسويق الجانبية
+  
+  // Blur settings
+  blurIntensity?: 'light' | 'medium' | 'heavy';  // شدة التشويش
+  showBlurOverlay?: boolean;        // إظهار overlay فوق المحتوى المشوش
+  
+  // Pages accessible to guests (empty = none except HOME)
+  allowedPages?: string[];          // الصفحات المسموح الوصول إليها
+  
+  // Search settings
+  allowSearch?: boolean;            // السماح بالبحث (نتائج مشوشة)
+  showSearchResults?: boolean;      // إظهار نتائج البحث (مشوشة)
+}
+
+// Feature Card for "Why Sini Car" section
+export interface FeatureCard {
+  id: string;
+  title: string;
+  description: string;
+  icon: 'box' | 'chart' | 'anchor' | 'headphones' | 'truck' | 'shield' | 'globe' | 'star' | 'clock' | 'award';
+  iconColor: string; // Tailwind color class like 'text-cyan-400'
+}
+
+// --- Excel Import Column Presets ---
+
+export interface ExcelColumnMapping {
+  internalField: string;            // اسم الحقل الداخلي (partNumber, name, etc.)
+  excelHeader: string;              // اسم العمود في ملف الإكسل
+  isEnabled: boolean;               // هل هذا الحقل مفعل للاستيراد؟
+  isRequired: boolean;              // هل هو حقل إجباري؟
+  defaultValue?: string | number;   // قيمة افتراضية إذا كان العمود فارغًا
+}
+
+export interface ExcelColumnPreset {
+  id: string;
+  name: string;                     // اسم الإعداد (مثل "Onyx Export", "Supplier A")
+  isDefault: boolean;               // هل هو الإعداد الافتراضي؟
+  mappings: ExcelColumnMapping[];   // قائمة تعيينات الأعمدة
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// الحقول الداخلية المتاحة للتعيين
+export const INTERNAL_PRODUCT_FIELDS = [
+  { key: 'partNumber', label: 'رقم الصنف', required: true },
+  { key: 'name', label: 'اسم المنتج', required: true },
+  { key: 'brand', label: 'الماركة', required: false },
+  { key: 'qtyTotal', label: 'الكمية', required: true },
+  { key: 'priceWholesale', label: 'سعر الجملة', required: false },
+  { key: 'priceRetail', label: 'سعر التجزئة', required: false },
+  { key: 'priceWholeWholesale', label: 'سعر جملة الجملة', required: false },
+  { key: 'priceEcommerce', label: 'سعر المتجر الالكتروني', required: false },
+  { key: 'qtyStore103', label: 'كمية المخزن 103', required: false },
+  { key: 'qtyStore105', label: 'كمية المخزن 105', required: false },
+  { key: 'rack103', label: 'رف المخزن 103', required: false },
+  { key: 'rack105', label: 'رف المخزن 105', required: false },
+  { key: 'carName', label: 'اسم السيارة', required: false },
+  { key: 'description', label: 'المواصفات', required: false },
+  { key: 'manufacturerPartNumber', label: 'رقم التصنيع', required: false },
+  { key: 'globalCategory', label: 'التصنيف العالمي', required: false },
+  { key: 'modelYear', label: 'سنة الصنع', required: false },
+  { key: 'quality', label: 'الجودة', required: false },
+] as const;
+
+// --- Activity Log Types (New) ---
+
+export type ActivityEventType =
+  | 'LOGIN'              // دخول المستخدم للنظام
+  | 'LOGOUT'             // تسجيل الخروج
+  | 'FAILED_LOGIN'       // محاولة دخول فاشلة
+  | 'PAGE_VIEW'          // فتح صفحة معينة
+  | 'ORDER_CREATED'      // إنشاء/إرسال طلب من السلة
+  | 'QUOTE_REQUEST'      // إنشاء طلب تسعير (رفع ملف أو إدخال يدوي)
+  | 'QUOTE_REVIEWED'     // Admin reviewed quote
+  | 'IMPORT_REQUEST'     // إنشاء طلب استيراد من الصين
+  | 'ACCOUNT_REQUEST'    // تقديم طلب فتح حساب
+  | 'ACCOUNT_REQUEST_REVIEWED' // مراجعة طلب فتح حساب (Admin)
+  | 'SEARCH_PERFORMED'   // عملية بحث عن صنف
+  | 'ORDER_CANCELLED'    // إلغاء طلب
+  | 'ORDER_DELETED'      // حذف طلب
+  | 'SEARCH_POINTS_ADDED' // إضافة نقاط بحث
+  | 'SEARCH_POINTS_DEDUCTED' // خصم نقاط بحث
+  | 'ORDER_STATUS_CHANGED' // External status changed (Admin)
+  | 'ORDER_INTERNAL_STATUS_CHANGED' // Internal status changed (Admin)
+  | 'USER_SUSPENDED'     // إيقاف مستخدم
+  | 'USER_REACTIVATED'   // إعادة تفعيل مستخدم
+  | 'CUSTOMER_SUSPENDED' // إيقاف عميل
+  | 'CUSTOMER_REACTIVATED' // إعادة تفعيل عميل
+  | 'IMPORT_STATUS_CHANGED' // Import request status change
+  | 'PASSWORD_CHANGED'   // تغيير كلمة المرور
+  | 'PASSWORD_RESET'     // إعادة تعيين كلمة المرور (بواسطة الإدارة)
+  | 'PURCHASE_REQUEST_CREATED' // إنشاء طلب شراء من صفحة البحث
+  | 'USER_APPROVED'      // اعتماد مستخدم
+  | 'USER_REJECTED'      // رفض مستخدم
+  | 'ALTERNATIVES_UPLOADED' // رفع ملف بدائل
+  | 'SETTINGS_CHANGED'   // تغيير إعدادات
+  | 'FILE_UPLOADED'      // رفع ملف
+  | 'OTHER'              // عمليات أخرى عامة
+  // Supplier Portal Events
+  | 'PRODUCT_ADDED'      // إضافة منتج جديد (مورد)
+  | 'PRODUCT_UPDATED'    // تحديث منتج (مورد)
+  | 'PRODUCT_DELETED'    // حذف منتج (مورد)
+  | 'PRODUCT_IMPORTED'   // استيراد منتجات من Excel (مورد)
+  | 'QUOTE_SENT'         // إرسال عرض سعر (مورد)
+  | 'QUOTE_REQUEST_REJECTED' // رفض طلب تسعير (مورد)
+  | 'SETTINGS_UPDATED';  // تحديث إعدادات (مورد)
+
+// Actor type for activity tracking
+export type ActorType = 
+  | 'CUSTOMER'
+  | 'SUPPLIER'
+  | 'MARKETER'
+  | 'EMPLOYEE'
+  | 'ADMIN';
+
+// Entity type for activity tracking
+export type EntityType =
+  | 'ORDER'
+  | 'REQUEST'
+  | 'CUSTOMER'
+  | 'SUPPLIER'
+  | 'PRODUCT'
+  | 'ALTERNATIVE'
+  | 'SETTINGS'
+  | 'QUOTE'
+  | 'IMPORT'
+  | 'USER'
+  | 'FILE'
+  | 'OTHER';
+
+export interface ActivityLogEntry {
+  id: string;            // رقم فريد للنشاط
+  userId: string;        // المستخدم الذي قام بالنشاط (actorId)
+  userName?: string;     // اسم المستخدم
+  role?: UserRole;       // دور المستخدم
+  eventType: ActivityEventType;
+
+  // Extended activity tracking fields
+  actorType?: ActorType;    // نوع الفاعل (عميل، مورد، مسوق، موظف، إدارة)
+  entityType?: EntityType;  // نوع الكيان المتأثر
+  entityId?: string;        // معرف الكيان المتأثر
+
+  // تفاصيل إضافية
+  description?: string;  // نص وصفي للنشاط بالعربي
+  page?: string;         // اسم الصفحة أو المسار
+  metadata?: Record<string, any>; // كائن اختياري لوضع تفاصيل إضافية
+  
+  // Optional tracking
+  ipAddress?: string;    // عنوان IP (اختياري)
+  userAgent?: string;    // معلومات المتصفح (اختياري)
+
+  createdAt: string;     // التاريخ والوقت الكامل للنشاط
+}
+
+// Online user tracking
+export interface OnlineUser {
+  id: string;
+  name: string;
+  actorType: ActorType;
+  role?: UserRole;
+  lastActivityAt: string;
+}
+
+export interface OnlineUsersResponse {
+  onlineCustomers: OnlineUser[];
+  onlineSuppliers: OnlineUser[];
+  onlineMarketers: OnlineUser[];
+  onlineEmployees: OnlineUser[];
+  onlineAdmins: OnlineUser[];
+}
+
+export interface ActivityLogFilters {
+  actorType?: ActorType;
+  actorId?: string;
+  actionType?: ActivityEventType;
+  entityType?: EntityType;
+  entityId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ActivityLogResponse {
+  items: ActivityLogEntry[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+// --- Customer CRM Types (Command 14) ---
+
+export interface CustomerNote {
+  id: string;
+  customerId: string;
+  text: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export type CustomerActivityLevel = 'ACTIVE_TODAY' | 'ACTIVE_WEEK' | 'INACTIVE_30' | 'ALL';
+export type CustomerOrderBehavior = 'HIGH_VOLUME' | 'REJECTED_REQUESTS' | 'ABANDONED_CARTS' | 'ALL';
+
+export interface AdminCustomerFilters {
+  search?: string;
+  customerType?: CustomerType | 'ALL';
+  status?: CustomerStatus | 'ALL';
+  assignedMarketerId?: string;
+  assignedEmployeeId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  activityFrom?: string;
+  activityTo?: string;
+  activityLevel?: CustomerActivityLevel;
+  orderBehavior?: CustomerOrderBehavior;
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'name' | 'companyName' | 'lastActivityAt' | 'lastLoginAt' | 'createdAt' | 'totalOrdersCount' | 'totalSearchesCount' | 'city' | 'status' | 'customerType';
+  sortDirection?: 'asc' | 'desc';
+}
+
+export interface AdminCustomerSummary {
+  totalOrders: number;
+  totalRequests: number;
+  totalApproved: number;
+  totalRejected: number;
+  totalSpent: number;
+  abandonedCartsCount: number;
+  activeRequestsCount: number;
+}
+
+export interface AdminCustomerResponse {
+  items: BusinessProfile[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+// --- Admin Users Management Types ---
+
+export interface AdminUser {
+  id: string;
+  fullName: string;       // الاسم الكامل
+  username: string;       // اسم المستخدم
+  phone?: string;         // رقم الجوال (اختياري)
+  email?: string;         // البريد الإلكتروني (اختياري)
+  password?: string;      // كلمة المرور (مشفرة في الإنتاج)
+  roleId: string;         // معرف الدور المرتبط
+  isActive: boolean;      // نشط / موقوف
+  isSuperAdmin?: boolean; // هل هو مشرف عام
+  lastLoginAt?: string;   // آخر تسجيل دخول
+  createdAt: string;      // تاريخ الإنشاء
+  createdBy?: string;     // أنشئ بواسطة
+  
+  // Extended fields for multi-role system
+  extendedRole?: ExtendedUserRole;      // نوع الدور الموسع
+  accountStatus?: UserAccountStatus;     // حالة الحساب (PENDING, APPROVED, REJECTED, BLOCKED)
+  completionPercent?: number;            // نسبة اكتمال الملف الشخصي
+  whatsapp?: string;                     // رقم الواتساب
+  clientCode?: string;                   // كود العميل الداخلي
+  isCustomer?: boolean;                  // هل هو عميل
+  isSupplier?: boolean;                  // هل هو مورد
+}
+
+// --- Roles & Permissions Types ---
+
+export type PermissionAction =
+  | 'view'
+  | 'create'
+  | 'edit'
+  | 'delete'
+  | 'approve'
+  | 'reject'
+  | 'export'
+  | 'import'
+  | 'configure'
+  | 'manage_status'
+  | 'manage_users'
+  | 'manage_roles'
+  | 'run_backup'
+  | 'manage_api'
+  | 'other';
+
+export type PermissionResource =
+  | 'dashboard'
+  | 'products'
+  | 'customers'
+  | 'customer_requests'
+  | 'account_requests'
+  | 'quotes'
+  | 'orders'
+  | 'imports'
+  | 'missing'
+  | 'crm'
+  | 'activity_log'
+  | 'notifications'
+  | 'settings_general'
+  | 'settings_status_labels'
+  | 'settings_api'
+  | 'settings_backup'
+  | 'settings_security'
+  | 'users'
+  | 'roles'
+  | 'export_center'
+  | 'content_management'
+  | 'other';
+
+export interface Permission {
+  resource: PermissionResource;
+  actions: PermissionAction[];
+}
+
+export interface Role {
+  id: string;
+  name: string;           // اسم الدور بالعربية
+  description?: string;   // وصف الدور
+  permissions: Permission[];
+  isSystem?: boolean;     // أدوار النظام لا يمكن حذفها
+  createdAt?: string;
+}
+
+// تسميات الموارد بالعربية
+export const PERMISSION_RESOURCE_LABELS: Record<PermissionResource, string> = {
+  dashboard: 'لوحة التحكم',
+  products: 'المنتجات',
+  customers: 'العملاء',
+  customer_requests: 'طلبات العملاء',
+  account_requests: 'طلبات فتح الحسابات',
+  quotes: 'عروض الأسعار',
+  orders: 'الطلبات',
+  imports: 'طلبات الاستيراد',
+  missing: 'النواقص',
+  crm: 'قاعدة العملاء',
+  activity_log: 'سجل النشاط',
+  notifications: 'الإشعارات',
+  settings_general: 'الإعدادات العامة',
+  settings_status_labels: 'مسميات الحالات',
+  settings_api: 'إعدادات API',
+  settings_backup: 'النسخ الاحتياطي',
+  settings_security: 'إعدادات الأمان',
+  users: 'المستخدمون',
+  roles: 'الأدوار والصلاحيات',
+  export_center: 'مركز التصدير',
+  content_management: 'إدارة المحتوى',
+  other: 'أخرى'
+};
+
+// تسميات الإجراءات بالعربية
+export const PERMISSION_ACTION_LABELS: Record<PermissionAction, string> = {
+  view: 'عرض',
+  create: 'إضافة',
+  edit: 'تعديل',
+  delete: 'حذف',
+  approve: 'موافقة',
+  reject: 'رفض',
+  export: 'تصدير',
+  import: 'استيراد',
+  configure: 'إعدادات',
+  manage_status: 'إدارة الحالات',
+  manage_users: 'إدارة المستخدمين',
+  manage_roles: 'إدارة الأدوار',
+  run_backup: 'تشغيل النسخ الاحتياطي',
+  manage_api: 'إدارة API',
+  other: 'أخرى'
+};
+
+// الإجراءات المتاحة لكل مورد
+export const RESOURCE_AVAILABLE_ACTIONS: Record<PermissionResource, PermissionAction[]> = {
+  dashboard: ['view'],
+  products: ['view', 'create', 'edit', 'delete', 'export', 'import'],
+  customers: ['view', 'create', 'edit', 'delete', 'export', 'manage_status'],
+  customer_requests: ['view', 'edit', 'approve', 'reject', 'export'],
+  account_requests: ['view', 'approve', 'reject', 'export'],
+  quotes: ['view', 'create', 'edit', 'delete', 'approve', 'reject', 'export'],
+  orders: ['view', 'create', 'edit', 'delete', 'approve', 'reject', 'export', 'manage_status'],
+  imports: ['view', 'create', 'edit', 'delete', 'approve', 'reject', 'export', 'manage_status'],
+  missing: ['view', 'create', 'edit', 'delete', 'export', 'manage_status'],
+  crm: ['view', 'create', 'edit', 'delete', 'export'],
+  activity_log: ['view', 'export'],
+  notifications: ['view', 'create', 'delete'],
+  settings_general: ['view', 'configure'],
+  settings_status_labels: ['view', 'create', 'edit', 'delete'],
+  settings_api: ['view', 'configure', 'manage_api'],
+  settings_backup: ['view', 'run_backup'],
+  settings_security: ['view', 'configure'],
+  users: ['view', 'create', 'edit', 'delete', 'manage_users'],
+  roles: ['view', 'create', 'edit', 'delete', 'manage_roles'],
+  export_center: ['view', 'export'],
+  content_management: ['view', 'create', 'edit', 'delete'],
+  other: ['view', 'other']
+};
+
+// --- Global Status Labels Management Types ---
+
+export type StatusDomain = keyof StatusLabelsConfig;
+
+export const STATUS_DOMAIN_LABELS: Record<StatusDomain, string> = {
+  orderStatus: 'حالات الطلبات',
+  orderInternalStatus: 'الحالات الداخلية للطلبات',
+  accountRequestStatus: 'حالات طلبات فتح الحساب',
+  quoteRequestStatus: 'حالات طلبات عروض الأسعار',
+  quoteItemStatus: 'حالات عناصر عرض السعر',
+  missingStatus: 'حالات النواقص',
+  importRequestStatus: 'حالات طلبات الاستيراد',
+  customerStatus: 'حالات العملاء',
+  staffStatus: 'حالات الموظفين'
+};
+
+// --- Notification Management System Types ---
+
+export type NotificationChannel = 'toast' | 'popup' | 'banner' | 'bell' | 'email' | 'sms';
+
+export type NotificationCategory =
+  | 'order'
+  | 'quote'
+  | 'account'
+  | 'import'
+  | 'search'
+  | 'system'
+  | 'marketing'
+  | 'alert';
+
+export interface NotificationStyle {
+  backgroundColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  iconColor?: string;
+  icon?: string;
+  animation?: 'slide' | 'fade' | 'bounce' | 'none';
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  duration?: number;
+  showProgress?: boolean;
+  showCloseButton?: boolean;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  key: string;
+  name: string;
+  nameEn?: string;
+  category: NotificationCategory;
+  channel: NotificationChannel;
+  channels?: NotificationChannel[];
+  type?: string;
+  isActive: boolean;
+  enabled?: boolean;
+  
+  // Localized content
+  content: {
+    ar: { title: string; message: string };
+    en: { title: string; message: string };
+    hi: { title: string; message: string };
+    zh: { title: string; message: string };
+  };
+  
+  // Legacy message format for backward compatibility
+  message?: {
+    ar: string;
+    en: string;
+    hi: string;
+    zh: string;
+  };
+  
+  // Styling
+  style: NotificationStyle | {
+    bgColor?: string;
+    textColor?: string;
+    borderColor?: string;
+  };
+  
+  // Metadata
+  isSystem?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface NotificationSettings {
+  globalEnabled: boolean;
+  defaultDuration: number;
+  defaultPosition: NotificationStyle['position'];
+  maxVisible: number;
+  soundEnabled: boolean;
+  templates: NotificationTemplate[];
+}
+
+// --- PDF/Print Template Designer Types ---
+
+export type DocumentTemplateType = 
+  | 'invoice'
+  | 'order'
+  | 'quote'
+  | 'receipt'
+  | 'delivery_note'
+  | 'packing_list'
+  | 'price_list'
+  | 'report';
+
+export type PageSize = 'A4' | 'A5' | 'Letter' | 'Legal';
+export type PageOrientation = 'portrait' | 'landscape';
+
+export interface TemplateMargins {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface TemplateHeaderFooter {
+  enabled: boolean;
+  height: number;
+  showLogo: boolean;
+  logoPosition?: 'left' | 'center' | 'right';
+  logoSize?: number;
+  showCompanyName: boolean;
+  showDate: boolean;
+  showPageNumber: boolean;
+  customText?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  borderBottom?: boolean;
+  borderTop?: boolean;
+}
+
+export interface TemplateField {
+  id: string;
+  key: string;
+  label: string;
+  labelAr: string;
+  type: 'text' | 'number' | 'date' | 'currency' | 'image' | 'qrcode' | 'barcode';
+  enabled: boolean;
+  required: boolean;
+  width?: number;
+  alignment?: 'left' | 'center' | 'right';
+  fontSize?: number;
+  fontWeight?: 'normal' | 'bold';
+  order: number;
+}
+
+export interface TemplateTableColumn {
+  id: string;
+  key: string;
+  header: string;
+  headerAr: string;
+  width: number;
+  alignment: 'left' | 'center' | 'right';
+  enabled: boolean;
+  order: number;
+}
+
+export interface TemplateSection {
+  id: string;
+  name: string;
+  type: 'header' | 'info' | 'table' | 'summary' | 'footer' | 'custom';
+  enabled: boolean;
+  order: number;
+  fields?: TemplateField[];
+  tableColumns?: TemplateTableColumn[];
+  customContent?: string;
+  backgroundColor?: string;
+  padding?: number;
+  borderRadius?: number;
+}
+
+export interface DocumentTemplate {
+  id: string;
+  name: string;
+  nameAr: string;
+  type: DocumentTemplateType;
+  isDefault: boolean;
+  isActive: boolean;
+  
+  // Page Settings
+  pageSize: PageSize;
+  orientation: PageOrientation;
+  margins: TemplateMargins;
+  
+  // Branding
+  logoUrl?: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  fontSize: number;
+  
+  // Header & Footer
+  header: TemplateHeaderFooter;
+  footer: TemplateHeaderFooter;
+  
+  // Sections
+  sections: TemplateSection[];
+  
+  // Simple columns array for quick access
+  columns?: string[];
+  
+  // Simplified color config for template designer
+  colors?: {
+    primary: string;
+    secondary: string;
+    text: string;
+    border: string;
+  };
+  
+  // Simplified font config for template designer  
+  fonts?: {
+    heading: string;
+    body: string;
+    size: {
+      heading: number;
+      body: number;
+    };
+  };
+  
+  // Watermark
+  watermark?: {
+    enabled: boolean;
+    text?: string;
+    imageUrl?: string;
+    opacity: number;
+    position: 'center' | 'diagonal';
+  };
+  
+  // Localization
+  defaultLanguage: 'ar' | 'en';
+  showBilingual: boolean;
+  
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PrintSettings {
+  templates: DocumentTemplate[];
+  companyInfo: {
+    name: string;
+    nameEn?: string;
+    address: string;
+    phone: string;
+    email: string;
+    website?: string;
+    taxNumber?: string;
+    crNumber?: string;
+    logoUrl?: string;
+  };
+  defaultTemplate: Record<DocumentTemplateType, string>;
+}
+
+// --- Sidebar Preferences Types ---
+
+export interface SidebarPreferences {
+  collapsed: boolean;
+  width: number;
+  mobileAutoClose: boolean;
+}
+
+// --- Marketing Campaign Types (مركز التسويق) ---
+
+export type CampaignDisplayType = 'POPUP' | 'BANNER' | 'BELL' | 'DASHBOARD_CARD';
+
+export type CampaignContentType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'HTML';
+
+export type CampaignStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+
+export type CampaignAudienceType = 
+  | 'ALL' 
+  | 'SPARE_PARTS_SHOP' 
+  | 'RENTAL_COMPANY' 
+  | 'MAINTENANCE_CENTER' 
+  | 'INSURANCE_COMPANY'
+  | 'SALES_REP';
+
+export interface MarketingCampaign {
+  id: string;
+  title: string;
+  message: string;
+  displayType: CampaignDisplayType;
+  skippable: boolean;
+  contentType: CampaignContentType;
+  mediaUrl?: string;
+  htmlContent?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  audienceType: CampaignAudienceType;
+  status: CampaignStatus;
+  priority: number;
+  createdAt: string;
+  startsAt?: string;
+  expiresAt?: string;
+}
+
+// ============================================================
+// --- PRICING CENTER TYPES (مركز التسعيرات) ---
+// ============================================================
+
+// Adjustment type for derived price levels
+export type PriceLevelAdjustmentType = 'PERCENT' | 'FIXED';
+
+// Rounding mode for final price calculation
+export type PricingRoundingMode = 'NONE' | 'ROUND' | 'CEIL' | 'FLOOR';
+
+// Precedence options for price calculation
+export type PricePrecedenceOption = 'CUSTOM_RULE' | 'LEVEL_EXPLICIT' | 'LEVEL_DERIVED';
+
+// Price Level - defines each pricing tier (fully configurable)
+export interface ConfigurablePriceLevel {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  isBaseLevel: boolean;
+  baseLevelId?: string;
+  adjustmentType?: PriceLevelAdjustmentType;
+  adjustmentValue?: number;
+  isActive: boolean;
+  sortOrder: number;
+  color?: string;
+  minOrderValue?: number;
+  maxDiscountPercent?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Product Price Entry - explicit price per product per level
+export interface ProductPriceEntry {
+  id: string;
+  productId: string;
+  priceLevelId: string;
+  price: number;
+  currency?: string;
+  minQty?: number;
+  maxQty?: number;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Customer Custom Price Rule - overrides for specific products/categories
+export interface CustomerCustomPriceRule {
+  id: string;
+  productId?: string;
+  categoryId?: string;
+  brandId?: string;
+  useFixedPrice?: boolean;
+  fixedPrice?: number;
+  usePercentOfLevel?: boolean;
+  percentOfLevel?: number;
+  priceLevelIdForPercent?: string;
+  minQty?: number;
+  maxQty?: number;
+  validFrom?: string;
+  validTo?: string;
+  notes?: string;
+}
+
+// Customer Pricing Profile - per-customer pricing configuration
+export interface CustomerPricingProfile {
+  customerId: string;
+  defaultPriceLevelId: string;
+  extraMarkupPercent?: number;
+  extraDiscountPercent?: number;
+  allowCustomRules: boolean;
+  customRules?: CustomerCustomPriceRule[];
+  priceFloor?: number;
+  priceCeiling?: number;
+  lastModifiedBy?: string;
+  lastModifiedAt?: string;
+  notes?: string;
+}
+
+// Volume Discount Rule - quantity-based discounts
+export interface VolumeDiscountRule {
+  id: string;
+  minQty: number;
+  maxQty?: number;
+  discountType: 'PERCENT' | 'FIXED';
+  discountValue: number;
+  appliesToAllProducts: boolean;
+  productIds?: string[];
+  categoryIds?: string[];
+  isActive: boolean;
+}
+
+// Time-Based Promotion - scheduled price adjustments
+export interface TimeBasedPromotion {
+  id: string;
+  name: string;
+  description?: string;
+  discountType: 'PERCENT' | 'FIXED';
+  discountValue: number;
+  startsAt: string;
+  endsAt: string;
+  appliesToAllProducts: boolean;
+  productIds?: string[];
+  categoryIds?: string[];
+  priceLevelIds?: string[];
+  isActive: boolean;
+  createdAt?: string;
+}
+
+// Global Pricing Settings - master configuration
+export interface GlobalPricingSettings {
+  defaultPriceLevelId: string | null;
+  currency: string;
+  currencySymbol?: string;
+  roundingMode: PricingRoundingMode;
+  roundingDecimals: number;
+  pricePrecedenceOrder: PricePrecedenceOption[];
+  allowNegativeDiscounts: boolean;
+  allowFallbackToOtherLevels: boolean;
+  fallbackLevelId?: string | null;
+  enableVolumeDiscounts?: boolean;
+  volumeDiscountRules?: VolumeDiscountRule[];
+  enableTimePromotions?: boolean;
+  timePromotions?: TimeBasedPromotion[];
+  minPriceFloor?: number;
+  maxPriceCeiling?: number;
+  showPriceBreakdown?: boolean;
+  taxRate?: number;
+  taxIncluded?: boolean;
+  lastModifiedBy?: string;
+  lastModifiedAt?: string;
+}
+
+// Price Calculation Result - for simulation/debugging
+export interface PriceCalculationResult {
+  finalPrice: number | null;
+  basePrice: number | null;
+  sourcePrecedence: PricePrecedenceOption | null;
+  sourceLevelId: string | null;
+  sourceLevelName?: string;
+  appliedMarkup?: number;
+  appliedDiscount?: number;
+  appliedVolumeDiscount?: number;
+  appliedPromotion?: string;
+  roundingApplied: boolean;
+  calculationSteps: string[];
+  errors?: string[];
+}
+
+// Pricing Audit Log Entry
+export interface PricingAuditLogEntry {
+  id: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  entityType: 'LEVEL' | 'MATRIX' | 'PROFILE' | 'SETTINGS' | 'RULE';
+  entityId: string;
+  previousValue?: any;
+  newValue?: any;
+  changedBy: string;
+  changedAt: string;
+  reason?: string;
+}
+
+// ============================================================
+// TRADER TOOLS SYSTEM TYPES
+// ============================================================
+
+export type ToolKey = 'PDF_TO_EXCEL' | 'VIN_EXTRACTOR' | 'PRICE_COMPARISON';
+
+export interface ToolConfig {
+  toolKey: ToolKey;
+  enabled: boolean;
+  allowedCustomerTypes: string[];
+  blockedCustomerIds: string[];
+  allowedPlans?: string[];
+  maxFilesPerDay?: number;
+  maxFilesPerMonth?: number;
+  logUsageForAnalytics: boolean;
+  showInDashboardShortcuts: boolean;
+  toolNameAr: string;
+  toolNameEn: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
+  iconName?: string;
+  sortOrder?: number;
+  maintenanceMode?: boolean;
+  maintenanceMessage?: string;
+}
+
+export interface CustomerToolsOverride {
+  customerId: string;
+  useGlobalDefaults: boolean;
+  forcedEnabledTools?: ToolKey[];
+  forcedDisabledTools?: ToolKey[];
+  customLimits?: {
+    toolKey: ToolKey;
+    maxFilesPerDay?: number;
+    maxFilesPerMonth?: number;
+  }[];
+  notes?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface ToolUsageRecord {
+  id: string;
+  customerId: string;
+  toolKey: ToolKey;
+  usedAt: string;
+  filesProcessed: number;
+  success: boolean;
+  errorMessage?: string;
+  processingTimeMs?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface SupplierPriceRecordRow {
+  partNumber: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  quantity?: number;
+  brand?: string;
+  extra?: Record<string, string>;
+}
+
+export interface SupplierPriceRecord {
+  id: string;
+  ownerCustomerId: string;
+  supplierName?: string;
+  fileLabel: string;
+  originalFileUrl?: string;
+  originalFileName?: string;
+  parsedAt: string;
+  rows: SupplierPriceRecordRow[];
+  totalRows?: number;
+  parseErrors?: string[];
+  notes?: string;
+  isFavorite?: boolean;
+  tags?: string[];
+}
+
+export interface VinExtractionRecord {
+  id: string;
+  ownerCustomerId: string;
+  uploadedAt: string;
+  fileUrl?: string;
+  fileName?: string;
+  vin: string;
+  carMake?: string;
+  carModel?: string;
+  modelYear?: string;
+  plateNumber?: string;
+  engineType?: string;
+  transmissionType?: string;
+  countryOfOrigin?: string;
+  notes?: string;
+  extractionMethod?: 'MANUAL' | 'OCR' | 'API';
+  confidence?: number;
+  isFavorite?: boolean;
+  linkedOrderIds?: string[];
+}
+
+export interface PriceComparisonResultRow {
+  partNumber: string;
+  description?: string;
+  priceA?: number;
+  priceB?: number;
+  bestSource?: 'A' | 'B' | 'EQUAL';
+  priceDiff?: number;
+  priceDiffPercent?: number;
+  notes?: string;
+}
+
+export interface PriceComparisonSession {
+  id: string;
+  ownerCustomerId: string;
+  createdAt: string;
+  sessionName?: string;
+  fileA: {
+    label: string;
+    sourceType: 'PDF' | 'EXCEL' | 'SUPPLIER_RECORD';
+    originalFileUrl?: string;
+    supplierRecordId?: string;
+  };
+  fileB: {
+    label: string;
+    sourceType: 'PDF' | 'EXCEL' | 'SUPPLIER_RECORD';
+    originalFileUrl?: string;
+    supplierRecordId?: string;
+  };
+  resultRows: PriceComparisonResultRow[];
+  summary?: {
+    totalItems: number;
+    matchedItems: number;
+    aIsCheaper: number;
+    bIsCheaper: number;
+    equalPrices: number;
+    avgDiff?: number;
+    totalSavings?: number;
+  };
+  notes?: string;
+  isFavorite?: boolean;
+}
+
+// ============================================================
+// SUPPLIER MARKETPLACE SYSTEM TYPES
+// ============================================================
+
+export interface SupplierCatalogItem {
+  id: string;
+  supplierId: string;
+  partNumber: string;
+  oemNumber?: string;
+  brand?: string;
+  description?: string;
+  descriptionAr?: string;
+  quantityAvailable?: number;
+  purchasePrice?: number;
+  sellingSuggestionPrice?: number;
+  currency?: string;
+  minOrderQty?: number;
+  leadTimeDays?: number;
+  warranty?: string;
+  lastUpdatedAt: string;
+  isActive: boolean;
+  qualityGrade?: 'OEM' | 'AFTERMARKET' | 'REFURBISHED' | 'GENERIC';
+  imageUrl?: string;
+  categoryId?: string;
+  tags?: string[];
+}
+
+export interface SupplierPriorityConfig {
+  supplierId: string;
+  supplierName?: string;
+  priority: number;
+  enabled: boolean;
+  preferredForCategories?: string[];
+  preferredForBrands?: string[];
+  minProfitMargin?: number;
+  maxLeadTimeDays?: number;
+  notes?: string;
+}
+
+export type SupplierSelectionMode = 
+  | 'SINI_FIRST_THEN_SUPPLIERS' 
+  | 'SUPPLIERS_ONLY_WHEN_OUT_OF_STOCK' 
+  | 'RANDOM_SUPPLIER_WHEN_OUT_OF_STOCK'
+  | 'LOWEST_PRICE_FIRST'
+  | 'HIGHEST_PRIORITY_FIRST';
+
+export interface SupplierMarketplaceSettings {
+  enabled: boolean;
+  selectionMode: SupplierSelectionMode;
+  hideRealSupplierFromCustomer: boolean;
+  supplierPriorities: SupplierPriorityConfig[];
+  defaultMarkupPercent?: number;
+  minProfitMargin?: number;
+  maxLeadTimeDays?: number;
+  autoApproveSupplierItems?: boolean;
+  requireApprovalForPriceAbove?: number;
+  showSupplierStockLevel?: boolean;
+  enableSupplierRating?: boolean;
+  notifyAdminOnNewSupplierItem?: boolean;
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+}
+
+export interface SupplierProfile {
+  supplierId: string;
+  companyName: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  taxNumber?: string;
+  rating?: number;
+  totalItemsListed?: number;
+  totalSalesAmount?: number;
+  totalOrdersHandled?: number;
+  avgLeadTime?: number;
+  avgRating?: number;
+  isVerified?: boolean;
+  verifiedAt?: string;
+  joinedAt?: string;
+  lastActiveAt?: string;
+  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'INACTIVE';
+  internalNotes?: string;
+}
+
+// ============================================================
+// MARKETER / AFFILIATE SYSTEM TYPES
+// ============================================================
+
+export type CommissionType = 'PERCENT' | 'FIXED';
+export type CommissionStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'CANCELLED';
+export type MarketerStatus = 'ACTIVE' | 'SUSPENDED' | 'BLOCKED' | 'PENDING';
+
+export interface Marketer {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  referralCode: string;
+  referralUrl: string;
+  commissionType: CommissionType;
+  commissionValue: number;
+  active: boolean;
+  status?: MarketerStatus;
+  createdAt: string;
+  notes?: string;
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    iban?: string;
+    holderName?: string;
+  };
+  address?: string;
+  nationalId?: string;
+  profileImageUrl?: string;
+  totalReferrals?: number;
+  totalEarnings?: number;
+  pendingEarnings?: number;
+  paidEarnings?: number;
+  lastPaymentDate?: string;
+  paymentMethod?: 'BANK_TRANSFER' | 'CASH' | 'WALLET';
+  minPayoutAmount?: number;
+  customCommissionTiers?: {
+    minOrders: number;
+    commissionType: CommissionType;
+    commissionValue: number;
+  }[];
+}
+
+export interface CustomerReferral {
+  customerId: string;
+  marketerId: string;
+  referredAt: string;
+  attributionExpiresAt: string;
+  registrationIp?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  landingPage?: string;
+  firstOrderId?: string;
+  firstOrderDate?: string;
+  totalOrdersCount?: number;
+  totalOrdersValue?: number;
+  isActive: boolean;
+}
+
+export interface MarketerCommissionEntry {
+  id: string;
+  marketerId: string;
+  customerId: string;
+  orderId: string;
+  orderTotal: number;
+  commissionAmount: number;
+  commissionType: CommissionType;
+  commissionRate: number;
+  status: CommissionStatus;
+  calculatedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  paidAt?: string;
+  paidBy?: string;
+  paymentReference?: string;
+  notes?: string;
+}
+
+export type MultiAttributionMode = 'SINGLE' | 'LAST_CLICK' | 'FIRST_CLICK' | 'LINEAR';
+
+export interface MarketerSettings {
+  enabled: boolean;
+  attributionWindowDays: number;
+  defaultCommissionType: CommissionType;
+  defaultCommissionValue: number;
+  multiAttributionMode: MultiAttributionMode;
+  marketerCanViewCustomerNames: boolean;
+  marketerCanViewOrderTotals: boolean;
+  marketerCanViewOrderDetails?: boolean;
+  marketerCanExportData?: boolean;
+  autoApproveCommissions: boolean;
+  autoApproveThreshold?: number;
+  minPayoutAmount?: number;
+  paymentCycleDays?: number;
+  enableTierCommissions?: boolean;
+  tierCommissions?: {
+    minTotalSales: number;
+    commissionType: CommissionType;
+    commissionValue: number;
+  }[];
+  enableCategoryCommissions?: boolean;
+  categoryCommissions?: {
+    categoryId: string;
+    commissionType: CommissionType;
+    commissionValue: number;
+  }[];
+  referralLinkDomain?: string;
+  referralLinkPrefix?: string;
+  showReferralBanner?: boolean;
+  referralBannerText?: string;
+  notifyMarketerOnReferral?: boolean;
+  notifyMarketerOnCommission?: boolean;
+  notifyAdminOnNewMarketer?: boolean;
+  requireMarketerApproval?: boolean;
+  allowSelfRegistration?: boolean;
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+}
+
+export interface MarketerPerformanceStats {
+  marketerId: string;
+  period: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'ALL_TIME';
+  periodStart?: string;
+  periodEnd?: string;
+  totalReferrals: number;
+  activeReferrals: number;
+  totalOrders: number;
+  totalSalesAmount: number;
+  totalCommissions: number;
+  pendingCommissions: number;
+  paidCommissions: number;
+  conversionRate?: number;
+  avgOrderValue?: number;
+}
+
+// ============================================================
+// ADVERTISING SYSTEM TYPES
+// ============================================================
+
+export type AdvertiserCompanyType = 'supplier' | 'shipping' | 'workshop' | 'other';
+export type AdvertiserStatus = 'active' | 'pending_verification' | 'suspended' | 'blacklisted';
+
+export interface Advertiser {
+  id: string;
+  name: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  whatsapp?: string;
+  companyType?: AdvertiserCompanyType;
+  source?: string;
+  status: AdvertiserStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdCampaignType = 'banner_top' | 'banner_sidebar' | 'card_in_tools' | 'card_in_products' | 'popup';
+export type AdCampaignStatus = 'draft' | 'pending_approval' | 'running' | 'paused' | 'rejected' | 'ended';
+export type AdBudgetType = 'fixed' | 'per_view' | 'per_click';
+
+export interface AdCampaign {
+  id: string;
+  advertiserId: string;
+  name: string;
+  type: AdCampaignType;
+  targetPages: string[];
+  priority: number;
+  startDate: string;
+  endDate?: string;
+  budgetType?: AdBudgetType;
+  maxViews?: number;
+  maxClicks?: number;
+  currentViews?: number;
+  currentClicks?: number;
+  landingUrl?: string;
+  imageUrl?: string;
+  status: AdCampaignStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AdSlotSelectionMode = 'by_priority' | 'rotate' | 'random';
+
+export interface AdSlot {
+  id: string;
+  slotKey: string;
+  nameAr: string;
+  nameEn: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
+  isEnabled: boolean;
+  maxAds: number;
+  selectionMode: AdSlotSelectionMode;
+  visibleForCustomerGroups?: string[];
+  visibleForSpecificCustomers?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdSlotRotationState {
+  slotKey: string;
+  currentIndex: number;
+  lastRotatedAt: string;
+}
+
+// ============================================================
+// INSTALLMENT WHOLESALE PURCHASE REQUEST SYSTEM TYPES
+// ============================================================
+
+// Installment Request Status
+export type InstallmentRequestStatus =
+  | 'PENDING_SINICAR_REVIEW'
+  | 'WAITING_FOR_CUSTOMER_DECISION_ON_PARTIAL_SINICAR'
+  | 'REJECTED_BY_SINICAR'
+  | 'FORWARDED_TO_SUPPLIERS'
+  | 'WAITING_FOR_SUPPLIER_OFFERS'
+  | 'WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER'
+  | 'ACTIVE_CONTRACT'
+  | 'CLOSED'
+  | 'CANCELLED';
+
+// SINI CAR Decision
+export type SinicarDecision = 'pending' | 'approved_full' | 'approved_partial' | 'rejected';
+
+// Payment Frequency
+export type PaymentFrequency = 'weekly' | 'monthly';
+
+// Installment Offer Status
+export type InstallmentOfferStatus =
+  | 'WAITING_FOR_CUSTOMER'
+  | 'ACCEPTED_BY_CUSTOMER'
+  | 'REJECTED_BY_CUSTOMER';
+
+// Installment Offer Source
+export type InstallmentOfferSource = 'sinicar' | 'supplier';
+
+// Installment Offer Type
+export type InstallmentOfferType = 'full' | 'partial';
+
+// Payment Installment Status
+export type PaymentInstallmentStatus = 'pending' | 'paid' | 'overdue';
+
+// Credit Score Level
+export type CreditScoreLevel = 'low' | 'medium' | 'high';
+
+// Installment Request Item
+export interface InstallmentRequestItem {
+  id: string;
+  requestId: string;
+  productId?: string;
+  productName?: string;
+  description?: string;
+  quantityRequested: number;
+  unitPriceRequested?: number;
+}
+
+// Installment Payment Installment (single payment in schedule)
+export interface InstallmentPaymentInstallment {
+  id: string;
+  dueDate: string;
+  amount: number;
+  status: PaymentInstallmentStatus;
+  paidAt?: string;
+  paymentMethod?: string;
+  paymentReference?: string;
+  notes?: string;
+}
+
+// Installment Payment Schedule
+export interface InstallmentPaymentSchedule {
+  frequency: PaymentFrequency;
+  numberOfInstallments: number;
+  installmentAmount: number;
+  startDate: string;
+  endDate: string;
+  installments: InstallmentPaymentInstallment[];
+}
+
+// Installment Offer Item
+export interface InstallmentOfferItem {
+  id: string;
+  offerId: string;
+  requestItemId?: string;
+  productId?: string;
+  productName?: string;
+  quantityApproved: number;
+  unitPriceApproved: number;
+}
+
+// Installment Offer
+export interface InstallmentOffer {
+  id: string;
+  requestId: string;
+  sourceType: InstallmentOfferSource;
+  supplierId?: string;
+  supplierName?: string;
+  type: InstallmentOfferType;
+  itemsApproved: InstallmentOfferItem[];
+  totalApprovedValue: number;
+  schedule: InstallmentPaymentSchedule;
+  status: InstallmentOfferStatus;
+  notes?: string;
+  adminNotes?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Installment Request
+export interface InstallmentRequest {
+  id: string;
+  customerId: string;
+  customerName?: string;
+  items: InstallmentRequestItem[];
+  totalRequestedValue?: number;
+  requestedDurationMonths?: number;
+  requestedDurationWeeks?: number;
+  paymentFrequency: PaymentFrequency;
+  proposedInstallmentAmount?: number;
+  downPaymentAmount?: number;
+  notes?: string;
+  status: InstallmentRequestStatus;
+  sinicarDecision: SinicarDecision;
+  allowedForSuppliers: boolean;
+  forwardedToSupplierIds?: string[];
+  acceptedOfferId?: string;
+  adminNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  closedAt?: string;
+  closedReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Customer Credit Profile
+export interface CustomerCreditProfile {
+  customerId: string;
+  customerName?: string;
+  scoreLevel: CreditScoreLevel;
+  totalInstallmentRequests: number;
+  totalActiveContracts: number;
+  totalOverdueInstallments: number;
+  totalPaidAmount: number;
+  totalRemainingAmount: number;
+  paymentHistoryScore?: number;
+  notes?: string;
+  lastUpdated: string;
+}
+
+// Installment Settings - Controls all behavior
+export interface InstallmentSettings {
+  enabled: boolean;
+  
+  // SINI CAR priority behavior
+  sinicarHasFirstPriority: boolean;
+  allowPartialApprovalBySinicar: boolean;
+  allowPartialApprovalBySuppliers: boolean;
+  
+  // What happens when SINI CAR rejects or partially approves
+  autoForwardToSuppliersOnSinicarReject: boolean;
+  autoForwardToSuppliersOnSinicarPartialRemainder: boolean;
+  
+  // Customer decision behavior
+  onCustomerRejectsSinicarPartial: 'close_request' | 'forward_to_suppliers';
+  onCustomerRejectsSupplierOffer: 'keep_waiting_for_other_suppliers' | 'close_request';
+  
+  // Duration limits
+  maxDurationMonths: number;
+  minDurationMonths: number;
+  maxDurationWeeks?: number;
+  minDurationWeeks?: number;
+  
+  // Down payment settings
+  requireDownPayment: boolean;
+  minDownPaymentPercent?: number;
+  maxDownPaymentPercent?: number;
+  
+  // Amount limits
+  minRequestAmount?: number;
+  maxRequestAmount?: number;
+  
+  // Credit profile settings
+  requireCreditCheck: boolean;
+  minCreditScoreForApproval?: CreditScoreLevel;
+  autoRejectLowCredit?: boolean;
+  
+  // Customer eligibility
+  allowedCustomerTypes?: string[];
+  blockedCustomerIds?: string[];
+  
+  // Supplier settings
+  autoSelectAllSuppliers?: boolean;
+  defaultSupplierIds?: string[];
+  maxSuppliersPerRequest?: number;
+  
+  // Admin workflow
+  requireAdminApprovalForSinicar?: boolean;
+  autoGeneratePaymentSchedule?: boolean;
+  defaultPaymentFrequency?: PaymentFrequency;
+  
+  // Notifications
+  notifyCustomerOnNewOffer: boolean;
+  notifyCustomerOnStatusChange?: boolean;
+  notifyAdminOnNewRequest: boolean;
+  notifyAdminOnCustomerDecision?: boolean;
+  notifySuppliersOnForward: boolean;
+  notifySuppliersOnCustomerDecision?: boolean;
+  
+  // Display settings
+  showInstallmentInSidebar?: boolean;
+  showInstallmentInDashboard?: boolean;
+  showCreditProfileToCustomer?: boolean;
+  showPaymentHistoryToCustomer?: boolean;
+  
+  // Terms and conditions
+  termsAndConditionsAr?: string;
+  termsAndConditionsEn?: string;
+  requireTermsAcceptance?: boolean;
+  
+  // Overdue handling
+  overdueGracePeriodDays?: number;
+  autoMarkOverdue?: boolean;
+  notifyOnOverdue?: boolean;
+  
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+}
+
+// Decision payload for SINI CAR
+export interface SinicarDecisionPayload {
+  decisionType: 'approve_full' | 'approve_partial' | 'reject';
+  offer?: Partial<InstallmentOffer>;
+  forwardToSuppliers?: boolean;
+  supplierIds?: string[];
+  adminNotes?: string;
+}
+
+// Supplier Offer Payload
+export interface SupplierOfferPayload {
+  type: InstallmentOfferType;
+  itemsApproved: Omit<InstallmentOfferItem, 'id' | 'offerId'>[];
+  totalApprovedValue: number;
+  schedule: Omit<InstallmentPaymentSchedule, 'installments'>;
+  notes?: string;
+}
+
+// Installment Stats for Admin Dashboard
+export interface InstallmentStats {
+  totalRequests: number;
+  pendingRequests: number;
+  activeContracts: number;
+  closedContracts: number;
+  totalRequestedValue: number;
+  totalApprovedValue: number;
+  totalPaidAmount: number;
+  totalOverdueAmount: number;
+  avgApprovalRate: number;
+  avgProcessingDays: number;
+  byStatus: { status: InstallmentRequestStatus; count: number }[];
+  byMonth: { month: string; count: number; value: number }[];
+}
+
+// ===========================================
+// PART 2: Team & Sub-User Management Models
+// ===========================================
+
+// Organization Type - represents account types that can have teams
+export type OrganizationType =
+  | 'customer'    // Wholesale Customer
+  | 'supplier'    // Supplier in marketplace
+  | 'advertiser'  // Advertiser in ads system
+  | 'affiliate'   // Affiliate/Marketer
+  | 'platform';   // SINI CAR itself (for admin team if needed)
+
+// Organization - represents any business account that can have a team
+export interface Organization {
+  id: string;
+  type: OrganizationType;
+  
+  // Link to existing entities (only one will be set based on type)
+  customerId?: string;    // if type === 'customer'
+  supplierId?: string;    // if type === 'supplier'
+  advertiserId?: string;  // if type === 'advertiser'
+  affiliateId?: string;   // if type === 'affiliate'
+  
+  name: string;           // Display name for the organization
+  ownerUserId: string;    // Main account owner (already exists as a user)
+  
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Organization User Role - defines role within an organization
+export type OrganizationUserRole =
+  | 'owner'     // Main account owner (full control within org scope)
+  | 'manager'   // Can manage most operations
+  | 'staff'     // Limited operations based on permissions
+  | 'readonly'; // View only
+
+// Scoped Permission Keys - feature-specific permissions for sub-users
+export type ScopedPermissionKey =
+  // Advertising module (Advertiser org):
+  | 'adv_view_campaigns'
+  | 'adv_manage_campaigns'
+  | 'adv_manage_slots'
+  | 'adv_view_reports'
+  
+  // Supplier module:
+  | 'sup_view_forwarded_requests'
+  | 'sup_submit_offers'
+  | 'sup_view_team_activity'
+  | 'sup_manage_products'
+  | 'sup_view_analytics'
+  
+  // Customer (wholesale) module:
+  | 'cust_create_orders'
+  | 'cust_view_orders'
+  | 'cust_create_installment_requests'
+  | 'cust_manage_installment_requests'
+  | 'cust_use_trader_tools'
+  | 'cust_view_team_activity'
+  | 'cust_view_prices'
+  | 'cust_manage_cart'
+  
+  // Affiliate/Marketer module:
+  | 'aff_view_links'
+  | 'aff_manage_links'
+  | 'aff_view_commissions'
+  | 'aff_withdraw_commissions'
+  | 'aff_view_analytics'
+  
+  // General/Organization-level:
+  | 'org_manage_team'
+  | 'org_view_logs'
+  | 'org_view_settings'
+  | 'org_edit_profile';
+
+// Organization User - represents an employee/sub-user under an Organization
+export interface OrganizationUser {
+  id: string;
+  organizationId: string;
+  userId: string;          // Reference to the main User model
+  
+  role: OrganizationUserRole;
+  permissions: ScopedPermissionKey[];
+  
+  // Optional metadata
+  jobTitle?: string;       // Job title/position
+  department?: string;     // Department name
+  
+  isActive: boolean;
+  invitedAt?: string;      // When the invitation was sent
+  joinedAt?: string;       // When the user accepted and joined
+  lastActiveAt?: string;   // Last activity timestamp
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Organization Activity Log - tracks team member actions
+export interface OrganizationActivityLog {
+  id: string;
+  organizationId: string;
+  userId: string;
+  userName?: string;       // Cached for display
+  
+  actionType: string;      // e.g., 'order_created', 'offer_submitted', 'team_member_added'
+  actionCategory: 'order' | 'installment' | 'advertising' | 'team' | 'supplier' | 'affiliate' | 'other';
+  
+  description: string;     // Human-readable description
+  metadata?: Record<string, any>;  // Additional action data
+  
+  ipAddress?: string;
+  userAgent?: string;
+  
+  createdAt: string;
+}
+
+// Organization Settings - controls team behavior (admin configurable)
+export interface OrganizationSettings {
+  // Global toggles per organization type
+  enableTeamsForCustomers: boolean;
+  enableTeamsForSuppliers: boolean;
+  enableTeamsForAdvertisers: boolean;
+  enableTeamsForAffiliates: boolean;
+  
+  // Maximum team members per organization type
+  maxCustomerEmployees: number;
+  maxSupplierEmployees: number;
+  maxAdvertiserEmployees: number;
+  maxAffiliateEmployees: number;
+  
+  // Default permissions templates for Customer organizations
+  defaultCustomerManagerPermissions: ScopedPermissionKey[];
+  defaultCustomerStaffPermissions: ScopedPermissionKey[];
+  defaultCustomerReadonlyPermissions: ScopedPermissionKey[];
+  
+  // Default permissions templates for Supplier organizations
+  defaultSupplierManagerPermissions: ScopedPermissionKey[];
+  defaultSupplierStaffPermissions: ScopedPermissionKey[];
+  defaultSupplierReadonlyPermissions: ScopedPermissionKey[];
+  
+  // Default permissions templates for Advertiser organizations
+  defaultAdvertiserManagerPermissions: ScopedPermissionKey[];
+  defaultAdvertiserStaffPermissions: ScopedPermissionKey[];
+  defaultAdvertiserReadonlyPermissions: ScopedPermissionKey[];
+  
+  // Default permissions templates for Affiliate organizations
+  defaultAffiliateManagerPermissions: ScopedPermissionKey[];
+  defaultAffiliateStaffPermissions: ScopedPermissionKey[];
+  defaultAffiliateReadonlyPermissions: ScopedPermissionKey[];
+  
+  // Control if owners can customize permissions manually
+  allowCustomPermissionsForCustomers: boolean;
+  allowCustomPermissionsForSuppliers: boolean;
+  allowCustomPermissionsForAdvertisers: boolean;
+  allowCustomPermissionsForAffiliates: boolean;
+  
+  // Audit / Logs settings
+  trackTeamActivityPerOrganization: boolean;
+  activityLogRetentionDays: number;
+  
+  // Invitation settings
+  requireEmailVerification: boolean;
+  invitationExpiryHours: number;
+  
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+}
+
+// Team Member Invitation - for inviting new members
+export interface TeamInvitation {
+  id: string;
+  organizationId: string;
+  invitedByUserId: string;
+  
+  email: string;
+  phone?: string;
+  name?: string;
+  
+  role: OrganizationUserRole;
+  permissions: ScopedPermissionKey[];
+  
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
+  invitationCode: string;
+  
+  expiresAt: string;
+  acceptedAt?: string;
+  
+  createdAt: string;
+}
+
+// Helper type for permission groups display
+export interface PermissionGroup {
+  key: string;
+  labelAr: string;
+  labelEn: string;
+  permissions: {
+    key: ScopedPermissionKey;
+    labelAr: string;
+    labelEn: string;
+    description?: string;
+  }[];
+}
+
+// Organization stats for dashboard
+export interface OrganizationStats {
+  totalMembers: number;
+  activeMembers: number;
+  pendingInvitations: number;
+  recentActivities: number;
+  membersByRole: { role: OrganizationUserRole; count: number }[];
+}
+
+// =============================================================================
+// CUSTOMER PORTAL SETTINGS - Full Portal Configuration
+// =============================================================================
+
+// Multilingual text support for content
+export interface MultilingualText {
+  ar: string;
+  en: string;
+  hi: string;
+  zh: string;
+}
+
+// Theme/Design Settings
+export interface PortalDesignSettings {
+  themeMode: 'light' | 'dark' | 'system';
+  primaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  sidebarColor: string;
+  fontFamily: string;
+  borderRadius: 'none' | 'small' | 'medium' | 'large';
+  enableAnimations: boolean;
+}
+
+// Dashboard Section Configuration
+export interface DashboardSectionConfig {
+  id: string;
+  key: string;
+  enabled: boolean;
+  order: number;
+  title: MultilingualText;
+}
+
+// Navigation Menu Item Configuration  
+export interface NavMenuItemConfig {
+  id: string;
+  key: string;  // Internal key like 'HOME', 'ORDERS', 'IMPORT_CHINA'
+  enabled: boolean;
+  order: number;
+  label: MultilingualText;
+  icon: string; // lucide-react icon name
+  requiresAuth: boolean;
+  requiredPermission?: string;
+}
+
+// Feature Toggle Configuration
+export interface PortalFeatureToggles {
+  // Core Features
+  enableSearch: boolean;
+  enableCart: boolean;
+  enableOrders: boolean;
+  enableQuoteRequests: boolean;
+  
+  // Advanced Features - Trader Tools
+  enableImportFromChina: boolean;
+  enableVinDecoder: boolean;
+  enablePdfToExcel: boolean;
+  enablePriceComparison: boolean;
+  enableSupplierMarketplace: boolean;
+  
+  // B2B Features
+  enableInstallments: boolean;
+  enableOrganization: boolean;
+  enableTeamManagement: boolean;
+  
+  // Marketing & Content
+  enableMarketingBanners: boolean;
+  enableMarketingPopups: boolean;
+  enableMarketingCards: boolean;
+  enableAnnouncementTicker: boolean;
+  
+  // Guest Mode
+  enableGuestMode: boolean;
+  guestCanSearch: boolean;
+  guestCanViewPrices: boolean;
+}
+
+// Hero Banner Configuration
+export interface HeroBannerConfig {
+  id: string;
+  enabled: boolean;
+  order: number;
+  title: MultilingualText;
+  subtitle: MultilingualText;
+  buttonText: MultilingualText;
+  buttonUrl: string;
+  colorClass: string;
+  imageUrl?: string;
+}
+
+// Announcement Configuration
+export interface AnnouncementConfig {
+  id: string;
+  enabled: boolean;
+  type: 'ticker' | 'banner' | 'popup';
+  content: MultilingualText;
+  backgroundColor: string;
+  textColor: string;
+  startDate?: string;
+  endDate?: string;
+  dismissible: boolean;
+}
+
+// Info/Marketing Card Configuration
+export interface InfoCardConfig {
+  id: string;
+  enabled: boolean;
+  order: number;
+  icon: string;
+  title: MultilingualText;
+  description: MultilingualText;
+  colorClass: string;
+  link?: string;
+}
+
+// Complete Customer Portal Settings
+export interface CustomerPortalSettings {
+  id: string;
+  
+  // Design & Theme
+  design: PortalDesignSettings;
+  
+  // Dashboard Layout
+  dashboardSections: DashboardSectionConfig[];
+  
+  // Navigation Menu
+  navigationMenu: NavMenuItemConfig[];
+  
+  // Feature Toggles
+  features: PortalFeatureToggles;
+  
+  // Content - Hero Banners
+  heroBanners: HeroBannerConfig[];
+  
+  // Content - Announcements
+  announcements: AnnouncementConfig[];
+  
+  // Content - Info/Marketing Cards
+  infoCards: InfoCardConfig[];
+  
+  // Metadata
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// AI SETTINGS & INTEGRATION TYPES
+// ===========================================
+
+// AI Provider Types
+export type AIProvider = 'openai' | 'gemini' | 'anthropic' | 'custom';
+
+export type AIModelType = 
+  | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4' | 'gpt-3.5-turbo'
+  | 'gemini-2.5-pro' | 'gemini-2.5-flash' | 'gemini-pro'
+  | 'claude-sonnet-4-5' | 'claude-opus-4-5' | 'claude-haiku-4-5';
+
+// AI Provider Configuration
+export interface AIProviderConfig {
+  id: string;
+  provider: AIProvider;
+  displayName: MultilingualText;
+  enabled: boolean;
+  isDefault: boolean;
+  
+  // API Configuration
+  apiKey?: string;
+  apiEndpoint?: string;
+  model: AIModelType | string;
+  
+  // Rate Limiting
+  maxTokens: number;
+  maxRequestsPerMinute: number;
+  maxRequestsPerDay: number;
+  
+  // Features
+  supportsChat: boolean;
+  supportsImageGeneration: boolean;
+  supportsVision: boolean;
+  supportsAudio: boolean;
+  
+  // Pricing Info
+  inputTokenCost?: number;  // Cost per 1000 tokens
+  outputTokenCost?: number;
+}
+
+// AI Feature Configuration - where AI can be used
+export interface AIFeatureSettings {
+  // Customer Portal AI Features
+  enableAIAssistant: boolean;          // مساعد ذكي للعملاء
+  enableAIProductSearch: boolean;      // بحث ذكي عن المنتجات
+  enableAIPartMatching: boolean;       // مطابقة القطع بالذكاء الاصطناعي
+  enableAIVinDecoding: boolean;        // فك رموز VIN
+  enableAIPriceAnalysis: boolean;      // تحليل الأسعار
+  enableAITranslation: boolean;        // ترجمة تلقائية
+  
+  // Admin AI Features
+  enableAIOrderAnalysis: boolean;      // تحليل الطلبات
+  enableAICustomerInsights: boolean;   // رؤى العملاء
+  enableAIReports: boolean;            // تقارير ذكية
+  enableAIFraudDetection: boolean;     // كشف الاحتيال
+  enableAIInventoryPrediction: boolean;// توقع المخزون
+  
+  // Marketer/Affiliate AI Features
+  enableAIContentGeneration: boolean;  // توليد المحتوى
+  enableAICampaignOptimization: boolean; // تحسين الحملات
+}
+
+// AI Usage Limits per User Role
+export interface AIUsageLimits {
+  role: UserRole;
+  dailyRequests: number;
+  monthlyRequests: number;
+  maxTokensPerRequest: number;
+  allowedFeatures: string[];  // Feature keys from AIFeatureSettings
+}
+
+// AI Chat Message
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  provider?: AIProvider;
+  model?: string;
+  tokensUsed?: number;
+}
+
+// AI Conversation Session
+export interface AIConversation {
+  id: string;
+  userId: string;
+  title: string;
+  messages: AIChatMessage[];
+  provider: AIProvider;
+  model: string;
+  createdAt: string;
+  updatedAt: string;
+  totalTokensUsed: number;
+}
+
+// AI Usage Log Entry
+export interface AIUsageLog {
+  id: string;
+  userId: string;
+  provider: AIProvider;
+  model: string;
+  feature: string;  // Which AI feature was used
+  inputTokens: number;
+  outputTokens: number;
+  cost?: number;
+  timestamp: string;
+  success: boolean;
+  errorMessage?: string;
+}
+
+// Complete AI Settings Configuration
+export interface AISettings {
+  id: string;
+  
+  // Global Settings
+  enabled: boolean;
+  defaultProvider: AIProvider;
+  
+  // Provider Configurations
+  providers: AIProviderConfig[];
+  
+  // Feature Settings
+  features: AIFeatureSettings;
+  
+  // Usage Limits by Role
+  usageLimits: AIUsageLimits[];
+  
+  // System Prompts
+  systemPrompts: {
+    customerAssistant: MultilingualText;
+    productSearch: MultilingualText;
+    partMatching: MultilingualText;
+  };
+  
+  // Safety & Moderation
+  enableContentModeration: boolean;
+  blockedTopics: string[];
+  maxConversationLength: number;
+  
+  // Analytics
+  trackUsage: boolean;
+  trackCosts: boolean;
+  
+  // Metadata
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// TRADER TOOLS STORAGE TYPES
+// ===========================================
+
+// Saved Price Comparison
+export interface SavedPriceComparison {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  partNumber: string;
+  partName: string;
+  suppliers: {
+    supplierId: string;
+    supplierName: string;
+    price: number;
+    currency: string;
+    availability: string;
+    deliveryTime?: string;
+    notes?: string;
+  }[];
+  bestPrice: number;
+  averagePrice: number;
+  createdAt: string;
+  updatedAt: string;
+  tags?: string[];
+}
+
+// Saved VIN Extraction
+export interface SavedVinExtraction {
+  id: string;
+  userId: string;
+  name: string;
+  vin: string;
+  vehicleInfo: {
+    make: string;
+    model: string;
+    year: number;
+    engineType?: string;
+    transmission?: string;
+    bodyType?: string;
+    country?: string;
+    plantCode?: string;
+  };
+  extractedParts?: {
+    partNumber: string;
+    partName: string;
+    category: string;
+  }[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  tags?: string[];
+}
+
+// Saved Quote Form Template
+export interface SavedQuoteTemplate {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  items: {
+    partNumber: string;
+    partName: string;
+    quantity: number;
+    notes?: string;
+  }[];
+  defaultSuppliers?: string[];
+  createdAt: string;
+  updatedAt: string;
+  isPublic: boolean;
+  usageCount: number;
+}
+
+// File Conversion History
+export interface FileConversionRecord {
+  id: string;
+  userId: string;
+  originalFileName: string;
+  originalFileType: string;
+  convertedFileType: string;
+  fileSize: number;
+  rowCount?: number;
+  columnCount?: number;
+  conversionDate: string;
+  downloadUrl?: string;
+  expiresAt?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  errorMessage?: string;
+}
+
+// ===========================================
+// SECURITY & AUTHENTICATION SETTINGS
+// ===========================================
+
+// Two-Factor Authentication Settings
+export interface TwoFactorSettings {
+  enabled: boolean;
+  method: 'sms' | 'email' | 'authenticator' | 'all';
+  requiredForAdmins: boolean;
+  requiredForFinancial: boolean;
+  graceLoginCount: number;  // Number of logins before enforcing
+}
+
+// Login Tracking Entry
+export interface LoginRecord {
+  id: string;
+  userId: string;
+  timestamp: string;
+  ipAddress: string;
+  userAgent: string;
+  location?: {
+    country: string;
+    city: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  success: boolean;
+  failureReason?: string;
+  deviceType: 'desktop' | 'mobile' | 'tablet' | 'unknown';
+  browserName?: string;
+  osName?: string;
+  is2FAUsed: boolean;
+  riskScore?: number;
+}
+
+// Session Management
+export interface ActiveSession {
+  id: string;
+  userId: string;
+  token: string;
+  createdAt: string;
+  lastActiveAt: string;
+  expiresAt: string;
+  ipAddress: string;
+  userAgent: string;
+  deviceInfo?: string;
+  isCurrentSession: boolean;
+}
+
+// Security Settings
+export interface SecuritySettings {
+  id: string;
+  
+  // Password Policy
+  passwordMinLength: number;
+  passwordRequireUppercase: boolean;
+  passwordRequireLowercase: boolean;
+  passwordRequireNumbers: boolean;
+  passwordRequireSymbols: boolean;
+  passwordExpiryDays: number;
+  passwordHistoryCount: number;
+  
+  // Login Security
+  maxLoginAttempts: number;
+  lockoutDurationMinutes: number;
+  sessionTimeoutMinutes: number;
+  allowMultipleSessions: boolean;
+  
+  // 2FA Settings
+  twoFactor: TwoFactorSettings;
+  
+  // IP & Access Control
+  enableIPWhitelist: boolean;
+  ipWhitelist: string[];
+  enableGeoBlocking: boolean;
+  blockedCountries: string[];
+  
+  // Risk Detection
+  enableRiskDetection: boolean;
+  riskThreshold: number;
+  notifyOnSuspiciousLogin: boolean;
+  
+  // Audit
+  enableAuditLog: boolean;
+  auditRetentionDays: number;
+  
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// REPORTING & ANALYTICS TYPES
+// ===========================================
+
+// Report Template
+export interface ReportTemplate {
+  id: string;
+  name: MultilingualText;
+  description: MultilingualText;
+  type: 'sales' | 'inventory' | 'customers' | 'orders' | 'financial' | 'custom';
+  columns: {
+    key: string;
+    label: MultilingualText;
+    type: 'string' | 'number' | 'date' | 'currency' | 'percentage';
+    aggregation?: 'sum' | 'avg' | 'count' | 'min' | 'max';
+  }[];
+  filters: {
+    key: string;
+    label: MultilingualText;
+    type: 'select' | 'date-range' | 'number-range' | 'text';
+    options?: { value: string; label: MultilingualText }[];
+  }[];
+  defaultSortBy: string;
+  defaultSortOrder: 'asc' | 'desc';
+  createdBy?: string;
+  createdAt: string;
+  isSystem: boolean;
+}
+
+// Scheduled Report
+export interface ScheduledReport {
+  id: string;
+  templateId: string;
+  name: string;
+  schedule: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  recipients: string[];  // Email addresses
+  format: 'pdf' | 'excel' | 'csv';
+  filters: Record<string, any>;
+  enabled: boolean;
+  lastRunAt?: string;
+  nextRunAt: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+// Dashboard Widget
+export interface DashboardWidget {
+  id: string;
+  type: 'chart' | 'metric' | 'table' | 'map';
+  title: MultilingualText;
+  dataSource: string;
+  config: {
+    chartType?: 'line' | 'bar' | 'pie' | 'area' | 'donut';
+    metric?: 'sum' | 'count' | 'avg';
+    groupBy?: string;
+    timeRange?: 'today' | 'week' | 'month' | 'year' | 'custom';
+    colors?: string[];
+    showLegend?: boolean;
+    showTrend?: boolean;
+  };
+  position: { x: number; y: number; w: number; h: number };
+  refreshInterval: number;  // seconds
+}
+
+// ===========================================
+// NOTIFICATION SETTINGS TYPES
+// ===========================================
+
+// Extended Notification Channel (adds whatsapp, push to existing)
+export type ExtendedNotificationChannel = NotificationChannel | 'whatsapp' | 'push' | 'in_app';
+
+// Notification Preference
+export interface NotificationPreference {
+  eventType: NotificationType;
+  channels: ExtendedNotificationChannel[];
+  enabled: boolean;
+  frequency?: 'immediate' | 'hourly' | 'daily' | 'weekly';
+}
+
+// Extended Notification Template for Settings
+export interface ExtendedNotificationTemplate {
+  id: string;
+  eventType: NotificationType;
+  channel: ExtendedNotificationChannel;
+  subject: MultilingualText;
+  body: MultilingualText;
+  variables: string[];  // Available template variables
+  isSystemTemplate: boolean;
+  lastModifiedAt: string;
+}
+
+// Advanced Notification Settings for Channels
+export interface AdvancedNotificationSettings {
+  id: string;
+  
+  // Global Settings
+  enabled: boolean;
+  defaultChannels: ExtendedNotificationChannel[];
+  
+  // Channel Configurations
+  emailConfig: {
+    enabled: boolean;
+    senderName: string;
+    senderEmail: string;
+    replyToEmail?: string;
+    smtpHost?: string;
+    smtpPort?: number;
+  };
+  smsConfig: {
+    enabled: boolean;
+    provider: string;
+    senderId?: string;
+  };
+  whatsappConfig: {
+    enabled: boolean;
+    provider: string;
+    phoneNumber?: string;
+  };
+  pushConfig: {
+    enabled: boolean;
+    vapidPublicKey?: string;
+  };
+  
+  // Templates
+  templates: ExtendedNotificationTemplate[];
+  
+  // Default Preferences
+  defaultPreferences: NotificationPreference[];
+  
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+}
+
+// ===========================================
+// MARKETING SYSTEM TYPES
+// ===========================================
+
+// Coupon/Discount Code
+export interface CouponCode {
+  id: string;
+  code: string;
+  name: MultilingualText;
+  description?: MultilingualText;
+  discountType: 'percentage' | 'fixed' | 'free_shipping';
+  discountValue: number;
+  minOrderValue?: number;
+  maxDiscountAmount?: number;
+  usageLimit?: number;
+  usageCount: number;
+  perUserLimit?: number;
+  applicableCategories?: string[];
+  applicableBrands?: string[];
+  excludedProducts?: string[];
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
+}
+
+// Loyalty Program Level
+export interface LoyaltyLevel {
+  id: string;
+  name: MultilingualText;
+  minPoints: number;
+  maxPoints?: number;
+  benefits: {
+    type: 'discount' | 'free_shipping' | 'priority_support' | 'exclusive_access';
+    value?: number;
+    description: MultilingualText;
+  }[];
+  iconUrl?: string;
+  color: string;
+}
+
+// Loyalty Program Settings
+export interface LoyaltySettings {
+  id: string;
+  enabled: boolean;
+  programName: MultilingualText;
+  pointsPerCurrency: number;  // Points earned per 1 SAR spent
+  pointsRedemptionRate: number;  // SAR value per point when redeeming
+  levels: LoyaltyLevel[];
+  pointsExpiryDays?: number;
+  allowPartialRedemption: boolean;
+  minimumRedemptionPoints: number;
+  lastModifiedAt: string;
+}
+
+// Customer Loyalty Record
+export interface CustomerLoyalty {
+  id: string;
+  userId: string;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+  currentPoints: number;
+  currentLevel: string;  // Level ID
+  transactions: {
+    id: string;
+    type: 'earn' | 'redeem' | 'expire' | 'bonus';
+    points: number;
+    description: string;
+    orderId?: string;
+    createdAt: string;
+  }[];
+  memberSince: string;
+  lastActivityAt: string;
+}
+
+// Promotional Campaign (extends existing MarketingCampaign)
+export interface PromotionalCampaign {
+  id: string;
+  name: MultilingualText;
+  type: 'flash_sale' | 'bundle' | 'buy_x_get_y' | 'seasonal' | 'clearance';
+  description: MultilingualText;
+  startDate: string;
+  endDate: string;
+  rules: {
+    minQuantity?: number;
+    bundleProducts?: string[];
+    discountPercentage?: number;
+    freeProduct?: string;
+    applicableCategories?: string[];
+  };
+  bannerImageUrl?: string;
+  isActive: boolean;
+  priority: number;
+  createdBy: string;
+  createdAt: string;
+}
+
+// ===== Dynamic Marketing Home Page Types =====
+
+// Homepage Customer Type for dynamic content
+export type HomepageCustomerType = 
+  | 'WORKSHOP'          // ورشة صيانة
+  | 'RENTAL'            // شركة تأجير
+  | 'INSURANCE'         // شركة تأمين
+  | 'SUPPLIER'          // مورد
+  | 'MARKETER'          // مسوق
+  | 'PARTS_SHOP'        // محل قطع غيار
+  | 'DEFAULT';          // افتراضي
+
+// Homepage Banner Configuration
+export interface HomepageBanner {
+  id: string;
+  title: MultilingualText;
+  subtitle: MultilingualText;
+  imageUrl?: string;
+  backgroundColor: string;
+  textColor?: string;
+  ctaLabel: MultilingualText;
+  ctaLink: string;
+  ctaVariant?: 'primary' | 'secondary' | 'outline';
+  isActive: boolean;
+  order: number;
+  targetCustomerTypes?: HomepageCustomerType[];
+}
+
+// Homepage Shortcut/Action Card
+export interface HomepageShortcut {
+  id: string;
+  icon: string;  // Lucide icon name
+  title: MultilingualText;
+  description: MultilingualText;
+  link: string;
+  colorClass?: string;
+  isActive: boolean;
+  order: number;
+  requiredPermission?: string;
+}
+
+// Homepage Section Types
+export type HomepageSectionType = 
+  | 'hero'
+  | 'banners'
+  | 'keyActions'
+  | 'tools'
+  | 'stats'
+  | 'feedback'
+  | 'supplierStats'
+  | 'incomingRequests'
+  | 'marketerStats'
+  | 'referralSection'
+  | 'recentOrders';
+
+// Homepage Layout Configuration
+export interface HomepageLayoutConfig {
+  heroTitle: MultilingualText;
+  heroSubtitle: MultilingualText;
+  heroBackgroundGradient?: string;
+  heroImageUrl?: string;
+  showProductSearchShortcut: boolean;
+  showTraderTools: boolean;
+  showImportServices: boolean;
+  showQuoteRequest: boolean;
+  showOrderHistory: boolean;
+  sectionsOrder: HomepageSectionType[];
+  primaryCtaLabel?: MultilingualText;
+  primaryCtaLink?: string;
+  secondaryCtaLabel?: MultilingualText;
+  secondaryCtaLink?: string;
+}
+
+// Homepage Banners Configuration
+export interface HomepageBannersConfig {
+  autoPlayInterval: number; // milliseconds
+  showDots: boolean;
+  showArrows: boolean;
+  transitionType: 'fade' | 'slide';
+  banners: HomepageBanner[];
+}
+
+// Homepage Shortcuts Configuration
+export interface HomepageShortcutsConfig {
+  shortcuts: HomepageShortcut[];
+}
+
+// Complete Homepage Configuration Response
+export interface HomepageConfig {
+  customerType: HomepageCustomerType;
+  layoutConfig: HomepageLayoutConfig;
+  bannersConfig: HomepageBannersConfig;
+  shortcutsConfig?: HomepageShortcutsConfig;
+}
+
+// Homepage Stats for display
+export interface HomepageStats {
+  pendingRequests: number;
+  approvedOrders: number;
+  inProgressOrders: number;
+  totalOrders: number;
+  searchPointsRemaining?: number;
+  // Supplier-specific
+  requestsReceived?: number;
+  quotesSent?: number;
+  conversionRate?: number;
+  // Marketer-specific
+  referredCustomers?: number;
+  referredOrders?: number;
+  totalCommission?: number;
+}
+
+// ===== Supplier Portal Types (Command 15) =====
+
+// Supplier Type (Local or International)
+export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+
+// Supplier Request Status
+export type SupplierRequestStatus = 'NEW' | 'VIEWED' | 'QUOTED' | 'REJECTED' | 'ACCEPTED' | 'EXPIRED';
+
+// Supplier Product - Products that suppliers offer
+export interface SupplierProduct {
+  id: string;
+  supplierId: string;
+  sku: string;
+  oemNumber: string;
+  name: string;
+  nameEn?: string;
+  category: string;
+  brand: string;
+  model?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  purchasePrice: number;  // Price supplier sells to SINI CAR
+  minOrderQty: number;
+  stock: number;
+  deliveryTime: number;  // Days
+  isActive: boolean;
+  description?: string;
+  imageUrl?: string;
+  mainImageUrl?: string | null;       // Main product image URL
+  imageGallery?: string[];            // Array of additional image URLs
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Supplier Product Insert type (for forms)
+export interface SupplierProductInsert {
+  sku: string;
+  oemNumber: string;
+  name: string;
+  nameEn?: string;
+  category: string;
+  brand: string;
+  model?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  purchasePrice: number;
+  minOrderQty: number;
+  stock: number;
+  deliveryTime: number;
+  description?: string;
+  imageUrl?: string;
+}
+
+// Supplier Request - Requests sent to suppliers for quotes
+export interface SupplierRequest {
+  id: string;
+  requestId: string;  // Links to main PurchaseRequest
+  supplierId: string;
+  supplierName?: string;
+  status: SupplierRequestStatus;
+  quotedPrice?: number;
+  stockAvailable?: number;
+  notes?: string;
+  responseDeadline?: string;
+  deadline?: string;  // Customer deadline for the request
+  respondedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Related request details for display
+  partNumber?: string;
+  partName?: string;
+  quantity?: number;
+  customerName?: string;  // Obfuscated if needed
+  urgency?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+}
+
+// Supplier Dashboard Stats
+export interface SupplierDashboardStats {
+  totalProducts: number;
+  activeProducts: number;
+  inactiveProducts: number;
+  requestsAssignedToday: number;
+  quotesSubmitted: number;
+  quotesAccepted: number;
+  quotesRejected: number;
+  pendingRequests: number;
+  averageResponseTime: number;  // Hours
+  supplierRating: number;  // 0-5
+  totalRevenue?: number;
+  thisMonthRevenue?: number;
+}
+
+// Supplier Settings
+export interface SupplierSettings {
+  id: string;
+  supplierId: string;
+  defaultPriceMarkup: number;  // Percentage
+  defaultDeliveryTime: number;  // Days
+  autoResponseEnabled: boolean;
+  autoResponseMessage?: string;
+  notifyOnNewRequest: boolean;
+  notifyOnQuoteAccepted: boolean;
+  notifyOnDeadlineApproaching: boolean;
+  preferredPaymentTerms?: string;
+  minOrderValue?: number;
+  maxDeliveryRadius?: string;
+  workingHours?: string;
+  holidays?: string[];
+}
+
+// Supplier Profile (Extended from User)
+export interface SupplierProfileExtended {
+  userId: string;
+  supplierType: SupplierType;
+  supplierCompanyName: string;
+  supplierVat?: string;
+  supplierCrNumber?: string;
+  supplierCatalogUrl?: string;
+  supplierRating: number;
+  supplierActiveProductsCount: number;
+  supplierTotalQuotesSubmitted: number;
+  supplierTotalQuotesAccepted: number;
+  supplierJoinedAt: string;
+  supplierVerifiedAt?: string;
+  supplierStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'BLOCKED';
+  supplierCategories?: string[];  // Categories they supply
+  supplierBrands?: string[];  // Brands they supply
+  supplierRegions?: string[];  // Regions they serve
+  contactEmail?: string;
+  contactPhone?: string;
+  contactWhatsapp?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+}
+
+// Supplier Product Filters
+export interface SupplierProductFilters {
+  search?: string;
+  category?: string;
+  brand?: string;
+  availability?: 'IN_STOCK' | 'OUT_OF_STOCK' | 'ALL';
+  isActive?: boolean;
+  sortBy?: 'name' | 'price' | 'stock' | 'createdAt' | 'updatedAt';
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+// Supplier Request Filters
+export interface SupplierRequestFilters {
+  status?: SupplierRequestStatus | 'ALL';
+  urgency?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'ALL';
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  sortBy?: 'createdAt' | 'responseDeadline' | 'quotedPrice';
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+// Supplier Excel Import Result
+export interface SupplierExcelImportResult {
+  success: boolean;
+  totalRows: number;
+  insertedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  errors: {
+    row: number;
+    field: string;
+    message: string;
+  }[];
+}
+
+// Supplier Quote Submission
+export interface SupplierQuoteSubmission {
+  requestId: string;
+  quotedPrice: number;
+  stockAvailable: number;
+  notes?: string;
+  deliveryTime?: number;
+  validUntil?: string;
+}
+
+// Supplier Activity Log Entry (extends ActivityLogEntry)
+export type SupplierActivityType = 
+  | 'SUPPLIER_PRODUCT_ADDED'
+  | 'SUPPLIER_PRODUCT_UPDATED'
+  | 'SUPPLIER_PRODUCT_DELETED'
+  | 'SUPPLIER_EXCEL_UPLOADED'
+  | 'SUPPLIER_QUOTE_SUBMITTED'
+  | 'SUPPLIER_REQUEST_REJECTED'
+  | 'SUPPLIER_SETTINGS_UPDATED'
+  | 'SUPPLIER_PROFILE_UPDATED';
+
+// Supplier Report Data
+export interface SupplierReportData {
+  period: 'week' | 'month' | 'quarter' | 'year';
+  requestsSent: number;
+  quotesSubmitted: number;
+  quotesAccepted: number;
+  quotesRejected: number;
+  topRequestedProducts: { productId: string; productName: string; count: number }[];
+  revenueGenerated: number;
+  averageResponseTime: number;
+  ratingTrend: number[];
+}
+
 // ============================================
-// TYPES - DEPRECATED BARREL FILE
-// ============================================
-// This file re-exports all types from the new organized types/ directory
-// for backward compatibility. New code should import from './types/' directly.
+// TRADER TOOLS CENTER TYPES (Command Extension)
 // ============================================
 
-export * from './types';
+// Tool Types for Trader Tools Center
+export type TraderToolType =
+  | 'VIN'             // VIN Extraction Tool
+  | 'PDF_EXCEL'       // PDF to Excel Conversion
+  | 'COMPARISON'      // Price Comparison Tool
+  | 'ALTERNATIVES'    // Alternatives Upload
+  | 'SEARCH'          // Product Search Requests
+  | 'EXCEL_QUOTE';    // Excel Uploads for Quotation
+
+// Device Types
+export type DeviceType = 'WEB' | 'MOBILE';
+
+// Action Status
+export type TraderToolActionStatus = 'SUCCESS' | 'FAILED' | 'PENDING' | 'PROCESSING';
+
+// Main TraderToolAction Model
+export interface TraderToolAction {
+  id: string;
+  customerId: string;                    // FK to User
+  customerName?: string;                 // Cached customer name for display
+  toolType: TraderToolType;
+  inputData: Record<string, any>;        // JSON input data (VIN number, search terms, etc.)
+  outputData?: Record<string, any>;      // JSON output summary (not full data)
+  inputFileUrl?: string;                 // Optional uploaded file URL
+  inputFileName?: string;                // Original filename
+  outputFileUrl?: string;                // Optional generated file URL
+  outputFileName?: string;               // Generated filename
+  createdAt: string;                     // ISO timestamp
+  createdFromIp?: string;                // IP address
+  deviceType: DeviceType;                // WEB or MOBILE
+  status: TraderToolActionStatus;        // SUCCESS, FAILED, PENDING, PROCESSING
+  errorMessage?: string;                 // Error details if failed
+  processingTimeMs?: number;             // Processing duration in milliseconds
+  isDeleted?: boolean;                   // Soft delete flag
+  
+  // Additional metadata for each tool type
+  metadata?: {
+    // VIN Tool
+    vin?: string;
+    confidence?: number;
+    manufacturer?: string;
+    model?: string;
+    year?: string;
+    
+    // PDF to Excel
+    rowCount?: number;
+    columnCount?: number;
+    pageCount?: number;
+    
+    // Price Comparison
+    partNumber?: string;
+    partName?: string;
+    suppliersCount?: number;
+    lowestPrice?: number;
+    highestPrice?: number;
+    
+    // Search
+    searchQuery?: string;
+    resultsCount?: number;
+    
+    // Excel Quote
+    itemsCount?: number;
+    quotedTotal?: number;
+  };
+}
+
+// Admin API Filters for Trader Tools
+export interface TraderToolsAdminFilters {
+  customerId?: string;
+  toolType?: TraderToolType | 'ALL';
+  dateFrom?: string;
+  dateTo?: string;
+  status?: TraderToolActionStatus | 'ALL';
+  hasFiles?: boolean;
+  deviceType?: DeviceType | 'ALL';
+  search?: string;                       // Search in VIN, filename, keyword in inputData
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'createdAt' | 'toolType' | 'status' | 'customerName';
+  sortDirection?: 'asc' | 'desc';
+}
+
+// Admin API Response
+export interface TraderToolsAdminResponse {
+  items: TraderToolAction[];
+  total: number;
+  page: number;
+  pageSize: number;
+  summary: {
+    total: number;
+    byToolType: Record<TraderToolType, number>;
+    byStatus: Record<TraderToolActionStatus, number>;
+    successRate: number;
+  };
+}
+
+// Customer History Filters
+export interface TraderToolsCustomerFilters {
+  toolType?: TraderToolType | 'ALL';
+  dateFrom?: string;
+  dateTo?: string;
+  status?: TraderToolActionStatus | 'ALL';
+  page?: number;
+  pageSize?: number;
+}
+
+// Customer History Response
+export interface TraderToolsCustomerResponse {
+  items: TraderToolAction[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+// Export Data for Trader Tools
+export interface TraderToolsExportRow {
+  id: string;
+  customerId: string;
+  customerName: string;
+  toolType: TraderToolType;
+  inputSummary: string;
+  outputSummary: string;
+  status: TraderToolActionStatus;
+  deviceType: DeviceType;
+  createdAt: string;
+  hasInputFile: boolean;
+  hasOutputFile: boolean;
+}
+
+// Trader Tool Settings (per customer type)
+export interface TraderToolSettings {
+  toolKey: TraderToolType;
+  enabledForCustomerTypes: string[];     // Which customer types can use this tool
+  dailyLimit?: number;                   // Optional daily usage limit
+  monthlyLimit?: number;                 // Optional monthly usage limit
+  requiresApproval?: boolean;            // Require admin approval for certain actions
+  allowedForNewCustomers?: boolean;      // Allow new customers to use
+  maintenanceMode?: boolean;             // Temporarily disable
+  maintenanceMessage?: string;           // Message to show during maintenance
+}
+
+// Trader Tools Usage Report
+export interface TraderToolsUsageReport {
+  period: 'day' | 'week' | 'month' | 'quarter' | 'year';
+  dateFrom: string;
+  dateTo: string;
+  totalActions: number;
+  uniqueCustomers: number;
+  successRate: number;
+  byToolType: {
+    toolType: TraderToolType;
+    count: number;
+    successCount: number;
+    failedCount: number;
+    avgProcessingTime: number;
+  }[];
+  byCustomerType: {
+    customerType: string;
+    count: number;
+  }[];
+  byDate: {
+    date: string;
+    count: number;
+  }[];
+  topCustomers: {
+    customerId: string;
+    customerName: string;
+    usageCount: number;
+  }[];
+}
+
+// ==========================================
+// FEEDBACK SYSTEM TYPES
+// ==========================================
+
+export type FeedbackCategory = 'BUG' | 'SUGGESTION' | 'COMPLAINT' | 'QUESTION' | 'OTHER';
+export type FeedbackPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type FeedbackStatus = 'NEW' | 'IN_REVIEW' | 'RESOLVED' | 'DISMISSED';
+export type FeedbackSenderType = 'CUSTOMER' | 'SUPPLIER' | 'MARKETER' | 'EMPLOYEE' | 'ADMIN' | 'GUEST';
+
+export interface Feedback {
+  id: string;
+  senderUserId: string | null;        // null if guest
+  senderName: string;
+  senderContact: string;              // phone, WhatsApp, or email
+  senderType: FeedbackSenderType;
+  pageContext?: string;               // which page they were on (e.g. "/product-search")
+  category: FeedbackCategory;
+  priority: FeedbackPriority;
+  subject: string;
+  message: string;
+  attachments?: string[];             // list of file URLs
+  status: FeedbackStatus;
+  adminAssignedId?: string | null;    // who will handle this feedback
+  adminNotes?: string;                // internal notes from admins
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FeedbackReply {
+  id: string;
+  feedbackId: string;
+  senderUserId: string;               // admin replying
+  senderName: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface FeedbackCreateInput {
+  category: FeedbackCategory;
+  priority: FeedbackPriority;
+  subject: string;
+  message: string;
+  pageContext?: string;
+  senderContact?: string;
+}
+
+export interface FeedbackPublicCreateInput {
+  senderName: string;
+  senderContact: string;
+  category: FeedbackCategory;
+  priority: FeedbackPriority;
+  subject: string;
+  message: string;
+  pageContext?: string;
+}
+
+export interface FeedbackUpdateInput {
+  status?: FeedbackStatus;
+  adminAssignedId?: string | null;
+  adminNotes?: string;
+  priority?: FeedbackPriority;
+  category?: FeedbackCategory;
+}
+
+export interface FeedbackListFilters {
+  status?: FeedbackStatus;
+  category?: FeedbackCategory;
+  senderType?: FeedbackSenderType;
+  assignedTo?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface FeedbackListResponse {
+  items: Feedback[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface FeedbackSettings {
+  enabled: boolean;
+  showForRoles: FeedbackSenderType[];
+  defaultCategory: FeedbackCategory;
+  defaultPriority: FeedbackPriority;
+  assignedDefaultAdminId?: string;
+  allowGuestFeedback: boolean;
+}
+
+// =====================================================
+// INTERNATIONAL SUPPLIER & PRICING ENGINE TYPES
+// =====================================================
+
+export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+
+export interface Currency {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  symbol: string;
+  isBase: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ExchangeRate {
+  id: string;
+  currencyId: string;
+  rateToBase: number;
+  syncPercent: number;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  isActive: boolean;
+  updatedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CurrencyConversionResult {
+  originalAmount: number;
+  originalCurrency: string;
+  convertedAmount: number;
+  targetCurrency: string;
+  exchangeRate: number;
+  syncPercent: number;
+}
+
+export interface SupplierGroup {
+  id: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  defaultMarginPercent: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface QualityCode {
+  id: string;
+  code: string;
+  label: string;
+  labelAr?: string;
+  labelEn?: string;
+  labelHi?: string;
+  labelZh?: string;
+  description?: string;
+  defaultMarginAdjust: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface BrandCode {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  logoUrl?: string;
+  country?: string;
+  description?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ShippingMethod {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  baseRate: number;
+  perKgRate: number;
+  minCharge: number;
+  deliveryDays: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ShippingZone {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  countries: string[];
+  extraRatePerKg: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ShippingCostResult {
+  shippingMethod: string;
+  baseCost: number;
+  weightCost: number;
+  zoneSurcharge: number;
+  totalCost: number;
+  currency: string;
+  estimatedDays: number;
+}
+
+export interface PricingInput {
+  supplierId: string;
+  supplierCurrency: string;
+  supplierPrice: number;
+  customerCurrency?: string;
+  qualityCodeId?: string;
+}
+
+export interface PricingResult {
+  supplierPrice: number;
+  supplierCurrency: string;
+  basePriceInSystemCurrency: number;
+  marginPercent: number;
+  qualityMarginAdjust: number;
+  sellPriceBase: number;
+  customerCurrency: string;
+  sellPriceCustomer: number;
+  exchangeRateUsed: number;
+  breakdown: {
+    step: string;
+    value: number;
+    description: string;
+  }[];
+}
+
+// =====================================================
+// PERMISSION SYSTEM TYPES
+// =====================================================
+
+export interface Role {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  isSystem: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Permission {
+  id: string;
+  code: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  module: string;
+  description?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface RolePermission {
+  id: string;
+  roleId: string;
+  permissionId: string;
+  canCreate: boolean;
+  canRead: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  permission?: Permission;
+}
+
+export interface UserRoleAssignment {
+  id: string;
+  userId: string;
+  roleId: string;
+  assignedBy?: string;
+  isActive: boolean;
+  createdAt: string;
+  role?: Role;
+}
+
+export interface UserPermissions {
+  userId: string;
+  roles: string[];
+  permissions: {
+    code: string;
+    module: string;
+    canCreate: boolean;
+    canRead: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  }[];
+  modules: string[];
+}
+
+export interface ModuleAccess {
+  id: string;
+  moduleKey: string;
+  moduleName: string;
+  moduleNameAr?: string;
+  isEnabled: boolean;
+  requiredRole?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// =====================================================
+// GLOBAL SETTINGS & FEATURE FLAGS
+// =====================================================
+
+export type SettingValueType = 'STRING' | 'NUMBER' | 'BOOLEAN' | 'JSON';
+
+export interface GlobalSetting {
+  id: string;
+  key: string;
+  value: string;
+  valueType: SettingValueType;
+  category?: string;
+  label?: string;
+  labelAr?: string;
+  description?: string;
+  isEditable: boolean;
+  isVisible: boolean;
+  sortOrder: number;
+  updatedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface FeatureFlag {
+  id: string;
+  key: string;
+  name: string;
+  nameAr?: string;
+  description?: string;
+  isEnabled: boolean;
+  enabledFor: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// =====================================================
+// EXCEL IMPORT TEMPLATE TYPES
+// =====================================================
+
+export interface ExcelTemplateColumn {
+  id: string;
+  templateId: string;
+  columnIndex: number;
+  headerName: string;
+  headerNameAr?: string;
+  headerNameEn?: string;
+  mapToField: string;
+  isRequired: boolean;
+  defaultValue?: string;
+  validationRegex?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ExcelImportTemplate {
+  id: string;
+  name: string;
+  nameAr?: string;
+  nameEn?: string;
+  description?: string;
+  templateType: string;
+  languageHint?: string;
+  instructionsText?: string;
+  instructionsTextAr?: string;
+  isActive: boolean;
+  columns: ExcelTemplateColumn[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// =====================================================
+// SUPPLIER PROFILE (Extended)
+// =====================================================
+
+export interface SupplierProfile {
+  id: string;
+  userId: string;
+  supplierType: SupplierType;
+  groupId?: string;
+  group?: SupplierGroup;
+  companyName: string;
+  companyNameAr?: string;
+  companyNameEn?: string;
+  country?: string;
+  city?: string;
+  address?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  website?: string;
+  defaultCurrencyCode?: string;
+  customMarginPercent?: number | null;
+  paymentTerms?: string;
+  minOrderValue?: number;
+  avgDeliveryDays?: number;
+  logoUrl?: string;
+  isVerified: boolean;
+  isActive: boolean;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  notes?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface SupplierPriceEntry {
+  id: string;
+  supplierId: string;
+  partNumber: string;
+  partName?: string;
+  partNameAr?: string;
+  partNameEn?: string;
+  brand?: string;
+  qualityCodeId?: string;
+  brandCodeId?: string;
+  unitPrice: number;
+  currencyCode: string;
+  moq?: number;
+  leadTimeDays?: number;
+  weightKg?: number;
+  volumeCbm?: number;
+  hsCode?: string;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
