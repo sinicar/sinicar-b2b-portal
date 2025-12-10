@@ -142,16 +142,38 @@ The **Admin Dashboard** provides comprehensive management tools including:
 
 ```
 src/
-├── components/           # 43 React components
-│   ├── Dashboard.tsx     # Main customer portal (2243 lines)
-│   ├── AdminDashboard.tsx # Admin control panel (931 lines)
-│   ├── TeamManagementPage.tsx # Team management UI
+├── components/           # 60+ React components
+│   ├── admin-settings/   # Modular admin settings (extracted Dec 2024)
+│   │   ├── DataManagementSection.tsx
+│   │   ├── NotificationManagement.tsx
+│   │   ├── PrintTemplatesDesigner.tsx
+│   │   ├── StatusLabelsManager.tsx
+│   │   └── index.ts
+│   ├── dashboard/        # Modular dashboard components (extracted Dec 2024)
+│   │   ├── DashboardSidebar.tsx
+│   │   ├── DashboardHeader.tsx
+│   │   ├── CartIconButton.tsx
+│   │   ├── DashboardHelpers.tsx
+│   │   └── index.ts
+│   ├── Dashboard.tsx     # Main customer portal (1,676 lines - reduced 27%)
+│   ├── AdminDashboard.tsx # Admin control panel (1,106 lines)
+│   ├── AdminSettings.tsx  # Settings panel (1,847 lines - reduced 44%)
 │   └── ...
+├── hooks/
+│   └── useIsMobile.ts    # Responsive detection hook
 ├── services/
-│   ├── mockApi.ts        # Complete mock backend (6486 lines)
-│   ├── OrganizationContext.tsx # Organization state (403 lines)
+│   ├── mock-api/         # Modular mock API structure
+│   │   ├── core/         # Helpers, defaults, storage keys
+│   │   └── domains/      # Auth, notifications, settings, system
+│   ├── mockApi.ts        # Legacy mock backend (5,000+ lines)
+│   ├── OrganizationContext.tsx
 │   ├── PermissionContext.tsx
 │   ├── pricingEngine.ts
+│   └── ...
+├── types/                # Modular type definitions
+│   ├── index.ts          # Re-exports all types
+│   ├── user.ts, order.ts, product.ts, quote.ts, settings.ts
+│   ├── notification.ts, admin.ts, supplier.ts, trader.ts
 │   └── ...
 ├── locales/              # 4 language files (~1900 lines each)
 │   ├── ar.json, en.json, hi.json, zh.json
@@ -159,9 +181,13 @@ src/
 │   ├── arabicSearch.ts   # Arabic text search
 │   ├── dateUtils.ts
 │   └── partNumberUtils.ts
-├── types.ts              # All TypeScript definitions (2401 lines)
+├── types.ts              # Legacy types (4,391 lines - gradual migration)
 └── App.tsx
 ```
+
+# Project Documentation
+
+**Full Project Context**: See `PROJECT_CONTEXT.md` for comprehensive documentation for AI assistants.
 
 # AI Integration
 
@@ -216,6 +242,19 @@ The application now includes a fully integrated Express.js backend with PostgreS
 
 # Recent Changes (December 2024)
 
+## Code Modularization & Refactoring
+- **Types Refactoring**: Created modular `src/types/` directory with domain-specific type files
+  - user.ts, order.ts, product.ts, quote.ts, settings.ts, notification.ts, admin.ts, supplier.ts, trader.ts
+  - Fixed duplicate type definitions (BackendRole, BackendPermission, BackendSupplierProfile)
+- **AdminSettings.tsx Extraction**: Reduced from 3,304 → 1,847 lines (44% reduction)
+  - Extracted: DataManagementSection, NotificationManagement, PrintTemplatesDesigner, StatusLabelsManager
+- **Dashboard.tsx Extraction**: Reduced from 2,297 → 1,676 lines (27% reduction)
+  - Extracted: DashboardSidebar, DashboardHeader, CartIconButton, DashboardHelpers
+- **Shared Hooks**: Created `src/hooks/useIsMobile.ts` for responsive detection
+- **Mock API Modularization**: Created `src/services/mock-api/` with core/ and domains/ subdirectories
+- **Project Documentation**: Created comprehensive `PROJECT_CONTEXT.md` for AI assistant handoff
+
+## System Features
 - **Core Notification System (COMMAND 25A)**: Complete in-app notification system with:
   - `Notification` and `UserNotificationSettings` Prisma models
   - User-configurable notification preferences per event type
