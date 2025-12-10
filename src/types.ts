@@ -4033,7 +4033,7 @@ export interface FeedbackSettings {
 // INTERNATIONAL SUPPLIER & PRICING ENGINE TYPES
 // =====================================================
 
-export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+// Note: SupplierType is defined above in Supplier Portal Types section
 
 export interface Currency {
   id: string;
@@ -4181,10 +4181,10 @@ export interface PricingResult {
 }
 
 // =====================================================
-// PERMISSION SYSTEM TYPES
+// BACKEND PERMISSION SYSTEM TYPES (CRUD-based)
 // =====================================================
 
-export interface Role {
+export interface BackendRole {
   id: string;
   code: string;
   name: string;
@@ -4198,7 +4198,7 @@ export interface Role {
   updatedAt?: string;
 }
 
-export interface Permission {
+export interface BackendPermission {
   id: string;
   code: string;
   name: string;
@@ -4220,7 +4220,7 @@ export interface RolePermission {
   canRead: boolean;
   canUpdate: boolean;
   canDelete: boolean;
-  permission?: Permission;
+  permission?: BackendPermission;
 }
 
 export interface UserRoleAssignment {
@@ -4230,7 +4230,7 @@ export interface UserRoleAssignment {
   assignedBy?: string;
   isActive: boolean;
   createdAt: string;
-  role?: Role;
+  role?: BackendRole;
 }
 
 export interface UserPermissions {
@@ -4331,10 +4331,10 @@ export interface ExcelImportTemplate {
 }
 
 // =====================================================
-// SUPPLIER PROFILE (Extended)
+// BACKEND SUPPLIER PROFILE (Extended for International Pricing)
 // =====================================================
 
-export interface SupplierProfile {
+export interface BackendSupplierProfile {
   id: string;
   userId: string;
   supplierType: SupplierType;
