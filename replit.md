@@ -57,14 +57,13 @@ All data is persisted in the browser's `localStorage` through a mock API layer (
 
 ### Demo Users (للاختبار)
 
-| # | البريد الإلكتروني | كلمة المرور | الدور |
-|---|------------------|-------------|-------|
-| 1 | 1@sinicar.com | 1 | SUPER_ADMIN (مدير عام) |
-| 2 | 2@sinicar.com | 2 | ADMIN (مدير) |
-| 3 | 3@sinicar.com | 3 | STAFF (موظف) |
-| 4 | 4@sinicar.com | 4 | CUSTOMER (عميل) |
-| 5 | 5@sinicar.com | 5 | SUPPLIER (مورد) |
-| 6 | 6@sinicar.com | 6 | MARKETER (مسوق) |
+| الدور | المعرّف | كلمة المرور | ملاحظة |
+|-------|---------|-------------|--------|
+| SUPER_ADMIN (مدير عام) | `admin` | `admin` | دخول من صفحة لوحة التحكم |
+| CUSTOMER_OWNER (مالك منشأة) | `1` | `1` | رقم عميل في صفحة العملاء |
+| CUSTOMER_STAFF (موظف) | `0500056988` | - | دخول بالجوال |
+
+**ملاحظة مهمة**: صفحة تسجيل الدخول الرئيسية تستخدم رقم العميل وليس البريد الإلكتروني.
 
 **Primary Roles:**
 - `SUPER_ADMIN` - Full admin access

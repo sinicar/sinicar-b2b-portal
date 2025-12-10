@@ -151,14 +151,13 @@ For local and international suppliers:
 ## 5. Authentication & Authorization
 
 ### Demo Credentials
-| Email | Password | Role |
-|-------|----------|------|
-| 1@sinicar.com | 1 | SUPER_ADMIN |
-| 2@sinicar.com | 2 | ADMIN |
-| 3@sinicar.com | 3 | STAFF |
-| 4@sinicar.com | 4 | CUSTOMER |
-| 5@sinicar.com | 5 | SUPPLIER |
-| 6@sinicar.com | 6 | MARKETER |
+| Role | Identifier | Password | Notes |
+|------|------------|----------|-------|
+| SUPER_ADMIN | `admin` | `admin` | Admin dashboard access |
+| CUSTOMER_OWNER | `1` | `1` | Customer portal (uses customer number) |
+| CUSTOMER_STAFF | `0500056988` | - | Staff login by phone number |
+
+**Important**: The main login page uses customer number, not email address.
 
 ### Role Types
 - **ExtendedUserRole**: SUPER_ADMIN, ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER_LOCAL, SUPPLIER_INTERNATIONAL, MARKETER
