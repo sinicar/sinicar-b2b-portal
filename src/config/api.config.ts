@@ -3,12 +3,12 @@
  * 
  * هذا الملف يتحكم في مصدر البيانات:
  * - USE_MOCK_API = true  → يستخدم بيانات تجريبية (localStorage)
- * - USE_MOCK_API = false → يستخدم API حقيقي (يحتاج BASE_URL)
+ * - USE_MOCK_API = false → يستخدم API حقيقي
+ * - USE_SUPABASE = true  → يستخدم Supabase
  * 
- * للربط بـ Backend حقيقي:
+ * للربط بـ Supabase:
  * 1. غيّر USE_MOCK_API إلى false
- * 2. أضف رابط الـ API في BASE_URL
- * 3. تأكد من أن الـ API يُرجع نفس هيكل البيانات
+ * 2. غيّر USE_SUPABASE إلى true
  */
 
 export const API_CONFIG = {
@@ -17,7 +17,14 @@ export const API_CONFIG = {
      * true = بيانات محلية في localStorage
      * false = API خارجي حقيقي
      */
-    USE_MOCK_API: true,
+    USE_MOCK_API: false,
+
+    /**
+     * استخدام Supabase كـ Backend
+     * true = يستخدم Supabase
+     * false = يستخدم API مخصص
+     */
+    USE_SUPABASE: true,
 
     /**
      * رابط الـ API الأساسي
@@ -91,4 +98,11 @@ export function getApiUrl(endpoint: string): string {
  */
 export function isMockMode(): boolean {
     return API_CONFIG.USE_MOCK_API;
+}
+
+/**
+ * Check if using Supabase
+ */
+export function isSupabaseMode(): boolean {
+    return !API_CONFIG.USE_MOCK_API && API_CONFIG.USE_SUPABASE;
 }

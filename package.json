@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.87.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
