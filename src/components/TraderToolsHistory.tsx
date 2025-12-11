@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
-import { 
+import {
   History, Car, FileSpreadsheet, Scale, Search, Table, Upload,
   CheckCircle, XCircle, Clock, AlertTriangle, ChevronLeft, ChevronRight,
   Filter, Download, FileText, ExternalLink, Loader2
@@ -7,7 +7,7 @@ import {
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
 import { MockApi } from '../services/mockApi';
-import { 
+import {
   User, TraderToolAction, TraderToolType, TraderToolActionStatus,
   TraderToolsCustomerFilters
 } from '../types';
@@ -22,32 +22,32 @@ const TOOL_LABELS: Record<TraderToolType, { ar: string; en: string; icon: ReactN
   PDF_EXCEL: { ar: 'تحويل PDF إلى Excel', en: 'PDF to Excel', icon: <FileSpreadsheet size={16} /> },
   COMPARISON: { ar: 'مقارنة الأسعار', en: 'Price Comparison', icon: <Scale size={16} /> },
   ALTERNATIVES: { ar: 'رفع البدائل', en: 'Alternatives Upload', icon: <Upload size={16} /> },
-  SEARCH: { ar: 'بحث المنتجات', en: 'Product Search', icon: <Search size={16} /> },
-  EXCEL_QUOTE: { ar: 'طلب تسعير Excel', en: 'Excel Quote', icon: <Table size={16} /> }
+  SEARCH: { ar: 'الطلبات السريعة', en: 'Quick Orders', icon: <Search size={16} /> },
+  EXCEL_QUOTE: { ar: 'طلب شراء Excel', en: 'Excel Purchase Order', icon: <Table size={16} /> }
 };
 
 const STATUS_LABELS: Record<TraderToolActionStatus, { ar: string; en: string; color: string; icon: ReactNode }> = {
-  SUCCESS: { 
-    ar: 'ناجح', 
-    en: 'Success', 
+  SUCCESS: {
+    ar: 'ناجح',
+    en: 'Success',
     color: 'bg-green-100 text-green-700 border-green-200',
     icon: <CheckCircle size={14} />
   },
-  FAILED: { 
-    ar: 'فشل', 
-    en: 'Failed', 
+  FAILED: {
+    ar: 'فشل',
+    en: 'Failed',
     color: 'bg-red-100 text-red-700 border-red-200',
     icon: <XCircle size={14} />
   },
-  PENDING: { 
-    ar: 'قيد الانتظار', 
-    en: 'Pending', 
+  PENDING: {
+    ar: 'قيد الانتظار',
+    en: 'Pending',
     color: 'bg-amber-100 text-amber-700 border-amber-200',
     icon: <Clock size={14} />
   },
-  PROCESSING: { 
-    ar: 'قيد المعالجة', 
-    en: 'Processing', 
+  PROCESSING: {
+    ar: 'قيد المعالجة',
+    en: 'Processing',
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     icon: <Loader2 size={14} className="animate-spin" />
   }
@@ -77,31 +77,31 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
   const { t, dir } = useLanguage();
   const { addToast } = useToast();
   const isRTL = dir === 'rtl';
-  
+
   const [loading, setLoading] = useState(true);
   const [actions, setActions] = useState<TraderToolAction[]>([]);
   const [total, setTotal] = useState(0);
-  
+
   // Filters
   const [toolTypeFilter, setToolTypeFilter] = useState<TraderToolType | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<TraderToolActionStatus | 'ALL'>('ALL');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
-  
+
   // Detail Modal
   const [selectedAction, setSelectedAction] = useState<TraderToolAction | null>(null);
-  
+
   // Initialize demo data and load actions
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         await MockApi.initializeTraderToolsDemoData(user.id);
-        
+
         const filters: TraderToolsCustomerFilters = {
           page: currentPage,
           pageSize,
@@ -110,7 +110,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
           dateFrom: dateFrom || undefined,
           dateTo: dateTo || undefined
         };
-        
+
         const response = await MockApi.getTraderToolActionsCustomer(user.id, filters);
         setActions(response.items);
         setTotal(response.total);
@@ -121,20 +121,20 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, [user.id, currentPage, toolTypeFilter, statusFilter, dateFrom, dateTo]);
-  
+
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [toolTypeFilter, statusFilter, dateFrom, dateTo]);
-  
+
   const totalPages = Math.ceil(total / pageSize);
-  
+
   const getInputSummary = (action: TraderToolAction): string => {
     const { toolType, metadata, inputData } = action;
-    
+
     switch (toolType) {
       case 'VIN':
         return metadata?.vin || inputData?.imageFile || '-';
@@ -152,29 +152,29 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
         return '-';
     }
   };
-  
+
   const getOutputSummary = (action: TraderToolAction): string => {
     const { toolType, metadata, outputData } = action;
-    
+
     switch (toolType) {
       case 'VIN':
-        return metadata?.manufacturer && metadata?.year 
+        return metadata?.manufacturer && metadata?.year
           ? `${metadata.manufacturer} ${metadata.model || ''} (${metadata.year})`
           : '-';
       case 'PDF_EXCEL':
-        return metadata?.rowCount 
+        return metadata?.rowCount
           ? `${metadata.rowCount} ${isRTL ? 'صف' : 'rows'}, ${metadata.columnCount} ${isRTL ? 'عمود' : 'cols'}`
           : '-';
       case 'COMPARISON':
-        return metadata?.suppliersCount 
+        return metadata?.suppliersCount
           ? `${metadata.suppliersCount} ${isRTL ? 'موردين' : 'suppliers'} | ${metadata.lowestPrice} - ${metadata.highestPrice}`
           : '-';
       case 'SEARCH':
-        return metadata?.resultsCount !== undefined 
+        return metadata?.resultsCount !== undefined
           ? `${metadata.resultsCount} ${isRTL ? 'نتيجة' : 'results'}`
           : '-';
       case 'EXCEL_QUOTE':
-        return metadata?.quotedTotal !== undefined 
+        return metadata?.quotedTotal !== undefined
           ? `${metadata.quotedTotal.toLocaleString()} ${isRTL ? 'ر.س' : 'SAR'}`
           : '-';
       case 'ALTERNATIVES':
@@ -183,14 +183,14 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
         return '-';
     }
   };
-  
+
   const handleClearFilters = () => {
     setToolTypeFilter('ALL');
     setStatusFilter('ALL');
     setDateFrom('');
     setDateTo('');
   };
-  
+
   const usageSummary = useMemo(() => {
     return {
       total: actions.length,
@@ -211,7 +211,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
             {t('traderHistory.subtitle', 'تتبع جميع عمليات استخدام أدوات التاجر')}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2 flex-wrap">
           <div className="bg-white rounded-lg border border-slate-200 px-4 py-2 flex items-center gap-3">
             <span className="text-slate-500 text-sm">{t('traderHistory.totalUsage', 'إجمالي')}:</span>
@@ -219,13 +219,13 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-xl border border-slate-200 p-4">
         <div className="flex items-center gap-2 mb-4">
           <Filter size={18} className="text-slate-500" />
           <span className="font-semibold text-slate-700">{t('traderHistory.filters', 'الفلاتر')}</span>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm text-slate-600 mb-1">{t('traderHistory.toolType', 'نوع الأداة')}</label>
@@ -241,7 +241,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm text-slate-600 mb-1">{t('traderHistory.status', 'الحالة')}</label>
             <select
@@ -256,7 +256,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm text-slate-600 mb-1">{t('traderHistory.dateFrom', 'من تاريخ')}</label>
             <input
@@ -267,7 +267,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
               data-testid="input-date-from"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm text-slate-600 mb-1">{t('traderHistory.dateTo', 'إلى تاريخ')}</label>
             <input
@@ -278,7 +278,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
               data-testid="input-date-to"
             />
           </div>
-          
+
           <div className="flex items-end">
             <button
               onClick={handleClearFilters}
@@ -290,7 +290,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -330,8 +330,8 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {actions.map((action) => (
-                    <tr 
-                      key={action.id} 
+                    <tr
+                      key={action.id}
                       className="hover:bg-slate-50 transition-colors cursor-pointer"
                       onClick={() => setSelectedAction(action)}
                       data-testid={`row-action-${action.id}`}
@@ -387,7 +387,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                 </tbody>
               </table>
             </div>
-            
+
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
                 <span className="text-sm text-slate-500">
@@ -419,10 +419,10 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
           </>
         )}
       </div>
-      
+
       {selectedAction && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedAction(null)}>
-          <div 
+          <div
             className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
             dir={dir}
@@ -439,7 +439,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                 <XCircle size={20} className="text-slate-400" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -455,19 +455,19 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{t('traderHistory.col.date', 'التاريخ')}</label>
                 <p className="text-sm text-slate-700 font-medium">{formatDateTime(selectedAction.createdAt)}</p>
               </div>
-              
+
               {selectedAction.processingTimeMs && (
                 <div>
                   <label className="text-xs text-slate-500 uppercase">{t('traderHistory.processingTime', 'وقت المعالجة')}</label>
                   <p className="text-sm text-slate-700">{(selectedAction.processingTimeMs / 1000).toFixed(2)} {t('common.seconds', 'ثانية')}</p>
                 </div>
               )}
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{t('traderHistory.col.input', 'المدخلات')}</label>
                 <div className="mt-1 p-3 bg-slate-50 rounded-lg">
@@ -480,7 +480,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                   )}
                 </div>
               </div>
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{t('traderHistory.col.output', 'المخرجات')}</label>
                 <div className="mt-1 p-3 bg-slate-50 rounded-lg">
@@ -493,7 +493,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                   )}
                 </div>
               </div>
-              
+
               {selectedAction.status === 'FAILED' && selectedAction.errorMessage && (
                 <div>
                   <label className="text-xs text-red-500 uppercase">{t('traderHistory.errorMessage', 'رسالة الخطأ')}</label>
@@ -502,7 +502,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                   </div>
                 </div>
               )}
-              
+
               {selectedAction.metadata && Object.keys(selectedAction.metadata).length > 0 && (
                 <div>
                   <label className="text-xs text-slate-500 uppercase">{t('traderHistory.additionalInfo', 'معلومات إضافية')}</label>
@@ -525,7 +525,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center gap-2 text-xs text-slate-400 pt-2 border-t border-slate-100">
                 <span>ID: {selectedAction.id}</span>
                 <span>•</span>

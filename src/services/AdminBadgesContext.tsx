@@ -7,6 +7,7 @@ interface AdminBadgeCounts {
   quotes: number;
   imports: number;
   missing: number;
+  orderShortages: number;
 }
 
 interface AdminBadgesContextType {
@@ -17,6 +18,7 @@ interface AdminBadgesContextType {
   markQuotesAsSeen: () => void;
   markImportsAsSeen: () => void;
   markMissingAsSeen: () => void;
+  markOrderShortagesAsSeen: () => void;
 }
 
 const AdminBadgesContext = createContext<AdminBadgesContextType | null>(null);
@@ -27,12 +29,14 @@ export function AdminBadgesProvider({ children }: { children: ReactNode }) {
     accounts: 0,
     quotes: 0,
     imports: 0,
-    missing: 0
+    missing: 0,
+    orderShortages: 0
   });
 
-  const refreshBadges = useCallback(() => {
+  const refreshBadges = useCallback(async () => {
     const counts = MockApi.getNewItemCounts();
-    setBadges(counts);
+    const stats = await MockApi.getOrderShortagesStats();
+    setBadges({ ...counts, orderShortages: stats.new });
   }, []);
 
   const markOrdersAsSeen = useCallback(() => {
@@ -60,9 +64,14 @@ export function AdminBadgesProvider({ children }: { children: ReactNode }) {
     setBadges(prev => ({ ...prev, missing: 0 }));
   }, []);
 
+  const markOrderShortagesAsSeen = useCallback(async () => {
+    await MockApi.markOrderShortagesAsSeen();
+    setBadges(prev => ({ ...prev, orderShortages: 0 }));
+  }, []);
+
   useEffect(() => {
     refreshBadges();
-    
+
     const interval = setInterval(refreshBadges, 30000);
     return () => clearInterval(interval);
   }, [refreshBadges]);
@@ -75,7 +84,8 @@ export function AdminBadgesProvider({ children }: { children: ReactNode }) {
       markAccountsAsSeen,
       markQuotesAsSeen,
       markImportsAsSeen,
-      markMissingAsSeen
+      markMissingAsSeen,
+      markOrderShortagesAsSeen
     }}>
       {children}
     </AdminBadgesContext.Provider>

@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { 
-    LayoutDashboard, Users, User as UserIcon, Package, LogOut, Search, 
+import {
+    LayoutDashboard, Users, User as UserIcon, Package, LogOut, Search,
     Box, ChevronLeft, Building2, X, Globe, Clock, History, Headphones,
     Wrench, Layers
 } from 'lucide-react';
@@ -15,13 +15,12 @@ export interface CollapsibleSidebarItemProps {
 }
 
 export const CollapsibleSidebarItem = memo(({ icon, label, active, onClick, badge, collapsed }: CollapsibleSidebarItemProps) => (
-    <button 
-        onClick={onClick} 
-        className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3.5 rounded-2xl mb-2 transition-all duration-300 group relative overflow-hidden ${
-            active 
-            ? 'bg-gradient-to-l from-brand-600 to-brand-700 text-white font-bold shadow-lg shadow-brand-900/40 scale-[1.02]' 
-            : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium hover:scale-[1.01]'
-        }`}
+    <button
+        onClick={onClick}
+        className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3.5 rounded-2xl mb-2 transition-all duration-300 group relative overflow-hidden ${active
+                ? 'bg-gradient-to-l from-brand-600 to-brand-700 text-white font-bold shadow-lg shadow-brand-900/40 scale-[1.02]'
+                : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium hover:scale-[1.01]'
+            }`}
         title={collapsed ? label : undefined}
     >
         {active && (
@@ -69,32 +68,32 @@ export interface DashboardSidebarProps {
     isOwner: boolean;
 }
 
-export const DashboardSidebar = memo(({ 
-    user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen, 
-    t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick, 
-    collapsed, setCollapsed, hasPermission, isOwner 
+export const DashboardSidebar = memo(({
+    user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen,
+    t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick,
+    collapsed, setCollapsed, hasPermission, isOwner
 }: DashboardSidebarProps) => {
     const canAccessFeature = (permissionKey: string): boolean => {
         if (isOwner) return true;
         if (user.role === 'CUSTOMER' && !user.parentId) return true;
         return hasPermission ? hasPermission(permissionKey) : false;
     };
-    
+
     const sidebarPosition = isRTL ? 'right-0' : 'left-0';
-    const sidebarTransform = isRTL 
+    const sidebarTransform = isRTL
         ? (sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0')
         : (sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0');
-    
+
     const sidebarWidth = collapsed ? 'w-20' : 'w-72';
     const sidebarPointerEvents = sidebarOpen ? 'pointer-events-auto' : 'pointer-events-none lg:pointer-events-auto';
-    
+
     return (
         <aside className={`fixed lg:static inset-y-0 ${sidebarPosition} ${sidebarWidth} bg-gradient-to-b from-slate-900 via-slate-900 to-brand-950 text-white transform transition-all duration-300 z-50 flex flex-col shadow-2xl lg:shadow-xl ${sidebarTransform} ${sidebarPointerEvents}`}>
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-brand-600/10 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-20 left-0 w-32 h-32 bg-action-500/10 rounded-full blur-3xl"></div>
             </div>
-            
+
             <div className={`relative p-4 ${collapsed ? 'px-3' : 'p-5'} border-b border-white/10 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
                 {!collapsed ? (
                     <>
@@ -107,8 +106,8 @@ export const DashboardSidebar = memo(({
                                 <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">B2B Wholesale</p>
                             </div>
                         </div>
-                        <button 
-                            onClick={() => setSidebarOpen(false)} 
+                        <button
+                            onClick={() => setSidebarOpen(false)}
                             className="lg:hidden text-slate-400 hover:text-white p-2.5 -m-2 rounded-xl hover:bg-white/10 transition-all duration-200"
                             data-testid="button-close-sidebar"
                             aria-label="Close sidebar"
@@ -123,15 +122,15 @@ export const DashboardSidebar = memo(({
                 )}
             </div>
 
-            <button 
+            <button
                 onClick={() => setCollapsed(!collapsed)}
                 className={`hidden lg:flex absolute ${isRTL ? '-left-4' : '-right-4'} top-20 w-8 h-8 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 text-white rounded-full items-center justify-center transition-all duration-500 shadow-xl shadow-brand-500/50 z-50 ring-2 ring-white/30 hover:ring-white/50 hover:shadow-2xl hover:shadow-brand-400/60 hover:scale-110 active:scale-95 group`}
                 data-testid="button-toggle-sidebar"
                 title={collapsed ? t('sidebar.expand', 'توسيع') : t('sidebar.collapse', 'طي')}
             >
                 <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-                <ChevronLeft 
-                    size={18} 
+                <ChevronLeft
+                    size={18}
                     className={`transition-transform duration-500 ease-in-out ${collapsed ? (isRTL ? 'rotate-180' : 'rotate-0') : (isRTL ? 'rotate-0' : 'rotate-180')}`}
                 />
             </button>
@@ -190,21 +189,21 @@ export const DashboardSidebar = memo(({
                     </div>
                 )}
                 <CollapsibleSidebarItem icon={<LayoutDashboard size={20} />} label={tDynamic('sidebar.home', 'الرئيسية')} active={view === 'HOME'} onClick={() => onViewChange('HOME')} collapsed={collapsed} />
-                
-                <CollapsibleSidebarItem 
-                    icon={<Package size={20} />} 
-                    label={tDynamic('sidebar.orders', 'سجل الطلبات')} 
-                    active={view === 'ORDERS'} 
-                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORDERS')} 
+
+                <CollapsibleSidebarItem
+                    icon={<Package size={20} />}
+                    label={tDynamic('sidebar.orders', 'سجل الطلبات')}
+                    active={view === 'ORDERS'}
+                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORDERS')}
                     badge={user.hasUnreadOrders ? true : undefined}
                     collapsed={collapsed}
                 />
-                
-                <CollapsibleSidebarItem 
-                    icon={<Search size={20} />} 
-                    label={tDynamic('sidebar.quotes', 'طلبات التسعير')} 
-                    active={view === 'QUOTE_REQUEST'} 
-                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('QUOTE_REQUEST')} 
+
+                <CollapsibleSidebarItem
+                    icon={<Search size={20} />}
+                    label={tDynamic('sidebar.quotes', 'طلبات التسعير')}
+                    active={view === 'QUOTE_REQUEST'}
+                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('QUOTE_REQUEST')}
                     badge={user.hasUnreadQuotes ? true : undefined}
                     collapsed={collapsed}
                 />
@@ -215,10 +214,10 @@ export const DashboardSidebar = memo(({
                 {canAccessFeature('cust_use_trader_tools') && (
                     <CollapsibleSidebarItem icon={<Clock size={20} />} label={tDynamic('sidebar.toolsHistory', 'سجل الأدوات')} active={view === 'TOOLS_HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TOOLS_HISTORY')} collapsed={collapsed} />
                 )}
-                <CollapsibleSidebarItem icon={<Package size={20} />} label={tDynamic('sidebar.productSearch', 'بحث المنتجات')} active={view === 'PRODUCT_SEARCH'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('PRODUCT_SEARCH')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<Package size={20} />} label={tDynamic('sidebar.productSearch', 'الطلبات السريعة')} active={view === 'PRODUCT_SEARCH'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('PRODUCT_SEARCH')} collapsed={collapsed} />
                 <CollapsibleSidebarItem icon={<Layers size={20} />} label={tDynamic('sidebar.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ALTERNATIVES')} collapsed={collapsed} />
                 <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
-                
+
                 {!collapsed && (
                     <div className="flex items-center gap-2 px-3 py-2 mt-6 mb-2">
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -230,7 +229,7 @@ export const DashboardSidebar = memo(({
                 {canAccessFeature('org_manage_team') && (
                     <CollapsibleSidebarItem icon={<Users size={20} />} label={tDynamic('sidebar.teamManagement', 'إدارة الفريق')} active={view === 'TEAM_MANAGEMENT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TEAM_MANAGEMENT')} collapsed={collapsed} />
                 )}
-                
+
                 {!collapsed && (
                     <div className="flex items-center gap-2 px-3 py-2 mt-6 mb-2">
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -242,8 +241,8 @@ export const DashboardSidebar = memo(({
             </nav>
 
             <div className={`${collapsed ? 'p-2' : 'p-4'} border-t border-white/10 relative`}>
-                <button 
-                    onClick={onLogout} 
+                <button
+                    onClick={onLogout}
                     className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 group relative border border-transparent hover:border-red-500/30`}
                     title={collapsed ? t('logout') : undefined}
                 >

@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback, KeyboardEvent } from 'react';
-import { Search, Plus, Minus, Trash2, Send, Loader2, Package, ShoppingCart, Layers, X, Download, Upload, FileSpreadsheet, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, Send, Loader2, Package, ShoppingCart, Layers, X, Download, Upload, FileSpreadsheet, ChevronLeft, ChevronRight, Eye, EyeOff, Coins } from 'lucide-react';
 import { User, Product, BusinessProfile, AlternativePart } from '../types';
 import { MockApi } from '../services/mockApi';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
 import ProductImageViewer from './ProductImageViewer';
+import { getAvailabilityBadgeProps } from '../utils/availabilityHelpers';
 
 interface ProductSearchPageProps {
     user: User;
@@ -26,27 +27,81 @@ const STORAGE_KEY = 'siniCar_productSearch_requestDraft';
 export function ProductSearchPage({ user, profile, onBack }: ProductSearchPageProps) {
     const { t, i18n } = useTranslation();
     const isRtl = i18n.language === 'ar';
-    
+
     const [searchQuery, setSearchQuery] = useState('');
     const [brandFilter, setBrandFilter] = useState('');
     const [makeFilter, setMakeFilter] = useState('');
     const [yearFilter, setYearFilter] = useState('');
-    
+
     const [searchResults, setSearchResults] = useState<Product[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const pageSize = 20;
-    
+
     const [requestItems, setRequestItems] = useState<RequestItem[]>([]);
     const [isSending, setIsSending] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
-    
+
     const [alternativesModal, setAlternativesModal] = useState<{ open: boolean; partNumber: string; productName: string }>({ open: false, partNumber: '', productName: '' });
     const [alternatives, setAlternatives] = useState<AlternativePart[]>([]);
     const [isLoadingAlternatives, setIsLoadingAlternatives] = useState(false);
-    
+
     const [brands, setBrands] = useState<string[]>([]);
+
+    // Points system for viewing prices
+    const [searchPointsRemaining, setSearchPointsRemaining] = useState<number>(() => {
+        return profile?.searchPointsRemaining || user?.searchLimit || 50;
+    });
+    const [revealedPrices, setRevealedPrices] = useState<Set<string>>(new Set());
+
+    // View price function - deducts points
+    const viewPrice = useCallback((productId: string) => {
+        if (revealedPrices.has(productId)) return; // Already revealed
+        if (searchPointsRemaining <= 0) return; // No points
+
+        setRevealedPrices(prev => new Set(prev).add(productId));
+        setSearchPointsRemaining(prev => Math.max(0, prev - 1));
+
+        // Update user profile points (persist to localStorage)
+        if (profile) {
+            const newBalance = Math.max(0, searchPointsRemaining - 1);
+            const profiles = JSON.parse(localStorage.getItem('sinicar_profiles') || '[]');
+            const idx = profiles.findIndex((p: any) => p.id === profile.id);
+            if (idx >= 0) {
+                profiles[idx].searchPointsRemaining = newBalance;
+                localStorage.setItem('sinicar_profiles', JSON.stringify(profiles));
+            }
+        }
+    }, [revealedPrices, searchPointsRemaining, profile]);
+
+    // Get price with supplier margin applied
+    const getMarginedPrice = useCallback((product: any): number => {
+        const basePrice = product.priceWholesale || product.price || 0;
+        // Check for product-level margin override first
+        if (product.profitMarginOverride !== undefined && product.profitMarginOverride > 0) {
+            return Math.round(basePrice * (1 + product.profitMarginOverride / 100));
+        }
+        // Then check supplier margin from localStorage
+        try {
+            const settings = JSON.parse(localStorage.getItem('sinicar_supplier_marketplace') || '{}');
+            const defaultMargin = settings.defaultMarkupPercent || settings.minProfitMargin || 0;
+            // If product has supplierId, look for specific supplier margin
+            if (product.supplierId && settings.supplierPriorities) {
+                const supplierConfig = settings.supplierPriorities.find((s: any) => s.supplierId === product.supplierId);
+                if (supplierConfig?.minProfitMargin) {
+                    return Math.round(basePrice * (1 + supplierConfig.minProfitMargin / 100));
+                }
+            }
+            // Apply default margin
+            if (defaultMargin > 0) {
+                return Math.round(basePrice * (1 + defaultMargin / 100));
+            }
+        } catch (e) {
+            console.error('Error loading margin settings:', e);
+        }
+        return basePrice;
+    }, []);
 
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -56,9 +111,9 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                 if (Array.isArray(parsed)) {
                     setRequestItems(parsed);
                 }
-            } catch {}
+            } catch { }
         }
-        
+
         MockApi.searchProducts('').then(products => {
             const uniqueBrands = [...new Set(products.map(p => p.brand).filter(Boolean))] as string[];
             setBrands(uniqueBrands);
@@ -71,10 +126,10 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
 
     const handleSearch = async () => {
         if (!searchQuery.trim() && !brandFilter && !makeFilter && !yearFilter) return;
-        
+
         setIsSearching(true);
         setCurrentPage(1);
-        
+
         try {
             const result = await MockApi.advancedSearchProducts({
                 q: searchQuery,
@@ -84,7 +139,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                 page: 1,
                 pageSize
             });
-            
+
             setSearchResults(result.items);
             setTotalResults(result.total);
         } catch (error) {
@@ -97,7 +152,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
     const handlePageChange = async (newPage: number) => {
         setIsSearching(true);
         setCurrentPage(newPage);
-        
+
         try {
             const result = await MockApi.advancedSearchProducts({
                 q: searchQuery,
@@ -107,7 +162,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                 page: newPage,
                 pageSize
             });
-            
+
             setSearchResults(result.items);
             setTotalResults(result.total);
         } catch (error) {
@@ -127,8 +182,8 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         setRequestItems(prev => {
             const existing = prev.find(item => item.productId === product.id);
             if (existing) {
-                return prev.map(item => 
-                    item.productId === product.id 
+                return prev.map(item =>
+                    item.productId === product.id
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
@@ -144,7 +199,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
     }, []);
 
     const updateQuantity = (productId: string, delta: number) => {
-        setRequestItems(prev => 
+        setRequestItems(prev =>
             prev.map(item => {
                 if (item.productId === productId) {
                     const newQty = Math.max(1, item.quantity + delta);
@@ -161,10 +216,10 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
 
     const handleSendRequest = async () => {
         if (requestItems.length === 0) return;
-        
+
         setIsSending(true);
         setSuccessMessage('');
-        
+
         try {
             const result = await MockApi.createPurchaseRequest(
                 user.id,
@@ -172,10 +227,10 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                 profile?.companyName || '',
                 requestItems
             );
-            
+
             if (result.success) {
-                setSuccessMessage(isRtl 
-                    ? `تم إرسال الطلب بنجاح! رقم الطلب: ${result.requestId}` 
+                setSuccessMessage(isRtl
+                    ? `تم إرسال الطلب بنجاح! رقم الطلب: ${result.requestId}`
                     : `Request sent successfully! Request ID: ${result.requestId}`
                 );
                 setRequestItems([]);
@@ -192,7 +247,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         setAlternativesModal({ open: true, partNumber, productName });
         setIsLoadingAlternatives(true);
         setAlternatives([]);
-        
+
         try {
             const results = await MockApi.searchAlternatives(partNumber);
             setAlternatives(results);
@@ -227,11 +282,22 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-white">
-                                {isRtl ? 'بحث المنتجات' : 'Product Search'}
+                                {isRtl ? 'الطلبات السريعة' : 'Quick Orders'}
                             </h1>
                             <p className="text-sm text-gray-400">
                                 {isRtl ? 'ابحث عن المنتجات وأضفها لطلب الشراء' : 'Search products and add to purchase request'}
                             </p>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${searchPointsRemaining > 10
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : searchPointsRemaining > 0
+                                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                    }`}>
+                                    <Coins size={14} />
+                                    {isRtl ? `${searchPointsRemaining} نقطة متبقية` : `${searchPointsRemaining} points left`}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     {onBack && (
@@ -312,7 +378,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                     )}
                                 </h2>
                             </div>
-                            
+
                             <div className="overflow-x-auto">
                                 <table className="w-full">
                                     <thead className="bg-white/5">
@@ -321,7 +387,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'رقم القطعة' : 'Part #'}</th>
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'الاسم' : 'Name'}</th>
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'الماركة' : 'Brand'}</th>
-                                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'السيارة' : 'Car'}</th>
+                                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">{isRtl ? 'السعر' : 'Price'}</th>
                                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">{isRtl ? 'التوفر' : 'Stock'}</th>
                                             <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">{isRtl ? 'العمليات' : 'Actions'}</th>
                                         </tr>
@@ -344,7 +410,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                             searchResults.map(product => {
                                                 const stock = getStockDisplay(product);
                                                 const isInCart = requestItems.some(item => item.productId === product.id);
-                                                
+
                                                 return (
                                                     <tr key={product.id} className="hover:bg-white/5 transition-colors" data-testid={`row-product-${product.id}`}>
                                                         <td className="px-2 py-3 text-center">
@@ -359,19 +425,47 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                                         <td className="px-4 py-3 text-sm text-white font-mono">{product.partNumber}</td>
                                                         <td className="px-4 py-3 text-sm text-white">{product.name}</td>
                                                         <td className="px-4 py-3 text-sm text-gray-300">{product.brand || '-'}</td>
-                                                        <td className="px-4 py-3 text-sm text-gray-300">{product.carName || '-'}</td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            {revealedPrices.has(product.id) ? (
+                                                                <span className="text-emerald-400 font-bold">
+                                                                    {getMarginedPrice(product).toLocaleString()} ر.س
+                                                                </span>
+                                                            ) : searchPointsRemaining > 0 ? (
+                                                                <button
+                                                                    onClick={() => viewPrice(product.id)}
+                                                                    className="px-3 py-1.5 bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors border border-amber-500/30 mx-auto"
+                                                                    data-testid={`button-view-price-${product.id}`}
+                                                                >
+                                                                    <Eye size={14} />
+                                                                    {isRtl ? 'مشاهدة السعر' : 'View Price'}
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-gray-500 text-xs flex items-center gap-1 justify-center">
+                                                                    <EyeOff size={14} />
+                                                                    {isRtl ? 'لا توجد نقاط' : 'No points'}
+                                                                </span>
+                                                            )}
+                                                        </td>
                                                         <td className="px-4 py-3">
-                                                            <span className={`text-sm ${stock.color}`}>{stock.text}</span>
+                                                            {/* Availability Badge */}
+                                                            {(() => {
+                                                                const badge = getAvailabilityBadgeProps(product);
+                                                                return (
+                                                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold border ${badge.className}`}>
+                                                                        <span>{badge.icon}</span>
+                                                                        <span>{badge.text}</span>
+                                                                    </span>
+                                                                );
+                                                            })()}
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <button
                                                                     onClick={() => addToRequest(product)}
-                                                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
-                                                                        isInCart 
-                                                                            ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                                                                            : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-                                                                    }`}
+                                                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${isInCart
+                                                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                                                        : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
+                                                                        }`}
                                                                     data-testid={`button-add-${product.id}`}
                                                                 >
                                                                     <Plus size={14} />
@@ -436,7 +530,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                     )}
                                 </h2>
                             </div>
-                            
+
                             <div className="p-4 max-h-96 overflow-y-auto">
                                 {requestItems.length === 0 ? (
                                     <div className="text-center py-8 text-gray-400">
@@ -447,8 +541,8 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                 ) : (
                                     <div className="space-y-3">
                                         {requestItems.map(item => (
-                                            <div 
-                                                key={item.productId} 
+                                            <div
+                                                key={item.productId}
                                                 className="bg-white/5 rounded-xl p-3 border border-white/10"
                                                 data-testid={`cart-item-${item.productId}`}
                                             >
@@ -496,13 +590,13 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                             {requestItems.reduce((sum, item) => sum + item.quantity, 0)}
                                         </span>
                                     </div>
-                                    
+
                                     {successMessage && (
                                         <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm" data-testid="text-success-message">
                                             {successMessage}
                                         </div>
                                     )}
-                                    
+
                                     <button
                                         onClick={handleSendRequest}
                                         disabled={isSending || requestItems.length === 0}
@@ -544,7 +638,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                                 <X className="w-5 h-5 text-gray-400" />
                             </button>
                         </div>
-                        
+
                         <div className="p-4 max-h-96 overflow-y-auto">
                             {isLoadingAlternatives ? (
                                 <div className="flex items-center justify-center py-12 text-gray-400">

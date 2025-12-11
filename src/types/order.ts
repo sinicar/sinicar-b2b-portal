@@ -39,7 +39,7 @@ export interface Order {
   status: OrderStatus;
   date: string;
   branchId?: string; // Which branch ordered this
-  
+
   // Cancellation Logic
   cancelledBy?: 'CUSTOMER' | 'ADMIN';
   cancelledAt?: string;
@@ -48,7 +48,7 @@ export interface Order {
   internalStatus?: OrderInternalStatus;
   internalNotes?: string;
   internalStatusHistory?: InternalStatusHistoryItem[];
-  
+
   // Badge tracking - for admin unread notification
   isNew?: boolean;
 }
@@ -102,3 +102,58 @@ export interface PurchaseRequest {
   adminNote?: string;
   isNew?: boolean;
 }
+
+// --- Order Shortages (نواقص الطلبيات) ---
+// For tracking ORDER_PRODUCTS items from unregistered suppliers
+
+export type OrderShortageStatus =
+  | 'NEW'              // جديد - طلبية جديدة
+  | 'CONTACTING'       // جاري التواصل مع المورد
+  | 'CONFIRMED'        // تم التأكيد - المورد وافق
+  | 'PREPARING'        // قيد التحضير لدى المورد
+  | 'RECEIVED'         // تم الاستلام في صيني كار
+  | 'DELIVERED'        // تم التسليم للعميل
+  | 'CANCELLED';       // ملغي
+
+export interface OrderShortageStatusHistory {
+  status: OrderShortageStatus;
+  changedAt: string;
+  changedBy: string;
+  notes?: string;
+}
+
+export interface OrderShortage {
+  id: string;
+  orderId: string;                    // الطلب الأصلي
+  orderItemId?: string;               // عنصر الطلب
+  customerId: string;                 // العميل
+  customerName: string;
+
+  // معلومات المنتج
+  productId: string;
+  partNumber: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+
+  // معلومات المورد غير المسجل
+  supplierName: string;               // اسم المورد
+  supplierContact?: string;           // رقم التواصل
+  deliveryHours: number;              // وقت التوصيل المتوقع
+
+  // الحالة والتتبع
+  status: OrderShortageStatus;
+  statusHistory: OrderShortageStatusHistory[];
+
+  // ملاحظات
+  internalNotes?: string;
+  expectedDeliveryDate?: string;
+  actualDeliveryDate?: string;
+
+  // Badge tracking
+  isNew?: boolean;
+
+  createdAt: string;
+  updatedAt: string;
+}
+

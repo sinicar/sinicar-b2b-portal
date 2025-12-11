@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, MouseEvent, FC } from 'react';
+import { useState, useRef, useCallback, useEffect, MouseEvent, FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ZoomIn, ChevronLeft, ChevronRight, Eye, EyeOff, Package, ImageIcon, X } from 'lucide-react';
 
@@ -12,7 +12,51 @@ interface ProductImageViewerProps {
   className?: string;
 }
 
+// Storage key for uploaded images
+const IMAGES_STORAGE_KEY = 'sini_product_images';
+
+// Interface for stored image - supports both naming conventions
+interface StoredProductImage {
+  id: string;
+  partNumber: string;
+  // AdminProductImagesPage uses these field names
+  fileUrl?: string;
+  thumbnailUrl?: string;
+  // Alternative field names
+  fullImage?: string;
+  thumbnail?: string;
+  status: string;
+  isLinkedToProduct: boolean;
+}
+
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+PHJlY3QgZmlsbD0iI2YzZjRmNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiLz48cGF0aCBmaWxsPSIjOWNhM2FmIiBkPSJNNjAgMzBjLTIwIDAtMzUgMTUtMzUgMzVzMTUgMzUgMzUgMzUgMzUtMTUgMzUtMzUtMTUtMzUtMzUtMzV6bTAgNjBjLTE0IDAtMjUtMTEtMjUtMjVzMTEtMjUgMjUtMjUgMjUgMTEgMjUgMjUtMTEgMjUtMjUgMjV6Ii8+PHBhdGggZmlsbD0iIzljYTNhZiIgZD0iTTYwIDQ1Yy0xMCAwLTIwIDgtMjAgMjBzMTAgMjAgMjAgMjAgMjAtOCAyMC0yMC0xMC0yMC0yMC0yMHptMCAzMGMtNSAwLTEwLTQtMTAtMTBzNS0xMCAxMC0xMCAxMCA0IDEwIDEwLTUgMTAtMTAgMTB6Ii8+PC9zdmc+';
+
+// Helper function to get image for a part number from localStorage
+const getUploadedImageForPartNumber = (partNumber: string): string | null => {
+  if (!partNumber) return null;
+  try {
+    const storedImages = localStorage.getItem(IMAGES_STORAGE_KEY);
+    if (storedImages) {
+      const images: StoredProductImage[] = JSON.parse(storedImages);
+      // Find matching image - check status and linked status
+      const matchingImage = images.find(
+        img => img.partNumber?.toUpperCase() === partNumber.toUpperCase() &&
+          (img.status === 'APPROVED' || img.status === 'AUTO_MATCHED') &&
+          img.isLinkedToProduct
+      );
+      if (matchingImage) {
+        // Return the image URL - check both naming conventions
+        return matchingImage.fileUrl || matchingImage.fullImage ||
+          matchingImage.thumbnailUrl || matchingImage.thumbnail || null;
+      }
+    }
+  } catch (e) {
+    console.error('Error reading product images from localStorage:', e);
+  }
+  return null;
+};
+
+
 
 const ProductImageViewer: FC<ProductImageViewerProps> = ({
   mainImageUrl,
@@ -25,7 +69,7 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
@@ -33,18 +77,25 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [animate, setAnimate] = useState(false);
-  
+
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  const allImages = [mainImageUrl, ...(imageGallery || [])].filter(Boolean) as string[];
+
+  // Check localStorage for uploaded images if no mainImageUrl provided
+  const effectiveMainImage = useMemo(() => {
+    if (mainImageUrl) return mainImageUrl;
+    if (partNumber) return getUploadedImageForPartNumber(partNumber);
+    return null;
+  }, [mainImageUrl, partNumber]);
+
+  const allImages = [effectiveMainImage, ...(imageGallery || [])].filter(Boolean) as string[];
   const hasImages = allImages.length > 0;
   const currentImage = allImages[currentImageIndex] || PLACEHOLDER_IMAGE;
 
   const sizeClasses = {
-    sm: 'w-7 h-7',
-    md: 'w-8 h-8',
-    lg: 'w-10 h-10'
+    sm: 'w-10 h-10',
+    md: 'w-14 h-14',
+    lg: 'w-20 h-20'
   };
 
   const handleOpenModal = useCallback(() => {
@@ -79,14 +130,14 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
 
   const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current || !imageRef.current || !imageLoaded) return;
-    
+
     const container = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - container.left) / container.width) * 100;
     const y = ((e.clientY - container.top) / container.height) * 100;
-    
+
     const clampedX = Math.max(12, Math.min(88, x));
     const clampedY = Math.max(12, Math.min(88, y));
-    
+
     setMagnifierPosition({ x: clampedX, y: clampedY });
     setShowMagnifier(true);
   }, [imageLoaded]);
@@ -126,9 +177,9 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
         onClick={handleOpenModal}
         disabled={!hasImages}
         className={`
-          flex items-center justify-center rounded-lg transition-colors
-          ${hasImages 
-            ? 'bg-brand-50 text-brand-600 hover:bg-brand-100' 
+          relative flex items-center justify-center rounded-lg transition-all overflow-hidden border border-slate-200 dark:border-slate-700
+          ${hasImages
+            ? 'bg-white hover:border-brand-400 hover:shadow-sm'
             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
           }
           ${sizeClasses[size]}
@@ -139,27 +190,34 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
         data-testid={`button-view-image-${partNumber || 'product'}`}
       >
         {hasImages ? (
-          <Eye className="w-4 h-4" />
+          <img
+            src={currentImage}
+            alt={productName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              (e.target as HTMLImageElement).parentElement?.classList.add('bg-slate-100', 'text-slate-400');
+            }}
+          />
         ) : (
-          <EyeOff className="w-4 h-4" />
+          <EyeOff className="w-1/2 h-1/2" />
         )}
       </button>
 
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="product-image-viewer-title"
         >
-          <div 
-            className={`absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-200 ${
-              animate ? 'opacity-100' : 'opacity-0'
-            }`}
+          <div
+            className={`absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-200 ${animate ? 'opacity-100' : 'opacity-0'
+              }`}
             onClick={handleCloseModal}
           />
-          
-          <div 
+
+          <div
             className={`
               relative z-10 w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden
               transform transition-all duration-200
@@ -173,7 +231,7 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
                   <Package className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                 </div>
                 <div className={isRtl ? 'text-right' : 'text-left'}>
-                  <h3 
+                  <h3
                     id="product-image-viewer-title"
                     className="font-semibold text-slate-900 dark:text-white truncate max-w-md"
                   >
@@ -186,7 +244,7 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
                   )}
                 </div>
               </div>
-              
+
               <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                 {allImages.length > 1 && (
                   <span className="text-sm text-slate-500 dark:text-slate-400 px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full">
@@ -205,7 +263,7 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
             </div>
 
             <div className="relative">
-              <div 
+              <div
                 ref={containerRef}
                 className="relative aspect-square max-h-[60vh] w-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 cursor-crosshair overflow-hidden"
                 onMouseMove={handleMouseMove}
@@ -218,7 +276,7 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
                     <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
-                
+
                 <img
                   ref={imageRef}
                   src={currentImage}
@@ -285,7 +343,7 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
 
             {allImages.length > 1 && (
               <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-                <div 
+                <div
                   className={`flex gap-2 overflow-x-auto pb-2 ${isRtl ? 'flex-row-reverse' : ''}`}
                   role="tablist"
                   aria-label={t('productImages.thumbnailList', 'قائمة الصور المصغرة')}
@@ -300,8 +358,8 @@ const ProductImageViewer: FC<ProductImageViewerProps> = ({
                       }}
                       className={`
                         flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors
-                        ${idx === currentImageIndex 
-                          ? 'border-brand-500 ring-2 ring-brand-300' 
+                        ${idx === currentImageIndex
+                          ? 'border-brand-500 ring-2 ring-brand-300'
                           : 'border-slate-200 dark:border-slate-600 hover:border-brand-300'
                         }
                       `}
@@ -352,36 +410,36 @@ export const ProductImageThumbnail: FC<{
   onClick,
   className = ''
 }) => {
-  const [imageError, setImageError] = useState(false);
-  
-  const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16'
-  };
+    const [imageError, setImageError] = useState(false);
 
-  if (!mainImageUrl || imageError) {
+    const sizeClasses = {
+      sm: 'w-10 h-10',
+      md: 'w-14 h-14',
+      lg: 'w-20 h-20'
+    };
+
+    if (!mainImageUrl || imageError) {
+      return (
+        <div
+          className={`${sizeClasses[size]} flex items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-lg ${className}`}
+        >
+          <Package className="w-1/2 h-1/2 text-slate-400" />
+        </div>
+      );
+    }
+
     return (
-      <div 
-        className={`${sizeClasses[size]} flex items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-lg ${className}`}
+      <button
+        onClick={onClick}
+        className={`${sizeClasses[size]} rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600 hover:border-brand-400 transition-colors ${className}`}
+        aria-label={`View ${productName} image`}
       >
-        <Package className="w-1/2 h-1/2 text-slate-400" />
-      </div>
+        <img
+          src={mainImageUrl}
+          alt={productName}
+          className="w-full h-full object-cover"
+          onError={() => setImageError(true)}
+        />
+      </button>
     );
-  }
-
-  return (
-    <button
-      onClick={onClick}
-      className={`${sizeClasses[size]} rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600 hover:border-brand-400 transition-colors ${className}`}
-      aria-label={`View ${productName} image`}
-    >
-      <img
-        src={mainImageUrl}
-        alt={productName}
-        className="w-full h-full object-cover"
-        onError={() => setImageError(true)}
-      />
-    </button>
-  );
-};
+  };

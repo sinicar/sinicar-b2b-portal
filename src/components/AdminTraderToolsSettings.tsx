@@ -1,5 +1,5 @@
 import { useState, useEffect, ReactNode, useMemo } from 'react';
-import { 
+import {
   ToolConfig, ToolKey, TraderToolAction, TraderToolType, TraderToolActionStatus,
   TraderToolsAdminFilters, TraderToolsAdminResponse
 } from '../types';
@@ -8,20 +8,20 @@ import { toolsAccessService } from '../services/toolsAccess';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
-import { 
-  Settings, 
-  Save, 
-  FileSpreadsheet, 
-  Car, 
-  Scale, 
-  ChevronDown, 
-  ChevronUp, 
-  Power, 
-  PowerOff, 
-  Users, 
-  BarChart3, 
-  Shield, 
-  Clock, 
+import {
+  Settings,
+  Save,
+  FileSpreadsheet,
+  Car,
+  Scale,
+  ChevronDown,
+  ChevronUp,
+  Power,
+  PowerOff,
+  Users,
+  BarChart3,
+  Shield,
+  Clock,
   AlertTriangle,
   Wrench,
   Eye,
@@ -64,8 +64,8 @@ const TRADER_TOOL_LABELS: Record<TraderToolType, { ar: string; en: string; icon:
   PDF_EXCEL: { ar: 'تحويل PDF إلى Excel', en: 'PDF to Excel', icon: <FileSpreadsheet size={16} /> },
   COMPARISON: { ar: 'مقارنة الأسعار', en: 'Price Comparison', icon: <Scale size={16} /> },
   ALTERNATIVES: { ar: 'رفع البدائل', en: 'Alternatives Upload', icon: <Upload size={16} /> },
-  SEARCH: { ar: 'بحث المنتجات', en: 'Product Search', icon: <Search size={16} /> },
-  EXCEL_QUOTE: { ar: 'طلب تسعير Excel', en: 'Excel Quote', icon: <Table size={16} /> }
+  SEARCH: { ar: 'الطلبات السريعة', en: 'Quick Orders', icon: <Search size={16} /> },
+  EXCEL_QUOTE: { ar: 'طلب شراء Excel', en: 'Excel Purchase Order', icon: <Table size={16} /> }
 };
 
 const STATUS_LABELS: Record<TraderToolActionStatus, { ar: string; en: string; color: string }> = {
@@ -91,7 +91,7 @@ export const AdminTraderToolsSettings = () => {
       byDay: { date: string; count: number }[];
     };
   }>({});
-  
+
   // Usage Log State
   const [usageLogLoading, setUsageLogLoading] = useState(false);
   const [usageLogData, setUsageLogData] = useState<TraderToolsAdminResponse | null>(null);
@@ -168,7 +168,7 @@ export const AdminTraderToolsSettings = () => {
         row.hasInputFile ? 'Yes' : 'No',
         row.hasOutputFile ? 'Yes' : 'No'
       ]);
-      
+
       const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -177,7 +177,7 @@ export const AdminTraderToolsSettings = () => {
       link.download = `trader_tools_usage_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       URL.revokeObjectURL(url);
-      
+
       addToast(language === 'ar' ? 'تم تصدير البيانات بنجاح' : 'Data exported successfully', 'success');
     } catch (e) {
       addToast(language === 'ar' ? 'فشل في تصدير البيانات' : 'Failed to export data', 'error');
@@ -224,40 +224,40 @@ export const AdminTraderToolsSettings = () => {
   };
 
   const toggleToolEnabled = (toolKey: ToolKey) => {
-    setToolConfigs(prev => prev.map(config => 
-      config.toolKey === toolKey 
+    setToolConfigs(prev => prev.map(config =>
+      config.toolKey === toolKey
         ? { ...config, enabled: !config.enabled }
         : config
     ));
   };
 
   const toggleMaintenanceMode = (toolKey: ToolKey) => {
-    setToolConfigs(prev => prev.map(config => 
-      config.toolKey === toolKey 
+    setToolConfigs(prev => prev.map(config =>
+      config.toolKey === toolKey
         ? { ...config, maintenanceMode: !config.maintenanceMode }
         : config
     ));
   };
 
   const toggleShowInDashboard = (toolKey: ToolKey) => {
-    setToolConfigs(prev => prev.map(config => 
-      config.toolKey === toolKey 
+    setToolConfigs(prev => prev.map(config =>
+      config.toolKey === toolKey
         ? { ...config, showInDashboardShortcuts: !config.showInDashboardShortcuts }
         : config
     ));
   };
 
   const toggleLogUsage = (toolKey: ToolKey) => {
-    setToolConfigs(prev => prev.map(config => 
-      config.toolKey === toolKey 
+    setToolConfigs(prev => prev.map(config =>
+      config.toolKey === toolKey
         ? { ...config, logUsageForAnalytics: !config.logUsageForAnalytics }
         : config
     ));
   };
 
   const updateToolConfig = (toolKey: ToolKey, field: keyof ToolConfig, value: any) => {
-    setToolConfigs(prev => prev.map(config => 
-      config.toolKey === toolKey 
+    setToolConfigs(prev => prev.map(config =>
+      config.toolKey === toolKey
         ? { ...config, [field]: value }
         : config
     ));
@@ -295,13 +295,12 @@ export const AdminTraderToolsSettings = () => {
   }
 
   const TabButton = ({ id, icon, label }: { id: 'TOOLS' | 'ANALYTICS' | 'USAGE_LOG', icon: ReactNode, label: string }) => (
-    <button 
+    <button
       onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all font-bold ${
-        activeTab === id 
-          ? 'bg-brand-600 text-white shadow-lg' 
-          : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
-      }`}
+      className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all font-bold ${activeTab === id
+        ? 'bg-brand-600 text-white shadow-lg'
+        : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+        }`}
       data-testid={`tab-${id.toLowerCase()}`}
     >
       {icon}
@@ -318,7 +317,7 @@ export const AdminTraderToolsSettings = () => {
             {language === 'ar' ? 'إدارة أدوات التاجر' : 'Trader Tools Management'}
           </h1>
           <p className="text-slate-500 mt-1">
-            {language === 'ar' 
+            {language === 'ar'
               ? 'تفعيل/تعطيل الأدوات وتحديد صلاحيات الوصول لكل نوع عميل'
               : 'Enable/disable tools and configure access permissions per customer type'}
           </p>
@@ -333,39 +332,37 @@ export const AdminTraderToolsSettings = () => {
       {activeTab === 'TOOLS' && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button 
-              onClick={handleSave} 
+            <button
+              onClick={handleSave}
               disabled={saving}
               className="bg-brand-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-100 disabled:opacity-50 flex items-center gap-2 transition-all"
               data-testid="btn-save-tools"
             >
               <Save size={18} />
-              {saving 
-                ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
+              {saving
+                ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...')
                 : (language === 'ar' ? 'حفظ الإعدادات' : 'Save Settings')}
             </button>
           </div>
 
           {toolConfigs.map(config => (
-            <div 
+            <div
               key={config.toolKey}
-              className={`bg-white rounded-2xl shadow-sm border transition-all ${
-                config.enabled ? 'border-slate-100' : 'border-slate-200 opacity-75'
-              }`}
+              className={`bg-white rounded-2xl shadow-sm border transition-all ${config.enabled ? 'border-slate-100' : 'border-slate-200 opacity-75'
+                }`}
             >
-              <div 
+              <div
                 className="p-6 flex items-center justify-between cursor-pointer hover:bg-slate-50 rounded-t-2xl transition-colors"
                 onClick={() => setExpandedTool(expandedTool === config.toolKey ? null : config.toolKey)}
                 data-testid={`tool-header-${config.toolKey}`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${
-                    config.enabled 
-                      ? config.maintenanceMode 
-                        ? 'bg-amber-50 text-amber-600' 
-                        : 'bg-brand-50 text-brand-600'
-                      : 'bg-slate-100 text-slate-400'
-                  }`}>
+                  <div className={`p-3 rounded-xl ${config.enabled
+                    ? config.maintenanceMode
+                      ? 'bg-amber-50 text-amber-600'
+                      : 'bg-brand-50 text-brand-600'
+                    : 'bg-slate-100 text-slate-400'
+                    }`}>
                     {TOOL_ICONS[config.toolKey]}
                   </div>
                   <div>
@@ -382,11 +379,10 @@ export const AdminTraderToolsSettings = () => {
                   )}
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleToolEnabled(config.toolKey); }}
-                    className={`p-2 rounded-lg transition-colors ${
-                      config.enabled 
-                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                        : 'bg-red-100 text-red-600 hover:bg-red-200'
-                    }`}
+                    className={`p-2 rounded-lg transition-colors ${config.enabled
+                      ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                      : 'bg-red-100 text-red-600 hover:bg-red-200'
+                      }`}
                     data-testid={`toggle-tool-${config.toolKey}`}
                   >
                     {config.enabled ? <Power size={20} /> : <PowerOff size={20} />}
@@ -405,14 +401,12 @@ export const AdminTraderToolsSettings = () => {
                       </div>
                       <button
                         onClick={() => toggleShowInDashboard(config.toolKey)}
-                        className={`w-12 h-6 rounded-full transition-colors relative ${
-                          config.showInDashboardShortcuts ? 'bg-brand-600' : 'bg-slate-300'
-                        }`}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${config.showInDashboardShortcuts ? 'bg-brand-600' : 'bg-slate-300'
+                          }`}
                         data-testid={`toggle-show-${config.toolKey}`}
                       >
-                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
-                          config.showInDashboardShortcuts ? 'right-1' : 'left-1'
-                        }`} />
+                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.showInDashboardShortcuts ? 'right-1' : 'left-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -423,14 +417,12 @@ export const AdminTraderToolsSettings = () => {
                       </div>
                       <button
                         onClick={() => toggleLogUsage(config.toolKey)}
-                        className={`w-12 h-6 rounded-full transition-colors relative ${
-                          config.logUsageForAnalytics ? 'bg-brand-600' : 'bg-slate-300'
-                        }`}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${config.logUsageForAnalytics ? 'bg-brand-600' : 'bg-slate-300'
+                          }`}
                         data-testid={`toggle-log-${config.toolKey}`}
                       >
-                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
-                          config.logUsageForAnalytics ? 'right-1' : 'left-1'
-                        }`} />
+                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.logUsageForAnalytics ? 'right-1' : 'left-1'
+                          }`} />
                       </button>
                     </div>
 
@@ -441,14 +433,12 @@ export const AdminTraderToolsSettings = () => {
                       </div>
                       <button
                         onClick={() => toggleMaintenanceMode(config.toolKey)}
-                        className={`w-12 h-6 rounded-full transition-colors relative ${
-                          config.maintenanceMode ? 'bg-amber-500' : 'bg-slate-300'
-                        }`}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${config.maintenanceMode ? 'bg-amber-500' : 'bg-slate-300'
+                          }`}
                         data-testid={`toggle-maintenance-${config.toolKey}`}
                       >
-                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
-                          config.maintenanceMode ? 'right-1' : 'left-1'
-                        }`} />
+                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.maintenanceMode ? 'right-1' : 'left-1'
+                          }`} />
                       </button>
                     </div>
                   </div>
@@ -512,11 +502,10 @@ export const AdminTraderToolsSettings = () => {
                           <button
                             key={type.value}
                             onClick={() => toggleCustomerType(config.toolKey, type.value)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                              isAllowed
-                                ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
-                                : 'bg-slate-100 text-slate-500 border-2 border-transparent hover:border-slate-200'
-                            }`}
+                            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${isAllowed
+                              ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
+                              : 'bg-slate-100 text-slate-500 border-2 border-transparent hover:border-slate-200'
+                              }`}
                             data-testid={`customer-type-${config.toolKey}-${type.value}`}
                           >
                             {isAllowed ? <CheckCircle size={16} /> : <XCircle size={16} />}
@@ -569,12 +558,12 @@ export const AdminTraderToolsSettings = () => {
               <TrendingUp className="text-brand-600" />
               {language === 'ar' ? 'إحصائيات الاستخدام الشهرية' : 'Monthly Usage Statistics'}
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {toolConfigs.map(config => {
                 const stats = usageStats[config.toolKey];
                 if (!stats) return null;
-                
+
                 return (
                   <div key={config.toolKey} className="bg-slate-50 p-6 rounded-xl">
                     <div className="flex items-center gap-3 mb-4">
@@ -583,7 +572,7 @@ export const AdminTraderToolsSettings = () => {
                       </div>
                       <h3 className="font-bold text-slate-800">{getToolName(config)}</h3>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-500">{language === 'ar' ? 'إجمالي الاستخدام' : 'Total Usage'}</span>
@@ -615,7 +604,7 @@ export const AdminTraderToolsSettings = () => {
                             const maxCount = Math.max(...stats.byDay.slice(-7).map(d => d.count), 1);
                             const height = (day.count / maxCount) * 100;
                             return (
-                              <div 
+                              <div
                                 key={i}
                                 className="flex-1 bg-brand-500 rounded-t"
                                 style={{ height: `${Math.max(height, 4)}%` }}
@@ -652,7 +641,7 @@ export const AdminTraderToolsSettings = () => {
               <Filter size={18} className="text-slate-500" />
               <span className="font-semibold text-slate-700">{language === 'ar' ? 'الفلاتر' : 'Filters'}</span>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div>
                 <label className="block text-sm text-slate-600 mb-1">{language === 'ar' ? 'بحث' : 'Search'}</label>
@@ -669,7 +658,7 @@ export const AdminTraderToolsSettings = () => {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm text-slate-600 mb-1">{language === 'ar' ? 'نوع الأداة' : 'Tool Type'}</label>
                 <select
@@ -684,7 +673,7 @@ export const AdminTraderToolsSettings = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm text-slate-600 mb-1">{language === 'ar' ? 'الحالة' : 'Status'}</label>
                 <select
@@ -699,7 +688,7 @@ export const AdminTraderToolsSettings = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm text-slate-600 mb-1">{language === 'ar' ? 'من تاريخ' : 'From Date'}</label>
                 <input
@@ -710,7 +699,7 @@ export const AdminTraderToolsSettings = () => {
                   data-testid="input-date-from-log"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm text-slate-600 mb-1">{language === 'ar' ? 'إلى تاريخ' : 'To Date'}</label>
                 <input
@@ -721,7 +710,7 @@ export const AdminTraderToolsSettings = () => {
                   data-testid="input-date-to-log"
                 />
               </div>
-              
+
               <div className="flex items-end gap-2">
                 <button
                   onClick={() => { setSearchTerm(''); setUsageLogFilters({ page: 1, pageSize: 20, sortBy: 'createdAt', sortDirection: 'desc' }); }}
@@ -762,7 +751,7 @@ export const AdminTraderToolsSettings = () => {
               </div>
             </div>
           )}
-          
+
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             {usageLogLoading ? (
               <div className="flex items-center justify-center py-20">
@@ -790,8 +779,8 @@ export const AdminTraderToolsSettings = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {usageLogData.items.map((action) => (
-                        <tr 
-                          key={action.id} 
+                        <tr
+                          key={action.id}
                           className="hover:bg-slate-50 transition-colors cursor-pointer"
                           onClick={() => setSelectedAction(action)}
                           data-testid={`row-log-${action.id}`}
@@ -839,7 +828,7 @@ export const AdminTraderToolsSettings = () => {
                     </tbody>
                   </table>
                 </div>
-                
+
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
                     <span className="text-sm text-slate-500">
@@ -874,7 +863,7 @@ export const AdminTraderToolsSettings = () => {
 
       {selectedAction && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedAction(null)}>
-          <div 
+          <div
             className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -890,7 +879,7 @@ export const AdminTraderToolsSettings = () => {
                 <XCircle size={20} className="text-slate-400" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -911,25 +900,25 @@ export const AdminTraderToolsSettings = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{language === 'ar' ? 'العميل' : 'Customer'}</label>
                 <p className="text-sm text-slate-700 font-medium">{selectedAction.customerName || '-'}</p>
                 <p className="text-xs text-slate-400">{selectedAction.customerId}</p>
               </div>
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{language === 'ar' ? 'التاريخ' : 'Date'}</label>
                 <p className="text-sm text-slate-700 font-medium">{formatDateTime(selectedAction.createdAt)}</p>
               </div>
-              
+
               {selectedAction.processingTimeMs && (
                 <div>
                   <label className="text-xs text-slate-500 uppercase">{language === 'ar' ? 'وقت المعالجة' : 'Processing Time'}</label>
                   <p className="text-sm text-slate-700">{(selectedAction.processingTimeMs / 1000).toFixed(2)}s</p>
                 </div>
               )}
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{language === 'ar' ? 'المدخلات' : 'Input'}</label>
                 <div className="mt-1 p-3 bg-slate-50 rounded-lg">
@@ -942,7 +931,7 @@ export const AdminTraderToolsSettings = () => {
                   )}
                 </div>
               </div>
-              
+
               <div>
                 <label className="text-xs text-slate-500 uppercase">{language === 'ar' ? 'المخرجات' : 'Output'}</label>
                 <div className="mt-1 p-3 bg-slate-50 rounded-lg">
@@ -955,7 +944,7 @@ export const AdminTraderToolsSettings = () => {
                   )}
                 </div>
               </div>
-              
+
               {selectedAction.status === 'FAILED' && selectedAction.errorMessage && (
                 <div>
                   <label className="text-xs text-red-500 uppercase">{language === 'ar' ? 'رسالة الخطأ' : 'Error'}</label>
@@ -964,7 +953,7 @@ export const AdminTraderToolsSettings = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center gap-2 text-xs text-slate-400 pt-2 border-t border-slate-100">
                 <span>ID: {selectedAction.id}</span>
                 <span>•</span>

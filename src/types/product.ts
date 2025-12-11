@@ -2,20 +2,20 @@ export interface Product {
   id: string;
   partNumber: string;         // رقم الصنف من عمود "رقم الصنف"
   name: string;               // اسم الصنف من عمود "اسم الصنف"
-  
+
   // Legacy fields (kept for backward compatibility)
   brand?: string;             // Changan, MG - now optional
   price?: number;             // Legacy price field - optional
   stock?: number;             // Legacy stock - optional
   image?: string;
-  
+
   // Marketing fields
   oldPrice?: number;
   isOnSale?: boolean;
   isNew?: boolean;
   description?: string;       // من " المواصفات"
   category?: string;
-  
+
   // مستويات التسعير من نظام أونيكس برو:
   priceRetail?: number | null;        // من "سعر التجزئة"
   priceWholesale?: number | null;     // من "سعر الجملة"
@@ -41,17 +41,35 @@ export interface Product {
   // حقول نظامية:
   createdAt?: string;
   updatedAt?: string;
-  
+
   // Search Indexing Fields (Optional)
   normalizedPart?: string;
   numericPartCore?: string;
-  
+
   // قواعد رؤية الكمية للعملاء
   useVisibilityRuleForQty?: boolean;  // إذا true: تطبق قاعدة إخفاء الكمية على هذا المنتج
-  
+
   // Product Images (Command 19)
   mainImageUrl?: string | null;       // Main product image URL
   imageGallery?: string[];            // Array of additional image URLs
+
+  // --- نظام التوفر (Order Products System) ---
+  // نوع التوفر: متوفر في المخزن أو طلبية
+  availabilityType?: 'IN_STOCK' | 'ORDER';  // IN_STOCK = متوفر, ORDER = متوفر طلبية
+
+  // وقت التوصيل للطلبيات (بالساعات) - يظهر: "متوفر طلبية 24 ساعة"
+  deliveryHours?: number;             // 24, 48, 72, etc.
+
+  // قسم التخزين (لفصل منتجات صيني كار عن منتجات الموردين غير المسجلين)
+  storageSection?: 'SINICAR_WAREHOUSE' | 'ORDER_PRODUCTS' | 'SUPPLIER';
+
+  // معلومات المورد غير المسجل (للطلبيات)
+  unregisteredSupplierName?: string;    // اسم المورد غير المسجل
+  unregisteredSupplierContact?: string; // رقم التواصل
+
+  // معرف دفعة الرفع (لربط الملفات بوقت التوصيل)
+  uploadBatchId?: string;
+  uploadBatchDeliveryHours?: number;    // وقت التوصيل من الملف
 }
 
 export interface CartItem extends Product {

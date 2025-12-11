@@ -1,9 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+/**
+ * PermissionContext - Wrapper للتوافق مع الكود القديم
+ * يستخدم Zustand Store داخلياً
+ */
+
+import React, { useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { AccessDenied } from '../components/AccessDenied';
 import { AdminUser, Role, PermissionResource, PermissionAction } from '../types';
+import { useAuthStore, selectIsSuperAdmin, useMenuVisibility as useZustandMenuVisibility, useResourcePermission as useZustandResourcePermission } from '../stores/useAuthStore';
 
-interface EffectivePermission {
+// Re-export interfaces for backward compatibility
+export interface EffectivePermission {
     permissionKey: string;
     resource: string;
     action: string;
@@ -11,160 +18,50 @@ interface EffectivePermission {
     effect: 'ALLOW' | 'DENY';
 }
 
-interface PermissionContextType {
-    adminUser: AdminUser | null;
-    role: Role | null;
-    loading: boolean;
-    effectivePermissions: EffectivePermission[];
-    hasPermission: (resource: PermissionResource, action: PermissionAction) => boolean;
-    can: (permissionCode: string) => boolean;
-    canAccess: (resource: PermissionResource) => boolean;
-    isSuperAdmin: boolean;
-    refreshPermissions: () => Promise<void>;
-    setAdminUser: (user: AdminUser | null) => void;
-}
-
-const PermissionContext = createContext<PermissionContextType | undefined>(undefined);
-
 interface PermissionProviderProps {
     children: React.ReactNode;
     initialAdminUser?: AdminUser | null;
 }
 
-export const PermissionProvider: React.FC<PermissionProviderProps> = ({ 
-    children, 
-    initialAdminUser = null 
+/**
+ * PermissionProvider - الآن wrapper خفيف يستخدم Zustand
+ * يحافظ على التوافق الخلفي مع الكود القديم
+ */
+export const PermissionProvider: React.FC<PermissionProviderProps> = ({
+    children,
+    initialAdminUser = null
 }) => {
-    const [adminUser, setAdminUserState] = useState<AdminUser | null>(initialAdminUser);
-    const [role, setRole] = useState<Role | null>(null);
-    const [effectivePermissions, setEffectivePermissions] = useState<EffectivePermission[]>([]);
-    const [loading, setLoading] = useState(true);
+    const setAdminUser = useAuthStore((state) => state.setAdminUser);
+    const initialized = useAuthStore((state) => state.initialized);
 
-    const setAdminUser = useCallback((user: AdminUser | null) => {
-        setAdminUserState(user);
-    }, []);
-
-    const loadPermissions = useCallback(async (user: AdminUser | null) => {
-        if (!user?.id) {
-            setRole(null);
-            setEffectivePermissions([]);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            // For testing/development: Provide default permissions for admin users
-            // In production, this would fetch from backend API
-            const isAdminType = user.extendedRole === 'ADMIN' || 
-                                user.extendedRole === 'SUPER_ADMIN' ||
-                                user.isSuperAdmin === true ||
-                                user.roleId?.includes('admin') ||
-                                user.roleId?.includes('super');
-            
-            if (isAdminType) {
-                const isSuperType = user.extendedRole === 'SUPER_ADMIN' || 
-                                    user.isSuperAdmin === true ||
-                                    user.roleId?.includes('super');
-                const adminRole: Role = {
-                    id: user.roleId || (isSuperType ? 'role-super-admin' : 'role-admin'),
-                    code: isSuperType ? 'SUPER_ADMIN' : 'ADMIN',
-                    name: isSuperType ? 'SUPER_ADMIN' : 'ADMIN',
-                    nameAr: isSuperType ? 'مشرف عام' : 'مشرف',
-                    description: isSuperType ? 'Super Administrator' : 'Administrator',
-                    isSystem: true,
-                    isActive: true,
-                    sortOrder: 0,
-                    createdAt: new Date().toISOString(),
-                    permissions: []
-                };
-                setRole(adminRole);
-                setEffectivePermissions([]);
-            } else {
-                // For other roles, provide empty/basic permissions
-                setRole(null);
-                setEffectivePermissions([]);
-            }
-        } catch (e) {
-            console.error('Failed to load permissions:', e);
-            setRole(null);
-            setEffectivePermissions([]);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    // تهيئة المستخدم عند تغيير initialAdminUser
     useEffect(() => {
-        if (initialAdminUser) {
-            setAdminUserState(initialAdminUser);
+        if (initialAdminUser && !initialized) {
+            setAdminUser(initialAdminUser);
         }
-    }, [initialAdminUser]);
+    }, [initialAdminUser, setAdminUser, initialized]);
 
-    useEffect(() => {
-        loadPermissions(adminUser);
-    }, [adminUser, loadPermissions]);
+    // لا نحتاج Context Provider بعد الآن - Zustand هو الـ store
+    return <>{children}</>;
+};
 
-    const isSuperAdmin = useMemo(() => {
-        if (!role) return false;
-        return role.isSystem && (role.name === 'مشرف عام' || role.name === 'SUPER_ADMIN');
-    }, [role]);
+/**
+ * usePermission - Hook الرئيسي للصلاحيات
+ * يقرأ من Zustand Store مباشرة
+ */
+export const usePermission = () => {
+    const adminUser = useAuthStore((state) => state.adminUser);
+    const role = useAuthStore((state) => state.role);
+    const loading = useAuthStore((state) => state.loading);
+    const effectivePermissions = useAuthStore((state) => state.effectivePermissions);
+    const hasPermission = useAuthStore((state) => state.hasPermission);
+    const canAccess = useAuthStore((state) => state.canAccess);
+    const can = useAuthStore((state) => state.can);
+    const refreshPermissions = useAuthStore((state) => state.refreshPermissions);
+    const setAdminUser = useAuthStore((state) => state.setAdminUser);
+    const isSuperAdmin = useAuthStore(selectIsSuperAdmin);
 
-    const hasPermission = useCallback((resource: PermissionResource, action: PermissionAction): boolean => {
-        if (!adminUser || !adminUser.isActive) return false;
-        if (isSuperAdmin) return true;
-
-        const permKey = `${resource}:${action}`;
-        const perm = effectivePermissions.find(p => 
-            p.permissionKey === permKey || 
-            (p.resource === resource && p.action === action)
-        );
-        
-        if (perm) {
-            return perm.effect === 'ALLOW';
-        }
-
-        if (role?.permissions) {
-            const rolePerm = role.permissions.find(p => p.resource === resource);
-            if (rolePerm) {
-                return rolePerm.actions.includes(action);
-            }
-        }
-
-        return false;
-    }, [adminUser, role, isSuperAdmin, effectivePermissions]);
-
-    const canAccess = useCallback((resource: PermissionResource): boolean => {
-        return hasPermission(resource, 'view');
-    }, [hasPermission]);
-
-    const can = useCallback((permissionCode: string): boolean => {
-        if (!adminUser || !adminUser.isActive) return false;
-        if (isSuperAdmin) return true;
-
-        const perm = effectivePermissions.find(p => 
-            p.permissionKey === permissionCode ||
-            p.permissionKey.toUpperCase() === permissionCode.toUpperCase()
-        );
-        
-        if (perm) {
-            return perm.effect === 'ALLOW';
-        }
-
-        if (role?.permissions) {
-            const found = role.permissions.some(p => 
-                `${p.resource}:${p.actions?.[0] || ''}`.toUpperCase() === permissionCode.toUpperCase()
-            );
-            if (found) return true;
-        }
-
-        return false;
-    }, [adminUser, role, isSuperAdmin, effectivePermissions]);
-
-    const refreshPermissions = useCallback(async () => {
-        await loadPermissions(adminUser);
-    }, [loadPermissions, adminUser]);
-
-    const value: PermissionContextType = {
+    return {
         adminUser,
         role,
         loading,
@@ -176,61 +73,19 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
         refreshPermissions,
         setAdminUser
     };
-
-    return (
-        <PermissionContext.Provider value={value}>
-            {children}
-        </PermissionContext.Provider>
-    );
 };
 
-export const usePermission = () => {
-    const context = useContext(PermissionContext);
-    if (!context) {
-        throw new Error('usePermission must be used within a PermissionProvider');
-    }
-    return context;
-};
+/**
+ * useResourcePermission - صلاحيات مورد معين
+ */
+export const useResourcePermission = useZustandResourcePermission;
 
-export const useResourcePermission = (resource: PermissionResource) => {
-    const { hasPermission, canAccess } = usePermission();
-    
-    return useMemo(() => ({
-        canView: hasPermission(resource, 'view'),
-        canCreate: hasPermission(resource, 'create'),
-        canEdit: hasPermission(resource, 'edit'),
-        canDelete: hasPermission(resource, 'delete'),
-        canApprove: hasPermission(resource, 'approve'),
-        canReject: hasPermission(resource, 'reject'),
-        canExport: hasPermission(resource, 'export'),
-        canImport: hasPermission(resource, 'import'),
-        canConfigure: hasPermission(resource, 'configure'),
-        canManageStatus: hasPermission(resource, 'manage_status'),
-        canManageUsers: hasPermission(resource, 'manage_users'),
-        canManageRoles: hasPermission(resource, 'manage_roles'),
-        canRunBackup: hasPermission(resource, 'run_backup'),
-        canManageApi: hasPermission(resource, 'manage_api'),
-        hasAccess: canAccess(resource)
-    }), [resource, hasPermission, canAccess]);
-};
+/**
+ * useMenuVisibility - رؤية القوائم
+ */
+export const useMenuVisibility = useZustandMenuVisibility;
 
-// Helper function (not exported to avoid Fast Refresh issues)
-function hasPermissionCheck(
-    adminUser: AdminUser | null,
-    role: Role | null,
-    resource: PermissionResource,
-    action: PermissionAction
-): boolean {
-    if (!adminUser || !adminUser.isActive) return false;
-    if (!role) return false;
-
-    if (role.isSystem && (role.name === 'مشرف عام' || role.name === 'SUPER_ADMIN')) return true;
-
-    const permission = role.permissions?.find(p => p.resource === resource);
-    if (!permission) return false;
-
-    return permission.actions?.includes(action) || false;
-}
+// ===== COMPONENTS =====
 
 interface PermissionGateProps {
     resource: PermissionResource;
@@ -239,20 +94,24 @@ interface PermissionGateProps {
     fallback?: React.ReactNode;
 }
 
+/**
+ * PermissionGate - إظهار/إخفاء عناصر حسب الصلاحيات
+ */
 export const PermissionGate: React.FC<PermissionGateProps> = ({
     resource,
     action = 'view',
     children,
     fallback = null
 }) => {
-    const { hasPermission, loading } = usePermission();
-    
+    const hasPermission = useAuthStore((state) => state.hasPermission);
+    const loading = useAuthStore((state) => state.loading);
+
     if (loading) return null;
-    
+
     if (hasPermission(resource, action)) {
         return <>{children}</>;
     }
-    
+
     return <>{fallback}</>;
 };
 
@@ -263,26 +122,26 @@ interface PermissionGuardProps {
     redirectTo?: string;
 }
 
+/**
+ * PermissionGuard - حماية صفحات كاملة
+ */
 export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     resource,
     action = 'view',
     children,
     redirectTo = '/'
 }) => {
-    const { hasPermission, loading, adminUser } = usePermission();
+    const adminUser = useAuthStore((state) => state.adminUser);
+    const hasPermission = useAuthStore((state) => state.hasPermission);
+    const loading = useAuthStore((state) => state.loading);
     const [, setLocation] = useLocation();
-    const [redirected, setRedirected] = useState(false);
-    
+
     useEffect(() => {
-        if (!loading && !adminUser && !redirected) {
-            setRedirected(true);
+        if (!loading && !adminUser) {
             setLocation(redirectTo);
         }
-        if (adminUser) {
-            setRedirected(false);
-        }
-    }, [loading, adminUser, redirectTo, setLocation, redirected]);
-    
+    }, [loading, adminUser, redirectTo, setLocation]);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -290,59 +149,20 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
             </div>
         );
     }
-    
+
     if (!adminUser) {
         return null;
     }
-    
+
     if (!hasPermission(resource, action)) {
         return <AccessDenied resourceName={resource} onGoHome={() => setLocation('/')} />;
     }
-    
+
     return <>{children}</>;
 };
 
-export const useMenuVisibility = () => {
-    const { canAccess, isSuperAdmin, loading } = usePermission();
-    
-    return useMemo(() => {
-        if (loading) return { loading: true, menus: {} };
-        if (isSuperAdmin) {
-            return {
-                loading: false,
-                menus: {
-                    dashboard: true,
-                    products: true,
-                    orders: true,
-                    suppliers: true,
-                    customers: true,
-                    users: true,
-                    roles: true,
-                    permissions: true,
-                    reports: true,
-                    settings: true,
-                    notifications: true,
-                    traderTools: true
-                }
-            };
-        }
-        
-        return {
-            loading: false,
-            menus: {
-                dashboard: canAccess('dashboard'),
-                products: canAccess('products'),
-                orders: canAccess('orders'),
-                suppliers: canAccess('suppliers'),
-                customers: canAccess('customers'),
-                users: canAccess('users'),
-                roles: canAccess('roles'),
-                permissions: canAccess('permissions'),
-                reports: canAccess('reports'),
-                settings: canAccess('settings'),
-                notifications: canAccess('notifications'),
-                traderTools: canAccess('trader_tools')
-            }
-        };
-    }, [canAccess, isSuperAdmin, loading]);
-};
+// ===== UTILITY EXPORTS =====
+
+// تصدير الـ store مباشرة للاستخدام المتقدم
+export { useAuthStore } from '../stores/useAuthStore';
+export { selectIsSuperAdmin } from '../stores/useAuthStore';

@@ -1,7 +1,7 @@
 // ===== Supplier Portal Types (Command 15) =====
 
-// Supplier Type (Local or International)
-export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+// Supplier Type (Local, International, or Unregistered)
+export type SupplierType = 'LOCAL' | 'INTERNATIONAL' | 'UNREGISTERED';
 
 // Supplier Request Status
 export type SupplierRequestStatus = 'NEW' | 'VIEWED' | 'QUOTED' | 'REJECTED' | 'ACCEPTED' | 'EXPIRED';
@@ -185,7 +185,7 @@ export interface SupplierQuoteSubmission {
 }
 
 // Supplier Activity Log Entry (extends ActivityLogEntry)
-export type SupplierActivityType = 
+export type SupplierActivityType =
   | 'SUPPLIER_PRODUCT_ADDED'
   | 'SUPPLIER_PRODUCT_UPDATED'
   | 'SUPPLIER_PRODUCT_DELETED'

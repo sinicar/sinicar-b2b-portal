@@ -60,7 +60,8 @@ export const STORAGE_KEYS = {
   TRADER_TOOL_ACTIONS: 'sini_trader_tool_actions',
   FEEDBACK: 'sini_feedback',
   FEEDBACK_REPLIES: 'sini_feedback_replies',
-  FEEDBACK_SETTINGS: 'sini_feedback_settings'
+  FEEDBACK_SETTINGS: 'sini_feedback_settings',
+  ORDER_SHORTAGES: 'sini_order_shortages'
 } as const;
 
 export type StorageKey = keyof typeof STORAGE_KEYS;

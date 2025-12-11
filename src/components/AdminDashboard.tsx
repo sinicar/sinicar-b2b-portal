@@ -3,21 +3,23 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification, AdminUser, Role, PermissionResource } from '../types';
-import { 
-    LayoutDashboard, Users, ShoppingBag, ShoppingCart, Settings, FileText, LogOut, 
-    CheckCircle, SearchX, Download, Globe, XCircle, Info, Truck, Check, 
-    UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3, 
-    TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, Shield, 
+import {
+    LayoutDashboard, Users, ShoppingBag, ShoppingCart, Settings, FileText, LogOut,
+    CheckCircle, SearchX, Download, Globe, XCircle, Info, Truck, Check,
+    UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3,
+    TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, Shield,
     Database, Server, ExternalLink, Plus, Layers, Megaphone, DollarSign,
-    Wrench, Store, UserCheck, Palette, Bot, Brain, Terminal
+    Wrench, Store, UserCheck, Palette, Bot, Brain, Terminal, FileImage, Package
 } from 'lucide-react';
 import { LanguageSwitcherLight } from './LanguageSwitcher';
 import { AdminSettings } from './AdminSettings';
 import { AdminOrdersManager } from './AdminOrdersManager';
 import { AdminAccountRequests } from './AdminAccountRequests';
-import { AdminQuoteManager } from './AdminQuoteManager'; 
-import { AdminMissingParts } from './AdminMissingParts'; 
-import { AdminCustomersPage } from './AdminCustomersPage'; 
+import { AdminPartnerRequests } from './AdminPartnerRequests';
+import { AdminQuoteManager } from './AdminQuoteManager';
+import { AdminMissingParts } from './AdminMissingParts';
+import { AdminOrderShortagesPage } from './AdminOrderShortagesPage';
+import { AdminCustomersPage } from './AdminCustomersPage';
 import { AdminImportManager } from './AdminImportManager';
 import { AdminProductsPage } from './AdminProductsPage';
 import { AdminUsersPage } from './AdminUsersPage';
@@ -44,21 +46,22 @@ import AdminAITrainingPage from './AdminAITrainingPage';
 import AdminAICommandCenter from './AdminAICommandCenter';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
+import { AdminProductImagesPage } from './AdminProductImagesPage';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
 import { AdminBadgesProvider, useAdminBadges } from '../services/AdminBadgesContext';
 import { PermissionProvider, usePermission } from '../services/PermissionContext';
-import { 
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    LineChart, Line, AreaChart, Area, PieChart, Pie, Cell 
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    LineChart, Line, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 
 interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'AI_COMMAND_CENTER' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'PRODUCT_IMAGES' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'ORDER_SHORTAGES' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'PARTNER_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'AI_COMMAND_CENTER' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -67,8 +70,10 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'SETTINGS': 'settings_general',
     'QUOTES': 'quotes',
     'MISSING': 'missing',
+    'ORDER_SHORTAGES': 'orders',
     'IMPORT_REQUESTS': 'imports',
     'ACCOUNT_REQUESTS': 'account_requests',
+    'PARTNER_REQUESTS': 'account_requests',
     'ACTIVITY_LOGS': 'activity_log',
     'FEEDBACK_CENTER': 'settings_general',
     'MESSAGING_CENTER': 'settings_general',
@@ -88,6 +93,7 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'AI_TRAINING': 'settings_general',
     'AI_COMMAND_CENTER': 'settings_general',
     'ALTERNATIVES': 'products',
+    'PRODUCT_IMAGES': 'products',
     'NOTIFICATIONS': 'dashboard',
     'INTERNATIONAL_PRICING': 'settings_general',
     'PERMISSION_CENTER': 'settings_general',
@@ -101,8 +107,10 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'SETTINGS': 'adminDashboard.views.settings',
     'QUOTES': 'adminDashboard.views.quotes',
     'MISSING': 'adminDashboard.views.missing',
+    'ORDER_SHORTAGES': 'adminDashboard.views.orderShortages',
     'IMPORT_REQUESTS': 'adminDashboard.views.importRequests',
     'ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
+    'PARTNER_REQUESTS': 'adminDashboard.views.partnerRequests',
     'ACTIVITY_LOGS': 'adminDashboard.views.activityLogs',
     'FEEDBACK_CENTER': 'adminDashboard.views.feedbackCenter',
     'MESSAGING_CENTER': 'adminDashboard.views.messagingCenter',
@@ -122,6 +130,7 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'AI_TRAINING': 'adminDashboard.views.aiTraining',
     'AI_COMMAND_CENTER': 'adminDashboard.views.aiCommandCenter',
     'ALTERNATIVES': 'adminDashboard.views.alternatives',
+    'PRODUCT_IMAGES': 'adminDashboard.views.productImages',
     'NOTIFICATIONS': 'adminDashboard.views.notifications',
     'INTERNATIONAL_PRICING': 'adminDashboard.views.internationalPricing',
     'PERMISSION_CENTER': 'adminDashboard.views.permissionCenter',
@@ -145,15 +154,28 @@ const PIE_COLORS = [COLORS.gold, COLORS.navyLight, COLORS.success, COLORS.slate]
 // Inner component that uses the hooks
 const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const { t, i18n } = useTranslation();
-    const [view, setView] = useState<ViewType>('DASHBOARD');
+
+    // Persist view state in localStorage
+    const [view, setView] = useState<ViewType>(() => {
+        const savedView = localStorage.getItem('admin_dashboard_view');
+        if (savedView && Object.keys(VIEW_LABELS_KEYS).includes(savedView)) {
+            return savedView as ViewType;
+        }
+        return 'DASHBOARD';
+    });
     const isRtl = i18n.dir() === 'rtl';
-    
+
+    // Save view to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('admin_dashboard_view', view);
+    }, [view]);
+
     // Admin badges from context
-    const { badges, markOrdersAsSeen, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen } = useAdminBadges();
-    
+    const { badges, markOrdersAsSeen, markAccountsAsSeen, markQuotesAsSeen, markImportsAsSeen, markMissingAsSeen, markOrderShortagesAsSeen } = useAdminBadges();
+
     // Permissions from context
     const { hasPermission, canAccess, isSuperAdmin, adminUser, role, loading: permissionLoading } = usePermission();
-    
+
     // Data States
     const [orders, setOrders] = useState<Order[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -187,9 +209,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const fetchAllData = async () => {
         try {
             const [
-                fetchedOrders, 
+                fetchedOrders,
                 fetchedUsers, // Note: This actually returns {user, profile}[] from MockApi.getAllUsers() wrapper, but we access raw users from storage in MockApi
-                fetchedProducts, 
+                fetchedProducts,
                 fetchedQuotes,
                 fetchedImports,
                 fetchedAccounts,
@@ -218,7 +240,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             setActivityLogs(fetchedLogs);
             setMissingRequests(fetchedMissing);
             setNotifications(fetchedNotifs);
-            
+
             checkConnection(); // Check connection after fetch
         } catch (e) {
             console.error("Failed to load admin data", e);
@@ -247,7 +269,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         const totalRevenue = orders
             .filter(o => o.status !== OrderStatus.CANCELLED && o.status !== OrderStatus.REJECTED)
             .reduce((acc, o) => acc + o.totalAmount, 0);
-        
+
         const todayRevenue = orders
             .filter(o => new Date(o.date).toDateString() === new Date().toDateString())
             .filter(o => o.status !== OrderStatus.CANCELLED && o.status !== OrderStatus.REJECTED)
@@ -310,7 +332,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         // Top Customers
         const customerSpend: Record<string, number> = {};
         orders.forEach(o => {
-            if(o.status !== OrderStatus.CANCELLED) {
+            if (o.status !== OrderStatus.CANCELLED) {
                 customerSpend[o.createdByName || o.userId] = (customerSpend[o.createdByName || o.userId] || 0) + o.totalAmount;
             }
         });
@@ -335,15 +357,13 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     // --- Render Components ---
 
     const ConnectionWidget = () => (
-        <div className={`flex items-center gap-3 px-4 py-2 rounded-full border text-sm font-bold shadow-sm backdrop-blur-md transition-all ${
-            connectionStatus === 'CONNECTED' ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700' :
+        <div className={`flex items-center gap-3 px-4 py-2 rounded-full border text-sm font-bold shadow-sm backdrop-blur-md transition-all ${connectionStatus === 'CONNECTED' ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700' :
             connectionStatus === 'SLOW' ? 'bg-amber-50/90 border-amber-200 text-amber-700' :
-            'bg-red-50/90 border-red-200 text-red-700'
-        }`}>
-            <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${
-                connectionStatus === 'CONNECTED' ? 'bg-emerald-500' :
+                'bg-red-50/90 border-red-200 text-red-700'
+            }`}>
+            <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${connectionStatus === 'CONNECTED' ? 'bg-emerald-500' :
                 connectionStatus === 'SLOW' ? 'bg-amber-500' : 'bg-red-500'
-            }`}></div>
+                }`}></div>
             <span className="hidden md:inline">
                 {connectionStatus === 'CONNECTED' ? t('adminDashboard.connected') : connectionStatus === 'SLOW' ? t('adminDashboard.slowConnection') : t('adminDashboard.disconnected')}
             </span>
@@ -355,7 +375,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     );
 
     const StatCard = ({ title, value, subValue, icon, colorClass, delay }: any) => (
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group animate-slide-up" style={{animationDelay: delay}}>
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group animate-slide-up" style={{ animationDelay: delay }}>
             <div className="flex justify-between items-start mb-4">
                 <div>
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
@@ -378,10 +398,10 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             {/* Sidebar */}
             <aside className="w-72 bg-[#0B1B3A] text-white flex flex-col shadow-2xl z-20 flex-shrink-0">
                 <div className="p-6 border-b border-slate-700/50 bg-[#08142b]">
-                     <h1 className="text-xl font-black uppercase tracking-wider text-[#C8A04F] font-display flex items-center gap-2">
+                    <h1 className="text-xl font-black uppercase tracking-wider text-[#C8A04F] font-display flex items-center gap-2">
                         <ShieldCheck size={24} /> SINI ADMIN
-                     </h1>
-                     <p className="text-[10px] text-slate-400 mt-1 font-bold tracking-widest uppercase">Wholesale Control Center</p>
+                    </h1>
+                    <p className="text-[10px] text-slate-400 mt-1 font-bold tracking-widest uppercase">Wholesale Control Center</p>
                 </div>
                 <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('adminDashboard.mainSection')}</p>
@@ -397,7 +417,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('settings_general') && (
                         <NavItem icon={<Bell size={20} />} label={t('adminDashboard.messagingCenter', 'مركز الرسائل')} active={view === 'MESSAGING_CENTER'} onClick={() => setView('MESSAGING_CENTER')} />
                     )}
-                    
+
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.ordersCustomersSection')}</p>
                     {canAccess('orders') && (
                         <NavItem icon={<ShoppingBag size={20} />} label={t('adminDashboard.customerOrders')} active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
@@ -407,6 +427,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     )}
                     {canAccess('account_requests') && (
                         <NavItem icon={<UserPlus size={20} />} label={t('adminDashboard.accountRequests')} active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
+                    )}
+                    {canAccess('account_requests') && (
+                        <NavItem icon={<Store size={20} />} label={t('adminDashboard.partnerRequests', 'طلبات الشركاء')} active={view === 'PARTNER_REQUESTS'} onClick={() => setView('PARTNER_REQUESTS')} />
                     )}
                     {canAccess('customers') && (
                         <NavItem icon={<Users size={20} />} label={t('adminDashboard.customersCRM')} active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
@@ -420,13 +443,19 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('missing') && (
                         <NavItem icon={<SearchX size={20} />} label={t('adminDashboard.missingParts')} active={view === 'MISSING'} onClick={() => { setView('MISSING'); markMissingAsSeen(); }} badge={badges.missing} />
                     )}
-                    
+                    {canAccess('orders') && (
+                        <NavItem icon={<Package size={20} />} label={t('adminDashboard.orderShortages', 'نواقص الطلبيات')} active={view === 'ORDER_SHORTAGES'} onClick={() => { setView('ORDER_SHORTAGES'); markOrderShortagesAsSeen(); }} badge={badges.orderShortages} />
+                    )}
+
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.settingsSection')}</p>
                     {canAccess('products') && (
                         <NavItem icon={<Database size={20} />} label={t('adminDashboard.products')} active={view === 'PRODUCTS'} onClick={() => setView('PRODUCTS')} />
                     )}
                     {canAccess('products') && (
                         <NavItem icon={<Layers size={20} />} label={t('adminDashboard.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => setView('ALTERNATIVES')} />
+                    )}
+                    {canAccess('products') && (
+                        <NavItem icon={<FileImage size={20} />} label={t('adminDashboard.productImages', 'صور المنتجات')} active={view === 'PRODUCT_IMAGES'} onClick={() => setView('PRODUCT_IMAGES')} />
                     )}
                     {canAccess('users') && (
                         <NavItem icon={<Users size={20} />} label={t('adminDashboard.users')} active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
@@ -503,6 +532,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {view === 'QUOTES' && t('adminDashboard.pageTitles.quotes')}
                         {view === 'IMPORT_REQUESTS' && t('adminDashboard.pageTitles.imports')}
                         {view === 'MISSING' && t('adminDashboard.pageTitles.missing')}
+                        {view === 'ORDER_SHORTAGES' && t('adminDashboard.pageTitles.orderShortages', 'نواقص الطلبيات')}
                         {view === 'SETTINGS' && t('adminDashboard.pageTitles.settings')}
                         {view === 'ADMIN_USERS' && t('adminDashboard.pageTitles.users')}
                         {view === 'MARKETING' && t('adminDashboard.pageTitles.marketing')}
@@ -525,17 +555,17 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <LanguageSwitcherLight />
                         <ConnectionWidget />
                         {adminUser && (
-                            <NotificationBell 
-                                user={{ 
-                                    id: adminUser.id, 
-                                    username: adminUser.username, 
-                                    email: adminUser.email, 
-                                    phone: '', 
-                                    role: 'ADMIN', 
-                                    status: adminUser.isActive ? 'ACTIVE' : 'PENDING', 
-                                    createdAt: adminUser.createdAt, 
-                                    hasProfile: true 
-                                }} 
+                            <NotificationBell
+                                user={{
+                                    id: adminUser.id,
+                                    username: adminUser.username,
+                                    email: adminUser.email,
+                                    phone: '',
+                                    role: 'ADMIN',
+                                    status: adminUser.isActive ? 'ACTIVE' : 'PENDING',
+                                    createdAt: adminUser.createdAt,
+                                    hasProfile: true
+                                }}
                                 onViewAll={() => setView('NOTIFICATIONS')}
                             />
                         )}
@@ -553,40 +583,40 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 </header>
 
                 <div className="p-8 max-w-[1600px] mx-auto space-y-8">
-                    
+
                     {view === 'DASHBOARD' && (
                         <>
                             {/* KPI Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <StatCard 
-                                    title={t('adminDashboard.stats.todayRevenue')} 
-                                    value={`${kpiData.todayRevenue.toLocaleString()} ${t('customerDashboard.sar')}`} 
+                                <StatCard
+                                    title={t('adminDashboard.stats.todayRevenue')}
+                                    value={`${kpiData.todayRevenue.toLocaleString()} ${t('customerDashboard.sar')}`}
                                     subValue={`${t('adminDashboard.stats.totalRevenue')}: ${kpiData.totalRevenue.toLocaleString()} ${t('customerDashboard.sar')}`}
-                                    icon={<BarChart3 />} 
+                                    icon={<BarChart3 />}
                                     colorClass="text-emerald-600 bg-emerald-100"
                                     delay="0ms"
                                 />
-                                <StatCard 
-                                    title={t('adminDashboard.stats.pendingOrders')} 
-                                    value={kpiData.pendingOrders} 
+                                <StatCard
+                                    title={t('adminDashboard.stats.pendingOrders')}
+                                    value={kpiData.pendingOrders}
                                     subValue={`${kpiData.approvedOrders} ${t('adminDashboard.stats.approvedOrders')} | ${kpiData.shippedOrders} ${t('adminDashboard.stats.shippedOrders')}`}
-                                    icon={<ShoppingBag />} 
+                                    icon={<ShoppingBag />}
                                     colorClass="text-blue-600 bg-blue-100"
                                     delay="50ms"
                                 />
-                                <StatCard 
-                                    title={t('adminDashboard.stats.activeBusinesses')} 
-                                    value={kpiData.activeBusinesses} 
+                                <StatCard
+                                    title={t('adminDashboard.stats.activeBusinesses')}
+                                    value={kpiData.activeBusinesses}
                                     subValue={`${kpiData.pendingAccounts} ${t('adminDashboard.stats.pendingAccounts')}`}
-                                    icon={<Users />} 
+                                    icon={<Users />}
                                     colorClass="text-[#C8A04F] bg-amber-100"
                                     delay="100ms"
                                 />
-                                <StatCard 
-                                    title={t('adminDashboard.stats.pendingQuotes')} 
-                                    value={kpiData.pendingQuotes} 
+                                <StatCard
+                                    title={t('adminDashboard.stats.pendingQuotes')}
+                                    value={kpiData.pendingQuotes}
                                     subValue={t('common.noData')}
-                                    icon={<FileText />} 
+                                    icon={<FileText />}
                                     colorClass="text-slate-600 bg-slate-200"
                                     delay="150ms"
                                 />
@@ -606,15 +636,15 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             <AreaChart data={graphData.dailyStats}>
                                                 <defs>
                                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor={COLORS.navy} stopOpacity={0.2}/>
-                                                        <stop offset="95%" stopColor={COLORS.navy} stopOpacity={0}/>
+                                                        <stop offset="5%" stopColor={COLORS.navy} stopOpacity={0.2} />
+                                                        <stop offset="95%" stopColor={COLORS.navy} stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                                                <Tooltip 
-                                                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)'}}
+                                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                                <Tooltip
+                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                                                     formatter={(value: number) => [`${value.toLocaleString()} ${t('customerDashboard.sar')}`, t('adminDashboard.charts.revenue')]}
                                                 />
                                                 <Area type="monotone" dataKey="revenue" stroke={COLORS.navy} strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
@@ -632,10 +662,10 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             <Zap size={20} className="text-[#C8A04F]" /> {t('dashboard.quickActions')}
                                         </h3>
                                         <div className="grid grid-cols-2 gap-3 relative z-10">
-                                            <QuickActionBtn label={t('products.addProduct')} icon={<Plus size={16}/>} onClick={() => setView('PRODUCTS')} />
-                                            <QuickActionBtn label={t('common.refresh')} icon={<RefreshCw size={16}/>} onClick={() => setView('PRODUCTS')} />
-                                            <QuickActionBtn label={t('adminDashboard.stats.pendingOrders')} icon={<Clock size={16}/>} onClick={() => setView('QUOTES')} />
-                                            <QuickActionBtn label={t('common.export')} icon={<Download size={16}/>} onClick={() => addToast(t('common.loading'), 'success')} />
+                                            <QuickActionBtn label={t('products.addProduct')} icon={<Plus size={16} />} onClick={() => setView('PRODUCTS')} />
+                                            <QuickActionBtn label={t('common.refresh')} icon={<RefreshCw size={16} />} onClick={() => setView('PRODUCTS')} />
+                                            <QuickActionBtn label={t('adminDashboard.stats.pendingOrders')} icon={<Clock size={16} />} onClick={() => setView('QUOTES')} />
+                                            <QuickActionBtn label={t('common.export')} icon={<Download size={16} />} onClick={() => addToast(t('common.loading'), 'success')} />
                                         </div>
                                     </div>
 
@@ -646,7 +676,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <BarChart data={graphData.dailyStats}>
                                                     <Bar dataKey="orders" fill={COLORS.gold} radius={[4, 4, 0, 0]} />
-                                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{borderRadius: '8px'}} />
+                                                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px' }} />
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -718,179 +748,195 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
                     {/* --- OTHER VIEWS HANDLER WITH PERMISSION CHECKS --- */}
                     {view === 'SETTINGS' && (
-                        canAccess('settings_general') 
-                            ? <AdminSettings /> 
+                        canAccess('settings_general')
+                            ? <AdminSettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ADMIN_USERS' && (
-                        canAccess('users') 
-                            ? <AdminUsersPage onRefresh={fetchAllData} /> 
+                        canAccess('users')
+                            ? <AdminUsersPage onRefresh={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'MARKETING' && (
-                        canAccess('settings_general') 
-                            ? <AdminMarketingCenter /> 
+                        canAccess('settings_general')
+                            ? <AdminMarketingCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                     {view === 'PRICING' && (
-                        canAccess('settings_general') 
-                            ? <AdminPricingCenter /> 
+                        canAccess('settings_general')
+                            ? <AdminPricingCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'TRADER_TOOLS' && (
-                        canAccess('settings_general') 
-                            ? <AdminTraderToolsSettings /> 
+                        canAccess('settings_general')
+                            ? <AdminTraderToolsSettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'SUPPLIER_MARKETPLACE' && (
-                        canAccess('settings_general') 
-                            ? <AdminSupplierMarketplaceSettings /> 
+                        canAccess('settings_general')
+                            ? <AdminSupplierMarketplaceSettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'MARKETERS' && (
-                        canAccess('settings_general') 
-                            ? <AdminMarketersPage /> 
+                        canAccess('settings_general')
+                            ? <AdminMarketersPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'INSTALLMENTS' && (
-                        canAccess('settings_general') 
-                            ? <AdminInstallmentsPage /> 
+                        canAccess('settings_general')
+                            ? <AdminInstallmentsPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'ADVERTISING' && (
-                        canAccess('settings_general') 
-                            ? <AdminAdvertisingPage /> 
+                        canAccess('settings_general')
+                            ? <AdminAdvertisingPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'TEAM_SETTINGS' && (
-                        canAccess('settings_general') 
-                            ? <AdminOrganizationSettings /> 
+                        canAccess('settings_general')
+                            ? <AdminOrganizationSettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'CUSTOMER_PORTAL' && (
-                        canAccess('settings_general') 
-                            ? <AdminCustomerPortalSettings /> 
+                        canAccess('settings_general')
+                            ? <AdminCustomerPortalSettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'AI_SETTINGS' && (
-                        canAccess('settings_general') 
-                            ? <AdminAISettings /> 
+                        canAccess('settings_general')
+                            ? <AdminAISettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'AI_TRAINING' && (
-                        canAccess('settings_general') 
-                            ? <AdminAITrainingPage /> 
+                        canAccess('settings_general')
+                            ? <AdminAITrainingPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'AI_COMMAND_CENTER' && (
-                        canAccess('settings_general') 
-                            ? <AdminAICommandCenter /> 
+                        canAccess('settings_general')
+                            ? <AdminAICommandCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'INTERNATIONAL_PRICING' && (
-                        canAccess('settings_general') 
-                            ? <AdminInternationalPricingPage /> 
+                        canAccess('settings_general')
+                            ? <AdminInternationalPricingPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'PERMISSION_CENTER' && (
-                        canAccess('settings_general') 
-                            ? <AdminPermissionCenter /> 
+                        canAccess('settings_general')
+                            ? <AdminPermissionCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'REPORTS_CENTER' && (
-                        canAccess('settings_general') 
-                            ? <AdminReportsCenterPage /> 
+                        canAccess('settings_general')
+                            ? <AdminReportsCenterPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'ORDERS_MANAGER' && (
-                        canAccess('orders') 
-                            ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} /> 
+                        canAccess('orders')
+                            ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ABANDONED_CARTS' && (
-                        canAccess('orders') 
-                            ? <AdminAbandonedCartsPage onRefresh={fetchAllData} /> 
+                        canAccess('orders')
+                            ? <AdminAbandonedCartsPage onRefresh={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ACCOUNT_REQUESTS' && (
-                        canAccess('account_requests') 
-                            ? <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} /> 
+                        canAccess('account_requests')
+                            ? <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'PARTNER_REQUESTS' && (
+                        canAccess('account_requests')
+                            ? <AdminPartnerRequests />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'CUSTOMERS' && (
-                        canAccess('customers') 
-                            ? <AdminCustomersPage /> 
+                        canAccess('customers')
+                            ? <AdminCustomersPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'QUOTES' && (
-                        canAccess('quotes') 
-                            ? <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} /> 
+                        canAccess('quotes')
+                            ? <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'MISSING' && (
-                        canAccess('missing') 
-                            ? <AdminMissingParts missingRequests={missingRequests} /> 
+                        canAccess('missing')
+                            ? <AdminMissingParts missingRequests={missingRequests} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+                    {view === 'ORDER_SHORTAGES' && (
+                        canAccess('orders')
+                            ? <AdminOrderShortagesPage onRefresh={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'IMPORT_REQUESTS' && (
-                        canAccess('imports') 
-                            ? <AdminImportManager requests={importRequests} onUpdate={fetchAllData} /> 
+                        canAccess('imports')
+                            ? <AdminImportManager requests={importRequests} onUpdate={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'ACTIVITY_LOGS' && (
-                        canAccess('activity_log') 
-                            ? <AdminActivityLogPage /> 
+                        canAccess('activity_log')
+                            ? <AdminActivityLogPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'FEEDBACK_CENTER' && (
-                        canAccess('settings_general') 
-                            ? <AdminFeedbackCenter /> 
+                        canAccess('settings_general')
+                            ? <AdminFeedbackCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'MESSAGING_CENTER' && (
-                        canAccess('settings_general') 
-                            ? <AdminMessagingCenter /> 
+                        canAccess('settings_general')
+                            ? <AdminMessagingCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    
+
                     {view === 'PRODUCTS' && (
-                        canAccess('products') 
-                            ? <AdminProductsPage onRefresh={fetchAllData} /> 
+                        canAccess('products')
+                            ? <AdminProductsPage onRefresh={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                     {view === 'ALTERNATIVES' && (
-                        canAccess('products') 
-                            ? <AdminAlternativesPage onRefresh={fetchAllData} /> 
+                        canAccess('products')
+                            ? <AdminAlternativesPage onRefresh={fetchAllData} />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+
+                    {view === 'PRODUCT_IMAGES' && (
+                        canAccess('products')
+                            ? <AdminProductImagesPage />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                     {view === 'NOTIFICATIONS' && adminUser && (
-                        <NotificationsPage 
-                            user={{ 
-                                id: adminUser.id, 
-                                username: adminUser.username, 
-                                email: adminUser.email, 
-                                phone: '', 
-                                role: 'ADMIN', 
-                                status: adminUser.isActive ? 'ACTIVE' : 'PENDING', 
-                                createdAt: adminUser.createdAt, 
-                                hasProfile: true 
+                        <NotificationsPage
+                            user={{
+                                id: adminUser.id,
+                                username: adminUser.username,
+                                email: adminUser.email,
+                                phone: '',
+                                role: 'ADMIN',
+                                status: adminUser.isActive ? 'ACTIVE' : 'PENDING',
+                                createdAt: adminUser.createdAt,
+                                hasProfile: true
                             }}
                             onBack={() => setView('DASHBOARD')}
                         />
@@ -948,7 +994,7 @@ const OnlineUsersCard = () => {
                 setLoading(false);
             }
         };
-        
+
         loadOnline();
         const interval = setInterval(loadOnline, 30000); // Refresh every 30s
         return () => clearInterval(interval);
@@ -1012,7 +1058,7 @@ const OnlineUsersCard = () => {
                     <p className="text-sm font-bold">{t('adminDashboard.onlineUsers.noOnlineUsers')}</p>
                 </div>
             )}
-            
+
             {onlineUsers.length > 12 && (
                 <p className="text-center mt-4 text-xs text-slate-500">
                     {t('adminDashboard.onlineUsers.moreOnline', { count: onlineUsers.length - 12 })}
@@ -1066,9 +1112,9 @@ const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
                 </table>
                 {totalPages > 1 && (
                     <div className="p-4 flex justify-center gap-4 border-t border-slate-100">
-                        <button disabled={page===1} onClick={() => setPage(page-1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronRight size={16}/></button>
+                        <button disabled={page === 1} onClick={() => setPage(page - 1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronRight size={16} /></button>
                         <span className="text-sm font-bold text-slate-600 pt-1">{page} / {totalPages}</span>
-                        <button disabled={page===totalPages} onClick={() => setPage(page+1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronLeft size={16}/></button>
+                        <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="p-2 border rounded hover:bg-slate-50 disabled:opacity-50"><ChevronLeft size={16} /></button>
                     </div>
                 )}
             </div>
@@ -1079,7 +1125,7 @@ const ActivityLogsView = ({ logs, page, setPage, perPage }: any) => {
 // Wrapper component with providers
 export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-    
+
     useEffect(() => {
         const loadAdminUser = async () => {
             try {
@@ -1094,7 +1140,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         };
         loadAdminUser();
     }, []);
-    
+
     return (
         <PermissionProvider initialAdminUser={adminUser}>
             <AdminBadgesProvider>

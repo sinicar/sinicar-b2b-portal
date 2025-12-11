@@ -1,11 +1,11 @@
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
-import { 
-  User, 
-  SupplierProduct, 
-  SupplierRequest, 
-  SupplierDashboardStats, 
+import {
+  User,
+  SupplierProduct,
+  SupplierRequest,
+  SupplierDashboardStats,
   SupplierSettings,
   SupplierProductFilters,
   SupplierRequestFilters,
@@ -13,13 +13,23 @@ import {
   SupplierQuoteSubmission,
   SupplierExcelImportResult
 } from '../types';
-import { 
-  LayoutDashboard, Package, FileText, Settings, LogOut, Menu, X, 
+import {
+  LayoutDashboard, Package, FileText, Settings, LogOut, Menu, X,
   Plus, Upload, Download, Search, Filter, Eye, Send, XCircle,
   ChevronLeft, ChevronRight, Edit2, Trash2, CheckCircle, Clock,
   TrendingUp, Box, FileSpreadsheet, AlertTriangle, Bell, Users,
-  DollarSign, BarChart3, Star, Calendar, Loader2
+  DollarSign, BarChart3, Star, Calendar, Loader2, Image as ImageIcon,
+  FileArchive, RefreshCw, ZoomIn, Link2, Unlink, Archive
 } from 'lucide-react';
+import JSZip from 'jszip';
+import {
+  compressImage,
+  createThumbnail,
+  extractPartNumberFromFileName,
+  isValidImageFormat,
+  generateImageId
+} from '../services/imageService';
+import { ProductImage, IMAGE_STATUS_LABELS } from '../utils/imageConstants';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NotificationBell } from './NotificationBell';
 import { NotificationsPage } from './NotificationsPage';
@@ -29,12 +39,14 @@ import { useToast } from '../services/ToastContext';
 import { formatDateTime } from '../utils/dateUtils';
 import * as XLSX from 'xlsx';
 
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+PHJlY3QgZmlsbD0iI2YzZjRmNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiLz48cGF0aCBmaWxsPSIjOWNhM2FmIiBkPSJNNjAgMzBjLTIwIDAtMzUgMTUtMzUgMzVzMTUgMzUgMzUgMzUgMzUtMTUgMzUtMzUtMTUtMzUtMzUtMzV6bTAgNjBjLTE0IDAtMjUtMTEtMjUtMjVzMTEtMjUgMjUtMjUgMjUgMTEgMjUgMjUtMTEgMjUtMjUgMjV6Ii8+PHBhdGggZmlsbD0iIzljYTNhZiIgZD0iTTYwIDQ1Yy0xMCAwLTIwIDgtMjAgMjBzMTAgMjAgMjAgMjAgMjAtOCAyMC0yMC0xMC0yMC0yMC0yMHptMCAzMGMtNSAwLTEwLTQtMTAtMTBzNS0xMCAxMC0xMCAxMCA0IDEwIDEwLTUgMTAtMTAgMTB6Ii8+PC9zdmc+';
+
 interface SupplierPortalProps {
   user: User;
   onLogout: () => void;
 }
 
-type SupplierView = 'DASHBOARD' | 'PRODUCTS' | 'REQUESTS' | 'SETTINGS' | 'NOTIFICATIONS' | 'TEAM';
+type SupplierView = 'DASHBOARD' | 'PRODUCTS' | 'PURCHASE_ORDERS' | 'REQUESTS' | 'SETTINGS' | 'NOTIFICATIONS' | 'TEAM' | 'IMAGES' | 'QUICK_ORDER' | 'EXCEL_PURCHASE';
 
 const SidebarItem = memo(({ icon, label, active, onClick, badge, collapsed, testId }: {
   icon: React.ReactNode;
@@ -45,13 +57,12 @@ const SidebarItem = memo(({ icon, label, active, onClick, badge, collapsed, test
   collapsed: boolean;
   testId?: string;
 }) => (
-  <button 
-    onClick={onClick} 
-    className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3.5 rounded-2xl mb-2 transition-all duration-300 group relative overflow-hidden ${
-      active 
-      ? 'bg-gradient-to-l from-emerald-600 to-emerald-700 text-white font-bold shadow-lg shadow-emerald-900/40 scale-[1.02]' 
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3.5 rounded-2xl mb-2 transition-all duration-300 group relative overflow-hidden ${active
+      ? 'bg-gradient-to-l from-emerald-600 to-emerald-700 text-white font-bold shadow-lg shadow-emerald-900/40 scale-[1.02]'
       : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium hover:scale-[1.01]'
-    }`}
+      }`}
     title={collapsed ? label : undefined}
     data-testid={testId}
   >
@@ -104,10 +115,23 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   const { addToast } = useToast();
   const isRTL = dir === 'rtl';
 
-  const [view, setView] = useState<SupplierView>('DASHBOARD');
+  // Persist view state in localStorage
+  const [view, setView] = useState<SupplierView>(() => {
+    const savedView = localStorage.getItem('supplier_portal_view');
+    const validViews: SupplierView[] = ['DASHBOARD', 'PRODUCTS', 'PURCHASE_ORDERS', 'REQUESTS', 'NOTIFICATIONS', 'SETTINGS', 'TEAM', 'IMAGES', 'QUICK_ORDER', 'EXCEL_PURCHASE'];
+    if (savedView && validViews.includes(savedView as SupplierView)) {
+      return savedView as SupplierView;
+    }
+    return 'DASHBOARD';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Save view to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('supplier_portal_view', view);
+  }, [view]);
 
   const [stats, setStats] = useState<SupplierDashboardStats | null>(null);
   const [products, setProducts] = useState<SupplierProduct[]>([]);
@@ -201,31 +225,8 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
     }
   };
 
-  const handleSubmitQuote = async (data: SupplierQuoteSubmission) => {
-    try {
-      await MockApi.submitSupplierQuote(user.id, data);
-      addToast(t('supplier.quoteSent'), 'success');
-      setShowQuoteModal(false);
-      setSelectedRequest(null);
-      loadRequests();
-      loadDashboard();
-    } catch (err) {
-      addToast(t('supplier.quoteError'), 'error');
-    }
-  };
-
-  const handleRejectRequest = async (requestId: string) => {
-    const reason = prompt(t('supplier.rejectReason'));
-    if (reason === null) return;
-    try {
-      await MockApi.rejectSupplierRequest(user.id, requestId, reason);
-      addToast(t('supplier.requestRejected'), 'success');
-      loadRequests();
-      loadDashboard();
-    } catch (err) {
-      addToast(t('supplier.rejectError'), 'error');
-    }
-  };
+  // NOTE: handleSubmitQuote and handleRejectRequest removed - violates business policy
+  // Suppliers only manage their products, Sini Car handles pricing and requests
 
   const handleImportExcel = async (file: File) => {
     try {
@@ -277,7 +278,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   };
 
   const sidebarPosition = isRTL ? 'right-0' : 'left-0';
-  const sidebarTransform = isRTL 
+  const sidebarTransform = isRTL
     ? (sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0')
     : (sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0');
   const sidebarWidth = collapsed ? 'w-20' : 'w-72';
@@ -298,7 +299,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   return (
     <div className={`flex h-screen bg-slate-100 ${dir === 'rtl' ? 'rtl' : 'ltr'}`} dir={dir}>
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -337,59 +338,94 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <SidebarItem 
-            icon={<LayoutDashboard size={20} />} 
-            label={t('supplier.dashboard')} 
-            active={view === 'DASHBOARD'} 
+          <SidebarItem
+            icon={<LayoutDashboard size={20} />}
+            label={t('supplier.dashboard')}
+            active={view === 'DASHBOARD'}
             onClick={() => setView('DASHBOARD')}
             collapsed={collapsed}
             testId="nav-dashboard"
           />
-          <SidebarItem 
-            icon={<Package size={20} />} 
-            label={t('supplier.products')} 
-            active={view === 'PRODUCTS'} 
+          <SidebarItem
+            icon={<Package size={20} />}
+            label={t('supplier.products')}
+            active={view === 'PRODUCTS'}
             onClick={() => setView('PRODUCTS')}
             testId="nav-products"
             collapsed={collapsed}
           />
-          <SidebarItem 
-            icon={<FileText size={20} />} 
-            label={t('supplier.requests')} 
-            active={view === 'REQUESTS'} 
-            onClick={() => setView('REQUESTS')}
-            badge={pendingRequestCount > 0 ? pendingRequestCount : undefined}
+          <SidebarItem
+            icon={<FileText size={20} />}
+            label="أوامر الشراء"
+            active={view === 'PURCHASE_ORDERS'}
+            onClick={() => setView('PURCHASE_ORDERS')}
             collapsed={collapsed}
-            testId="nav-requests"
+            testId="nav-purchase-orders"
           />
-          <SidebarItem 
-            icon={<Bell size={20} />} 
-            label={t('supplier.notifications')} 
-            active={view === 'NOTIFICATIONS'} 
+          <SidebarItem
+            icon={<Bell size={20} />}
+            label={t('supplier.notifications')}
+            active={view === 'NOTIFICATIONS'}
             onClick={() => setView('NOTIFICATIONS')}
             collapsed={collapsed}
             testId="nav-notifications"
           />
-          <SidebarItem 
-            icon={<Users size={20} />} 
-            label={t('supplier.team')} 
-            active={view === 'TEAM'} 
+          <SidebarItem
+            icon={<Users size={20} />}
+            label={t('supplier.team')}
+            active={view === 'TEAM'}
             onClick={() => setView('TEAM')}
             collapsed={collapsed}
             testId="nav-team"
           />
-          <SidebarItem 
-            icon={<Settings size={20} />} 
-            label={t('supplier.settings')} 
-            active={view === 'SETTINGS'} 
+          <SidebarItem
+            icon={<Settings size={20} />}
+            label={t('supplier.settings')}
+            active={view === 'SETTINGS'}
             onClick={() => setView('SETTINGS')}
             collapsed={collapsed}
             testId="nav-settings"
           />
+
+          {/* Conditional Customer Features for Dual-Role Suppliers */}
+          {user.canAccessCustomerFeatures && (
+            <>
+              <div className={`${collapsed ? 'mx-auto w-6' : 'mx-3'} my-3 border-t border-amber-500/30`}></div>
+              <div className={`${collapsed ? 'hidden' : 'px-3 mb-2'}`}>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">خدمات العملاء</span>
+              </div>
+              <SidebarItem
+                icon={<Search size={20} />}
+                label="الطلبات السريعة"
+                active={view === 'QUICK_ORDER'}
+                onClick={() => setView('QUICK_ORDER')}
+                badge={user.supplierSearchPoints || 0}
+                collapsed={collapsed}
+                testId="nav-quick-order"
+              />
+              <SidebarItem
+                icon={<FileSpreadsheet size={20} />}
+                label="طلب شراء Excel"
+                active={view === 'EXCEL_PURCHASE'}
+                onClick={() => setView('EXCEL_PURCHASE')}
+                collapsed={collapsed}
+                testId="nav-excel-purchase"
+              />
+            </>
+          )}
+
+          <SidebarItem
+            icon={<ImageIcon size={20} />}
+            label={t('supplier.images', 'صور المنتجات')}
+            active={view === 'IMAGES'}
+            onClick={() => setView('IMAGES')}
+            collapsed={collapsed}
+            testId="nav-images"
+          />
         </nav>
 
         <div className={`p-3 border-t border-white/10 ${collapsed ? 'flex justify-center' : ''}`}>
-          <button 
+          <button
             onClick={onLogout}
             className={`${collapsed ? 'p-3' : 'w-full px-4 py-3'} flex items-center ${collapsed ? 'justify-center' : 'gap-3'} rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all`}
             title={t('logout')}
@@ -404,8 +440,8 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 md:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 lg:px-8 flex-shrink-0 z-30 shadow-sm gap-2">
           <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-            <button 
-              onClick={() => setSidebarOpen(true)} 
+            <button
+              onClick={() => setSidebarOpen(true)}
               className="lg:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-lg shrink-0"
               data-testid="button-open-sidebar"
             >
@@ -418,6 +454,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
               {view === 'SETTINGS' && t('supplier.settings')}
               {view === 'NOTIFICATIONS' && t('supplier.notifications')}
               {view === 'TEAM' && t('supplier.team')}
+              {view === 'IMAGES' && t('supplier.images', 'صور المنتجات')}
             </h2>
           </div>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -432,16 +469,16 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           {view === 'DASHBOARD' && stats && (
-            <DashboardView 
-              stats={stats} 
-              t={t} 
+            <DashboardView
+              stats={stats}
+              t={t}
               onNavigate={setView}
               recentRequests={requests.slice(0, 5)}
             />
           )}
-          
+
           {view === 'PRODUCTS' && (
-            <ProductsView 
+            <ProductsView
               products={products}
               total={productTotal}
               filters={productFilters}
@@ -455,20 +492,10 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
             />
           )}
 
-          {view === 'REQUESTS' && (
-            <RequestsView 
-              requests={requests}
-              total={requestTotal}
-              filters={requestFilters}
-              onFiltersChange={setRequestFilters}
-              onQuote={(r) => { setSelectedRequest(r); setShowQuoteModal(true); }}
-              onReject={handleRejectRequest}
-              t={t}
-            />
-          )}
+
 
           {view === 'SETTINGS' && settings && (
-            <SettingsView 
+            <SettingsView
               settings={settings}
               onSave={handleUpdateSettings}
               t={t}
@@ -479,11 +506,28 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
             <NotificationsPage user={user} />
           )}
 
+          {view === 'PURCHASE_ORDERS' && (
+            <SupplierPurchaseOrdersView
+              orders={[]}
+              onUpdateStatus={(orderId, status) => {
+                addToast(`تم تحديث حالة الطلب ${orderId} إلى ${status}`, 'success');
+              }}
+              t={t}
+            />
+          )}
+
           {view === 'TEAM' && (
-            <SupplierTeamView 
+            <SupplierTeamView
               supplierId={user.id}
               t={t}
               currentUser={user}
+            />
+          )}
+
+          {view === 'IMAGES' && (
+            <SupplierImagesView
+              supplierId={user.id}
+              t={t}
             />
           )}
         </main>
@@ -492,7 +536,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
       {showProductModal && (
         <ProductFormModal
           product={editingProduct}
-          onSave={editingProduct 
+          onSave={editingProduct
             ? (data) => handleUpdateProduct(editingProduct.id, data)
             : handleAddProduct
           }
@@ -501,14 +545,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
         />
       )}
 
-      {showQuoteModal && selectedRequest && (
-        <QuoteFormModal
-          request={selectedRequest}
-          onSubmit={handleSubmitQuote}
-          onClose={() => { setShowQuoteModal(false); setSelectedRequest(null); }}
-          t={t}
-        />
-      )}
+
 
       {showImportModal && (
         <ImportModal
@@ -522,6 +559,220 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   );
 };
 
+// --- Purchase Orders View (NEW - Order Routing System) ---
+// Supplier sees orders to fulfill, NOT requests to approve
+const PO_STATUS_LABELS: Record<string, { label: string; color: string; icon: string }> = {
+  NEW: { label: 'جديد', color: 'bg-red-100 text-red-700 border-red-200', icon: '🔴' },
+  PREPARING: { label: 'قيد التحضير', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: '🟡' },
+  READY: { label: 'جاهز للاستلام', color: 'bg-green-100 text-green-700 border-green-200', icon: '🟢' },
+  SHIPPED: { label: 'تم الشحن', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: '🚚' },
+  RECEIVED: { label: 'تم الاستلام', color: 'bg-slate-100 text-slate-700 border-slate-200', icon: '✅' },
+  PARTIAL_STOCK: { label: 'كمية غير كافية', color: 'bg-orange-100 text-orange-700 border-orange-200', icon: '⚠️' },
+};
+
+const SupplierPurchaseOrdersView = memo(({
+  orders,
+  onUpdateStatus,
+  t
+}: {
+  orders: any[];
+  onUpdateStatus: (orderId: string, status: string) => void;
+  t: (key: string) => string;
+}) => {
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  // Mock orders for demo if empty
+  const displayOrders = orders.length > 0 ? orders : [
+    {
+      id: 'po-001',
+      orderNumber: 'PO-2024-001',
+      customerOrderNumber: 'ORD-5678',
+      status: 'NEW',
+      createdAt: new Date().toISOString(),
+      totalItems: 3,
+      totalQuantity: 15,
+      totalAmount: 1500,
+      items: [
+        { id: '1', partNumber: 'ABC-001', productName: 'فلتر زيت تويوتا', quantityRequested: 5, supplierPrice: 50, totalPrice: 250, isAvailable: true },
+        { id: '2', partNumber: 'DEF-002', productName: 'فلتر هواء كامري', quantityRequested: 3, supplierPrice: 80, totalPrice: 240, isAvailable: true },
+        { id: '3', partNumber: 'GHI-003', productName: 'شمعات إشعال', quantityRequested: 7, supplierPrice: 144, totalPrice: 1008, isAvailable: true },
+      ]
+    },
+    {
+      id: 'po-002',
+      orderNumber: 'PO-2024-002',
+      customerOrderNumber: 'ORD-5679',
+      status: 'PREPARING',
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      totalItems: 2,
+      totalQuantity: 8,
+      totalAmount: 720,
+      items: [
+        { id: '4', partNumber: 'JKL-004', productName: 'طقم فرامل أمامي', quantityRequested: 2, supplierPrice: 200, totalPrice: 400, isAvailable: true },
+        { id: '5', partNumber: 'MNO-005', productName: 'زيت محرك 5W-30', quantityRequested: 6, supplierPrice: 53, totalPrice: 320, isAvailable: true },
+      ]
+    }
+  ];
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white">
+            <FileText size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-800">أوامر الشراء للتنفيذ</h2>
+            <p className="text-sm text-slate-500">قم بتحضير الطلبات وتحديث حالتها</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-bold">
+            {displayOrders.filter(o => o.status === 'NEW').length} جديد
+          </span>
+          <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-bold">
+            {displayOrders.filter(o => o.status === 'PREPARING').length} قيد التحضير
+          </span>
+        </div>
+      </div>
+
+      {/* Orders List */}
+      <div className="space-y-4">
+        {displayOrders.map(order => {
+          const statusInfo = PO_STATUS_LABELS[order.status] || PO_STATUS_LABELS.NEW;
+          const isExpanded = expandedOrder === order.id;
+
+          return (
+            <div
+              key={order.id}
+              className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden"
+            >
+              {/* Order Header */}
+              <div
+                className="p-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{statusInfo.icon}</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-slate-800">{order.orderNumber}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500">
+                        {order.totalItems} أصناف • {order.totalQuantity} قطعة • {order.totalAmount.toLocaleString()} ر.س
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400">
+                      {new Date(order.createdAt).toLocaleDateString('ar-SA')}
+                    </span>
+                    <ChevronRight
+                      size={20}
+                      className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Expanded Content */}
+              {isExpanded && (
+                <div className="border-t border-slate-100">
+                  {/* Items Table */}
+                  <div className="p-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-600">
+                          <th className="text-right p-2 rounded-r-lg">رقم الصنف</th>
+                          <th className="text-right p-2">اسم المنتج</th>
+                          <th className="text-center p-2">الكمية</th>
+                          <th className="text-center p-2">السعر</th>
+                          <th className="text-center p-2 rounded-l-lg">الإجمالي</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {order.items.map((item: any) => (
+                          <tr key={item.id} className="border-b border-slate-50">
+                            <td className="p-2 font-mono text-xs text-slate-600">{item.partNumber}</td>
+                            <td className="p-2 font-bold text-slate-800">{item.productName}</td>
+                            <td className="p-2 text-center font-bold text-blue-600">{item.quantityRequested}</td>
+                            <td className="p-2 text-center text-slate-600">{item.supplierPrice} ر.س</td>
+                            <td className="p-2 text-center font-bold text-emerald-600">{item.totalPrice} ر.س</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="p-4 bg-slate-50 flex items-center justify-between gap-3">
+                    <div className="text-sm text-slate-500">
+                      إجمالي المبلغ: <span className="font-black text-slate-800">{order.totalAmount.toLocaleString()} ر.س</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {order.status === 'NEW' && (
+                        <>
+                          <button
+                            onClick={() => onUpdateStatus(order.id, 'PARTIAL_STOCK')}
+                            className="px-4 py-2 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm hover:bg-orange-200 transition-colors"
+                          >
+                            ⚠️ كمية غير كافية
+                          </button>
+                          <button
+                            onClick={() => onUpdateStatus(order.id, 'PREPARING')}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
+                          >
+                            🟡 بدء التحضير
+                          </button>
+                        </>
+                      )}
+                      {order.status === 'PREPARING' && (
+                        <button
+                          onClick={() => onUpdateStatus(order.id, 'READY')}
+                          className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors"
+                        >
+                          🟢 جاهز للاستلام
+                        </button>
+                      )}
+                      {order.status === 'READY' && (
+                        <button
+                          onClick={() => onUpdateStatus(order.id, 'SHIPPED')}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
+                        >
+                          🚚 تم الشحن
+                        </button>
+                      )}
+                      {(order.status === 'SHIPPED' || order.status === 'RECEIVED') && (
+                        <span className="px-4 py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-sm">
+                          ✅ مكتمل
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Empty State */}
+      {displayOrders.length === 0 && (
+        <div className="text-center py-12 bg-white rounded-2xl">
+          <Package size={48} className="mx-auto text-slate-300 mb-4" />
+          <h3 className="text-lg font-bold text-slate-600">لا توجد أوامر شراء</h3>
+          <p className="text-slate-400">سيظهر هنا أي أمر شراء جديد من صيني كار</p>
+        </div>
+      )}
+    </div>
+  );
+});
+
 const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
   stats: SupplierDashboardStats;
   t: (key: string) => string;
@@ -530,27 +781,27 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
 }) => (
   <div className="space-y-6 animate-fade-in">
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard 
+      <StatCard
         icon={<Package size={24} className="text-white" />}
         label={t('supplier.totalProducts')}
         value={stats.totalProducts}
         color="from-emerald-500 to-emerald-600"
         subValue={`${stats.activeProducts} ${t('supplier.active')}`}
       />
-      <StatCard 
+      <StatCard
         icon={<FileText size={24} className="text-white" />}
         label={t('supplier.pendingRequests')}
         value={stats.pendingRequests}
         color="from-orange-500 to-orange-600"
       />
-      <StatCard 
+      <StatCard
         icon={<CheckCircle size={24} className="text-white" />}
         label={t('supplier.quotesSubmitted')}
         value={stats.quotesSubmitted}
         color="from-blue-500 to-blue-600"
         subValue={`${stats.quotesAccepted} ${t('supplier.accepted')}`}
       />
-      <StatCard 
+      <StatCard
         icon={<DollarSign size={24} className="text-white" />}
         label={t('supplier.totalRevenue')}
         value={`${stats.totalRevenue.toLocaleString()} ${t('currency')}`}
@@ -562,7 +813,7 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
       <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-lg text-slate-800">{t('supplier.recentRequests')}</h3>
-          <button 
+          <button
             onClick={() => onNavigate('REQUESTS')}
             className="text-emerald-600 text-sm font-bold hover:underline"
             data-testid="link-view-all-requests"
@@ -578,18 +829,17 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
         ) : (
           <div className="space-y-3">
             {recentRequests.map((req) => (
-              <div 
+              <div
                 key={req.id}
                 className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                 onClick={() => onNavigate('REQUESTS')}
                 data-testid={`request-item-${req.id}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${
-                    req.status === 'NEW' ? 'bg-orange-500' :
+                  <div className={`w-3 h-3 rounded-full ${req.status === 'NEW' ? 'bg-orange-500' :
                     req.status === 'QUOTED' ? 'bg-blue-500' :
-                    req.status === 'ACCEPTED' ? 'bg-green-500' : 'bg-slate-400'
-                  }`} />
+                      req.status === 'ACCEPTED' ? 'bg-green-500' : 'bg-slate-400'
+                    }`} />
                   <div>
                     <p className="font-bold text-slate-800">{req.partName || req.partNumber}</p>
                     <p className="text-xs text-slate-500">{req.customerName}</p>
@@ -597,11 +847,10 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-slate-500">{formatDateTime(req.createdAt)}</p>
-                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
-                    req.status === 'NEW' ? 'bg-orange-100 text-orange-700' :
+                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${req.status === 'NEW' ? 'bg-orange-100 text-orange-700' :
                     req.status === 'QUOTED' ? 'bg-blue-100 text-blue-700' :
-                    req.status === 'ACCEPTED' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
+                      req.status === 'ACCEPTED' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
                     {t(`supplier.status.${req.status.toLowerCase()}`)}
                   </span>
                 </div>
@@ -614,7 +863,7 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <h3 className="font-bold text-lg text-slate-800 mb-4">{t('supplier.quickActions')}</h3>
         <div className="space-y-3">
-          <button 
+          <button
             onClick={() => onNavigate('PRODUCTS')}
             className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold hover:bg-emerald-100 transition-colors"
             data-testid="button-add-product-quick"
@@ -622,7 +871,7 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
             <Plus size={20} />
             {t('supplier.addProduct')}
           </button>
-          <button 
+          <button
             onClick={() => onNavigate('PRODUCTS')}
             className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-xl font-bold hover:bg-blue-100 transition-colors"
             data-testid="button-import-products-quick"
@@ -630,7 +879,7 @@ const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
             <Upload size={20} />
             {t('supplier.importProducts')}
           </button>
-          <button 
+          <button
             onClick={() => onNavigate('REQUESTS')}
             className="w-full flex items-center gap-3 px-4 py-3 bg-orange-50 text-orange-700 rounded-xl font-bold hover:bg-orange-100 transition-colors"
             data-testid="button-view-requests-quick"
@@ -697,7 +946,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
               data-testid="input-search-products"
             />
           </div>
-          <button 
+          <button
             onClick={handleSearch}
             className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
             data-testid="button-search-products"
@@ -706,7 +955,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={onImport}
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl font-bold hover:bg-blue-100 transition-colors"
             data-testid="button-import-products"
@@ -714,7 +963,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
             <Upload size={18} />
             {t('supplier.import')}
           </button>
-          <button 
+          <button
             onClick={onExport}
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors"
             data-testid="button-export-products"
@@ -722,7 +971,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
             <Download size={18} />
             {t('supplier.export')}
           </button>
-          <button 
+          <button
             onClick={onAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
             data-testid="button-add-product"
@@ -765,24 +1014,22 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
                     <td className="px-4 py-3 text-sm text-slate-600">{product.brand}</td>
                     <td className="px-4 py-3 text-sm font-bold text-emerald-600">{product.purchasePrice.toLocaleString()} {t('currency')}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${
-                        product.stock > 10 ? 'bg-green-100 text-green-700' :
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${product.stock > 10 ? 'bg-green-100 text-green-700' :
                         product.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                          'bg-red-100 text-red-700'
+                        }`}>
                         {product.stock}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${
-                        product.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
+                        }`}>
                         {product.isActive ? t('supplier.active') : t('supplier.inactive')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1">
-                        <button 
+                        <button
                           onClick={() => onEdit(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title={t('edit')}
@@ -790,7 +1037,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
                         >
                           <Edit2 size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => onDelete(product.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title={t('delete')}
@@ -813,7 +1060,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
               {t('showing')} {((filters.page || 1) - 1) * (filters.pageSize || 20) + 1} - {Math.min((filters.page || 1) * (filters.pageSize || 20), total)} {t('of')} {total}
             </p>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => onFiltersChange({ ...filters, page: (filters.page || 1) - 1 })}
                 disabled={(filters.page || 1) <= 1}
                 className="p-2 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -824,7 +1071,7 @@ const ProductsView = memo(({ products, total, filters, onFiltersChange, onAdd, o
               <span className="px-3 py-1 bg-white rounded-lg border text-sm font-bold">
                 {filters.page || 1} / {totalPages}
               </span>
-              <button 
+              <button
                 onClick={() => onFiltersChange({ ...filters, page: (filters.page || 1) + 1 })}
                 disabled={(filters.page || 1) >= totalPages}
                 className="p-2 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -905,17 +1152,15 @@ const RequestsView = memo(({ requests, total, filters, onFiltersChange, onQuote,
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`w-2 h-2 rounded-full ${
-                        req.status === 'NEW' ? 'bg-orange-500' :
+                      <span className={`w-2 h-2 rounded-full ${req.status === 'NEW' ? 'bg-orange-500' :
                         req.status === 'QUOTED' ? 'bg-blue-500' :
-                        req.status === 'ACCEPTED' ? 'bg-green-500' : 'bg-slate-400'
-                      }`} />
+                          req.status === 'ACCEPTED' ? 'bg-green-500' : 'bg-slate-400'
+                        }`} />
                       <h4 className="font-bold text-slate-800">{req.partName || req.partNumber}</h4>
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                        req.urgency === 'URGENT' ? 'bg-red-100 text-red-700' :
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${req.urgency === 'URGENT' ? 'bg-red-100 text-red-700' :
                         req.urgency === 'HIGH' ? 'bg-orange-100 text-orange-700' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
+                          'bg-slate-100 text-slate-600'
+                        }`}>
                         {t(`supplier.urgency.${req.urgency?.toLowerCase() || 'normal'}`)}
                       </span>
                     </div>
@@ -944,7 +1189,7 @@ const RequestsView = memo(({ requests, total, filters, onFiltersChange, onQuote,
                   <div className="flex items-center gap-2">
                     {(req.status === 'NEW' || req.status === 'VIEWED') && (
                       <>
-                        <button 
+                        <button
                           onClick={() => onQuote(req)}
                           className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
                           data-testid={`button-quote-${req.id}`}
@@ -952,7 +1197,7 @@ const RequestsView = memo(({ requests, total, filters, onFiltersChange, onQuote,
                           <Send size={16} />
                           {t('supplier.submitQuote')}
                         </button>
-                        <button 
+                        <button
                           onClick={() => onReject(req.id)}
                           className="flex items-center gap-1 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors"
                           data-testid={`button-reject-${req.id}`}
@@ -986,7 +1231,7 @@ const RequestsView = memo(({ requests, total, filters, onFiltersChange, onQuote,
               {t('showing')} {((filters.page || 1) - 1) * (filters.pageSize || 20) + 1} - {Math.min((filters.page || 1) * (filters.pageSize || 20), total)} {t('of')} {total}
             </p>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => onFiltersChange({ ...filters, page: (filters.page || 1) - 1 })}
                 disabled={(filters.page || 1) <= 1}
                 className="p-2 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -996,7 +1241,7 @@ const RequestsView = memo(({ requests, total, filters, onFiltersChange, onQuote,
               <span className="px-3 py-1 bg-white rounded-lg border text-sm font-bold">
                 {filters.page || 1} / {totalPages}
               </span>
-              <button 
+              <button
                 onClick={() => onFiltersChange({ ...filters, page: (filters.page || 1) + 1 })}
                 disabled={(filters.page || 1) >= totalPages}
                 className="p-2 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1027,22 +1272,9 @@ const SettingsView = memo(({ settings, onSave, t }: {
     <div className="max-w-2xl mx-auto animate-fade-in">
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
         <h3 className="font-bold text-lg text-slate-800 border-b pb-4">{t('supplier.settingsTitle')}</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">{t('supplier.defaultPriceMarkup')}</label>
-            <div className="relative">
-              <input
-                type="number"
-                value={form.defaultPriceMarkup || 0}
-                onChange={(e) => setForm({ ...form, defaultPriceMarkup: parseFloat(e.target.value) })}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
-                data-testid="input-default-markup"
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">%</span>
-            </div>
-          </div>
 
+        {/* NOTE: Price markup removed - Sini Car sets all margins, not suppliers */}
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">{t('supplier.defaultDeliveryTime')}</label>
             <input
@@ -1059,26 +1291,7 @@ const SettingsView = memo(({ settings, onSave, t }: {
         <div className="border-t pt-6">
           <h4 className="font-bold text-slate-700 mb-4">{t('supplier.notifications')}</h4>
           <div className="space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.notifyOnNewRequest}
-                onChange={(e) => setForm({ ...form, notifyOnNewRequest: e.target.checked })}
-                className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                data-testid="checkbox-notify-new-request"
-              />
-              <span className="text-slate-700">{t('supplier.notifyNewRequest')}</span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.notifyOnQuoteAccepted}
-                onChange={(e) => setForm({ ...form, notifyOnQuoteAccepted: e.target.checked })}
-                className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                data-testid="checkbox-notify-quote-accepted"
-              />
-              <span className="text-slate-700">{t('supplier.notifyQuoteAccepted')}</span>
-            </label>
+            {/* Only product-related notifications - NO quote/request notifications */}
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -1093,7 +1306,7 @@ const SettingsView = memo(({ settings, onSave, t }: {
         </div>
 
         <div className="flex justify-end pt-4">
-          <button 
+          <button
             type="submit"
             className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors"
             data-testid="button-save-settings"
@@ -1233,7 +1446,7 @@ const ProductFormModal = memo(({ product, onSave, onClose, t }: {
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <button 
+          <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
@@ -1241,7 +1454,7 @@ const ProductFormModal = memo(({ product, onSave, onClose, t }: {
           >
             {t('cancel')}
           </button>
-          <button 
+          <button
             type="submit"
             className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors"
             data-testid="button-save-product"
@@ -1337,7 +1550,7 @@ const QuoteFormModal = memo(({ request, onSubmit, onClose, t }: {
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <button 
+          <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
@@ -1345,7 +1558,7 @@ const QuoteFormModal = memo(({ request, onSubmit, onClose, t }: {
           >
             {t('cancel')}
           </button>
-          <button 
+          <button
             type="submit"
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors"
             data-testid="button-submit-quote"
@@ -1424,7 +1637,7 @@ const ImportModal = memo(({ onImport, onClose, result, t }: {
         )}
 
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <button 
+          <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
@@ -1433,7 +1646,7 @@ const ImportModal = memo(({ onImport, onClose, result, t }: {
             {result ? t('close') : t('cancel')}
           </button>
           {!result && (
-            <button 
+            <button
               onClick={handleImport}
               disabled={!file || importing}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1537,7 +1750,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
         setLoading(false);
         return;
       }
-      
+
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
       headers['Authorization'] = `Bearer ${token}`;
 
@@ -1671,7 +1884,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
     }
   };
 
-  const filteredEmployees = employees.filter(emp => 
+  const filteredEmployees = employees.filter(emp =>
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (emp.email && emp.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -1756,11 +1969,10 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                        emp.isActive 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${emp.isActive
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                        }`}>
                         {emp.isActive ? t('active') : t('inactive')}
                       </span>
                     </td>
@@ -1897,6 +2109,392 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
           </div>
         </Modal>
       )}
+    </div>
+  );
+});
+
+// Supplier Images View - for uploading product images
+const SupplierImagesView = memo(({ supplierId, t }: {
+  supplierId: string;
+  t: (key: string, fallback?: string) => string;
+}) => {
+  const [products, setProducts] = useState<SupplierProduct[]>([]);
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; phase: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const { addToast } = useToast();
+
+  // Refs
+  const bulkInputRef = useRef<HTMLInputElement>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
+
+  const IMAGES_STORAGE_KEY = 'sini_product_images';
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const prods = await MockApi.getSupplierProducts(supplierId, {});
+        setProducts(prods.items || []);
+
+        const storedImages = localStorage.getItem(IMAGES_STORAGE_KEY);
+        // Filter images to show only those uploaded by this supplier OR linked to their products
+        // For now, we show all images linked to their part numbers to avoid confusion
+        const allImages: ProductImage[] = storedImages ? JSON.parse(storedImages) : [];
+        setImages(allImages);
+      } catch (e) {
+        console.error('Failed to load data', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [supplierId]);
+
+  const saveImages = (newImages: ProductImage[]) => {
+    localStorage.setItem(IMAGES_STORAGE_KEY, JSON.stringify(newImages));
+    setImages(newImages);
+  };
+
+  const processImageFile = async (file: File, partNumber?: string): Promise<ProductImage | null> => {
+    try {
+      const { dataUrl, width, height, blob } = await compressImage(file);
+      const thumbnail = await createThumbnail(dataUrl);
+
+      const pn = (partNumber?.trim().toUpperCase()) || extractPartNumberFromFileName(file.name) || '';
+      const matchedProduct = products.find(p => (p.oemNumber || p.sku)?.toUpperCase() === pn);
+      // const hasPreviousImage = images.some(img => img.partNumber === pn);
+
+      return {
+        id: generateImageId(),
+        partNumber: pn,
+        fileName: file.name,
+        fileUrl: dataUrl,
+        thumbnailUrl: thumbnail,
+        originalSize: file.size,
+        compressedSize: blob.size,
+        width,
+        height,
+        status: 'PENDING', // Always PENDING for suppliers
+        uploadedBy: supplierId,
+        uploaderType: 'SUPPLIER_LOCAL', // Assuming local used for this demo
+        uploaderName: 'Supplier',
+        isAutoMatched: !partNumber,
+        isLinkedToProduct: !!matchedProduct,
+        createdAt: new Date().toISOString(),
+        adminNotes: undefined // No admin notes yet
+      };
+    } catch (error) {
+      console.error(`Failed to process ${file.name}:`, error);
+      return null;
+    }
+  };
+
+  const handleImageUpload = async (partNumber: string, file: File) => {
+    setUploading(true);
+    try {
+      const newImage = await processImageFile(file, partNumber);
+      if (newImage) {
+        saveImages([newImage, ...images]);
+        addToast(t('supplier.imageUploaded', 'تم رفع الصورة بنجاح وتنتظر الموافقة'), 'success');
+      }
+    } catch (e) {
+      addToast(t('supplier.imageUploadError', 'حدث خطأ أثناء الرفع'), 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Handle ZIP upload
+  const handleZipUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      addToast('يرجى اختيار ملف ZIP', 'error');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress({ current: 0, total: 100, phase: 'جاري فك الضغط...' });
+
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const imageFiles: { name: string; data: Blob }[] = [];
+
+      // Extract images from ZIP
+      const entries = Object.entries(zip.files);
+      let processed = 0;
+
+      for (const [path, zipEntry] of entries) {
+        if (zipEntry.dir) continue;
+
+        const ext = path.toLowerCase().split('.').pop();
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext || '')) {
+          const blob = await zipEntry.async('blob');
+          const fileName = path.split('/').pop() || path;
+          imageFiles.push({ name: fileName, data: blob });
+        }
+
+        processed++;
+        if (processed % 10 === 0) {
+          setUploadProgress({ current: Math.round((processed / entries.length) * 20), total: 100, phase: 'جاري فك الضغط...' });
+        }
+      }
+
+      if (imageFiles.length === 0) {
+        addToast('لم يتم العثور على صور في الملف المضغوط', 'error');
+        setUploading(false);
+        setUploadProgress(null);
+        return;
+      }
+
+      const newImages: ProductImage[] = [];
+      let completed = 0;
+
+      for (const imgFile of imageFiles) {
+        setUploadProgress({
+          current: 20 + Math.round((completed / imageFiles.length) * 80),
+          total: 100,
+          phase: `معالجة: ${imgFile.name}`
+        });
+
+        const fileObj = new File([imgFile.data], imgFile.name, { type: imgFile.data.type });
+        const newImage = await processImageFile(fileObj);
+        if (newImage) {
+          newImages.push(newImage);
+        }
+        completed++;
+      }
+
+      saveImages([...newImages, ...images]);
+      addToast(`تم رفع ${newImages.length} صورة من ملف ZIP، وهي بانتظار الموافقة`, 'success');
+
+    } catch (error) {
+      console.error('ZIP Error:', error);
+      addToast('فشل في معالجة ملف ZIP', 'error');
+    } finally {
+      setUploading(false);
+      setUploadProgress(null);
+      if (zipInputRef.current) zipInputRef.current.value = '';
+    }
+  };
+
+  const filteredProducts = products.filter(p =>
+    !searchTerm ||
+    p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.oemNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getProductImages = (partNumber: string) => {
+    if (!partNumber) return [];
+    return images.filter(img => img.partNumber?.toUpperCase() === partNumber.toUpperCase());
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Upload Actions */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <Upload size={20} className="text-emerald-600" />
+          {t('supplier.uploadActions', 'عمليات الرفع')}
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ZIP Upload */}
+          <div
+            onClick={() => !uploading && zipInputRef.current?.click()}
+            className={`border-2 border-dashed border-slate-300 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-emerald-500 hover:bg-emerald-50'}`}
+          >
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+              <FileArchive size={24} className="text-purple-600" />
+            </div>
+            <h4 className="font-bold text-slate-800 mb-1">{t('supplier.uploadZip', 'رفع ملف مضغوط (ZIP)')}</h4>
+            <p className="text-sm text-slate-500 mb-4">{t('supplier.zipHint', 'صور متعددة، سيتم استخراج رقم القطعة من اسم الملف')}</p>
+            <input
+              ref={zipInputRef}
+              type="file"
+              accept=".zip"
+              className="hidden"
+              onChange={handleZipUpload}
+              disabled={uploading}
+            />
+            <button disabled={uploading} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold">
+              {t('supplier.selectFile', 'اختر ملف')}
+            </button>
+          </div>
+
+          {/* Bulk Button Placeholder (can be extended) */}
+          <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-slate-50">
+            <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mb-3">
+              <ImageIcon size={24} className="text-slate-500" />
+            </div>
+            <h4 className="font-bold text-slate-800 mb-1">{t('supplier.bulkManage', 'إدارة الصور')}</h4>
+            <p className="text-sm text-slate-500 mb-4">{t('supplier.bulkHint', 'استخدم الجدول أدناه لرفع صور لكل منتج على حدة')}</p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {uploading && uploadProgress && (
+          <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-bold text-slate-700">{uploadProgress.phase}</span>
+              <span className="text-sm font-mono text-slate-500">{Math.round(uploadProgress.current)}%</span>
+            </div>
+            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 transition-all duration-300"
+                style={{ width: `${uploadProgress.current}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.totalProducts', 'إجمالي المنتجات')}</p>
+          <p className="text-2xl font-black text-slate-800">{products.length}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesPending', 'بانتظار الموافقة')}</p>
+          <p className="text-2xl font-black text-amber-500">{images.filter(i => i.status === 'PENDING' && i.uploadedBy === supplierId).length}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesApproved', 'صور مقبولة')}</p>
+          <p className="text-2xl font-black text-emerald-500">{images.filter(i => i.status === 'APPROVED' && i.uploadedBy === supplierId).length}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesRejected', 'صور مرفوضة')}</p>
+          <p className="text-2xl font-black text-red-500">{images.filter(i => i.status === 'REJECTED' && i.uploadedBy === supplierId).length}</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="relative">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={t('supplier.searchProducts', 'ابحث عن منتج...')}
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Products List */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <ImageIcon size={18} />
+            {t('supplier.productImages', 'صور منتجاتك')}
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">{t('supplier.productInfo', 'تفاصيل المنتج')}</th>
+                <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">{t('supplier.currentImages', 'الصور الحالية')}</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-slate-600">{t('actions', 'الإجراءات')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-12 text-center text-slate-400">
+                    <Package size={40} className="mx-auto mb-3 opacity-50" />
+                    <p>{t('supplier.noProducts', 'لا توجد منتجات')}</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.slice(0, 20).map(product => {
+                  const partNum = product.oemNumber || product.sku;
+                  const productImages = getProductImages(partNum);
+
+                  return (
+                    <tr key={product.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col">
+                          <span className="font-mono font-bold text-slate-800">{product.oemNumber}</span>
+                          <span className="text-xs text-slate-500">{product.sku}</span>
+                          <span className="text-sm text-slate-600">{product.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {productImages.length > 0 ? (
+                            productImages.map(img => (
+                              <div key={img.id} className="relative group">
+                                <img
+                                  src={img.thumbnailUrl || img.fileUrl}
+                                  alt="product"
+                                  className={`w-12 h-12 object-contain bg-white rounded-lg border-2 ${img.status === 'APPROVED' ? 'border-emerald-500' :
+                                    img.status === 'REJECTED' ? 'border-red-500' :
+                                      'border-amber-500'
+                                    }`}
+                                  onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE; }}
+                                />
+                                <div className={`absolute -top-2 -right-2 w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-white ${img.status === 'APPROVED' ? 'bg-emerald-500' :
+                                  img.status === 'REJECTED' ? 'bg-red-500' :
+                                    'bg-amber-500'
+                                  }`}>
+                                  {img.status === 'APPROVED' ? <CheckCircle size={10} /> :
+                                    img.status === 'REJECTED' ? <XCircle size={10} /> :
+                                      <Clock size={10} />}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">{t('supplier.noImages', 'لا توجد صور')}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <label className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold cursor-pointer hover:bg-emerald-100 transition-colors">
+                          <Plus size={14} />
+                          {t('supplier.addImage', 'إضافة صورة')}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file && partNum) {
+                                handleImageUpload(partNum, file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        {filteredProducts.length > 20 && (
+          <div className="p-3 border-t border-slate-100 text-center text-sm text-slate-500">
+            {t('supplier.showingFirst20', 'يتم عرض أول 20 منتج فقط')}
+          </div>
+        )}
+      </div>
     </div>
   );
 });

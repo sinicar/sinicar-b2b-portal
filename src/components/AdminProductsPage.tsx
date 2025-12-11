@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MockApi } from '../services/mockApi';
 import { Product, ExcelColumnPreset, ExcelColumnMapping, INTERNAL_PRODUCT_FIELDS, SiteSettings } from '../types';
-import { 
-    Upload, Download, Search, Package, AlertTriangle, CheckCircle, 
-    XCircle, Edit2, Trash2, Plus, RefreshCw, FileSpreadsheet, 
+import {
+    Upload, Download, Search, Package, AlertTriangle, CheckCircle,
+    XCircle, Edit2, Trash2, Plus, RefreshCw, FileSpreadsheet,
     ChevronLeft, ChevronRight, Filter, Eye, EyeOff, X, Settings, Save, Star, StarOff,
-    CheckSquare, Square, Shield, Lock
+    CheckSquare, Square, Shield, Lock, Building2, Globe2, Truck, AlertCircle, Palette, Database
 } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
 import { usePermission } from '../services/PermissionContext';
+import { ProductTabsContent } from './ProductTabsContent';
+import { debounce, createIndexedLookup, calculatePagination } from '../utils/performanceUtils';
+
+// Source Tabs Type
+type SourceTabType = 'OUR_PRODUCTS' | 'LOCAL_SUPPLIER' | 'INTERNATIONAL_SUPPLIER' | 'QUALITY_SETTINGS' | 'UNMATCHED' | 'ITEMS_DATABASE' | 'NAME_PRIORITY';
 
 interface AdminProductsPageProps {
     onRefresh?: () => void;
@@ -20,7 +25,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     const { t } = useTranslation();
     const { addToast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
+
     // Permission checks
     const { hasPermission } = usePermission();
     const canCreate = hasPermission('products', 'create');
@@ -30,27 +35,53 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [page, setPage] = useState(1);
     const [importing, setImporting] = useState(false);
-    
+
+    // Debounced search handler - delays search by 300ms to improve performance
+    const debouncedSetSearch = useMemo(
+        () => debounce((value: string) => {
+            setDebouncedSearchQuery(value);
+            setPage(1);
+        }, 300),
+        []
+    );
+
+    // Handle search input change
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchQuery(value); // Update UI immediately
+        debouncedSetSearch(value); // Debounce the actual filter
+    }, [debouncedSetSearch]);
+
+    // Create indexed lookup for O(1) product access by partNumber
+    const productIndex = useMemo(() =>
+        createIndexedLookup(products, 'partNumber'),
+        [products]
+    );
+
     const [showImportModal, setShowImportModal] = useState(false);
     const [importResult, setImportResult] = useState<{ imported: number; updated: number; skipped: number; errors: string[] } | null>(null);
-    
+
     const [showProductModal, setShowProductModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [productForm, setProductForm] = useState<Partial<Product>>({});
-    
+
     // Column Preset State
     const [showColumnModal, setShowColumnModal] = useState(false);
     const [columnPresets, setColumnPresets] = useState<ExcelColumnPreset[]>([]);
     const [editingPreset, setEditingPreset] = useState<ExcelColumnPreset | null>(null);
     const [presetForm, setPresetForm] = useState<{ name: string; mappings: ExcelColumnMapping[] }>({ name: '', mappings: [] });
     const [presetMode, setPresetMode] = useState<'list' | 'edit' | 'create'>('list');
-    
+
     // Product Selection & Visibility Rules State
     const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
     const [showVisibilityPanel, setShowVisibilityPanel] = useState(false);
     const [visibilityThreshold, setVisibilityThreshold] = useState(1);
+
+    // Source Tabs State
+    const [activeSourceTab, setActiveSourceTab] = useState<SourceTabType>('ITEMS_DATABASE');
 
     const ITEMS_PER_PAGE = 20;
 
@@ -59,17 +90,17 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         loadColumnPresets();
         loadVisibilitySettings();
     }, []);
-    
+
     const loadVisibilitySettings = async () => {
         const settings = await MockApi.getSettings();
         setVisibilityThreshold(settings.minVisibleQty ?? 1);
     };
-    
+
     const loadColumnPresets = () => {
         const presets = MockApi.getExcelColumnPresets();
         setColumnPresets(presets);
     };
-    
+
     const initializeNewPreset = () => {
         const defaultMappings: ExcelColumnMapping[] = INTERNAL_PRODUCT_FIELDS.map(field => ({
             internalField: field.key,
@@ -82,19 +113,19 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         setEditingPreset(null);
         setPresetMode('create');
     };
-    
+
     const handleEditPreset = (preset: ExcelColumnPreset) => {
         setEditingPreset(preset);
         setPresetForm({ name: preset.name, mappings: [...preset.mappings] });
         setPresetMode('edit');
     };
-    
+
     const handleSavePreset = () => {
         if (!presetForm.name.trim()) {
             addToast(t('adminProducts.columnPresets.enterPresetName', 'الرجاء إدخال اسم الإعداد'), 'error');
             return;
         }
-        
+
         if (presetMode === 'create') {
             MockApi.createExcelColumnPreset({
                 name: presetForm.name,
@@ -109,11 +140,11 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             });
             addToast(t('adminProducts.columnPresets.saved', 'تم حفظ التعديلات'), 'success');
         }
-        
+
         loadColumnPresets();
         setPresetMode('list');
     };
-    
+
     const handleDeletePreset = (id: string) => {
         if (confirm(t('adminProducts.columnPresets.deleteConfirm', 'هل أنت متأكد من حذف هذا الإعداد؟'))) {
             MockApi.deleteExcelColumnPreset(id);
@@ -121,19 +152,19 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             loadColumnPresets();
         }
     };
-    
+
     const handleSetDefault = (id: string) => {
         MockApi.setDefaultExcelColumnPreset(id);
         addToast(t('adminProducts.columnPresets.setDefault', 'تم تعيين الإعداد الافتراضي'), 'success');
         loadColumnPresets();
     };
-    
+
     const updateMapping = (index: number, field: keyof ExcelColumnMapping, value: any) => {
         const newMappings = [...presetForm.mappings];
         newMappings[index] = { ...newMappings[index], [field]: value };
         setPresetForm({ ...presetForm, mappings: newMappings });
     };
-    
+
     const addCustomColumn = () => {
         const newMapping: ExcelColumnMapping = {
             internalField: `custom_${Date.now()}`,
@@ -144,12 +175,12 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         };
         setPresetForm({ ...presetForm, mappings: [...presetForm.mappings, newMapping] });
     };
-    
+
     const removeCustomColumn = (index: number) => {
         const newMappings = presetForm.mappings.filter((_, i) => i !== index);
         setPresetForm({ ...presetForm, mappings: newMappings });
     };
-    
+
     // Product Selection Functions
     const toggleProductSelection = (productId: string) => {
         setSelectedProducts(prev => {
@@ -162,7 +193,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             return newSet;
         });
     };
-    
+
     const toggleSelectAll = () => {
         if (selectedProducts.size === paginatedProducts.length) {
             setSelectedProducts(new Set());
@@ -170,16 +201,16 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             setSelectedProducts(new Set(paginatedProducts.map(p => p.id)));
         }
     };
-    
+
     const selectAllFiltered = () => {
         setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
         addToast(t('adminProducts.selectedCount', `تم تحديد ${filteredProducts.length} منتج`, { count: filteredProducts.length }), 'info');
     };
-    
+
     const clearSelection = () => {
         setSelectedProducts(new Set());
     };
-    
+
     // Bulk Visibility Actions
     const applyVisibilityRule = async () => {
         if (selectedProducts.size === 0) {
@@ -191,7 +222,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         loadProducts();
         clearSelection();
     };
-    
+
     const removeVisibilityRule = async () => {
         if (selectedProducts.size === 0) {
             addToast(t('adminProducts.selectProductsFirst', 'الرجاء تحديد منتجات أولاً'), 'error');
@@ -202,7 +233,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         loadProducts();
         clearSelection();
     };
-    
+
     const saveVisibilityThreshold = async () => {
         const settings = await MockApi.getSettings();
         await MockApi.updateSettings({ ...settings, minVisibleQty: visibilityThreshold });
@@ -222,15 +253,15 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     };
 
     const filteredProducts = useMemo(() => {
-        if (!searchQuery.trim()) return products;
-        const q = searchQuery.toLowerCase();
-        return products.filter(p => 
+        if (!debouncedSearchQuery.trim()) return products;
+        const q = debouncedSearchQuery.toLowerCase();
+        return products.filter(p =>
             p.partNumber.toLowerCase().includes(q) ||
             p.name.toLowerCase().includes(q) ||
             (p.brand && p.brand.toLowerCase().includes(q)) ||
             (p.carName && p.carName.toLowerCase().includes(q))
         );
-    }, [products, searchQuery]);
+    }, [products, debouncedSearchQuery]);
 
     const paginatedProducts = useMemo(() => {
         const start = (page - 1) * ITEMS_PER_PAGE;
@@ -308,7 +339,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
 
     const handleDeleteProduct = async (id: string) => {
         if (!confirm(t('adminProducts.deleteConfirm', 'هل أنت متأكد من حذف هذا المنتج؟'))) return;
-        
+
         try {
             await MockApi.deleteProduct(id);
             addToast(t('adminProducts.productDeleted', 'تم حذف المنتج'), 'success');
@@ -337,7 +368,37 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                             {products.length} منتج في قاعدة البيانات
                         </p>
                     </div>
+                </div>
 
+                {/* Source Tabs Navigation */}
+                <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-slate-200">
+                    <button onClick={() => setActiveSourceTab('ITEMS_DATABASE')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'ITEMS_DATABASE' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <Database size={16} /> قاعدة الأصناف
+                    </button>
+                    <button onClick={() => setActiveSourceTab('OUR_PRODUCTS')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'OUR_PRODUCTS' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <Building2 size={16} /> منتجاتنا
+                    </button>
+                    <button onClick={() => setActiveSourceTab('LOCAL_SUPPLIER')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'LOCAL_SUPPLIER' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <Truck size={16} /> موردين محليين
+                    </button>
+                    <button onClick={() => setActiveSourceTab('INTERNATIONAL_SUPPLIER')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'INTERNATIONAL_SUPPLIER' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <Globe2 size={16} /> موردين دوليين
+                    </button>
+                    <button onClick={() => setActiveSourceTab('QUALITY_SETTINGS')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'QUALITY_SETTINGS' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <Palette size={16} /> رموز الجودة
+                    </button>
+                    <button onClick={() => setActiveSourceTab('NAME_PRIORITY')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'NAME_PRIORITY' ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <AlertCircle size={16} /> أولوية الأسماء
+                    </button>
+                    <button onClick={() => setActiveSourceTab('UNMATCHED')} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeSourceTab === 'UNMATCHED' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        <AlertCircle size={16} /> غير متطابقة
+                    </button>
+                </div>
+
+                {/* Tab Content - Shows specific content for each tab */}
+                <ProductTabsContent activeTab={activeSourceTab} products={products} onFileSelect={handleFileSelect} />
+
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => { setShowColumnModal(true); setPresetMode('list'); }}
@@ -347,7 +408,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                             <Settings size={18} />
                             إعداد الأعمدة
                         </button>
-                        
+
                         <button
                             onClick={handleDownloadTemplate}
                             className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-colors"
@@ -431,7 +492,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                         المنتجات التي كميتها أقل من {visibilityThreshold} ستظهر للعميل كـ "الكمية محدودة" بدلاً من الرقم الفعلي
                     </p>
                 </div>
-                
+
                 {/* Selection Actions Bar */}
                 {selectedProducts.size > 0 && (
                     <div className="mb-4 p-4 bg-gradient-to-l from-blue-50 to-white border border-blue-200 rounded-xl flex items-center justify-between">
@@ -471,7 +532,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                         </div>
                     </div>
                 )}
-                
+
                 <div className="relative mb-6">
                     <Search size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
@@ -527,7 +588,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                         const qty = product.qtyTotal ?? product.stock ?? 0;
                                         const hasVisibilityRule = product.useVisibilityRuleForQty === true;
                                         const isHiddenFromCustomer = hasVisibilityRule && qty < visibilityThreshold;
-                                        
+
                                         return (
                                             <tr key={product.id} className={`hover:bg-slate-50/50 transition-colors ${selectedProducts.has(product.id) ? 'bg-blue-50/50' : ''}`}>
                                                 <td className="px-3 py-3 text-center">
@@ -551,13 +612,12 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                                     {formatPrice(product.priceRetail)}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                                                        qty > 10 
-                                                            ? 'bg-emerald-100 text-emerald-700' 
-                                                            : qty > 0 
-                                                                ? 'bg-amber-100 text-amber-700'
-                                                                : 'bg-red-100 text-red-700'
-                                                    }`}>
+                                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${qty > 10
+                                                        ? 'bg-emerald-100 text-emerald-700'
+                                                        : qty > 0
+                                                            ? 'bg-amber-100 text-amber-700'
+                                                            : 'bg-red-100 text-red-700'
+                                                        }`}>
                                                         {qty}
                                                     </span>
                                                     {isHiddenFromCustomer && (
@@ -713,121 +773,121 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
 
             {showProductModal && (
                 <Modal isOpen={showProductModal} onClose={() => setShowProductModal(false)} title={editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">رقم الصنف *</label>
-                                    <input
-                                        type="text"
-                                        value={productForm.partNumber || ''}
-                                        onChange={(e) => setProductForm(prev => ({ ...prev, partNumber: e.target.value }))}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                        placeholder="مثال: ABC-123"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">الماركة</label>
-                                    <input
-                                        type="text"
-                                        value={productForm.brand || ''}
-                                        onChange={(e) => setProductForm(prev => ({ ...prev, brand: e.target.value }))}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                        placeholder="مثال: Changan"
-                                    />
-                                </div>
-                            </div>
-
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">اسم المنتج *</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">رقم الصنف *</label>
                                 <input
                                     type="text"
-                                    value={productForm.name || ''}
-                                    onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+                                    value={productForm.partNumber || ''}
+                                    onChange={(e) => setProductForm(prev => ({ ...prev, partNumber: e.target.value }))}
                                     className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                    placeholder="اسم المنتج"
+                                    placeholder="مثال: ABC-123"
                                 />
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">سعر الجملة</label>
-                                    <input
-                                        type="number"
-                                        value={productForm.priceWholesale || productForm.price || ''}
-                                        onChange={(e) => setProductForm(prev => ({ 
-                                            ...prev, 
-                                            priceWholesale: parseFloat(e.target.value) || 0,
-                                            price: parseFloat(e.target.value) || 0 
-                                        }))}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">سعر التجزئة</label>
-                                    <input
-                                        type="number"
-                                        value={productForm.priceRetail || ''}
-                                        onChange={(e) => setProductForm(prev => ({ ...prev, priceRetail: parseFloat(e.target.value) || null }))}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                        placeholder="0"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">الكمية الإجمالية</label>
-                                    <input
-                                        type="number"
-                                        value={productForm.qtyTotal ?? productForm.stock ?? ''}
-                                        onChange={(e) => setProductForm(prev => ({ 
-                                            ...prev, 
-                                            qtyTotal: parseInt(e.target.value) || 0,
-                                            stock: parseInt(e.target.value) || 0 
-                                        }))}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">السيارة</label>
-                                    <input
-                                        type="text"
-                                        value={productForm.carName || ''}
-                                        onChange={(e) => setProductForm(prev => ({ ...prev, carName: e.target.value }))}
-                                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
-                                        placeholder="اسم السيارة"
-                                    />
-                                </div>
-                            </div>
-
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">المواصفات</label>
-                                <textarea
-                                    value={productForm.description || ''}
-                                    onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
-                                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent resize-none"
-                                    rows={3}
-                                    placeholder="وصف المنتج..."
+                                <label className="block text-sm font-bold text-slate-700 mb-2">الماركة</label>
+                                <input
+                                    type="text"
+                                    value={productForm.brand || ''}
+                                    onChange={(e) => setProductForm(prev => ({ ...prev, brand: e.target.value }))}
+                                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
+                                    placeholder="مثال: Changan"
                                 />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    onClick={() => setShowProductModal(false)}
-                                    className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
-                                >
-                                    إلغاء
-                                </button>
-                                <button
-                                    onClick={handleSaveProduct}
-                                    className="flex-1 py-3 bg-[#0B1B3A] hover:bg-[#1a2e56] text-white rounded-xl font-bold transition-colors"
-                                >
-                                    {editingProduct ? 'حفظ التغييرات' : 'إضافة المنتج'}
-                                </button>
                             </div>
                         </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">اسم المنتج *</label>
+                            <input
+                                type="text"
+                                value={productForm.name || ''}
+                                onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
+                                placeholder="اسم المنتج"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">سعر الجملة</label>
+                                <input
+                                    type="number"
+                                    value={productForm.priceWholesale || productForm.price || ''}
+                                    onChange={(e) => setProductForm(prev => ({
+                                        ...prev,
+                                        priceWholesale: parseFloat(e.target.value) || 0,
+                                        price: parseFloat(e.target.value) || 0
+                                    }))}
+                                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">سعر التجزئة</label>
+                                <input
+                                    type="number"
+                                    value={productForm.priceRetail || ''}
+                                    onChange={(e) => setProductForm(prev => ({ ...prev, priceRetail: parseFloat(e.target.value) || null }))}
+                                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">الكمية الإجمالية</label>
+                                <input
+                                    type="number"
+                                    value={productForm.qtyTotal ?? productForm.stock ?? ''}
+                                    onChange={(e) => setProductForm(prev => ({
+                                        ...prev,
+                                        qtyTotal: parseInt(e.target.value) || 0,
+                                        stock: parseInt(e.target.value) || 0
+                                    }))}
+                                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">السيارة</label>
+                                <input
+                                    type="text"
+                                    value={productForm.carName || ''}
+                                    onChange={(e) => setProductForm(prev => ({ ...prev, carName: e.target.value }))}
+                                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent"
+                                    placeholder="اسم السيارة"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">المواصفات</label>
+                            <textarea
+                                value={productForm.description || ''}
+                                onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C8A04F] focus:border-transparent resize-none"
+                                rows={3}
+                                placeholder="وصف المنتج..."
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                onClick={() => setShowProductModal(false)}
+                                className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleSaveProduct}
+                                className="flex-1 py-3 bg-[#0B1B3A] hover:bg-[#1a2e56] text-white rounded-xl font-bold transition-colors"
+                            >
+                                {editingProduct ? 'حفظ التغييرات' : 'إضافة المنتج'}
+                            </button>
+                        </div>
+                    </div>
                 </Modal>
             )}
 
@@ -874,13 +934,12 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                     ) : (
                                         <div className="space-y-3">
                                             {columnPresets.map(preset => (
-                                                <div 
+                                                <div
                                                     key={preset.id}
-                                                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                                                        preset.isDefault 
-                                                            ? 'border-blue-300 bg-gradient-to-l from-blue-50 to-white shadow-sm' 
-                                                            : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
-                                                    }`}
+                                                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${preset.isDefault
+                                                        ? 'border-blue-300 bg-gradient-to-l from-blue-50 to-white shadow-sm'
+                                                        : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
+                                                        }`}
                                                 >
                                                     <div className="flex items-center gap-4">
                                                         {preset.isDefault ? (
@@ -972,7 +1031,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                             )}
                                         </h3>
                                     </div>
-                                    
+
                                     {/* Preset Name Input */}
                                     <div className="mt-4">
                                         <label className="block text-sm font-bold text-slate-700 mb-2">اسم الإعداد *</label>
@@ -1004,17 +1063,16 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                         {presetForm.mappings.map((mapping, index) => {
                                             const isSystemField = INTERNAL_PRODUCT_FIELDS.find(f => f.key === mapping.internalField);
                                             const isCustomField = !isSystemField;
-                                            
+
                                             return (
-                                                <div 
-                                                    key={`${mapping.internalField}-${index}`} 
-                                                    className={`grid grid-cols-12 gap-3 items-center p-3 rounded-lg transition-colors ${
-                                                        isCustomField 
-                                                            ? 'bg-green-50 border border-green-200' 
-                                                            : mapping.isRequired 
-                                                                ? 'bg-blue-50 border border-blue-100' 
-                                                                : 'hover:bg-slate-50 border border-transparent'
-                                                    }`}
+                                                <div
+                                                    key={`${mapping.internalField}-${index}`}
+                                                    className={`grid grid-cols-12 gap-3 items-center p-3 rounded-lg transition-colors ${isCustomField
+                                                        ? 'bg-green-50 border border-green-200'
+                                                        : mapping.isRequired
+                                                            ? 'bg-blue-50 border border-blue-100'
+                                                            : 'hover:bg-slate-50 border border-transparent'
+                                                        }`}
                                                 >
                                                     {/* Enable Checkbox */}
                                                     <div className="col-span-1 text-center">
@@ -1026,7 +1084,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                                             className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed"
                                                         />
                                                     </div>
-                                                    
+
                                                     {/* Internal Field Name */}
                                                     <div className="col-span-3">
                                                         {isCustomField ? (
@@ -1044,7 +1102,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                                             </span>
                                                         )}
                                                     </div>
-                                                    
+
                                                     {/* Excel Header Name */}
                                                     <div className="col-span-3">
                                                         <input
@@ -1055,7 +1113,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                                             placeholder="اسم العمود في Excel"
                                                         />
                                                     </div>
-                                                    
+
                                                     {/* Default Value */}
                                                     <div className="col-span-3">
                                                         <input
@@ -1066,7 +1124,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                                             placeholder="قيمة افتراضية (اختياري)"
                                                         />
                                                     </div>
-                                                    
+
                                                     {/* Actions */}
                                                     <div className="col-span-2 flex items-center justify-center gap-1">
                                                         {isCustomField && (
@@ -1087,7 +1145,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                             );
                                         })}
                                     </div>
-                                    
+
                                     {/* Add Custom Column Button */}
                                     <button
                                         onClick={addCustomColumn}
