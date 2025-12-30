@@ -1,6 +1,6 @@
-import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import { Api } from '../services/api';
 import {
   User,
   SupplierProduct,
@@ -38,6 +38,7 @@ import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime } from '../utils/dateUtils';
 import * as XLSX from 'xlsx';
+import { SupplierPurchaseOrdersView } from '../features/supplier/views';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+PHJlY3QgZmlsbD0iI2YzZjRmNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiLz48cGF0aCBmaWxsPSIjOWNhM2FmIiBkPSJNNjAgMzBjLTIwIDAtMzUgMTUtMzUgMzVzMTUgMzUgMzUgMzUgMzUtMTUgMzUtMzUtMTUtMzUtMzUtMzV6bTAgNjBjLTE0IDAtMjUtMTEtMjUtMjVzMTEtMjUgMjUtMjUgMjUgMTEgMjUgMjUtMTEgMjUtMjUgMjV6Ii8+PHBhdGggZmlsbD0iIzljYTNhZiIgZD0iTTYwIDQ1Yy0xMCAwLTIwIDgtMjAgMjBzMTAgMjAgMjAgMjAgMjAtOCAyMC0yMC0xMC0yMC0yMC0yMHptMCAzMGMtNSAwLTEwLTQtMTAtMTBzNS0xMCAxMC0xMCAxMCA0IDEwIDEwLTUgMTAtMTAgMTB6Ii8+PC9zdmc+';
 
@@ -151,24 +152,24 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   const [importResult, setImportResult] = useState<SupplierExcelImportResult | null>(null);
 
   const loadDashboard = useCallback(async () => {
-    const data = await MockApi.getSupplierDashboard(user.id);
+    const data = await Api.getSupplierDashboard(user.id);
     setStats(data);
   }, [user.id]);
 
   const loadProducts = useCallback(async () => {
-    const data = await MockApi.getSupplierProducts(user.id, productFilters);
+    const data = await Api.getSupplierProducts(user.id, productFilters);
     setProducts(data.items);
     setProductTotal(data.total);
   }, [user.id, productFilters]);
 
   const loadRequests = useCallback(async () => {
-    const data = await MockApi.getSupplierRequests(user.id, requestFilters);
+    const data = await Api.getSupplierRequests(user.id, requestFilters);
     setRequests(data.items);
     setRequestTotal(data.total);
   }, [user.id, requestFilters]);
 
   const loadSettings = useCallback(async () => {
-    const data = await MockApi.getSupplierSettings(user.id);
+    const data = await Api.getSupplierSettings(user.id);
     setSettings(data);
   }, [user.id]);
 
@@ -191,7 +192,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
 
   const handleAddProduct = async (product: SupplierProductInsert) => {
     try {
-      await MockApi.addSupplierProduct(user.id, product);
+      await Api.addSupplierProduct(user.id, product);
       addToast(t('supplier.productAdded'), 'success');
       setShowProductModal(false);
       loadProducts();
@@ -203,7 +204,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
 
   const handleUpdateProduct = async (productId: string, updates: Partial<SupplierProductInsert>) => {
     try {
-      await MockApi.updateSupplierProduct(user.id, productId, updates);
+      await Api.updateSupplierProduct(user.id, productId, updates);
       addToast(t('supplier.productUpdated'), 'success');
       setShowProductModal(false);
       setEditingProduct(null);
@@ -216,7 +217,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm(t('supplier.confirmDeleteProduct'))) return;
     try {
-      await MockApi.deleteSupplierProduct(user.id, productId);
+      await Api.deleteSupplierProduct(user.id, productId);
       addToast(t('supplier.productDeleted'), 'success');
       loadProducts();
       loadDashboard();
@@ -231,7 +232,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   const handleImportExcel = async (file: File) => {
     try {
       const buffer = await file.arrayBuffer();
-      const result = await MockApi.importSupplierProductsFromExcel(user.id, buffer);
+      const result = await Api.importSupplierProductsFromExcel(user.id, buffer);
       setImportResult(result);
       if (result.success) {
         addToast(`${t('supplier.importSuccess')}: ${result.insertedCount} ${t('supplier.added')}, ${result.updatedCount} ${t('supplier.updated')}`, 'success');
@@ -269,7 +270,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
 
   const handleUpdateSettings = async (updates: Partial<SupplierSettings>) => {
     try {
-      const updated = await MockApi.updateSupplierSettings(user.id, updates);
+      const updated = await Api.updateSupplierSettings(user.id, updates);
       setSettings(updated);
       addToast(t('supplier.settingsSaved'), 'success');
     } catch (err) {
@@ -356,7 +357,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
           />
           <SidebarItem
             icon={<FileText size={20} />}
-            label="أوامر الشراء"
+            label="ط£ظˆط§ظ…ط± ط§ظ„ط´ط±ط§ط،"
             active={view === 'PURCHASE_ORDERS'}
             onClick={() => setView('PURCHASE_ORDERS')}
             collapsed={collapsed}
@@ -392,11 +393,11 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
             <>
               <div className={`${collapsed ? 'mx-auto w-6' : 'mx-3'} my-3 border-t border-amber-500/30`}></div>
               <div className={`${collapsed ? 'hidden' : 'px-3 mb-2'}`}>
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">خدمات العملاء</span>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">ط®ط¯ظ…ط§طھ ط§ظ„ط¹ظ…ظ„ط§ط،</span>
               </div>
               <SidebarItem
                 icon={<Search size={20} />}
-                label="الطلبات السريعة"
+                label="ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ط³ط±ظٹط¹ط©"
                 active={view === 'QUICK_ORDER'}
                 onClick={() => setView('QUICK_ORDER')}
                 badge={user.supplierSearchPoints || 0}
@@ -405,7 +406,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
               />
               <SidebarItem
                 icon={<FileSpreadsheet size={20} />}
-                label="طلب شراء Excel"
+                label="ط·ظ„ط¨ ط´ط±ط§ط، Excel"
                 active={view === 'EXCEL_PURCHASE'}
                 onClick={() => setView('EXCEL_PURCHASE')}
                 collapsed={collapsed}
@@ -416,7 +417,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
 
           <SidebarItem
             icon={<ImageIcon size={20} />}
-            label={t('supplier.images', 'صور المنتجات')}
+            label={t('supplier.images', 'طµظˆط± ط§ظ„ظ…ظ†طھط¬ط§طھ')}
             active={view === 'IMAGES'}
             onClick={() => setView('IMAGES')}
             collapsed={collapsed}
@@ -454,7 +455,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
               {view === 'SETTINGS' && t('supplier.settings')}
               {view === 'NOTIFICATIONS' && t('supplier.notifications')}
               {view === 'TEAM' && t('supplier.team')}
-              {view === 'IMAGES' && t('supplier.images', 'صور المنتجات')}
+              {view === 'IMAGES' && t('supplier.images', 'طµظˆط± ط§ظ„ظ…ظ†طھط¬ط§طھ')}
             </h2>
           </div>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -510,7 +511,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
             <SupplierPurchaseOrdersView
               orders={[]}
               onUpdateStatus={(orderId, status) => {
-                addToast(`تم تحديث حالة الطلب ${orderId} إلى ${status}`, 'success');
+                addToast(`طھظ… طھط­ط¯ظٹط« ط­ط§ظ„ط© ط§ظ„ط·ظ„ط¨ ${orderId} ط¥ظ„ظ‰ ${status}`, 'success');
               }}
               t={t}
             />
@@ -559,219 +560,6 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   );
 };
 
-// --- Purchase Orders View (NEW - Order Routing System) ---
-// Supplier sees orders to fulfill, NOT requests to approve
-const PO_STATUS_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  NEW: { label: 'جديد', color: 'bg-red-100 text-red-700 border-red-200', icon: '🔴' },
-  PREPARING: { label: 'قيد التحضير', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: '🟡' },
-  READY: { label: 'جاهز للاستلام', color: 'bg-green-100 text-green-700 border-green-200', icon: '🟢' },
-  SHIPPED: { label: 'تم الشحن', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: '🚚' },
-  RECEIVED: { label: 'تم الاستلام', color: 'bg-slate-100 text-slate-700 border-slate-200', icon: '✅' },
-  PARTIAL_STOCK: { label: 'كمية غير كافية', color: 'bg-orange-100 text-orange-700 border-orange-200', icon: '⚠️' },
-};
-
-const SupplierPurchaseOrdersView = memo(({
-  orders,
-  onUpdateStatus,
-  t
-}: {
-  orders: any[];
-  onUpdateStatus: (orderId: string, status: string) => void;
-  t: (key: string) => string;
-}) => {
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-
-  // Mock orders for demo if empty
-  const displayOrders = orders.length > 0 ? orders : [
-    {
-      id: 'po-001',
-      orderNumber: 'PO-2024-001',
-      customerOrderNumber: 'ORD-5678',
-      status: 'NEW',
-      createdAt: new Date().toISOString(),
-      totalItems: 3,
-      totalQuantity: 15,
-      totalAmount: 1500,
-      items: [
-        { id: '1', partNumber: 'ABC-001', productName: 'فلتر زيت تويوتا', quantityRequested: 5, supplierPrice: 50, totalPrice: 250, isAvailable: true },
-        { id: '2', partNumber: 'DEF-002', productName: 'فلتر هواء كامري', quantityRequested: 3, supplierPrice: 80, totalPrice: 240, isAvailable: true },
-        { id: '3', partNumber: 'GHI-003', productName: 'شمعات إشعال', quantityRequested: 7, supplierPrice: 144, totalPrice: 1008, isAvailable: true },
-      ]
-    },
-    {
-      id: 'po-002',
-      orderNumber: 'PO-2024-002',
-      customerOrderNumber: 'ORD-5679',
-      status: 'PREPARING',
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      totalItems: 2,
-      totalQuantity: 8,
-      totalAmount: 720,
-      items: [
-        { id: '4', partNumber: 'JKL-004', productName: 'طقم فرامل أمامي', quantityRequested: 2, supplierPrice: 200, totalPrice: 400, isAvailable: true },
-        { id: '5', partNumber: 'MNO-005', productName: 'زيت محرك 5W-30', quantityRequested: 6, supplierPrice: 53, totalPrice: 320, isAvailable: true },
-      ]
-    }
-  ];
-
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white">
-            <FileText size={24} />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-800">أوامر الشراء للتنفيذ</h2>
-            <p className="text-sm text-slate-500">قم بتحضير الطلبات وتحديث حالتها</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-bold">
-            {displayOrders.filter(o => o.status === 'NEW').length} جديد
-          </span>
-          <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-bold">
-            {displayOrders.filter(o => o.status === 'PREPARING').length} قيد التحضير
-          </span>
-        </div>
-      </div>
-
-      {/* Orders List */}
-      <div className="space-y-4">
-        {displayOrders.map(order => {
-          const statusInfo = PO_STATUS_LABELS[order.status] || PO_STATUS_LABELS.NEW;
-          const isExpanded = expandedOrder === order.id;
-
-          return (
-            <div
-              key={order.id}
-              className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden"
-            >
-              {/* Order Header */}
-              <div
-                className="p-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">{statusInfo.icon}</span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-800">{order.orderNumber}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-500">
-                        {order.totalItems} أصناف • {order.totalQuantity} قطعة • {order.totalAmount.toLocaleString()} ر.س
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400">
-                      {new Date(order.createdAt).toLocaleDateString('ar-SA')}
-                    </span>
-                    <ChevronRight
-                      size={20}
-                      className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Content */}
-              {isExpanded && (
-                <div className="border-t border-slate-100">
-                  {/* Items Table */}
-                  <div className="p-4">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-slate-50 text-slate-600">
-                          <th className="text-right p-2 rounded-r-lg">رقم الصنف</th>
-                          <th className="text-right p-2">اسم المنتج</th>
-                          <th className="text-center p-2">الكمية</th>
-                          <th className="text-center p-2">السعر</th>
-                          <th className="text-center p-2 rounded-l-lg">الإجمالي</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {order.items.map((item: any) => (
-                          <tr key={item.id} className="border-b border-slate-50">
-                            <td className="p-2 font-mono text-xs text-slate-600">{item.partNumber}</td>
-                            <td className="p-2 font-bold text-slate-800">{item.productName}</td>
-                            <td className="p-2 text-center font-bold text-blue-600">{item.quantityRequested}</td>
-                            <td className="p-2 text-center text-slate-600">{item.supplierPrice} ر.س</td>
-                            <td className="p-2 text-center font-bold text-emerald-600">{item.totalPrice} ر.س</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="p-4 bg-slate-50 flex items-center justify-between gap-3">
-                    <div className="text-sm text-slate-500">
-                      إجمالي المبلغ: <span className="font-black text-slate-800">{order.totalAmount.toLocaleString()} ر.س</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {order.status === 'NEW' && (
-                        <>
-                          <button
-                            onClick={() => onUpdateStatus(order.id, 'PARTIAL_STOCK')}
-                            className="px-4 py-2 bg-orange-100 text-orange-700 rounded-xl font-bold text-sm hover:bg-orange-200 transition-colors"
-                          >
-                            ⚠️ كمية غير كافية
-                          </button>
-                          <button
-                            onClick={() => onUpdateStatus(order.id, 'PREPARING')}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
-                          >
-                            🟡 بدء التحضير
-                          </button>
-                        </>
-                      )}
-                      {order.status === 'PREPARING' && (
-                        <button
-                          onClick={() => onUpdateStatus(order.id, 'READY')}
-                          className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors"
-                        >
-                          🟢 جاهز للاستلام
-                        </button>
-                      )}
-                      {order.status === 'READY' && (
-                        <button
-                          onClick={() => onUpdateStatus(order.id, 'SHIPPED')}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
-                        >
-                          🚚 تم الشحن
-                        </button>
-                      )}
-                      {(order.status === 'SHIPPED' || order.status === 'RECEIVED') && (
-                        <span className="px-4 py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-sm">
-                          ✅ مكتمل
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Empty State */}
-      {displayOrders.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-2xl">
-          <Package size={48} className="mx-auto text-slate-300 mb-4" />
-          <h3 className="text-lg font-bold text-slate-600">لا توجد أوامر شراء</h3>
-          <p className="text-slate-400">سيظهر هنا أي أمر شراء جديد من صيني كار</p>
-        </div>
-      )}
-    </div>
-  );
-});
 
 const DashboardView = memo(({ stats, t, onNavigate, recentRequests }: {
   stats: SupplierDashboardStats;
@@ -1787,17 +1575,17 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
         setRoles(data.data);
       } else {
         setRoles([
-          { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'مالك مورد' },
-          { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'مدير مورد' },
-          { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'موظف مورد' }
+          { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'ظ…ط§ظ„ظƒ ظ…ظˆط±ط¯' },
+          { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'ظ…ط¯ظٹط± ظ…ظˆط±ط¯' },
+          { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'ظ…ظˆط¸ظپ ظ…ظˆط±ط¯' }
         ]);
       }
     } catch (err) {
       console.error('Error loading roles:', err);
       setRoles([
-        { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'مالك مورد' },
-        { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'مدير مورد' },
-        { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'موظف مورد' }
+        { code: 'SUPPLIER_OWNER', name: 'Supplier Owner', nameAr: 'ظ…ط§ظ„ظƒ ظ…ظˆط±ط¯' },
+        { code: 'SUPPLIER_MANAGER', name: 'Supplier Manager', nameAr: 'ظ…ط¯ظٹط± ظ…ظˆط±ط¯' },
+        { code: 'SUPPLIER_STAFF', name: 'Supplier Staff', nameAr: 'ظ…ظˆط¸ظپ ظ…ظˆط±ط¯' }
       ]);
     }
   };
@@ -1822,7 +1610,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
         });
         const data = await res.json();
         if (data.success) {
-          addToast(isRTL ? 'تم تحديث العضو بنجاح' : 'Member updated successfully', 'success');
+          addToast(isRTL ? 'طھظ… طھط­ط¯ظٹط« ط§ظ„ط¹ط¶ظˆ ط¨ظ†ط¬ط§ط­' : 'Member updated successfully', 'success');
           setShowModal(false);
           setEditingEmployee(null);
           loadEmployees();
@@ -1844,7 +1632,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
         });
         const data = await res.json();
         if (data.success) {
-          addToast(isRTL ? 'تم إضافة العضو بنجاح' : 'Member added successfully', 'success');
+          addToast(isRTL ? 'طھظ… ط¥ط¶ط§ظپط© ط§ظ„ط¹ط¶ظˆ ط¨ظ†ط¬ط§ط­' : 'Member added successfully', 'success');
           setShowModal(false);
           setEditingEmployee(null);
           setNewPassword('');
@@ -1874,7 +1662,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
       });
       const data = await res.json();
       if (data.success) {
-        addToast(emp.isActive ? (isRTL ? 'تم تعطيل العضو' : 'Member deactivated') : (isRTL ? 'تم تفعيل العضو' : 'Member activated'), 'success');
+        addToast(emp.isActive ? (isRTL ? 'طھظ… طھط¹ط·ظٹظ„ ط§ظ„ط¹ط¶ظˆ' : 'Member deactivated') : (isRTL ? 'طھظ… طھظپط¹ظٹظ„ ط§ظ„ط¹ط¶ظˆ' : 'Member activated'), 'success');
         loadEmployees();
       } else {
         addToast(data.error || t('error'), 'error');
@@ -1963,7 +1751,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
                         </span>
                         {emp.isOwner && (
                           <span className="px-2 py-0.5 mt-1 text-[10px] rounded-full bg-yellow-100 text-yellow-700 font-bold inline-block w-fit">
-                            {isRTL ? 'مالك' : 'Owner'}
+                            {isRTL ? 'ظ…ط§ظ„ظƒ' : 'Owner'}
                           </span>
                         )}
                       </div>
@@ -1991,7 +1779,7 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
                               onClick={() => handleToggleActive(emp)}
                               className={`p-2 rounded-lg transition-colors ${emp.isActive ? 'text-slate-500 hover:text-red-600 hover:bg-red-50' : 'text-slate-500 hover:text-green-600 hover:bg-green-50'}`}
                               data-testid={`button-toggle-employee-${emp.id}`}
-                              title={emp.isActive ? (isRTL ? 'تعطيل' : 'Deactivate') : (isRTL ? 'تفعيل' : 'Activate')}
+                              title={emp.isActive ? (isRTL ? 'طھط¹ط·ظٹظ„' : 'Deactivate') : (isRTL ? 'طھظپط¹ظٹظ„' : 'Activate')}
                             >
                               {emp.isActive ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                             </button>
@@ -2048,14 +1836,14 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 data-testid="select-employee-role"
               >
-                <option value="">{isRTL ? 'اختر الدور' : 'Select Role'}</option>
+                <option value="">{isRTL ? 'ط§ط®طھط± ط§ظ„ط¯ظˆط±' : 'Select Role'}</option>
                 {roles.map(r => (
                   <option key={r.code} value={r.code}>{isRTL ? (r.nameAr || r.name) : r.name}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">{isRTL ? 'المسمى الوظيفي' : 'Job Title'}</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{isRTL ? 'ط§ظ„ظ…ط³ظ…ظ‰ ط§ظ„ظˆط¸ظٹظپظٹ' : 'Job Title'}</label>
               <input
                 type="text"
                 value={editingEmployee.jobTitle || ''}
@@ -2066,12 +1854,12 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
             </div>
             {!editingEmployee.id && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{isRTL ? 'كلمة المرور' : 'Password'}</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{isRTL ? 'ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±' : 'Password'}</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={isRTL ? 'اختياري - سيتم توليده تلقائياً' : 'Optional - auto-generated if empty'}
+                  placeholder={isRTL ? 'ط§ط®طھظٹط§ط±ظٹ - ط³ظٹطھظ… طھظˆظ„ظٹط¯ظ‡ طھظ„ظ‚ط§ط¦ظٹط§ظ‹' : 'Optional - auto-generated if empty'}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   data-testid="input-employee-password"
                 />
@@ -2137,7 +1925,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
     const loadData = async () => {
       setLoading(true);
       try {
-        const prods = await MockApi.getSupplierProducts(supplierId, {});
+        const prods = await Api.getSupplierProducts(supplierId, {});
         setProducts(prods.items || []);
 
         const storedImages = localStorage.getItem(IMAGES_STORAGE_KEY);
@@ -2199,10 +1987,10 @@ const SupplierImagesView = memo(({ supplierId, t }: {
       const newImage = await processImageFile(file, partNumber);
       if (newImage) {
         saveImages([newImage, ...images]);
-        addToast(t('supplier.imageUploaded', 'تم رفع الصورة بنجاح وتنتظر الموافقة'), 'success');
+        addToast(t('supplier.imageUploaded', 'طھظ… ط±ظپط¹ ط§ظ„طµظˆط±ط© ط¨ظ†ط¬ط§ط­ ظˆطھظ†طھط¸ط± ط§ظ„ظ…ظˆط§ظپظ‚ط©'), 'success');
       }
     } catch (e) {
-      addToast(t('supplier.imageUploadError', 'حدث خطأ أثناء الرفع'), 'error');
+      addToast(t('supplier.imageUploadError', 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط§ظ„ط±ظپط¹'), 'error');
     } finally {
       setUploading(false);
     }
@@ -2214,12 +2002,12 @@ const SupplierImagesView = memo(({ supplierId, t }: {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.zip')) {
-      addToast('يرجى اختيار ملف ZIP', 'error');
+      addToast('ظٹط±ط¬ظ‰ ط§ط®طھظٹط§ط± ظ…ظ„ظپ ZIP', 'error');
       return;
     }
 
     setUploading(true);
-    setUploadProgress({ current: 0, total: 100, phase: 'جاري فك الضغط...' });
+    setUploadProgress({ current: 0, total: 100, phase: 'ط¬ط§ط±ظٹ ظپظƒ ط§ظ„ط¶ط؛ط·...' });
 
     try {
       const zip = await JSZip.loadAsync(file);
@@ -2241,12 +2029,12 @@ const SupplierImagesView = memo(({ supplierId, t }: {
 
         processed++;
         if (processed % 10 === 0) {
-          setUploadProgress({ current: Math.round((processed / entries.length) * 20), total: 100, phase: 'جاري فك الضغط...' });
+          setUploadProgress({ current: Math.round((processed / entries.length) * 20), total: 100, phase: 'ط¬ط§ط±ظٹ ظپظƒ ط§ظ„ط¶ط؛ط·...' });
         }
       }
 
       if (imageFiles.length === 0) {
-        addToast('لم يتم العثور على صور في الملف المضغوط', 'error');
+        addToast('ظ„ظ… ظٹطھظ… ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ طµظˆط± ظپظٹ ط§ظ„ظ…ظ„ظپ ط§ظ„ظ…ط¶ط؛ظˆط·', 'error');
         setUploading(false);
         setUploadProgress(null);
         return;
@@ -2259,7 +2047,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
         setUploadProgress({
           current: 20 + Math.round((completed / imageFiles.length) * 80),
           total: 100,
-          phase: `معالجة: ${imgFile.name}`
+          phase: `ظ…ط¹ط§ظ„ط¬ط©: ${imgFile.name}`
         });
 
         const fileObj = new File([imgFile.data], imgFile.name, { type: imgFile.data.type });
@@ -2271,11 +2059,11 @@ const SupplierImagesView = memo(({ supplierId, t }: {
       }
 
       saveImages([...newImages, ...images]);
-      addToast(`تم رفع ${newImages.length} صورة من ملف ZIP، وهي بانتظار الموافقة`, 'success');
+      addToast(`طھظ… ط±ظپط¹ ${newImages.length} طµظˆط±ط© ظ…ظ† ظ…ظ„ظپ ZIPطŒ ظˆظ‡ظٹ ط¨ط§ظ†طھط¸ط§ط± ط§ظ„ظ…ظˆط§ظپظ‚ط©`, 'success');
 
     } catch (error) {
       console.error('ZIP Error:', error);
-      addToast('فشل في معالجة ملف ZIP', 'error');
+      addToast('ظپط´ظ„ ظپظٹ ظ…ط¹ط§ظ„ط¬ط© ظ…ظ„ظپ ZIP', 'error');
     } finally {
       setUploading(false);
       setUploadProgress(null);
@@ -2309,7 +2097,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
         <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
           <Upload size={20} className="text-emerald-600" />
-          {t('supplier.uploadActions', 'عمليات الرفع')}
+          {t('supplier.uploadActions', 'ط¹ظ…ظ„ظٹط§طھ ط§ظ„ط±ظپط¹')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2321,8 +2109,8 @@ const SupplierImagesView = memo(({ supplierId, t }: {
             <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3">
               <FileArchive size={24} className="text-purple-600" />
             </div>
-            <h4 className="font-bold text-slate-800 mb-1">{t('supplier.uploadZip', 'رفع ملف مضغوط (ZIP)')}</h4>
-            <p className="text-sm text-slate-500 mb-4">{t('supplier.zipHint', 'صور متعددة، سيتم استخراج رقم القطعة من اسم الملف')}</p>
+            <h4 className="font-bold text-slate-800 mb-1">{t('supplier.uploadZip', 'ط±ظپط¹ ظ…ظ„ظپ ظ…ط¶ط؛ظˆط· (ZIP)')}</h4>
+            <p className="text-sm text-slate-500 mb-4">{t('supplier.zipHint', 'طµظˆط± ظ…طھط¹ط¯ط¯ط©طŒ ط³ظٹطھظ… ط§ط³طھط®ط±ط§ط¬ ط±ظ‚ظ… ط§ظ„ظ‚ط·ط¹ط© ظ…ظ† ط§ط³ظ… ط§ظ„ظ…ظ„ظپ')}</p>
             <input
               ref={zipInputRef}
               type="file"
@@ -2332,7 +2120,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
               disabled={uploading}
             />
             <button disabled={uploading} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold">
-              {t('supplier.selectFile', 'اختر ملف')}
+              {t('supplier.selectFile', 'ط§ط®طھط± ظ…ظ„ظپ')}
             </button>
           </div>
 
@@ -2341,8 +2129,8 @@ const SupplierImagesView = memo(({ supplierId, t }: {
             <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mb-3">
               <ImageIcon size={24} className="text-slate-500" />
             </div>
-            <h4 className="font-bold text-slate-800 mb-1">{t('supplier.bulkManage', 'إدارة الصور')}</h4>
-            <p className="text-sm text-slate-500 mb-4">{t('supplier.bulkHint', 'استخدم الجدول أدناه لرفع صور لكل منتج على حدة')}</p>
+            <h4 className="font-bold text-slate-800 mb-1">{t('supplier.bulkManage', 'ط¥ط¯ط§ط±ط© ط§ظ„طµظˆط±')}</h4>
+            <p className="text-sm text-slate-500 mb-4">{t('supplier.bulkHint', 'ط§ط³طھط®ط¯ظ… ط§ظ„ط¬ط¯ظˆظ„ ط£ط¯ظ†ط§ظ‡ ظ„ط±ظپط¹ طµظˆط± ظ„ظƒظ„ ظ…ظ†طھط¬ ط¹ظ„ظ‰ ط­ط¯ط©')}</p>
           </div>
         </div>
 
@@ -2366,19 +2154,19 @@ const SupplierImagesView = memo(({ supplierId, t }: {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-          <p className="text-sm text-slate-500 mb-1">{t('supplier.totalProducts', 'إجمالي المنتجات')}</p>
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.totalProducts', 'ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ…ظ†طھط¬ط§طھ')}</p>
           <p className="text-2xl font-black text-slate-800">{products.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesPending', 'بانتظار الموافقة')}</p>
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesPending', 'ط¨ط§ظ†طھط¸ط§ط± ط§ظ„ظ…ظˆط§ظپظ‚ط©')}</p>
           <p className="text-2xl font-black text-amber-500">{images.filter(i => i.status === 'PENDING' && i.uploadedBy === supplierId).length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesApproved', 'صور مقبولة')}</p>
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesApproved', 'طµظˆط± ظ…ظ‚ط¨ظˆظ„ط©')}</p>
           <p className="text-2xl font-black text-emerald-500">{images.filter(i => i.status === 'APPROVED' && i.uploadedBy === supplierId).length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesRejected', 'صور مرفوضة')}</p>
+          <p className="text-sm text-slate-500 mb-1">{t('supplier.imagesRejected', 'طµظˆط± ظ…ط±ظپظˆط¶ط©')}</p>
           <p className="text-2xl font-black text-red-500">{images.filter(i => i.status === 'REJECTED' && i.uploadedBy === supplierId).length}</p>
         </div>
       </div>
@@ -2391,7 +2179,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={t('supplier.searchProducts', 'ابحث عن منتج...')}
+            placeholder={t('supplier.searchProducts', 'ط§ط¨ط­ط« ط¹ظ† ظ…ظ†طھط¬...')}
             className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
           />
         </div>
@@ -2402,16 +2190,16 @@ const SupplierImagesView = memo(({ supplierId, t }: {
         <div className="p-4 border-b border-slate-100 flex justify-between items-center">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             <ImageIcon size={18} />
-            {t('supplier.productImages', 'صور منتجاتك')}
+            {t('supplier.productImages', 'طµظˆط± ظ…ظ†طھط¬ط§طھظƒ')}
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">{t('supplier.productInfo', 'تفاصيل المنتج')}</th>
-                <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">{t('supplier.currentImages', 'الصور الحالية')}</th>
-                <th className="px-4 py-3 text-center text-xs font-bold text-slate-600">{t('actions', 'الإجراءات')}</th>
+                <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">{t('supplier.productInfo', 'طھظپط§طµظٹظ„ ط§ظ„ظ…ظ†طھط¬')}</th>
+                <th className="px-4 py-3 text-right text-xs font-bold text-slate-600">{t('supplier.currentImages', 'ط§ظ„طµظˆط± ط§ظ„ط­ط§ظ„ظٹط©')}</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-slate-600">{t('actions', 'ط§ظ„ط¥ط¬ط±ط§ط،ط§طھ')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -2419,7 +2207,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
                 <tr>
                   <td colSpan={3} className="px-4 py-12 text-center text-slate-400">
                     <Package size={40} className="mx-auto mb-3 opacity-50" />
-                    <p>{t('supplier.noProducts', 'لا توجد منتجات')}</p>
+                    <p>{t('supplier.noProducts', 'ظ„ط§ طھظˆط¬ط¯ ظ…ظ†طھط¬ط§طھ')}</p>
                   </td>
                 </tr>
               ) : (
@@ -2461,14 +2249,14 @@ const SupplierImagesView = memo(({ supplierId, t }: {
                               </div>
                             ))
                           ) : (
-                            <span className="text-xs text-slate-400 italic">{t('supplier.noImages', 'لا توجد صور')}</span>
+                            <span className="text-xs text-slate-400 italic">{t('supplier.noImages', 'ظ„ط§ طھظˆط¬ط¯ طµظˆط±')}</span>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <label className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold cursor-pointer hover:bg-emerald-100 transition-colors">
                           <Plus size={14} />
-                          {t('supplier.addImage', 'إضافة صورة')}
+                          {t('supplier.addImage', 'ط¥ط¶ط§ظپط© طµظˆط±ط©')}
                           <input
                             type="file"
                             accept="image/*"
@@ -2491,7 +2279,7 @@ const SupplierImagesView = memo(({ supplierId, t }: {
         </div>
         {filteredProducts.length > 20 && (
           <div className="p-3 border-t border-slate-100 text-center text-sm text-slate-500">
-            {t('supplier.showingFirst20', 'يتم عرض أول 20 منتج فقط')}
+            {t('supplier.showingFirst20', 'ظٹطھظ… ط¹ط±ط¶ ط£ظˆظ„ 20 ظ…ظ†طھط¬ ظپظ‚ط·')}
           </div>
         )}
       </div>
