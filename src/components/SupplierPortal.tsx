@@ -38,7 +38,7 @@ import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime } from '../utils/dateUtils';
 import * as XLSX from 'xlsx';
-import { SupplierPurchaseOrdersView } from '../features/supplier/views';
+import { SupplierPurchaseOrdersView, SupplierProductsView } from '../features/supplier/views';
 
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+PHJlY3QgZmlsbD0iI2YzZjRmNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiLz48cGF0aCBmaWxsPSIjOWNhM2FmIiBkPSJNNjAgMzBjLTIwIDAtMzUgMTUtMzUgMzVzMTUgMzUgMzUgMzUgMzUtMTUgMzUtMzUtMTUtMzUtMzUtMzV6bTAgNjBjLTE0IDAtMjUtMTEtMjUtMjVzMTEtMjUgMjUtMjUgMjUgMTEgMjUgMjUtMTEgMjUtMjUgMjV6Ii8+PHBhdGggZmlsbD0iIzljYTNhZiIgZD0iTTYwIDQ1Yy0xMCAwLTIwIDgtMjAgMjBzMTAgMjAgMjAgMjAgMjAtOCAyMC0yMC0xMC0yMC0yMC0yMHptMCAzMGMtNSAwLTEwLTQtMTAtMTBzNS0xMCAxMC0xMCAxMCA0IDEwIDEwLTUgMTAtMTAgMTB6Ii8+PC9zdmc+';
 
@@ -479,7 +479,7 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
           )}
 
           {view === 'PRODUCTS' && (
-            <ProductsView
+            <SupplierProductsView
               products={products}
               total={productTotal}
               filters={productFilters}
