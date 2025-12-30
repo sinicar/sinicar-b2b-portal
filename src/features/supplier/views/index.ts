@@ -8,3 +8,6 @@ export type { SupplierPurchaseOrdersViewProps } from './SupplierPurchaseOrdersVi
 
 export { SupplierProductsView } from './SupplierProductsView';
 export type { SupplierProductsViewProps } from './SupplierProductsView';
+
+export { SupplierDashboardView } from './SupplierDashboardView';
+export type { SupplierDashboardViewProps } from './SupplierDashboardView';
