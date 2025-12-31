@@ -53,6 +53,7 @@ import { AdminProductImagesPage } from './AdminProductImagesPage';
 import { UnifiedAccountRequestsCenter } from './UnifiedAccountRequestsCenter';
 import { AdminAssignmentsCenter } from './AdminAssignmentsCenter';
 import { AdminStatsCards } from '../features/admin/components/AdminStatsCards';
+import { AdminChartsSection } from '../features/admin/components/AdminChartsSection';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -603,34 +604,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
                             {/* Charts & Quick Tools Section */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                {/* Main Chart (Revenue) */}
-                                <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[400px] flex flex-col">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                            <TrendingUp size={20} className="text-[#C8A04F]" /> {t('adminDashboard.charts.dailyRevenue')} (30)
-                                        </h3>
-                                    </div>
-                                    <div className="flex-1 w-full min-h-0">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={graphData.dailyStats}>
-                                                <defs>
-                                                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor={COLORS.navy} stopOpacity={0.2} />
-                                                        <stop offset="95%" stopColor={COLORS.navy} stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                                <Tooltip
-                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                                                    formatter={(value: number) => [`${value.toLocaleString()} ${t('customerDashboard.sar')}`, t('adminDashboard.charts.revenue')]}
-                                                />
-                                                <Area type="monotone" dataKey="revenue" stroke={COLORS.navy} strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                                            </AreaChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
+                                {/* Main Chart (Revenue) - Using extracted AdminChartsSection */}
+                                <AdminChartsSection graphData={graphData} />
 
                                 {/* Quick Tools & Orders Chart */}
                                 <div className="space-y-6">
@@ -645,19 +620,6 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             <QuickActionBtn label={t('common.refresh')} icon={<RefreshCw size={16} />} onClick={() => setView('PRODUCTS')} />
                                             <QuickActionBtn label={t('adminDashboard.stats.pendingOrders')} icon={<Clock size={16} />} onClick={() => setView('QUOTES')} />
                                             <QuickActionBtn label={t('common.export')} icon={<Download size={16} />} onClick={() => addToast(t('common.loading'), 'success')} />
-                                        </div>
-                                    </div>
-
-                                    {/* Orders Mini Chart */}
-                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[200px] flex flex-col">
-                                        <h3 className="font-bold text-slate-800 text-sm mb-4">{t('adminDashboard.charts.dailyOrders')}</h3>
-                                        <div className="flex-1 w-full min-h-0">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={graphData.dailyStats}>
-                                                    <Bar dataKey="orders" fill={COLORS.gold} radius={[4, 4, 0, 0]} />
-                                                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px' }} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
                                         </div>
                                     </div>
                                 </div>
