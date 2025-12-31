@@ -1,1 +1,18 @@
 node_modules
+
+# ENV (do not commit secrets)
+.env
+*.env.local
+backend/.env
+backend/*.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+
+# Logs
+*.log
+npm-debug.log*
