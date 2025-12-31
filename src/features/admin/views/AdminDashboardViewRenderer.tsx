@@ -20,7 +20,7 @@ import { AdminInternationalPricingPage } from '../../../components/AdminInternat
 const UnifiedPermissionCenter = React.lazy(() => import('../../../components/UnifiedPermissionCenter').then(m => ({ default: m.UnifiedPermissionCenter })));
 const AdminReportsCenterPage = React.lazy(() => import('../../../components/AdminReportsCenterPage').then(m => ({ default: m.AdminReportsCenterPage })));
 import { AdminSEOCenter } from '../../../components/AdminSEOCenter';
-import { AdminOrdersManager } from '../../../components/AdminOrdersManager';
+const AdminOrdersManager = React.lazy(() => import('../../../components/AdminOrdersManager').then(m => ({ default: m.AdminOrdersManager })));
 import { AdminAbandonedCartsPage } from '../../../components/AdminAbandonedCartsPage';
 import { UnifiedAccountRequestsCenter } from '../../../components/UnifiedAccountRequestsCenter';
 import { AdminCustomersPage } from '../../../components/AdminCustomersPage';
@@ -31,7 +31,7 @@ import { AdminImportManager } from '../../../components/AdminImportManager';
 import { AdminActivityLogPage } from '../../../components/AdminActivityLogPage';
 import AdminFeedbackCenter from '../../../components/AdminFeedbackCenter';
 import AdminMessagingCenter from '../../../components/AdminMessagingCenter';
-import { AdminProductsPage } from '../../../components/AdminProductsPage';
+const AdminProductsPage = React.lazy(() => import('../../../components/AdminProductsPage').then(m => ({ default: m.AdminProductsPage })));
 import { AdminAlternativesPage } from '../../../components/AdminAlternativesPage';
 import { AdminProductImagesPage } from '../../../components/AdminProductImagesPage';
 import { NotificationsPage } from '../../../components/NotificationsPage';
@@ -272,7 +272,11 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'ORDERS_MANAGER' && (
                 canAccess('orders')
-                    ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'ABANDONED_CARTS' && (
@@ -327,7 +331,11 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'PRODUCTS' && (
                 canAccess('products')
-                    ? <AdminProductsPage onRefresh={fetchAllData} />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <AdminProductsPage onRefresh={fetchAllData} />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'ALTERNATIVES' && (
