@@ -842,16 +842,6 @@ const NavItem = ({ icon, label, active, onClick, badge }: any) => (
     </button>
 );
 
-const ActivityCard = ({ label, value, color }: any) => {
-    const colors: any = { blue: 'bg-blue-50 text-blue-700', emerald: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', slate: 'bg-slate-100 text-slate-700' };
-    return (
-        <div className={`p-4 rounded-xl ${colors[color]} text-center`}>
-            <p className="text-2xl font-black mb-1">{value}</p>
-            <p className="text-xs font-bold opacity-70">{label}</p>
-        </div>
-    );
-}
-
 // --- Simplified Views for Sub-Pages (Ported from original to keep file size managed) ---
 
 const OnlineUsersCard = () => {
