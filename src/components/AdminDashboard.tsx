@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { services } from '../services/serviceFactory';
 import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification, AdminUser, Role, PermissionResource } from '../types';
 import {
     LayoutDashboard, Users, ShoppingBag, ShoppingCart, Settings, FileText, LogOut,
@@ -14,15 +15,15 @@ import {
 import { LanguageSwitcherLight } from './LanguageSwitcher';
 import { AdminSettings } from './AdminSettings';
 import { AdminOrdersManager } from './AdminOrdersManager';
-import { AdminAccountRequests } from './AdminAccountRequests';
-import { AdminPartnerRequests } from './AdminPartnerRequests';
+// AdminAccountRequests removed - merged into UnifiedAccountRequestsCenter
+// AdminPartnerRequests removed - merged into UnifiedAccountRequestsCenter
 import { AdminQuoteManager } from './AdminQuoteManager';
 import { AdminMissingParts } from './AdminMissingParts';
 import { AdminOrderShortagesPage } from './AdminOrderShortagesPage';
 import { AdminCustomersPage } from './AdminCustomersPage';
 import { AdminImportManager } from './AdminImportManager';
 import { AdminProductsPage } from './AdminProductsPage';
-import { AdminUsersPage } from './AdminUsersPage';
+// AdminUsersPage removed - merged into UnifiedPermissionCenter
 import { AccessDenied } from './AccessDenied';
 import { AdminMarketingCenter } from './AdminMarketingCenter';
 import { AdminPricingCenter } from './AdminPricingCenter';
@@ -31,7 +32,7 @@ import { AdminSupplierMarketplaceSettings } from './AdminSupplierMarketplaceSett
 import { AdminMarketersPage } from './AdminMarketersPage';
 import { AdminInstallmentsPage } from './AdminInstallmentsPage';
 import { AdminAdvertisingPage } from './AdminAdvertisingPage';
-import { AdminOrganizationSettings } from './AdminOrganizationSettings';
+// AdminOrganizationSettings removed - merged into UnifiedPermissionCenter
 import { AdminCustomerPortalSettings } from './AdminCustomerPortalSettings';
 import AdminAISettings from './AdminAISettings';
 import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
@@ -40,13 +41,18 @@ import { AdminActivityLogPage } from './AdminActivityLogPage';
 import AdminFeedbackCenter from './AdminFeedbackCenter';
 import AdminMessagingCenter from './AdminMessagingCenter';
 import { AdminInternationalPricingPage } from './AdminInternationalPricingPage';
-import { AdminPermissionCenter } from './AdminPermissionCenter';
+// AdminPermissionCenter removed - merged into UnifiedPermissionCenter
 import { AdminReportsCenterPage } from './AdminReportsCenterPage';
 import AdminAITrainingPage from './AdminAITrainingPage';
 import AdminAICommandCenter from './AdminAICommandCenter';
 import { NotificationBell } from './NotificationBell';
+import { AdminSEOCenter } from './AdminSEOCenter';
+import { UnifiedPermissionCenter } from './UnifiedPermissionCenter';
 import { NotificationsPage } from './NotificationsPage';
 import { AdminProductImagesPage } from './AdminProductImagesPage';
+import { UnifiedAccountRequestsCenter } from './UnifiedAccountRequestsCenter';
+import { AdminAssignmentsCenter } from './AdminAssignmentsCenter';
+import { AdminStatsCards } from '../features/admin/components/AdminStatsCards';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -61,7 +67,7 @@ interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'PRODUCT_IMAGES' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'ORDER_SHORTAGES' | 'IMPORT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'PARTNER_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'AI_COMMAND_CENTER' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER';
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'PRODUCT_IMAGES' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'ORDER_SHORTAGES' | 'IMPORT_REQUESTS' | 'UNIFIED_ACCOUNT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'AI_COMMAND_CENTER' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER' | 'SEO_CENTER' | 'UNIFIED_PERMISSIONS' | 'ASSIGNMENTS_CENTER';
 
 const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'DASHBOARD': 'dashboard',
@@ -72,8 +78,8 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'MISSING': 'missing',
     'ORDER_SHORTAGES': 'orders',
     'IMPORT_REQUESTS': 'imports',
+    'UNIFIED_ACCOUNT_REQUESTS': 'account_requests',
     'ACCOUNT_REQUESTS': 'account_requests',
-    'PARTNER_REQUESTS': 'account_requests',
     'ACTIVITY_LOGS': 'activity_log',
     'FEEDBACK_CENTER': 'settings_general',
     'MESSAGING_CENTER': 'settings_general',
@@ -97,7 +103,10 @@ const VIEW_PERMISSION_MAP: Record<ViewType, PermissionResource> = {
     'NOTIFICATIONS': 'dashboard',
     'INTERNATIONAL_PRICING': 'settings_general',
     'PERMISSION_CENTER': 'settings_general',
-    'REPORTS_CENTER': 'settings_general'
+    'REPORTS_CENTER': 'settings_general',
+    'SEO_CENTER': 'settings_general',
+    'UNIFIED_PERMISSIONS': 'settings_general',
+    'ASSIGNMENTS_CENTER': 'settings_general'
 };
 
 const VIEW_LABELS_KEYS: Record<ViewType, string> = {
@@ -109,8 +118,8 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'MISSING': 'adminDashboard.views.missing',
     'ORDER_SHORTAGES': 'adminDashboard.views.orderShortages',
     'IMPORT_REQUESTS': 'adminDashboard.views.importRequests',
+    'UNIFIED_ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
     'ACCOUNT_REQUESTS': 'adminDashboard.views.accountRequests',
-    'PARTNER_REQUESTS': 'adminDashboard.views.partnerRequests',
     'ACTIVITY_LOGS': 'adminDashboard.views.activityLogs',
     'FEEDBACK_CENTER': 'adminDashboard.views.feedbackCenter',
     'MESSAGING_CENTER': 'adminDashboard.views.messagingCenter',
@@ -134,7 +143,10 @@ const VIEW_LABELS_KEYS: Record<ViewType, string> = {
     'NOTIFICATIONS': 'adminDashboard.views.notifications',
     'INTERNATIONAL_PRICING': 'adminDashboard.views.internationalPricing',
     'PERMISSION_CENTER': 'adminDashboard.views.permissionCenter',
-    'REPORTS_CENTER': 'adminDashboard.views.reportsCenter'
+    'REPORTS_CENTER': 'adminDashboard.views.reportsCenter',
+    'SEO_CENTER': 'adminDashboard.views.seoCenter',
+    'UNIFIED_PERMISSIONS': 'adminDashboard.views.unifiedPermissions',
+    'ASSIGNMENTS_CENTER': 'adminDashboard.views.assignmentsCenter'
 };
 
 // Color Constants for Navy & Gold Theme
@@ -210,7 +222,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         try {
             const [
                 fetchedOrders,
-                fetchedUsers, // Note: This actually returns {user, profile}[] from MockApi.getAllUsers() wrapper, but we access raw users from storage in MockApi
+                fetchedUsers, // Note: This actually returns {user, profile}[] from Api.getAllUsers() wrapper, but we access raw users from storage in Api
                 fetchedProducts,
                 fetchedQuotes,
                 fetchedImports,
@@ -219,27 +231,28 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 fetchedMissing,
                 fetchedNotifs
             ] = await Promise.all([
-                MockApi.getAllOrders(),
+                services.orders.getAllOrders(),
                 // We need raw users array for counting
                 new Promise<User[]>(resolve => resolve(JSON.parse(localStorage.getItem('b2b_users_sini_v2') || '[]'))),
-                MockApi.searchProducts(''),
-                MockApi.getAllQuoteRequests(),
-                MockApi.getImportRequests(),
-                MockApi.getAccountOpeningRequests(),
-                MockApi.getActivityLogs(),
-                MockApi.getMissingProductRequests(),
-                MockApi.getAllNotifications()
+                Api.searchProducts(''),
+                Api.getAllQuoteRequests(),
+                Api.getImportRequests(),
+                Api.getAccountOpeningRequests(),
+                Api.getActivityLogs(),
+                Api.getMissingProductRequests(),
+                Api.getAllNotifications()
             ]);
 
-            setOrders(fetchedOrders);
-            setUsers(fetchedUsers);
-            setProducts(fetchedProducts);
-            setQuotes(fetchedQuotes);
-            setImportRequests(fetchedImports);
-            setAccountRequests(fetchedAccounts);
-            setActivityLogs(fetchedLogs);
-            setMissingRequests(fetchedMissing);
-            setNotifications(fetchedNotifs);
+            // Safe guards: ضمان أن كل القيم arrays حتى لو رجع null/undefined
+            setOrders(Array.isArray(fetchedOrders) ? fetchedOrders : []);
+            setUsers(Array.isArray(fetchedUsers) ? fetchedUsers : []);
+            setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+            setQuotes(Array.isArray(fetchedQuotes) ? fetchedQuotes : []);
+            setImportRequests(Array.isArray(fetchedImports) ? fetchedImports : []);
+            setAccountRequests(Array.isArray(fetchedAccounts) ? fetchedAccounts : []);
+            setActivityLogs(Array.isArray(fetchedLogs) ? fetchedLogs : []);
+            setMissingRequests(Array.isArray(fetchedMissing) ? fetchedMissing : []);
+            setNotifications(Array.isArray(fetchedNotifs) ? fetchedNotifs : []);
 
             checkConnection(); // Check connection after fetch
         } catch (e) {
@@ -251,7 +264,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const checkConnection = async () => {
         setIsRetrying(true);
         try {
-            const result = await MockApi.checkHealth();
+            const result = await Api.checkHealth();
             setLatency(result.latency);
             if (result.latency > 500) setConnectionStatus('SLOW');
             else setConnectionStatus('CONNECTED');
@@ -265,36 +278,43 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     // --- Computed Analytics (Memoized) ---
 
     const kpiData = useMemo(() => {
+        // Defensive: Ensure arrays are defined
+        const safeOrders = orders || [];
+        const safeProducts = products || [];
+        const safeUsers = users || [];
+        const safeAccountRequests = accountRequests || [];
+        const safeQuotes = quotes || [];
+
         // Revenue
-        const totalRevenue = orders
+        const totalRevenue = safeOrders
             .filter(o => o.status !== OrderStatus.CANCELLED && o.status !== OrderStatus.REJECTED)
             .reduce((acc, o) => acc + o.totalAmount, 0);
 
-        const todayRevenue = orders
+        const todayRevenue = safeOrders
             .filter(o => new Date(o.date).toDateString() === new Date().toDateString())
             .filter(o => o.status !== OrderStatus.CANCELLED && o.status !== OrderStatus.REJECTED)
             .reduce((acc, o) => acc + o.totalAmount, 0);
 
         // Orders
-        const pendingOrders = orders.filter(o => o.status === OrderStatus.PENDING).length;
-        const approvedOrders = orders.filter(o => o.status === OrderStatus.APPROVED).length;
-        const shippedOrders = orders.filter(o => o.status === OrderStatus.SHIPPED).length;
-        const cancelledOrders = orders.filter(o => o.status === OrderStatus.CANCELLED).length;
+        const pendingOrders = safeOrders.filter(o => o.status === OrderStatus.PENDING).length;
+        const approvedOrders = safeOrders.filter(o => o.status === OrderStatus.APPROVED).length;
+        const shippedOrders = safeOrders.filter(o => o.status === OrderStatus.SHIPPED).length;
+        const cancelledOrders = safeOrders.filter(o => o.status === OrderStatus.CANCELLED).length;
 
         // Inventory
-        const outOfStock = products.filter(p => p.stock <= 0).length;
-        const needsPriceUpdate = products.filter(p => p.price === 0).length; // Assumption
+        const outOfStock = safeProducts.filter(p => p.stock <= 0).length;
+        const needsPriceUpdate = safeProducts.filter(p => p.price === 0).length; // Assumption
 
         // Users
-        const activeBusinesses = users.filter(u => u.role === 'CUSTOMER_OWNER' && u.isActive).length;
-        const pendingAccounts = accountRequests.filter(r => r.status === 'NEW').length;
-        const pendingQuotes = quotes.filter(q => q.status === 'NEW' || q.status === 'UNDER_REVIEW').length;
+        const activeBusinesses = safeUsers.filter(u => u.role === 'CUSTOMER_OWNER' && u.isActive).length;
+        const pendingAccounts = safeAccountRequests.filter(r => r.status === 'NEW').length;
+        const pendingQuotes = safeQuotes.filter(q => q.status === 'NEW' || q.status === 'UNDER_REVIEW').length;
 
         return {
             totalRevenue, todayRevenue,
-            pendingOrders, approvedOrders, shippedOrders, cancelledOrders, totalOrders: orders.length,
-            totalProducts: products.length, outOfStock, needsPriceUpdate,
-            activeBusinesses, pendingAccounts, totalUsers: users.length, pendingQuotes
+            pendingOrders, approvedOrders, shippedOrders, cancelledOrders, totalOrders: safeOrders.length,
+            totalProducts: safeProducts.length, outOfStock, needsPriceUpdate,
+            activeBusinesses, pendingAccounts, totalUsers: safeUsers.length, pendingQuotes
         };
     }, [orders, products, users, accountRequests, quotes]);
 
@@ -307,7 +327,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         });
 
         const dailyStats = last30Days.map(date => {
-            const dayOrders = orders.filter(o => o.date.startsWith(date));
+            const safeOrders = orders || [];
+            const dayOrders = safeOrders.filter(o => o.date.startsWith(date));
             return {
                 date: date.slice(5), // MM-DD
                 orders: dayOrders.length,
@@ -319,9 +340,13 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }, [orders]);
 
     const insights = useMemo(() => {
+        // Defensive: Ensure arrays are defined
+        const safeMissingRequests = missingRequests || [];
+        const safeOrders = orders || [];
+
         // Most searched missing terms
         const searchCounts: Record<string, number> = {};
-        missingRequests.filter(req => req.source === 'SEARCH').forEach(req => {
+        safeMissingRequests.filter(req => req.source === 'SEARCH').forEach(req => {
             const term = req.query.trim().toLowerCase();
             searchCounts[term] = (searchCounts[term] || 0) + 1;
         });
@@ -331,7 +356,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
         // Top Customers
         const customerSpend: Record<string, number> = {};
-        orders.forEach(o => {
+        safeOrders.forEach(o => {
             if (o.status !== OrderStatus.CANCELLED) {
                 customerSpend[o.createdByName || o.userId] = (customerSpend[o.createdByName || o.userId] || 0) + o.totalAmount;
             }
@@ -344,8 +369,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }, [missingRequests, orders]);
 
     const activitySummary = useMemo(() => {
+        const safeActivityLogs = activityLogs || [];
         const today = new Date().toISOString().split('T')[0];
-        const todayLogs = activityLogs.filter(l => l.createdAt.startsWith(today));
+        const todayLogs = safeActivityLogs.filter(l => l.createdAt.startsWith(today));
         return {
             logins: todayLogs.filter(l => l.eventType === 'LOGIN').length,
             orders: todayLogs.filter(l => l.eventType === 'ORDER_CREATED').length,
@@ -420,16 +446,13 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.ordersCustomersSection')}</p>
                     {canAccess('orders') && (
-                        <NavItem icon={<ShoppingBag size={20} />} label={t('adminDashboard.customerOrders')} active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); markOrdersAsSeen(); }} badge={badges.orders} />
+                        <NavItem icon={<ShoppingBag size={20} />} label={t('adminDashboard.customerOrders')} active={view === 'ORDERS_MANAGER'} onClick={() => { setView('ORDERS_MANAGER'); fetchAllData(); markOrdersAsSeen(); }} badge={badges.orders} />
                     )}
                     {canAccess('orders') && (
                         <NavItem icon={<ShoppingCart size={20} />} label={t('adminDashboard.abandonedCarts', 'السلات المتروكة')} active={view === 'ABANDONED_CARTS'} onClick={() => setView('ABANDONED_CARTS')} />
                     )}
                     {canAccess('account_requests') && (
-                        <NavItem icon={<UserPlus size={20} />} label={t('adminDashboard.accountRequests')} active={view === 'ACCOUNT_REQUESTS'} onClick={() => { setView('ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
-                    )}
-                    {canAccess('account_requests') && (
-                        <NavItem icon={<Store size={20} />} label={t('adminDashboard.partnerRequests', 'طلبات الشركاء')} active={view === 'PARTNER_REQUESTS'} onClick={() => setView('PARTNER_REQUESTS')} />
+                        <NavItem icon={<UserPlus size={20} />} label={t('adminDashboard.accountRequests')} active={view === 'UNIFIED_ACCOUNT_REQUESTS'} onClick={() => { setView('UNIFIED_ACCOUNT_REQUESTS'); markAccountsAsSeen(); }} badge={badges.accounts} />
                     )}
                     {canAccess('customers') && (
                         <NavItem icon={<Users size={20} />} label={t('adminDashboard.customersCRM')} active={view === 'CUSTOMERS'} onClick={() => setView('CUSTOMERS')} />
@@ -446,6 +469,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {canAccess('orders') && (
                         <NavItem icon={<Package size={20} />} label={t('adminDashboard.orderShortages', 'نواقص الطلبيات')} active={view === 'ORDER_SHORTAGES'} onClick={() => { setView('ORDER_SHORTAGES'); markOrderShortagesAsSeen(); }} badge={badges.orderShortages} />
                     )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.assignmentsCenter', 'مركز التخصيصات')} active={view === 'ASSIGNMENTS_CENTER'} onClick={() => setView('ASSIGNMENTS_CENTER')} />
+                    )}
 
                     <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">{t('adminDashboard.settingsSection')}</p>
                     {canAccess('products') && (
@@ -458,7 +484,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <NavItem icon={<FileImage size={20} />} label={t('adminDashboard.productImages', 'صور المنتجات')} active={view === 'PRODUCT_IMAGES'} onClick={() => setView('PRODUCT_IMAGES')} />
                     )}
                     {canAccess('users') && (
-                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.users')} active={view === 'ADMIN_USERS'} onClick={() => setView('ADMIN_USERS')} />
+                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.users')} active={view === 'UNIFIED_PERMISSIONS'} onClick={() => setView('UNIFIED_PERMISSIONS')} />
                     )}
                     {canAccess('settings_general') && (
                         <NavItem icon={<Settings size={20} />} label={t('adminDashboard.systemSettings')} active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
@@ -485,7 +511,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <NavItem icon={<Megaphone size={20} />} label={t('adminDashboard.advertising')} active={view === 'ADVERTISING'} onClick={() => setView('ADVERTISING')} />
                     )}
                     {canAccess('settings_general') && (
-                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.teamSettings')} active={view === 'TEAM_SETTINGS'} onClick={() => setView('TEAM_SETTINGS')} />
+                        <NavItem icon={<Users size={20} />} label={t('adminDashboard.teamSettings')} active={view === 'UNIFIED_PERMISSIONS'} onClick={() => setView('UNIFIED_PERMISSIONS')} />
                     )}
                     {canAccess('settings_general') && (
                         <NavItem icon={<Palette size={20} />} label={t('adminDashboard.customerPortalSettings')} active={view === 'CUSTOMER_PORTAL'} onClick={() => setView('CUSTOMER_PORTAL')} />
@@ -503,10 +529,13 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <NavItem icon={<Globe size={20} />} label={t('adminDashboard.internationalPricing', 'التسعير الدولي')} active={view === 'INTERNATIONAL_PRICING'} onClick={() => setView('INTERNATIONAL_PRICING')} />
                     )}
                     {canAccess('settings_general') && (
-                        <NavItem icon={<Shield size={20} />} label={t('adminDashboard.permissionCenter', 'مركز الصلاحيات')} active={view === 'PERMISSION_CENTER'} onClick={() => setView('PERMISSION_CENTER')} />
+                        <NavItem icon={<Shield size={20} />} label={t('adminDashboard.unifiedPermissions', 'مركز الصلاحيات الموحد')} active={view === 'UNIFIED_PERMISSIONS'} onClick={() => setView('UNIFIED_PERMISSIONS')} />
                     )}
                     {canAccess('settings_general') && (
                         <NavItem icon={<BarChart3 size={20} />} label={t('adminDashboard.reportsCenter', 'مركز التقارير')} active={view === 'REPORTS_CENTER'} onClick={() => setView('REPORTS_CENTER')} />
+                    )}
+                    {canAccess('settings_general') && (
+                        <NavItem icon={<Globe size={20} />} label={t('adminDashboard.seoCenter', 'مركز SEO')} active={view === 'SEO_CENTER'} onClick={() => setView('SEO_CENTER')} />
                     )}
                 </nav>
                 <div className="p-4 border-t border-slate-700/50 bg-[#08142b]">
@@ -558,6 +587,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             <NotificationBell
                                 user={{
                                     id: adminUser.id,
+                                    clientId: adminUser.id,
+                                    name: adminUser.username,
                                     username: adminUser.username,
                                     email: adminUser.email,
                                     phone: '',
@@ -586,41 +617,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
                     {view === 'DASHBOARD' && (
                         <>
-                            {/* KPI Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <StatCard
-                                    title={t('adminDashboard.stats.todayRevenue')}
-                                    value={`${kpiData.todayRevenue.toLocaleString()} ${t('customerDashboard.sar')}`}
-                                    subValue={`${t('adminDashboard.stats.totalRevenue')}: ${kpiData.totalRevenue.toLocaleString()} ${t('customerDashboard.sar')}`}
-                                    icon={<BarChart3 />}
-                                    colorClass="text-emerald-600 bg-emerald-100"
-                                    delay="0ms"
-                                />
-                                <StatCard
-                                    title={t('adminDashboard.stats.pendingOrders')}
-                                    value={kpiData.pendingOrders}
-                                    subValue={`${kpiData.approvedOrders} ${t('adminDashboard.stats.approvedOrders')} | ${kpiData.shippedOrders} ${t('adminDashboard.stats.shippedOrders')}`}
-                                    icon={<ShoppingBag />}
-                                    colorClass="text-blue-600 bg-blue-100"
-                                    delay="50ms"
-                                />
-                                <StatCard
-                                    title={t('adminDashboard.stats.activeBusinesses')}
-                                    value={kpiData.activeBusinesses}
-                                    subValue={`${kpiData.pendingAccounts} ${t('adminDashboard.stats.pendingAccounts')}`}
-                                    icon={<Users />}
-                                    colorClass="text-[#C8A04F] bg-amber-100"
-                                    delay="100ms"
-                                />
-                                <StatCard
-                                    title={t('adminDashboard.stats.pendingQuotes')}
-                                    value={kpiData.pendingQuotes}
-                                    subValue={t('common.noData')}
-                                    icon={<FileText />}
-                                    colorClass="text-slate-600 bg-slate-200"
-                                    delay="150ms"
-                                />
-                            </div>
+                            {/* KPI Grid - Using extracted AdminStatsCards */}
+                            <AdminStatsCards kpiData={kpiData} />
 
                             {/* Charts & Quick Tools Section */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -752,11 +750,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             ? <AdminSettings />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    {view === 'ADMIN_USERS' && (
-                        canAccess('users')
-                            ? <AdminUsersPage onRefresh={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
+                    {/* ADMIN_USERS view removed - merged into UNIFIED_PERMISSIONS */}
                     {view === 'MARKETING' && (
                         canAccess('settings_general')
                             ? <AdminMarketingCenter />
@@ -799,11 +793,7 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
-                    {view === 'TEAM_SETTINGS' && (
-                        canAccess('settings_general')
-                            ? <AdminOrganizationSettings />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
+                    {/* TEAM_SETTINGS view removed - merged into UNIFIED_PERMISSIONS */}
 
                     {view === 'CUSTOMER_PORTAL' && (
                         canAccess('settings_general')
@@ -833,15 +823,23 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
-                    {view === 'PERMISSION_CENTER' && (
+                    {/* PERMISSION_CENTER view removed - merged into UNIFIED_PERMISSIONS */}
+
+                    {view === 'UNIFIED_PERMISSIONS' && (
                         canAccess('settings_general')
-                            ? <AdminPermissionCenter />
+                            ? <UnifiedPermissionCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                     {view === 'REPORTS_CENTER' && (
                         canAccess('settings_general')
                             ? <AdminReportsCenterPage />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
+                    )}
+
+                    {view === 'SEO_CENTER' && (
+                        canAccess('settings_general')
+                            ? <AdminSEOCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
@@ -855,14 +853,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             ? <AdminAbandonedCartsPage onRefresh={fetchAllData} />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
-                    {view === 'ACCOUNT_REQUESTS' && (
+                    {view === 'UNIFIED_ACCOUNT_REQUESTS' && (
                         canAccess('account_requests')
-                            ? <AdminAccountRequests requests={accountRequests} onUpdate={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'PARTNER_REQUESTS' && (
-                        canAccess('account_requests')
-                            ? <AdminPartnerRequests />
+                            ? <UnifiedAccountRequestsCenter />
                             : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
                     {view === 'CUSTOMERS' && (
@@ -930,6 +923,8 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <NotificationsPage
                             user={{
                                 id: adminUser.id,
+                                clientId: adminUser.id,
+                                name: adminUser.username,
                                 username: adminUser.username,
                                 email: adminUser.email,
                                 phone: '',
@@ -940,6 +935,12 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                             }}
                             onBack={() => setView('DASHBOARD')}
                         />
+                    )}
+
+                    {view === 'ASSIGNMENTS_CENTER' && (
+                        canAccess('settings_general')
+                            ? <AdminAssignmentsCenter />
+                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
                     )}
 
                 </div>
@@ -986,7 +987,7 @@ const OnlineUsersCard = () => {
     useEffect(() => {
         const loadOnline = async () => {
             try {
-                const online = await MockApi.getOnlineUsers(5); // Active in last 5 mins
+                const online = await Api.getOnlineUsers(5); // Active in last 5 mins
                 setOnlineUsers(online);
             } catch (e) {
                 console.error("Failed to load online users", e);
@@ -1129,7 +1130,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     useEffect(() => {
         const loadAdminUser = async () => {
             try {
-                const users = await MockApi.getAdminUsers();
+                // أولاً: محاولة جلب المستخدم الحالي من الـ session
+                const currentUser = await Api.getCurrentSession();
+                if (currentUser) {
+                    // تحويل User إلى AdminUser
+                    const adminUserData: AdminUser = {
+                        id: currentUser.id,
+                        username: currentUser.clientId || currentUser.username || 'admin',
+                        email: currentUser.email || '',
+                        phone: currentUser.phone || '',
+                        fullName: currentUser.name || currentUser.username || 'مدير النظام',
+                        roleId: currentUser.role === 'SUPER_ADMIN' ? 'role-super-admin' : 'role-admin',
+                        extendedRole: currentUser.role as any,
+                        isActive: currentUser.isActive !== false,
+                        isSuperAdmin: currentUser.role === 'SUPER_ADMIN',
+                        createdAt: currentUser.createdAt || new Date().toISOString(),
+                        lastLoginAt: (currentUser as any).lastLoginAt || new Date().toISOString()
+                    };
+                    setAdminUser(adminUserData);
+                    return;
+                }
+                
+                // Fallback: استخدام Api للمستخدمين المحليين
+                const users = await Api.getAdminUsers();
                 if (users.length > 0) {
                     const superAdmin = users.find(u => u.isActive);
                     setAdminUser(superAdmin || users[0]);
