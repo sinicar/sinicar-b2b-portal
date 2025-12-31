@@ -43,6 +43,7 @@ import { AdminStatsCards } from '../components/AdminStatsCards';
 import { AdminChartsSection } from '../components/AdminChartsSection';
 import { AdminQuickActions } from '../components/AdminQuickActions';
 import { AdminActivitySection } from '../components/AdminActivitySection';
+import { AdminSuspenseFallback } from '../components/AdminSuspenseFallback';
 
 // Types
 import type { PermissionResource, Order, User, ImportRequest, Notification, AdminUser, QuoteRequest, MissingProductRequest } from '../../../types';
@@ -181,7 +182,7 @@ export function AdminDashboardViewRenderer({
             {view === 'SETTINGS' && (
                 canAccess('settings_general')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <AdminSettings />
                         </Suspense>
                     )
@@ -190,7 +191,7 @@ export function AdminDashboardViewRenderer({
             {view === 'MARKETING' && (
                 canAccess('settings_general')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <AdminMarketingCenter />
                         </Suspense>
                     )
@@ -239,7 +240,7 @@ export function AdminDashboardViewRenderer({
             {view === 'AI_TRAINING' && (
                 canAccess('settings_general')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <AdminAITrainingPage />
                         </Suspense>
                     )
@@ -258,7 +259,7 @@ export function AdminDashboardViewRenderer({
             {view === 'UNIFIED_PERMISSIONS' && (
                 canAccess('settings_general')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <UnifiedPermissionCenter />
                         </Suspense>
                     )
@@ -267,7 +268,7 @@ export function AdminDashboardViewRenderer({
             {view === 'REPORTS_CENTER' && (
                 canAccess('settings_general')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <AdminReportsCenterPage />
                         </Suspense>
                     )
@@ -281,7 +282,7 @@ export function AdminDashboardViewRenderer({
             {view === 'ORDERS_MANAGER' && (
                 canAccess('orders')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />
                         </Suspense>
                     )
@@ -340,7 +341,7 @@ export function AdminDashboardViewRenderer({
             {view === 'PRODUCTS' && (
                 canAccess('products')
                     ? (
-                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                        <Suspense fallback={<AdminSuspenseFallback />}>
                             <AdminProductsPage onRefresh={fetchAllData} />
                         </Suspense>
                     )
