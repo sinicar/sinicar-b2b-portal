@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // ============================================================================
@@ -14,7 +14,7 @@ import AdminInstallmentsPage from '../../../components/AdminInstallmentsPage';
 import { AdminAdvertisingPage } from '../../../components/AdminAdvertisingPage';
 import { AdminCustomerPortalSettings } from '../../../components/AdminCustomerPortalSettings';
 import AdminAISettings from '../../../components/AdminAISettings';
-import AdminAITrainingPage from '../../../components/AdminAITrainingPage';
+const AdminAITrainingPage = React.lazy(() => import('../../../components/AdminAITrainingPage'));
 import AdminAICommandCenter from '../../../components/AdminAICommandCenter';
 import { AdminInternationalPricingPage } from '../../../components/AdminInternationalPricingPage';
 import { UnifiedPermissionCenter } from '../../../components/UnifiedPermissionCenter';
@@ -230,7 +230,11 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'AI_TRAINING' && (
                 canAccess('settings_general')
-                    ? <AdminAITrainingPage />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <AdminAITrainingPage />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'AI_COMMAND_CENTER' && (
