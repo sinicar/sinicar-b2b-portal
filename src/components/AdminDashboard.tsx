@@ -400,25 +400,6 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         </div>
     );
 
-    const StatCard = ({ title, value, subValue, icon, colorClass, delay }: any) => (
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group animate-slide-up" style={{ animationDelay: delay }}>
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
-                    <h3 className="text-2xl font-black text-slate-800 group-hover:text-brand-600 transition-colors">{value}</h3>
-                </div>
-                <div className={`p-3 rounded-xl ${colorClass} bg-opacity-10 group-hover:scale-110 transition-transform`}>
-                    {React.cloneElement(icon, { size: 20, className: colorClass.replace('bg-', 'text-') })}
-                </div>
-            </div>
-            {subValue && (
-                <div className="pt-3 border-t border-slate-50">
-                    <p className="text-xs font-bold text-slate-400">{subValue}</p>
-                </div>
-            )}
-        </div>
-    );
-
     return (
         <div className={`flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden`} dir={isRtl ? 'rtl' : 'ltr'}>
             {/* Sidebar */}
