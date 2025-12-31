@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 // ============================================================================
 const AdminSettings = React.lazy(() => import('../../../components/AdminSettings').then(m => ({ default: m.AdminSettings })));
 const AdminMarketingCenter = React.lazy(() => import('../../../components/AdminMarketingCenter').then(m => ({ default: m.AdminMarketingCenter })));
-import { AdminPricingCenter } from '../../../components/AdminPricingCenter';
-import { AdminTraderToolsSettings } from '../../../components/AdminTraderToolsSettings';
+const AdminPricingCenter = React.lazy(() => import('../../../components/AdminPricingCenter').then(m => ({ default: m.AdminPricingCenter })));
+const AdminTraderToolsSettings = React.lazy(() => import('../../../components/AdminTraderToolsSettings').then(m => ({ default: m.AdminTraderToolsSettings })));
 import { AdminSupplierMarketplaceSettings } from '../../../components/AdminSupplierMarketplaceSettings';
 import { AdminMarketersPage } from '../../../components/AdminMarketersPage';
 import AdminInstallmentsPage from '../../../components/AdminInstallmentsPage';
@@ -199,12 +199,20 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'PRICING' && (
                 canAccess('settings_general')
-                    ? <AdminPricingCenter />
+                    ? (
+                        <Suspense fallback={<AdminSuspenseFallback />}>
+                            <AdminPricingCenter />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'TRADER_TOOLS' && (
                 canAccess('settings_general')
-                    ? <AdminTraderToolsSettings />
+                    ? (
+                        <Suspense fallback={<AdminSuspenseFallback />}>
+                            <AdminTraderToolsSettings />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'SUPPLIER_MARKETPLACE' && (
