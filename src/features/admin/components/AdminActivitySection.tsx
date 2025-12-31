@@ -26,6 +26,9 @@ const ActivityCard = ({ label, value, color }: { label: string; value: number; c
     );
 };
 
+// --- ViewType (matching AdminDashboard.tsx) ---
+type ViewType = 'DASHBOARD' | 'CUSTOMERS' | 'PRODUCTS' | 'PRODUCT_IMAGES' | 'SETTINGS' | 'QUOTES' | 'MISSING' | 'ORDER_SHORTAGES' | 'IMPORT_REQUESTS' | 'UNIFIED_ACCOUNT_REQUESTS' | 'ACCOUNT_REQUESTS' | 'ACTIVITY_LOGS' | 'FEEDBACK_CENTER' | 'MESSAGING_CENTER' | 'ORDERS_MANAGER' | 'ABANDONED_CARTS' | 'ADMIN_USERS' | 'MARKETING' | 'PRICING' | 'TRADER_TOOLS' | 'SUPPLIER_MARKETPLACE' | 'MARKETERS' | 'INSTALLMENTS' | 'ADVERTISING' | 'TEAM_SETTINGS' | 'CUSTOMER_PORTAL' | 'AI_SETTINGS' | 'AI_TRAINING' | 'AI_COMMAND_CENTER' | 'ALTERNATIVES' | 'NOTIFICATIONS' | 'INTERNATIONAL_PRICING' | 'PERMISSION_CENTER' | 'REPORTS_CENTER' | 'SEO_CENTER' | 'UNIFIED_PERMISSIONS' | 'ASSIGNMENTS_CENTER';
+
 // --- Props Types ---
 export interface AdminActivitySectionProps {
     /** Top missing search terms: [term, count][] */
@@ -42,7 +45,7 @@ export interface AdminActivitySectionProps {
     /** Recent notifications */
     notifications: Notification[];
     /** View setter for navigation */
-    setView: (view: string) => void;
+    setView: (view: ViewType) => void;
 }
 
 export function AdminActivitySection({ 
