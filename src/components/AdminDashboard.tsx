@@ -5,69 +5,16 @@ import Api from '../services/api';
 import { services } from '../services/serviceFactory';
 import { QuoteRequest, MissingProductRequest, ImportRequest, ImportRequestStatus, AccountOpeningRequest, AccountRequestStatus, ActivityLogEntry, Order, Product, User, OrderStatus, Notification, AdminUser, Role, PermissionResource } from '../types';
 import {
-    LayoutDashboard, Users, ShoppingBag, ShoppingCart, Settings, FileText, LogOut,
-    CheckCircle, SearchX, Download, Globe, XCircle, Info, Truck, Check,
-    UserPlus, Activity, Clock, ChevronRight, ChevronLeft, BarChart3,
-    TrendingUp, RefreshCw, Zap, Bell, AlertTriangle, ShieldCheck, Shield,
-    Database, Server, ExternalLink, Plus, Layers, Megaphone, DollarSign,
-    Wrench, Store, UserCheck, Palette, Bot, Brain, Terminal, FileImage, Package
+    Users, Activity, Clock, ChevronRight, ChevronLeft,
+    RefreshCw, Zap, ShieldCheck
 } from 'lucide-react';
-import { LanguageSwitcherLight } from './LanguageSwitcher';
-import { AdminSettings } from './AdminSettings';
-import { AdminOrdersManager } from './AdminOrdersManager';
-// AdminAccountRequests removed - merged into UnifiedAccountRequestsCenter
-// AdminPartnerRequests removed - merged into UnifiedAccountRequestsCenter
-import { AdminQuoteManager } from './AdminQuoteManager';
-import { AdminMissingParts } from './AdminMissingParts';
-import { AdminOrderShortagesPage } from './AdminOrderShortagesPage';
-import { AdminCustomersPage } from './AdminCustomersPage';
-import { AdminImportManager } from './AdminImportManager';
-import { AdminProductsPage } from './AdminProductsPage';
-// AdminUsersPage removed - merged into UnifiedPermissionCenter
-import { AccessDenied } from './AccessDenied';
-import { AdminMarketingCenter } from './AdminMarketingCenter';
-import { AdminPricingCenter } from './AdminPricingCenter';
-import { AdminTraderToolsSettings } from './AdminTraderToolsSettings';
-import { AdminSupplierMarketplaceSettings } from './AdminSupplierMarketplaceSettings';
-import { AdminMarketersPage } from './AdminMarketersPage';
-import { AdminInstallmentsPage } from './AdminInstallmentsPage';
-import { AdminAdvertisingPage } from './AdminAdvertisingPage';
-// AdminOrganizationSettings removed - merged into UnifiedPermissionCenter
-import { AdminCustomerPortalSettings } from './AdminCustomerPortalSettings';
-import AdminAISettings from './AdminAISettings';
-import { AdminAbandonedCartsPage } from './AdminAbandonedCartsPage';
-import { AdminAlternativesPage } from './AdminAlternativesPage';
-import { AdminActivityLogPage } from './AdminActivityLogPage';
-import AdminFeedbackCenter from './AdminFeedbackCenter';
-import AdminMessagingCenter from './AdminMessagingCenter';
-import { AdminInternationalPricingPage } from './AdminInternationalPricingPage';
-// AdminPermissionCenter removed - merged into UnifiedPermissionCenter
-import { AdminReportsCenterPage } from './AdminReportsCenterPage';
-import AdminAITrainingPage from './AdminAITrainingPage';
-import AdminAICommandCenter from './AdminAICommandCenter';
-import { NotificationBell } from './NotificationBell';
-import { AdminSEOCenter } from './AdminSEOCenter';
-import { UnifiedPermissionCenter } from './UnifiedPermissionCenter';
-import { NotificationsPage } from './NotificationsPage';
-import { AdminProductImagesPage } from './AdminProductImagesPage';
-import { UnifiedAccountRequestsCenter } from './UnifiedAccountRequestsCenter';
-import { AdminAssignmentsCenter } from './AdminAssignmentsCenter';
-import { AdminStatsCards } from '../features/admin/components/AdminStatsCards';
-import { AdminChartsSection } from '../features/admin/components/AdminChartsSection';
-import { AdminQuickActions } from '../features/admin/components/AdminQuickActions';
-import { AdminActivitySection } from '../features/admin/components/AdminActivitySection';
 import { AdminDashboardHeader } from '../features/admin/components/AdminDashboardHeader';
 import { AdminDashboardSidebar } from '../features/admin/components/AdminDashboardSidebar';
 import { AdminDashboardViewRenderer } from '../features/admin/views/AdminDashboardViewRenderer';
 import { formatDateTime } from '../utils/dateUtils';
-import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
 import { AdminBadgesProvider, useAdminBadges } from '../services/AdminBadgesContext';
 import { PermissionProvider, usePermission } from '../services/PermissionContext';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    LineChart, Line, AreaChart, Area, PieChart, Pie, Cell
-} from 'recharts';
 
 interface AdminDashboardProps {
     onLogout: () => void;
