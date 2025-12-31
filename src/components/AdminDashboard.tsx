@@ -58,6 +58,7 @@ import { AdminQuickActions } from '../features/admin/components/AdminQuickAction
 import { AdminActivitySection } from '../features/admin/components/AdminActivitySection';
 import { AdminDashboardHeader } from '../features/admin/components/AdminDashboardHeader';
 import { AdminDashboardSidebar } from '../features/admin/components/AdminDashboardSidebar';
+import { AdminDashboardViewRenderer } from '../features/admin/views/AdminDashboardViewRenderer';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -421,230 +422,27 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
                 <div className="p-8 max-w-[1600px] mx-auto space-y-8">
 
-                    {view === 'DASHBOARD' && (
-                        <>
-                            {/* KPI Grid - Using extracted AdminStatsCards */}
-                            <AdminStatsCards kpiData={kpiData} />
-
-                            {/* Charts & Quick Tools Section */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                {/* Main Chart (Revenue) - Using extracted AdminChartsSection */}
-                                <AdminChartsSection graphData={graphData} />
-
-                                {/* Quick Tools - Using extracted AdminQuickActions */}
-                                <div className="space-y-6">
-                                    <AdminQuickActions setView={setView} addToast={addToast} />
-                                </div>
-                            </div>
-
-                            {/* Bottom Grid: Insights & Alerts - Using extracted AdminActivitySection */}
-                            <AdminActivitySection
-                                insights={insights}
-                                activitySummary={activitySummary}
-                                notifications={notifications}
-                                setView={setView}
-                            />
-                        </>
-                    )}
-
-                    {/* --- OTHER VIEWS HANDLER WITH PERMISSION CHECKS --- */}
-                    {view === 'SETTINGS' && (
-                        canAccess('settings_general')
-                            ? <AdminSettings />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {/* ADMIN_USERS view removed - merged into UNIFIED_PERMISSIONS */}
-                    {view === 'MARKETING' && (
-                        canAccess('settings_general')
-                            ? <AdminMarketingCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'PRICING' && (
-                        canAccess('settings_general')
-                            ? <AdminPricingCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'TRADER_TOOLS' && (
-                        canAccess('settings_general')
-                            ? <AdminTraderToolsSettings />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'SUPPLIER_MARKETPLACE' && (
-                        canAccess('settings_general')
-                            ? <AdminSupplierMarketplaceSettings />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'MARKETERS' && (
-                        canAccess('settings_general')
-                            ? <AdminMarketersPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'INSTALLMENTS' && (
-                        canAccess('settings_general')
-                            ? <AdminInstallmentsPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'ADVERTISING' && (
-                        canAccess('settings_general')
-                            ? <AdminAdvertisingPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {/* TEAM_SETTINGS view removed - merged into UNIFIED_PERMISSIONS */}
-
-                    {view === 'CUSTOMER_PORTAL' && (
-                        canAccess('settings_general')
-                            ? <AdminCustomerPortalSettings />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'AI_SETTINGS' && (
-                        canAccess('settings_general')
-                            ? <AdminAISettings />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'AI_TRAINING' && (
-                        canAccess('settings_general')
-                            ? <AdminAITrainingPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'AI_COMMAND_CENTER' && (
-                        canAccess('settings_general')
-                            ? <AdminAICommandCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'INTERNATIONAL_PRICING' && (
-                        canAccess('settings_general')
-                            ? <AdminInternationalPricingPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {/* PERMISSION_CENTER view removed - merged into UNIFIED_PERMISSIONS */}
-
-                    {view === 'UNIFIED_PERMISSIONS' && (
-                        canAccess('settings_general')
-                            ? <UnifiedPermissionCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'REPORTS_CENTER' && (
-                        canAccess('settings_general')
-                            ? <AdminReportsCenterPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'SEO_CENTER' && (
-                        canAccess('settings_general')
-                            ? <AdminSEOCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'ORDERS_MANAGER' && (
-                        canAccess('orders')
-                            ? <AdminOrdersManager orders={orders} users={users} onUpdate={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'ABANDONED_CARTS' && (
-                        canAccess('orders')
-                            ? <AdminAbandonedCartsPage onRefresh={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'UNIFIED_ACCOUNT_REQUESTS' && (
-                        canAccess('account_requests')
-                            ? <UnifiedAccountRequestsCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'CUSTOMERS' && (
-                        canAccess('customers')
-                            ? <AdminCustomersPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'QUOTES' && (
-                        canAccess('quotes')
-                            ? <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'MISSING' && (
-                        canAccess('missing')
-                            ? <AdminMissingParts missingRequests={missingRequests} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'ORDER_SHORTAGES' && (
-                        canAccess('orders')
-                            ? <AdminOrderShortagesPage onRefresh={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'IMPORT_REQUESTS' && (
-                        canAccess('imports')
-                            ? <AdminImportManager requests={importRequests} onUpdate={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'ACTIVITY_LOGS' && (
-                        canAccess('activity_log')
-                            ? <AdminActivityLogPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'FEEDBACK_CENTER' && (
-                        canAccess('settings_general')
-                            ? <AdminFeedbackCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-                    {view === 'MESSAGING_CENTER' && (
-                        canAccess('settings_general')
-                            ? <AdminMessagingCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'PRODUCTS' && (
-                        canAccess('products')
-                            ? <AdminProductsPage onRefresh={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'ALTERNATIVES' && (
-                        canAccess('products')
-                            ? <AdminAlternativesPage onRefresh={fetchAllData} />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'PRODUCT_IMAGES' && (
-                        canAccess('products')
-                            ? <AdminProductImagesPage />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
-
-                    {view === 'NOTIFICATIONS' && adminUser && (
-                        <NotificationsPage
-                            user={{
-                                id: adminUser.id,
-                                clientId: adminUser.id,
-                                name: adminUser.username,
-                                username: adminUser.username,
-                                email: adminUser.email,
-                                phone: '',
-                                role: 'ADMIN',
-                                status: adminUser.isActive ? 'ACTIVE' : 'PENDING',
-                                createdAt: adminUser.createdAt,
-                                hasProfile: true
-                            }}
-                            onBack={() => setView('DASHBOARD')}
-                        />
-                    )}
-
-                    {view === 'ASSIGNMENTS_CENTER' && (
-                        canAccess('settings_general')
-                            ? <AdminAssignmentsCenter />
-                            : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
-                    )}
+                    {/* All Views - Using extracted AdminDashboardViewRenderer */}
+                    <AdminDashboardViewRenderer
+                        view={view}
+                        setView={setView}
+                        canAccess={canAccess}
+                        addToast={addToast}
+                        fetchAllData={fetchAllData}
+                        data={{
+                            kpiData,
+                            graphData,
+                            insights,
+                            activitySummary,
+                            notifications,
+                            orders,
+                            users,
+                            quotes,
+                            missingRequests,
+                            importRequests,
+                            adminUser,
+                        }}
+                    />
 
                 </div>
             </main>
