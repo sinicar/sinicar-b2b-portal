@@ -25,9 +25,9 @@ import { AdminAbandonedCartsPage } from '../../../components/AdminAbandonedCarts
 import { UnifiedAccountRequestsCenter } from '../../../components/UnifiedAccountRequestsCenter';
 import { AdminCustomersPage } from '../../../components/AdminCustomersPage';
 import { AdminQuoteManager } from '../../../components/AdminQuoteManager';
-import { AdminMissingParts } from '../../../components/AdminMissingParts';
+const AdminMissingParts = React.lazy(() => import('../../../components/AdminMissingParts').then(m => ({ default: m.AdminMissingParts })));
 import { AdminOrderShortagesPage } from '../../../components/AdminOrderShortagesPage';
-import { AdminImportManager } from '../../../components/AdminImportManager';
+const AdminImportManager = React.lazy(() => import('../../../components/AdminImportManager').then(m => ({ default: m.AdminImportManager })));
 import { AdminActivityLogPage } from '../../../components/AdminActivityLogPage';
 import AdminFeedbackCenter from '../../../components/AdminFeedbackCenter';
 import AdminMessagingCenter from '../../../components/AdminMessagingCenter';
@@ -318,7 +318,11 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'MISSING' && (
                 canAccess('missing')
-                    ? <AdminMissingParts missingRequests={missingRequests} />
+                    ? (
+                        <Suspense fallback={<AdminSuspenseFallback />}>
+                            <AdminMissingParts missingRequests={missingRequests} />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'ORDER_SHORTAGES' && (
@@ -328,7 +332,11 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'IMPORT_REQUESTS' && (
                 canAccess('imports')
-                    ? <AdminImportManager requests={importRequests} onUpdate={fetchAllData} />
+                    ? (
+                        <Suspense fallback={<AdminSuspenseFallback />}>
+                            <AdminImportManager requests={importRequests} onUpdate={fetchAllData} />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'ACTIVITY_LOGS' && (
