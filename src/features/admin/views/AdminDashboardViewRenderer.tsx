@@ -17,8 +17,8 @@ import AdminAISettings from '../../../components/AdminAISettings';
 const AdminAITrainingPage = React.lazy(() => import('../../../components/AdminAITrainingPage'));
 import AdminAICommandCenter from '../../../components/AdminAICommandCenter';
 import { AdminInternationalPricingPage } from '../../../components/AdminInternationalPricingPage';
-import { UnifiedPermissionCenter } from '../../../components/UnifiedPermissionCenter';
-import { AdminReportsCenterPage } from '../../../components/AdminReportsCenterPage';
+const UnifiedPermissionCenter = React.lazy(() => import('../../../components/UnifiedPermissionCenter').then(m => ({ default: m.UnifiedPermissionCenter })));
+const AdminReportsCenterPage = React.lazy(() => import('../../../components/AdminReportsCenterPage').then(m => ({ default: m.AdminReportsCenterPage })));
 import { AdminSEOCenter } from '../../../components/AdminSEOCenter';
 import { AdminOrdersManager } from '../../../components/AdminOrdersManager';
 import { AdminAbandonedCartsPage } from '../../../components/AdminAbandonedCartsPage';
@@ -249,12 +249,20 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'UNIFIED_PERMISSIONS' && (
                 canAccess('settings_general')
-                    ? <UnifiedPermissionCenter />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <UnifiedPermissionCenter />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'REPORTS_CENTER' && (
                 canAccess('settings_general')
-                    ? <AdminReportsCenterPage />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <AdminReportsCenterPage />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'SEO_CENTER' && (
