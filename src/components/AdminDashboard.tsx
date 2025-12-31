@@ -893,12 +893,6 @@ const NavItem = ({ icon, label, active, onClick, badge }: any) => (
     </button>
 );
 
-const QuickActionBtn = ({ label, icon, onClick }: any) => (
-    <button onClick={onClick} className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-bold text-xs transition-all border border-white/5 backdrop-blur-sm">
-        {icon} {label}
-    </button>
-);
-
 const ActivityCard = ({ label, value, color }: any) => {
     const colors: any = { blue: 'bg-blue-50 text-blue-700', emerald: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', slate: 'bg-slate-100 text-slate-700' };
     return (
