@@ -54,6 +54,7 @@ import { UnifiedAccountRequestsCenter } from './UnifiedAccountRequestsCenter';
 import { AdminAssignmentsCenter } from './AdminAssignmentsCenter';
 import { AdminStatsCards } from '../features/admin/components/AdminStatsCards';
 import { AdminChartsSection } from '../features/admin/components/AdminChartsSection';
+import { AdminQuickActions } from '../features/admin/components/AdminQuickActions';
 import { formatDateTime } from '../utils/dateUtils';
 import { Modal } from './Modal';
 import { useToast } from '../services/ToastContext';
@@ -607,21 +608,9 @@ const AdminDashboardInner: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                 {/* Main Chart (Revenue) - Using extracted AdminChartsSection */}
                                 <AdminChartsSection graphData={graphData} />
 
-                                {/* Quick Tools & Orders Chart */}
+                                {/* Quick Tools - Using extracted AdminQuickActions */}
                                 <div className="space-y-6">
-                                    {/* Tools */}
-                                    <div className="bg-[#0B1B3A] text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#C8A04F] rounded-full blur-[60px] opacity-20"></div>
-                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2 relative z-10">
-                                            <Zap size={20} className="text-[#C8A04F]" /> {t('dashboard.quickActions')}
-                                        </h3>
-                                        <div className="grid grid-cols-2 gap-3 relative z-10">
-                                            <QuickActionBtn label={t('products.addProduct')} icon={<Plus size={16} />} onClick={() => setView('PRODUCTS')} />
-                                            <QuickActionBtn label={t('common.refresh')} icon={<RefreshCw size={16} />} onClick={() => setView('PRODUCTS')} />
-                                            <QuickActionBtn label={t('adminDashboard.stats.pendingOrders')} icon={<Clock size={16} />} onClick={() => setView('QUOTES')} />
-                                            <QuickActionBtn label={t('common.export')} icon={<Download size={16} />} onClick={() => addToast(t('common.loading'), 'success')} />
-                                        </div>
-                                    </div>
+                                    <AdminQuickActions setView={setView} addToast={addToast} />
                                 </div>
                             </div>
 

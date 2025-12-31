@@ -8,10 +8,8 @@ import { Zap, Plus, RefreshCw, Clock, Download } from 'lucide-react';
  * Contains Quick Actions panel with 4 buttons.
  */
 
-export type ViewType = string;
-
 export interface AdminQuickActionsProps {
-  setView: (view: ViewType) => void;
+  setView: (view: 'PRODUCTS' | 'QUOTES') => void;
   addToast: (message: string, type: string) => void;
 }
 
