@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 // ============================================================================
 // Page Imports - All views used by AdminDashboard view renderer
 // ============================================================================
-import { AdminSettings } from '../../../components/AdminSettings';
-import { AdminMarketingCenter } from '../../../components/AdminMarketingCenter';
+const AdminSettings = React.lazy(() => import('../../../components/AdminSettings').then(m => ({ default: m.AdminSettings })));
+const AdminMarketingCenter = React.lazy(() => import('../../../components/AdminMarketingCenter').then(m => ({ default: m.AdminMarketingCenter })));
 import { AdminPricingCenter } from '../../../components/AdminPricingCenter';
 import { AdminTraderToolsSettings } from '../../../components/AdminTraderToolsSettings';
 import { AdminSupplierMarketplaceSettings } from '../../../components/AdminSupplierMarketplaceSettings';
@@ -180,12 +180,20 @@ export function AdminDashboardViewRenderer({
             {/* --- OTHER VIEWS HANDLER WITH PERMISSION CHECKS --- */}
             {view === 'SETTINGS' && (
                 canAccess('settings_general')
-                    ? <AdminSettings />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <AdminSettings />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'MARKETING' && (
                 canAccess('settings_general')
-                    ? <AdminMarketingCenter />
+                    ? (
+                        <Suspense fallback={<div className="flex items-center justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div></div>}>
+                            <AdminMarketingCenter />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'PRICING' && (
