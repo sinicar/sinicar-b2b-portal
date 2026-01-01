@@ -18,11 +18,16 @@ import {
   validateResetCode,
   updatePassword
 } from './password-reset.service';
+import { issueCsrfCookie } from '../../security/csrf';
 
 const router = Router();
 
 router.post('/login', validate(loginSchema), asyncHandler(async (req: any, res: any) => {
   const result = await authService.login(req.body);
+  
+  // Issue CSRF cookie on successful login (if enabled)
+  issueCsrfCookie(res);
+  
   successResponse(res, result, 'تم تسجيل الدخول بنجاح');
 }));
 

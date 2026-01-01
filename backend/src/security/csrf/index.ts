@@ -2,11 +2,10 @@
  * CSRF Protection Utilities
  * Double-Submit Cookie Pattern
  * 
- * ⚠️ COPY ONLY - Not wired to routes yet
- * 
  * Exports:
  * - validateCsrf: Middleware to validate CSRF tokens
  * - generateCsrfToken: Generate new CSRF token
+ * - issueCsrfCookie: Set CSRF cookie on response
  * - CSRF_COOKIE_NAME: Cookie name constant
  * - CSRF_HEADER_NAME: Header name constant
  * - getCsrfCookieOptions: Cookie configuration
@@ -27,6 +26,9 @@ export {
   validateCsrfToken,
   generateCsrfToken,
 } from './csrfMiddleware';
+
+// Cookie issuing
+export { issueCsrfCookie } from './issueCsrfCookie';
 
 // Types
 export type { CsrfMiddleware, CsrfValidationResult } from './types';
