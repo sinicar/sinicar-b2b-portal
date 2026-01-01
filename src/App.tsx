@@ -7,7 +7,7 @@ import PartnerRegister from './components/PartnerRegister';
 import { Dashboard } from './components/Dashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SupplierPortal } from './components/SupplierPortal';
-import { MockApi } from './services/mockApi';
+import Api from './services/api';
 import { User, BusinessProfile, SiteSettings } from './types';
 import { Lock, User as UserIcon, ArrowRight, ShieldCheck, Box, Server, Activity, Database, CheckCircle2, Globe, Zap, Package, Percent, Truck, Phone, Handshake } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './services/LanguageContext';
@@ -20,6 +20,7 @@ import { getDirection } from './services/i18n';
 import AIAssistant from './components/AIAssistant';
 import FloatingAIButton from './components/FloatingAIButton';
 import AICommandModal from './components/AICommandModal';
+import { AppErrorBoundary } from './components/error';
 import { ProgrammingModeProvider } from './services/ProgrammingModeContext';
 import './services/i18n';
 
@@ -65,21 +66,21 @@ function AppContent() {
 
     // Load site settings for guest mode check
     useEffect(() => {
-        MockApi.getSettings().then(setSiteSettings);
+        Api.getSettings().then(setSiteSettings);
     }, []);
 
     // Session Restore (Check both current session and persistent session)
     useEffect(() => {
         const restoreSession = async () => {
             // First try to restore from current session (STORAGE_KEYS.SESSION)
-            const user = await MockApi.getCurrentSession();
+            const user = await Api.getCurrentSession();
             if (user) {
                 // User found in session - use directly without re-login
                 // Get profile for customer users
                 let profile: BusinessProfile | null = null;
                 if (user.role !== 'SUPER_ADMIN') {
                     try {
-                        const allUsers = await MockApi.getAllUsers();
+                        const allUsers = await Api.getAllUsers();
                         const mainProfileUserId = user.parentId || user.id;
                         const found = allUsers.find(u => u.user.id === mainProfileUserId);
                         profile = found?.profile || null;
@@ -102,14 +103,14 @@ function AppContent() {
                     // Check if session is not expired and token is valid
                     if (session.expiresAt && session.expiresAt > Date.now() && session.sessionToken && session.userId) {
                         // Validate the token is still valid (invalidated on password change)
-                        if (MockApi.validateSessionToken(session.userId, session.sessionToken)) {
+                        if (Api.validateSessionToken && await Api.validateSessionToken(session.userId, session.sessionToken)) {
                             // Get user by ID (not replaying credentials)
-                            const user = await MockApi.getUserById(session.userId);
+                            const user = await Api.getUserById ? await Api.getUserById(session.userId) : null;
                             if (user && user.isActive) {
                                 // Get profile for customer users
                                 let profile: BusinessProfile | null = null;
                                 if (user.role !== 'SUPER_ADMIN') {
-                                    const allUsers = await MockApi.getAllUsers();
+                                    const allUsers = await Api.getAllUsers();
                                     const mainProfileUserId = user.parentId || user.id;
                                     const found = allUsers.find(u => u.user.id === mainProfileUserId);
                                     profile = found?.profile || null;
@@ -143,7 +144,7 @@ function AppContent() {
 
     // Function to refresh user state (e.g. when credits are used)
     const refreshUser = async () => {
-        const updatedUser = await MockApi.getCurrentSession();
+        const updatedUser = await Api.getCurrentSession();
         if (updatedUser) {
             setCurrentUser(updatedUser);
         }
@@ -164,7 +165,7 @@ function AppContent() {
 
         // 1. Validate credentials first quietly
         try {
-            const res = await MockApi.login(identifier, secret, loginType);
+            const res = await Api.login(identifier, secret, loginType);
 
             // 2. Start the 4-second cinematic loading
             setIsLoginProcessing(true);
@@ -208,7 +209,7 @@ function AppContent() {
                     };
                     localStorage.setItem('sini_car_persistent_session', JSON.stringify(persistentSession));
                     // Store token in user's active sessions (token invalidation handles password changes)
-                    MockApi.storeSessionToken(res.user.id, sessionToken);
+                    if (Api.storeSessionToken) Api.storeSessionToken(res.user.id, sessionToken);
                 }
 
                 setIsLoginProcessing(false);
@@ -223,7 +224,7 @@ function AppContent() {
     };
 
     const handleLogout = async () => {
-        await MockApi.logout();
+        await Api.logout();
         // Clear persistent session on logout
         localStorage.removeItem('sini_car_persistent_session');
         setCurrentUser(null);
@@ -237,25 +238,7 @@ function AppContent() {
         addToast(t('logout'), 'info');
     };
 
-    // Guest Mode Login Handler
-    const handleGuestLogin = () => {
-        // Create a guest user with restricted permissions
-        const guestUser: User = {
-            id: 'guest_' + Date.now(),
-            clientId: 'GUEST',
-            name: t('login.guest'),
-            email: '',
-            phone: '',
-            role: 'CUSTOMER_OWNER' as const,
-            isActive: true,
-            password: '',
-            isGuest: true, // Special flag for guest users
-        };
 
-        setCurrentUser(guestUser);
-        setCurrentProfile(null);
-        addToast(t('login.guestWelcome'), 'info');
-    };
 
     // --- RENDER HELPERS ---
 
@@ -274,8 +257,8 @@ function AppContent() {
         if (currentUser.role === 'SUPER_ADMIN') {
             return <AdminDashboard onLogout={handleLogout} />;
         }
-        // Check if user is a supplier
-        if (currentUser.isSupplier || currentUser.extendedRole === 'SUPPLIER_LOCAL' || currentUser.extendedRole === 'SUPPLIER_INTERNATIONAL') {
+        // Check if user is a supplier (check role first, then flags)
+        if (currentUser.role === 'SUPPLIER' || currentUser.isSupplier || currentUser.extendedRole === 'SUPPLIER_LOCAL' || currentUser.extendedRole === 'SUPPLIER_INTERNATIONAL') {
             return <SupplierPortal user={currentUser} onLogout={handleLogout} />;
         }
         return (
@@ -586,69 +569,38 @@ function AppContent() {
                                 </>
                             )}
 
-                            {/* Guest Login Button - Only shown when enabled in settings */}
-                            {siteSettings?.guestModeEnabled && (
-                                <button
-                                    onClick={handleGuestLogin}
-                                    className="mt-4 flex items-center justify-center gap-2 px-6 py-3 bg-slate-800/50 border border-slate-600 text-slate-300 rounded-lg font-bold hover:bg-slate-700/50 hover:border-cyan-500/50 hover:text-white transition-all group"
-                                    data-testid="button-guest-login"
-                                >
-                                    <Globe size={18} className="group-hover:text-cyan-400 transition-colors" />
-                                    <span>{t('login.enterAsGuest')}</span>
-                                </button>
-                            )}
+
+
 
                             {/* Quick Login Buttons - For Testing */}
                             <div className="mt-6 pt-4 border-t border-white/5">
                                 <p className="text-[10px] text-slate-500 text-center mb-3">{t('login.quickLoginForTesting')}</p>
+
+                                {/* المستخدمين الثلاثة الأساسيين فقط */}
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => { setIdentifier('admin'); setSecret('admin'); setLoginType('OWNER'); }}
+                                        onClick={() => { setIdentifier('user-1'); setSecret('1'); setLoginType('OWNER'); }}
                                         className="px-2 py-2 bg-red-600/20 border border-red-500/30 text-red-400 text-xs rounded hover:bg-red-600/40 transition-all"
                                         data-testid="quick-login-admin"
                                     >
-                                        مدير عام
+                                        أدمن
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => { setIdentifier('1'); setSecret('1'); setLoginType('OWNER'); }}
+                                        onClick={() => { setIdentifier('user-2'); setSecret('1'); setLoginType('OWNER'); }}
                                         className="px-2 py-2 bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 text-xs rounded hover:bg-yellow-600/40 transition-all"
-                                        data-testid="quick-login-manager"
+                                        data-testid="quick-login-customer"
                                     >
-                                        مدير
+                                        عميل
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => { setIdentifier('user-5'); setSecret('5'); setLoginType('OWNER'); }}
+                                        onClick={() => { setIdentifier('user-5'); setSecret('1'); setLoginType('OWNER'); }}
                                         className="px-2 py-2 bg-green-600/20 border border-green-500/30 text-green-400 text-xs rounded hover:bg-green-600/40 transition-all"
                                         data-testid="quick-login-supplier"
                                     >
                                         مورد
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIdentifier('0500056988'); setSecret('381960'); setLoginType('STAFF'); }}
-                                        className="px-2 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs rounded hover:bg-blue-600/40 transition-all"
-                                        data-testid="quick-login-staff"
-                                    >
-                                        موظف
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIdentifier('MKT-001'); setSecret('marketer123'); setLoginType('OWNER'); }}
-                                        className="px-2 py-2 bg-purple-600/20 border border-purple-500/30 text-purple-400 text-xs rounded hover:bg-purple-600/40 transition-all"
-                                        data-testid="quick-login-marketer"
-                                    >
-                                        مسوق
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIdentifier('ADV-001'); setSecret('advertiser123'); setLoginType('OWNER'); }}
-                                        className="px-2 py-2 bg-pink-600/20 border border-pink-500/30 text-pink-400 text-xs rounded hover:bg-pink-600/40 transition-all"
-                                        data-testid="quick-login-advertiser"
-                                    >
-                                        معلن
                                     </button>
                                 </div>
                             </div>
@@ -672,7 +624,9 @@ export default function App() {
                 <OrganizationProvider>
                     <ProgrammingModeProvider>
                         <ToastContainer />
-                        <AppContent />
+                        <AppErrorBoundary>
+                            <AppContent />
+                        </AppErrorBoundary>
                         <AIAssistant />
                         <FloatingAIButton />
                         <AICommandModal />
