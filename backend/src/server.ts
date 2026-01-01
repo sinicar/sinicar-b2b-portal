@@ -6,9 +6,11 @@ import { env } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { validateCsrf } from './security/csrf';
+import { authCookieBridge } from './middlewares/authCookieBridge';
 
 // Feature flags
 const enableCsrf = process.env.ENABLE_CSRF === 'true';
+const enableAuthCookie = process.env.ENABLE_AUTH_COOKIE === 'true';
 
 const app = express();
 
@@ -22,8 +24,13 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Cookie parser (required for CSRF)
+// Cookie parser (required for CSRF and auth cookie)
 app.use(cookieParser());
+
+// Auth cookie bridge (reads cookie, sets Authorization header) - feature-flagged, OFF by default
+if (enableAuthCookie) {
+  app.use(authCookieBridge);
+}
 
 // CSRF protection (feature-flagged, OFF by default)
 if (enableCsrf) {
@@ -54,6 +61,7 @@ function startServer() {
 ║  API Version: ${env.api.version.padEnd(33)}║
 ║  CORS Origin: ${(Array.isArray(env.cors.origin) ? env.cors.origin.join(', ') : env.cors.origin).slice(0, 30).padEnd(33)}║
 ║  CSRF Middleware: ${(enableCsrf ? 'ENABLED' : 'DISABLED').padEnd(29)}║
+║  Auth Cookie: ${(enableAuthCookie ? 'ENABLED' : 'DISABLED').padEnd(33)}║
 ╚══════════════════════════════════════════════════╝
     `);
   });
