@@ -23,8 +23,8 @@ import { AdminSEOCenter } from '../../../components/AdminSEOCenter';
 const AdminOrdersManager = React.lazy(() => import('../../../components/AdminOrdersManager').then(m => ({ default: m.AdminOrdersManager })));
 import { AdminAbandonedCartsPage } from '../../../components/AdminAbandonedCartsPage';
 import { UnifiedAccountRequestsCenter } from '../../../components/UnifiedAccountRequestsCenter';
-import { AdminCustomersPage } from '../../../components/AdminCustomersPage';
-import { AdminQuoteManager } from '../../../components/AdminQuoteManager';
+const AdminCustomersPage = React.lazy(() => import('../../../components/AdminCustomersPage').then(m => ({ default: m.AdminCustomersPage })));
+const AdminQuoteManager = React.lazy(() => import('../../../components/AdminQuoteManager').then(m => ({ default: m.AdminQuoteManager })));
 const AdminMissingParts = React.lazy(() => import('../../../components/AdminMissingParts').then(m => ({ default: m.AdminMissingParts })));
 import { AdminOrderShortagesPage } from '../../../components/AdminOrderShortagesPage';
 const AdminImportManager = React.lazy(() => import('../../../components/AdminImportManager').then(m => ({ default: m.AdminImportManager })));
@@ -308,12 +308,20 @@ export function AdminDashboardViewRenderer({
             )}
             {view === 'CUSTOMERS' && (
                 canAccess('customers')
-                    ? <AdminCustomersPage />
+                    ? (
+                        <Suspense fallback={<AdminSuspenseFallback />}>
+                            <AdminCustomersPage />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'QUOTES' && (
                 canAccess('quotes')
-                    ? <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} />
+                    ? (
+                        <Suspense fallback={<AdminSuspenseFallback />}>
+                            <AdminQuoteManager quotes={quotes} onUpdate={fetchAllData} />
+                        </Suspense>
+                    )
                     : <AccessDenied resourceName={t(VIEW_LABELS_KEYS[view])} onGoHome={() => setView('DASHBOARD')} />
             )}
             {view === 'MISSING' && (
