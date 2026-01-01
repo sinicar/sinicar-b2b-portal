@@ -1,9 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import { validateCsrf } from './security/csrf';
+
+// Feature flags
+const enableCsrf = process.env.ENABLE_CSRF === 'true';
 
 const app = express();
 
@@ -16,6 +21,14 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie parser (required for CSRF)
+app.use(cookieParser());
+
+// CSRF protection (feature-flagged, OFF by default)
+if (enableCsrf) {
+  app.use(validateCsrf);
+}
 
 app.get('/health', (req, res) => {
   res.json({ 
@@ -40,6 +53,7 @@ function startServer() {
 ║  Port: ${env.port.toString().padEnd(40)}║
 ║  API Version: ${env.api.version.padEnd(33)}║
 ║  CORS Origin: ${(Array.isArray(env.cors.origin) ? env.cors.origin.join(', ') : env.cors.origin).slice(0, 30).padEnd(33)}║
+║  CSRF Middleware: ${(enableCsrf ? 'ENABLED' : 'DISABLED').padEnd(29)}║
 ╚══════════════════════════════════════════════════╝
     `);
   });
@@ -53,3 +67,4 @@ if (isMainModule) {
 
 export { app, startServer };
 export default app;
+
