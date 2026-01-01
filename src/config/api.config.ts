@@ -31,7 +31,7 @@ export const API_CONFIG = {
      * مثال: "https://api.sinicar.com/v1"
      * أو: "https://your-backend.onrender.com/api"
      */
-    BASE_URL: import.meta.env.VITE_API_URL || "http://localhost:3005/api/v1",
+    BASE_URL: import.meta.env.VITE_API_URL || "/api/v1",
 
     /**
      * مهلة الطلبات (بالميلي ثانية)

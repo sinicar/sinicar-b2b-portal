@@ -283,7 +283,7 @@ function detectApiMode(): ApiMode {
 export const apiConfig: ApiConfigType = {
   env: detectEnvironment(),
   apiMode: detectApiMode(),
-  baseUrl: getEnvVar('API_BASE_URL', 'http://localhost:3005/api/v1'),
+  baseUrl: getEnvVar('API_BASE_URL', '/api/v1'),
   version: '2.0.0',
 
   timeouts: {
