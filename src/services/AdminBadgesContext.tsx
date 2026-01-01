@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { MockApi } from './mockApi';
+import { Api } from './api';
 
 interface AdminBadgeCounts {
   orders: number;
@@ -34,38 +34,44 @@ export function AdminBadgesProvider({ children }: { children: ReactNode }) {
   });
 
   const refreshBadges = useCallback(async () => {
-    const counts = MockApi.getNewItemCounts();
-    const stats = await MockApi.getOrderShortagesStats();
-    setBadges({ ...counts, orderShortages: stats.new });
+    try {
+      // Try to get counts from real API, fallback to zeros
+      const counts = (Api as any).getNewItemCounts ? (Api as any).getNewItemCounts() : { orders: 0, accounts: 0, quotes: 0, imports: 0, missing: 0 };
+      const stats = (Api as any).getOrderShortagesStats ? await (Api as any).getOrderShortagesStats() : { new: 0 };
+      setBadges({ ...counts, orderShortages: stats.new });
+    } catch (error) {
+      console.warn('Failed to refresh badges:', error);
+      // Keep current badges on error
+    }
   }, []);
 
   const markOrdersAsSeen = useCallback(() => {
-    MockApi.markOrdersAsSeen();
+    if ((Api as any).markOrdersAsSeen) (Api as any).markOrdersAsSeen();
     setBadges(prev => ({ ...prev, orders: 0 }));
   }, []);
 
   const markAccountsAsSeen = useCallback(() => {
-    MockApi.markAccountRequestsAsSeen();
+    if ((Api as any).markAccountRequestsAsSeen) (Api as any).markAccountRequestsAsSeen();
     setBadges(prev => ({ ...prev, accounts: 0 }));
   }, []);
 
   const markQuotesAsSeen = useCallback(() => {
-    MockApi.markQuoteRequestsAsSeen();
+    if ((Api as any).markQuoteRequestsAsSeen) (Api as any).markQuoteRequestsAsSeen();
     setBadges(prev => ({ ...prev, quotes: 0 }));
   }, []);
 
   const markImportsAsSeen = useCallback(() => {
-    MockApi.markImportRequestsAsSeen();
+    if ((Api as any).markImportRequestsAsSeen) (Api as any).markImportRequestsAsSeen();
     setBadges(prev => ({ ...prev, imports: 0 }));
   }, []);
 
   const markMissingAsSeen = useCallback(() => {
-    MockApi.markMissingRequestsAsSeen();
+    if ((Api as any).markMissingRequestsAsSeen) (Api as any).markMissingRequestsAsSeen();
     setBadges(prev => ({ ...prev, missing: 0 }));
   }, []);
 
   const markOrderShortagesAsSeen = useCallback(async () => {
-    await MockApi.markOrderShortagesAsSeen();
+    if ((Api as any).markOrderShortagesAsSeen) await (Api as any).markOrderShortagesAsSeen();
     setBadges(prev => ({ ...prev, orderShortages: 0 }));
   }, []);
 

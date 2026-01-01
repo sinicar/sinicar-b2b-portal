@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
   AISettings, 
   AIProviderConfig, 
@@ -88,15 +88,27 @@ export default function AdminAISettings() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const data = await MockApi.getAISettings();
-      setSettings(data);
-      
-      const expanded: Record<string, boolean> = {};
-      data.providers.forEach(p => {
-        expanded[p.id] = p.enabled;
-      });
-      setExpandedProviders(expanded);
+      const data = await Api.getAISettings();
+      // Safe check - ensure providers is an array
+      if (data && typeof data === 'object') {
+        const safeData = {
+          ...data,
+          providers: Array.isArray(data.providers) ? data.providers : [],
+          usageLimits: Array.isArray(data.usageLimits) ? data.usageLimits : [],
+          blockedTopics: Array.isArray(data.blockedTopics) ? data.blockedTopics : [],
+        };
+        setSettings(safeData as AISettings);
+        
+        const expanded: Record<string, boolean> = {};
+        safeData.providers.forEach(p => {
+          expanded[p.id] = p.enabled;
+        });
+        setExpandedProviders(expanded);
+      } else {
+        throw new Error('Invalid settings data');
+      }
     } catch (error) {
+      console.error('Error loading AI settings:', error);
       addToast(t('common.loadError', 'فشل في تحميل الإعدادات'), 'error');
     } finally {
       setLoading(false);
@@ -108,7 +120,7 @@ export default function AdminAISettings() {
     
     try {
       setSaving(true);
-      await MockApi.saveAISettings(settings);
+      await Api.saveAISettings(settings);
       setHasChanges(false);
       addToast(t('aiSettings.savedSuccess', 'تم حفظ إعدادات الذكاء الاصطناعي بنجاح'), 'success');
     } catch (error) {
@@ -121,7 +133,7 @@ export default function AdminAISettings() {
   const handleReset = async () => {
     if (confirm(t('aiSettings.confirmReset', 'هل أنت متأكد من إعادة تعيين الإعدادات؟'))) {
       try {
-        const defaults = await MockApi.resetAISettings();
+        const defaults = await Api.resetAISettings();
         setSettings(defaults);
         setHasChanges(false);
         addToast(t('aiSettings.resetSuccess', 'تم إعادة تعيين الإعدادات'), 'success');
@@ -312,7 +324,7 @@ export default function AdminAISettings() {
             </div>
             
             <div className="space-y-4">
-              {settings.providers.map(provider => (
+              {(settings?.providers || []).map(provider => (
                 <div 
                   key={provider.id} 
                   className={`border rounded-xl overflow-hidden ${provider.enabled ? 'border-blue-200' : 'border-slate-200'}`}
@@ -623,7 +635,7 @@ export default function AdminAISettings() {
           </div>
           
           <div className="space-y-6">
-            {settings.usageLimits.map(limit => (
+            {(settings?.usageLimits || []).map(limit => (
               <div key={limit.role} className="p-4 border border-slate-200 rounded-xl space-y-4">
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 text-sm font-medium bg-slate-100 text-slate-700 rounded-full">
@@ -781,12 +793,12 @@ export default function AdminAISettings() {
                 <label className="block font-medium text-slate-800">{t('aiSettings.safety.blockedTopics', 'المواضيع المحظورة')}</label>
                 <p className="text-sm text-slate-500">{t('aiSettings.safety.blockedTopicsDesc', 'قائمة المواضيع التي لن يناقشها الذكاء الاصطناعي')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {settings.blockedTopics.map((topic, index) => (
+                  {(settings?.blockedTopics || []).map((topic, index) => (
                     <span key={index} className="flex items-center gap-1 px-3 py-1 text-sm font-medium bg-slate-100 text-slate-700 rounded-full">
                       {topic}
                       <button
                         onClick={() => updateSettings({
-                          blockedTopics: settings.blockedTopics.filter((_, i) => i !== index)
+                          blockedTopics: (settings?.blockedTopics || []).filter((_, i) => i !== index)
                         })}
                         className="ms-1 text-slate-400 hover:text-red-500"
                       >

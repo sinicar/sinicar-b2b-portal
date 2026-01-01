@@ -9,7 +9,7 @@ import {
   AdCampaignStatus,
   AdSlotSelectionMode
 } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import {
@@ -133,10 +133,10 @@ export const AdminAdvertisingPage = () => {
     setLoading(true);
     try {
       const [advs, camps, slots, statistics] = await Promise.all([
-        MockApi.getAdvertisers(),
-        MockApi.getAdCampaigns(),
-        MockApi.getAdSlots(),
-        MockApi.getAdvertisingStats()
+        Api.getAdvertisers(),
+        Api.getAdCampaigns(),
+        Api.getAdSlots(),
+        Api.getAdvertisingStats()
       ]);
       setAdvertisers(advs);
       setCampaigns(camps);
@@ -250,7 +250,7 @@ export const AdminAdvertisingPage = () => {
           onEdit={(adv) => { setEditingAdvertiser(adv); setShowAdvertiserModal(true); }}
           onDelete={async (id) => {
             if (confirm(t('advertising.confirmDelete', 'هل أنت متأكد من الحذف؟'))) {
-              await MockApi.deleteAdvertiser(id);
+              await Api.deleteAdvertiser(id);
               loadData();
               addToast(t('advertising.deleted', 'تم الحذف بنجاح'), 'success');
             }
@@ -277,13 +277,13 @@ export const AdminAdvertisingPage = () => {
           onEdit={(camp) => { setEditingCampaign(camp); setShowCampaignModal(true); }}
           onDelete={async (id) => {
             if (confirm(t('advertising.confirmDelete', 'هل أنت متأكد من الحذف؟'))) {
-              await MockApi.deleteAdCampaign(id);
+              await Api.deleteAdCampaign(id);
               loadData();
               addToast(t('advertising.deleted', 'تم الحذف بنجاح'), 'success');
             }
           }}
           onStatusChange={async (id, status) => {
-            await MockApi.updateAdCampaign(id, { status });
+            await Api.updateAdCampaign(id, { status });
             loadData();
             addToast(t('advertising.statusUpdated', 'تم تحديث الحالة'), 'success');
           }}
@@ -299,7 +299,7 @@ export const AdminAdvertisingPage = () => {
           slots={adSlots}
           onEdit={(slot) => { setEditingSlot(slot); setShowSlotModal(true); }}
           onToggle={async (id, enabled) => {
-            await MockApi.updateAdSlot(id, { isEnabled: enabled });
+            await Api.updateAdSlot(id, { isEnabled: enabled });
             loadData();
             addToast(t('advertising.slotUpdated', 'تم تحديث الموقع'), 'success');
           }}
@@ -318,9 +318,9 @@ export const AdminAdvertisingPage = () => {
           onClose={() => setShowAdvertiserModal(false)}
           onSave={async (data) => {
             if (editingAdvertiser) {
-              await MockApi.updateAdvertiser(editingAdvertiser.id, data);
+              await Api.updateAdvertiser(editingAdvertiser.id, data);
             } else {
-              await MockApi.createAdvertiser(data as Omit<Advertiser, 'id' | 'createdAt' | 'updatedAt'>);
+              await Api.createAdvertiser(data as Omit<Advertiser, 'id' | 'createdAt' | 'updatedAt'>);
             }
             setShowAdvertiserModal(false);
             loadData();
@@ -338,9 +338,9 @@ export const AdminAdvertisingPage = () => {
           onClose={() => setShowCampaignModal(false)}
           onSave={async (data) => {
             if (editingCampaign) {
-              await MockApi.updateAdCampaign(editingCampaign.id, data);
+              await Api.updateAdCampaign(editingCampaign.id, data);
             } else {
-              await MockApi.createAdCampaign(data as Omit<AdCampaign, 'id' | 'createdAt' | 'updatedAt' | 'currentViews' | 'currentClicks'>);
+              await Api.createAdCampaign(data as Omit<AdCampaign, 'id' | 'createdAt' | 'updatedAt' | 'currentViews' | 'currentClicks'>);
             }
             setShowCampaignModal(false);
             loadData();
@@ -356,7 +356,7 @@ export const AdminAdvertisingPage = () => {
           slot={editingSlot}
           onClose={() => setShowSlotModal(false)}
           onSave={async (data) => {
-            await MockApi.updateAdSlot(editingSlot.id, data);
+            await Api.updateAdSlot(editingSlot.id, data);
             setShowSlotModal(false);
             loadData();
             addToast(t('advertising.slotUpdated', 'تم تحديث الموقع'), 'success');

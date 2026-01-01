@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, BusinessProfile, ImportRequest } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { 
     Globe, Ship, Container, PackageCheck, Anchor, 
@@ -81,7 +81,7 @@ export const ImportFromChinaPage: React.FC<ImportFromChinaPageProps> = ({ user, 
     const loadMyRequests = async () => {
         setLoading(true);
         try {
-            const allRequests = await MockApi.getImportRequests();
+            const allRequests = await Api.getImportRequests();
             const mine = allRequests.filter(r => r.customerId === user.id);
             setMyRequests(mine.reverse());
             // If no requests, default to NEW view
@@ -136,7 +136,7 @@ export const ImportFromChinaPage: React.FC<ImportFromChinaPageProps> = ({ user, 
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
-            await MockApi.createImportRequest({
+            await Api.createImportRequest({
                 ...formData as any,
                 customerId: user.id
             });
@@ -167,7 +167,7 @@ export const ImportFromChinaPage: React.FC<ImportFromChinaPageProps> = ({ user, 
         setIsUploading(true);
         try {
             // Mock upload
-            await MockApi.uploadImportRequestExcel(requestId, file.name, user.name);
+            await Api.uploadImportRequestExcel(requestId, file.name, user.name);
             addToast('تم رفع الملف بنجاح', 'success');
             loadMyRequests();
         } catch (e) {
@@ -180,7 +180,7 @@ export const ImportFromChinaPage: React.FC<ImportFromChinaPageProps> = ({ user, 
     const handleApprovePricing = async (requestId: string) => {
         if (!confirm('هل أنت متأكد من الموافقة على عرض السعر والبدء في الإجراءات؟')) return;
         try {
-            await MockApi.confirmImportRequestByCustomer(requestId, { customerName: user.name });
+            await Api.confirmImportRequestByCustomer(requestId, { customerName: user.name });
             addToast('تم اعتماد العرض، سيبدأ الفريق بالتنفيذ', 'success');
             loadMyRequests();
         } catch (e) {

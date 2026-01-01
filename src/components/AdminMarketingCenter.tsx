@@ -10,7 +10,7 @@ import {
     Bell, Layout, MessageSquare, AlertCircle, CheckCircle,
     X, Save, ExternalLink, Target, Zap
 } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
 import { 
@@ -109,8 +109,10 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
     const loadCampaigns = async () => {
         setLoading(true);
         try {
-            const data = await MockApi.getAllCampaigns();
-            setCampaigns(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+            const result = await Api.getAllCampaigns();
+            // استخراج items من النتيجة الموحّدة {items, total}
+            const items = Array.isArray(result) ? result : (result?.items ?? []);
+            setCampaigns(items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         } catch (error) {
             addToast('حدث خطأ في تحميل الحملات', 'error');
         } finally {
@@ -190,10 +192,10 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
 
         try {
             if (editingCampaign) {
-                await MockApi.updateCampaign(editingCampaign.id, formData);
+                await Api.updateCampaign(editingCampaign.id, formData);
                 addToast('تم تحديث الحملة بنجاح', 'success');
             } else {
-                await MockApi.createCampaign(formData);
+                await Api.createCampaign(formData);
                 addToast('تم إنشاء الحملة بنجاح', 'success');
             }
             setShowCreateModal(false);
@@ -206,7 +208,7 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
 
     const handleStatusChange = async (id: string, newStatus: CampaignStatus) => {
         try {
-            await MockApi.updateCampaignStatus(id, newStatus);
+            await Api.updateCampaignStatus(id, newStatus);
             addToast(`تم ${newStatus === 'ACTIVE' ? 'تفعيل' : newStatus === 'PAUSED' ? 'إيقاف' : 'تحديث'} الحملة`, 'success');
             loadCampaigns();
         } catch (error) {
@@ -216,7 +218,7 @@ export const AdminMarketingCenter: React.FC<AdminMarketingCenterProps> = ({ onCl
 
     const handleDelete = async (id: string) => {
         try {
-            await MockApi.deleteCampaign(id);
+            await Api.deleteCampaign(id);
             addToast('تم حذف الحملة بنجاح', 'success');
             setShowDeleteConfirm(null);
             loadCampaigns();

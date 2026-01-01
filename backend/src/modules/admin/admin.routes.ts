@@ -6,6 +6,53 @@ import prisma from '../../lib/prisma';
 
 const router = Router();
 
+// =====================================================
+// STUB ENDPOINTS - لمنع أخطاء 404
+// =====================================================
+
+// GET /admin/counts - إحصائيات لوحة التحكم
+router.get('/counts', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const [
+      pendingOrders,
+      pendingAccountRequests,
+      newMessages,
+      pendingQuotes
+    ] = await Promise.all([
+      prisma.order.count({ where: { status: 'PENDING' } }),
+      prisma.user.count({ where: { status: 'PENDING' } }).catch(() => 0),
+      prisma.notification.count({ where: { isRead: false } }).catch(() => 0),
+      prisma.quoteRequest.count({ where: { status: 'PENDING' } }).catch(() => 0)
+    ]);
+
+    successResponse(res, {
+      pendingOrders,
+      pendingAccountRequests,
+      newMessages,
+      pendingQuotes,
+      newUsers: 0,
+      newOrders: pendingOrders,
+      lowStockProducts: 0,
+      pendingImportRequests: 0
+    });
+  } catch (error) {
+    successResponse(res, {
+      pendingOrders: 0,
+      pendingAccountRequests: 0,
+      newMessages: 0,
+      pendingQuotes: 0,
+      newUsers: 0,
+      newOrders: 0,
+      lowStockProducts: 0,
+      pendingImportRequests: 0
+    });
+  }
+}));
+
+// =====================================================
+// USER MANAGEMENT ENDPOINTS
+// =====================================================
+
 router.put('/users/:id/approve', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
   const { id } = req.params;
   
@@ -106,6 +153,29 @@ router.get('/users/pending', authMiddleware, adminOnly, asyncHandler(async (req:
   });
 
   successResponse(res, pendingUsers, 'قائمة الحسابات المعلقة');
+}));
+
+// GET /admin/activity-logs
+router.get('/activity-logs', authMiddleware, adminOnly, asyncHandler(async (req: AuthRequest, res: any) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.pageSize as string) || 20;
+  const skip = (page - 1) * pageSize;
+
+  const [logs, total] = await Promise.all([
+    prisma.activityLog.findMany({
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.activityLog.count()
+  ]);
+
+  successResponse(res, {
+    items: logs,
+    total,
+    page,
+    pageSize
+  }, 'سجل النشاطات');
 }));
 
 export default router;

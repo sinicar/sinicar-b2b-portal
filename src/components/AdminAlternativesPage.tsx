@@ -1,6 +1,7 @@
 import { useState, useEffect, FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { AlternativePart } from '../types';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime } from '../utils/dateUtils';
@@ -30,9 +31,11 @@ export const AdminAlternativesPage: FC<AdminAlternativesPageProps> = ({ onRefres
     const loadAlternatives = async () => {
         setLoading(true);
         try {
-            const result = await MockApi.getAllAlternatives(currentPage, PAGE_SIZE);
-            setAlternatives(result.data);
-            setTotalCount(result.total);
+            const result = await Api.getAllAlternatives(currentPage, PAGE_SIZE);
+            // استخدام normalizeListResponse للتعامل مع أي شكل response
+            const { items, total } = normalizeListResponse<AlternativePart>(result);
+            setAlternatives(items);
+            setTotalCount(total);
         } catch (error) {
             console.error('Error loading alternatives:', error);
             addToast(t('admin.alternatives.loadError', 'خطأ في تحميل البدائل'), 'error');
@@ -49,7 +52,7 @@ export const AdminAlternativesPage: FC<AdminAlternativesPageProps> = ({ onRefres
 
         setLoading(true);
         try {
-            const results = await MockApi.searchAlternatives(searchQuery.trim());
+            const results = await Api.searchAlternatives(searchQuery.trim());
             setAlternatives(results);
             setTotalCount(results.length);
             setCurrentPage(1);
@@ -68,7 +71,7 @@ export const AdminAlternativesPage: FC<AdminAlternativesPageProps> = ({ onRefres
 
         setDeletingId(id);
         try {
-            await MockApi.deleteAlternative(id);
+            await Api.deleteAlternative(id);
             addToast(t('admin.alternatives.deleteSuccess', 'تم حذف البديل بنجاح'), 'success');
             loadAlternatives();
             onRefresh?.();

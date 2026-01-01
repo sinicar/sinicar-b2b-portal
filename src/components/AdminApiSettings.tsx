@@ -9,7 +9,7 @@ import {
     AlertTriangle, Save, TestTube, Link2, Webhook, Settings2,
     Database, Clock, Shield, Eye, EyeOff, Copy, Trash2, Plus, Edit2
 } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { ApiConfig, WebhookConfig, SiteSettings } from '../types';
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
@@ -42,7 +42,7 @@ export const AdminApiSettings: React.FC = () => {
     const loadSettings = async () => {
         setLoading(true);
         try {
-            const data = await MockApi.getSettings();
+            const data = await Api.getSettings();
             setSettings(data);
             setApiConfig(data.apiConfig);
         } catch (err) {
@@ -62,7 +62,7 @@ export const AdminApiSettings: React.FC = () => {
         
         setSaving(true);
         try {
-            await MockApi.updateSettings({ ...settings, apiConfig });
+            await Api.updateSettings({ ...settings, apiConfig });
             addToast('تم حفظ إعدادات API', 'success');
         } catch (err) {
             addToast('فشل في حفظ الإعدادات', 'error');

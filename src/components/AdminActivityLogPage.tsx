@@ -1,6 +1,7 @@
 import { useState, useEffect, FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { ActivityLogEntry, ActivityEventType, ActorType, EntityType, ActivityLogFilters, OnlineUsersResponse, OnlineUser } from '../types';
 import { useLanguage } from '../services/LanguageContext';
 import { 
@@ -105,9 +106,11 @@ export const AdminActivityLogPage: FC<AdminActivityLogPageProps> = ({ onBack }) 
       if (filterDateFrom) appliedFilters.dateFrom = filterDateFrom;
       if (filterDateTo) appliedFilters.dateTo = filterDateTo;
 
-      const result = await MockApi.getActivityLogsFiltered(appliedFilters);
-      setLogs(result.items);
-      setTotalLogs(result.total);
+      const result = await Api.getActivityLogsFiltered(appliedFilters);
+      // استخدام normalizeListResponse لضمان items دائماً array
+      const { items, total } = normalizeListResponse<ActivityLogEntry>(result);
+      setLogs(items);
+      setTotalLogs(total);
     } catch (error) {
       console.error('Error loading activity logs:', error);
     } finally {
@@ -118,7 +121,7 @@ export const AdminActivityLogPage: FC<AdminActivityLogPageProps> = ({ onBack }) 
   const loadOnlineUsers = async () => {
     setOnlineLoading(true);
     try {
-      const result = await MockApi.getOnlineUsersGrouped(5);
+      const result = await Api.getOnlineUsersGrouped(5);
       setOnlineUsers(result);
     } catch (error) {
       console.error('Error loading online users:', error);
@@ -129,7 +132,7 @@ export const AdminActivityLogPage: FC<AdminActivityLogPageProps> = ({ onBack }) 
 
   const loadStats = async () => {
     try {
-      const result = await MockApi.getActivityStats();
+      const result = await Api.getActivityStats();
       setStats(result);
     } catch (error) {
       console.error('Error loading stats:', error);

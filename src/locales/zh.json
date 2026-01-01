@@ -1,5 +1,73 @@
 {
-  "common": {
+  "supplier": {
+    "dashboard": "仪表板",
+    "purchaseOrders": "采购订单",
+    "products": "我的产品",
+    "installments": "分期付款请求",
+    "team": "团队",
+    "settings": "设置",
+    "profileImage": "个人资料图片",
+    "uploadImage": "上传图片",
+    "removeImage": "删除图片",
+    "welcome": "欢迎, {{name}}",
+    "logout": "注销",
+    "noEmployees": "未找到员工",
+    "addFirstEmployee": "添加您的第一位员工以开始",
+    "customerServices": "客户服务",
+    "quickOrders": "快速下单",
+    "excelPurchase": "Excel 采购",
+    "images": "产品图片",
+    "orders": {
+      "new": "新订单",
+      "preparing": "准备中",
+      "shipping": "运输中",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "id": "订单编号",
+      "customer": "客户",
+      "date": "日期",
+      "amount": "金额",
+      "status": "状态",
+      "actions": "操作",
+      "viewDetails": "查看详情",
+      "noOrders": "此类別中没有订单",
+      "quickOrder": "快速下单",
+      "excelOrder": "上传 Excel"
+    },
+    "teamManagement": {
+      "title": "团队管理",
+      "addMember": "添加成员",
+      "name": "姓名",
+      "email": "电子邮件",
+      "role": "角色",
+      "status": "状态",
+      "active": "活跃",
+      "inactive": "不活跃"
+    }
+  },
+  "installment": {
+    "supplierTitle": "供应商分期付款请求",
+    "availableRequests": "可用请求",
+    "myOffers": "我的报价",
+    "submitOffer": "提交报价",
+    "viewDetails": "查看详情",
+    "status": {
+      "available": "可报价",
+      "waiting": "等待报价",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "completed": "已完成",
+      "pending_approval": "待批准"
+    },
+    "table": {
+      "requestDate": "请求日期",
+      "amount": "金额",
+      "period": "期限",
+      "client": "客户",
+      "actions": "操作"
+    },
+    "empty": "目前没有分期付款请求"
+  },
     "appName": "新尼汽车",
     "siniCar": "新尼汽车",
     "appSlogan": "汽车批发门户",
@@ -69,8 +137,7 @@
     "first": "第一个",
     "last": "最后一个",
     "selectAll": "全选",
-    "deselectAll": "取消全选"
-  },
+    "deselectAll": "取消全选",
   "login": {
     "wholesaleLogin": "批发客户登录",
     "b2bPortal": "新尼汽车 B2B 门户",
@@ -2582,5 +2649,57 @@
     "deleteConfirm": "确定要删除此反馈吗？",
     "deleteSuccess": "反馈删除成功",
     "deleteError": "删除反馈失败"
+  },
+  "notifications": {
+    "title": "通知",
+    "center": "通知中心",
+    "clearAll": "全部清除",
+    "markAllRead": "标记为已读",
+    "viewAll": "查看所有通知",
+    "noNotifications": "暂无通知",
+    "newUpdates": "新通知将显示在这里",
+    "new": "新",
+    "view": "查看",
+    "delete": "删除",
+    "refresh": "刷新",
+    "filterByType": "按类型筛选",
+    "unread": "未读",
+    "showingLast": "显示最近 {{count}} 条通知",
+    "types": {
+      "orderUpdate": "订单更新",
+      "searchPoints": "搜索积分",
+      "quote": "报价",
+      "general": "常规",
+      "accountUpdate": "账户更新",
+      "importUpdate": "导入更新",
+      "system": "系统",
+      "marketing": "营销",
+      "accountApproved": "账户已批准",
+      "accountRejected": "账户已拒绝",
+      "purchaseRequest": "采购申请",
+      "newMessage": "新消息",
+      "newCustomer": "新客户",
+      "customerOrder": "客户订单",
+      "supplierRequest": "供应商申请",
+      "accountRequest": "账户申请",
+      "quoteRequest": "报价申请",
+      "importRequest": "导入申请",
+      "abandonedCart": "废弃购物车"
+    },
+    "categories": {
+      "all": "全部",
+      "orders": "订单",
+      "account": "账户",
+      "requests": "请求",
+      "quotes": "报价",
+      "points": "积分",
+      "system": "系统"
+    },
+    "time": {
+      "justNow": "刚刚",
+      "minAgo": "{{count}} 分钟前",
+      "hrAgo": "{{count}} 小时前",
+      "dayAgo": "{{count}} 天前"
+    }
   }
 }

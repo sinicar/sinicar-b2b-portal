@@ -7,7 +7,7 @@ import {
   PaymentFrequency,
   Product
 } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import {
@@ -74,9 +74,9 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
     setLoading(true);
     try {
       const [settingsData, requestsData, productsData] = await Promise.all([
-        MockApi.getInstallmentSettings(),
-        MockApi.getInstallmentRequestsByCustomerId(customerId),
-        MockApi.getProducts()
+        Api.getInstallmentSettings(),
+        Api.getInstallmentRequestsByCustomerId(customerId),
+        Api.getProducts()
       ]);
       setSettings(settingsData);
       setRequests(requestsData);
@@ -90,7 +90,7 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
 
   const loadOffersForRequest = async (requestId: string) => {
     try {
-      const offersData = await MockApi.getOffersByRequestId(requestId);
+      const offersData = await Api.getOffersByRequestId(requestId);
       setOffers(offersData);
     } catch (error) {
       console.error('Error loading offers:', error);
@@ -105,14 +105,14 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
   const handleRespondToOffer = async (offerId: string, decision: 'accept' | 'reject') => {
     setProcessingAction(true);
     try {
-      await MockApi.customerRespondToOffer(offerId, decision);
+      await Api.customerRespondToOffer(offerId, decision);
       const message = decision === 'accept' 
         ? t('installment.offerAccepted', 'تم قبول العرض بنجاح') 
         : t('installment.offerRejected', 'تم رفض العرض');
       addToast(message, 'success');
       await loadData();
       if (selectedRequest) {
-        const updatedRequest = await MockApi.getInstallmentRequestById(selectedRequest.id);
+        const updatedRequest = await Api.getInstallmentRequestById(selectedRequest.id);
         setSelectedRequest(updatedRequest);
         await loadOffersForRequest(selectedRequest.id);
       }
@@ -128,7 +128,7 @@ export const CustomerInstallmentPage = ({ customerId, customerName }: CustomerIn
     
     setProcessingAction(true);
     try {
-      await MockApi.cancelInstallmentRequest(requestId);
+      await Api.cancelInstallmentRequest(requestId);
       addToast(t('installment.requestCancelled', 'تم إلغاء الطلب'), 'success');
       await loadData();
       setSelectedRequest(null);
@@ -483,6 +483,7 @@ const RequestDetailView = ({
 };
 
 interface OfferCardProps {
+  key?: string;
   offer: InstallmentOffer;
   onAccept: () => void;
   onReject: () => void;
@@ -758,7 +759,7 @@ const NewRequestModal = ({
           }))
         : [];
       
-      await MockApi.createInstallmentRequest({
+      await Api.createInstallmentRequest({
         customerId,
         customerName,
         items,

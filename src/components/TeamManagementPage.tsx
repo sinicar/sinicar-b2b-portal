@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../services/ToastContext';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import {
     Organization,
     OrganizationType,
@@ -179,17 +180,19 @@ export function TeamManagementPage({
     async function loadData() {
         setLoading(true);
         try {
-            let org = await MockApi.getOrCreateOrganizationForEntity(organizationType, entityId, entityName, currentUserId);
+            let org = await Api.getOrCreateOrganizationForEntity(organizationType, entityId, entityName, currentUserId);
             setOrganization(org);
 
             if (org) {
-                const [orgMembers, orgInvitations, orgStats] = await Promise.all([
-                    MockApi.getOrganizationUsers(org.id),
-                    MockApi.getTeamInvitations(org.id),
-                    MockApi.getOrganizationStats(org.id)
+                const [orgMembersResult, orgInvitationsResult, orgStats] = await Promise.all([
+                    Api.getOrganizationUsers(org.id),
+                    Api.getTeamInvitations(org.id),
+                    Api.getOrganizationStats(org.id)
                 ]);
-                setMembers(orgMembers);
-                setInvitations(orgInvitations);
+                const { items: orgMembers } = normalizeListResponse(orgMembersResult);
+                const { items: orgInvitations } = normalizeListResponse(orgInvitationsResult);
+                setMembers(Array.isArray(orgMembers) ? orgMembers as OrganizationUser[] : []);
+                setInvitations(Array.isArray(orgInvitations) ? orgInvitations as TeamInvitation[] : []);
                 setStats(orgStats);
             }
         } catch (error) {
@@ -217,8 +220,9 @@ export function TeamManagementPage({
         }
 
         try {
-            const settings = await MockApi.getOrganizationSettings();
-            const currentMembers = await MockApi.getOrganizationUsers(organization.id);
+            const settings = await Api.getOrganizationSettings();
+            const currentMembersResult = await Api.getOrganizationUsers(organization.id);
+            const { items: currentMembers } = normalizeListResponse(currentMembersResult);
             const maxLimit = organization.type === 'customer' ? settings.maxCustomerEmployees :
                             organization.type === 'supplier' ? settings.maxSupplierEmployees :
                             organization.type === 'advertiser' ? settings.maxAdvertiserEmployees :
@@ -229,7 +233,7 @@ export function TeamManagementPage({
                 return;
             }
 
-            const invitation = await MockApi.createTeamInvitation(
+            const invitation = await Api.createTeamInvitation(
                 organization.id,
                 currentUserId,
                 {
@@ -255,7 +259,7 @@ export function TeamManagementPage({
         if (!organization || !selectedMember) return;
 
         try {
-            await MockApi.updateOrganizationUser(selectedMember.id, {
+            await Api.updateOrganizationUser(selectedMember.id, {
                 role: editForm.role,
                 permissions: editForm.permissions,
                 jobTitle: editForm.jobTitle,
@@ -276,7 +280,7 @@ export function TeamManagementPage({
         if (!organization || !selectedMember) return;
 
         try {
-            await MockApi.removeOrganizationUser(selectedMember.id);
+            await Api.removeOrganizationUser(selectedMember.id);
             setShowRemoveMemberModal(false);
             setSelectedMember(null);
             addToast('تم إزالة العضو بنجاح', 'success');
@@ -289,7 +293,7 @@ export function TeamManagementPage({
 
     async function handleCancelInvitation(invitationId: string) {
         try {
-            await MockApi.cancelTeamInvitation(invitationId);
+            await Api.cancelTeamInvitation(invitationId);
             addToast('تم إلغاء الدعوة', 'success');
             await loadData();
         } catch (error) {
@@ -301,7 +305,7 @@ export function TeamManagementPage({
     async function handleToggleMemberStatus(member: OrganizationUser) {
         if (!organization) return;
         try {
-            await MockApi.updateOrganizationUser(member.id, {
+            await Api.updateOrganizationUser(member.id, {
                 isActive: !member.isActive
             });
             addToast(member.isActive ? 'تم تعطيل العضو' : 'تم تفعيل العضو', 'success');

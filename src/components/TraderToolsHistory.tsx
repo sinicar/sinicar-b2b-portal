@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import {
   User, TraderToolAction, TraderToolType, TraderToolActionStatus,
   TraderToolsCustomerFilters
@@ -100,7 +100,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await MockApi.initializeTraderToolsDemoData(user.id);
+        await Api.initializeTraderToolsDemoData(user.id);
 
         const filters: TraderToolsCustomerFilters = {
           page: currentPage,
@@ -111,7 +111,7 @@ export const TraderToolsHistory = ({ user }: TraderToolsHistoryProps) => {
           dateTo: dateTo || undefined
         };
 
-        const response = await MockApi.getTraderToolActionsCustomer(user.id, filters);
+        const response = await Api.getTraderToolActionsCustomer(user.id, filters);
         setActions(response.items);
         setTotal(response.total);
       } catch (error) {

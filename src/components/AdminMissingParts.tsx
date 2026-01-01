@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MissingProductRequest, MissingStatus, MissingSource } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
     Search, Filter, Database, FileText, Calendar, 
     Download, ChevronRight, ChevronLeft, Eye, 
@@ -117,7 +117,7 @@ export const AdminMissingParts: React.FC<AdminMissingPartsProps> = ({ missingReq
         if (!selectedRequest) return;
         setIsSaving(true);
         try {
-            await MockApi.updateMissingProductStatus(selectedRequest.id, editForm.status, editForm.adminNotes);
+            await Api.updateMissingProductStatus(selectedRequest.id, editForm.status, editForm.adminNotes);
             addToast(t('adminMissingParts.toast.statusUpdated'), 'success');
             // Optimistic update
             selectedRequest.status = editForm.status;

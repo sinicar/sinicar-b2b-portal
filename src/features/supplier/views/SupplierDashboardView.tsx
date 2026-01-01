@@ -59,27 +59,27 @@ export const SupplierDashboardView = memo(({
       <StatCard
         icon={<Package size={24} className="text-white" />}
         label={t('supplier.totalProducts')}
-        value={stats.totalProducts}
+        value={stats?.totalProducts ?? 0}
         color="from-emerald-500 to-emerald-600"
-        subValue={`${stats.activeProducts} ${t('supplier.active')}`}
+        subValue={`${stats?.activeProducts ?? 0} ${t('supplier.active')}`}
       />
       <StatCard
         icon={<FileText size={24} className="text-white" />}
         label={t('supplier.pendingRequests')}
-        value={stats.pendingRequests}
+        value={stats?.pendingRequests ?? 0}
         color="from-orange-500 to-orange-600"
       />
       <StatCard
         icon={<CheckCircle size={24} className="text-white" />}
         label={t('supplier.quotesSubmitted')}
-        value={stats.quotesSubmitted}
+        value={stats?.quotesSubmitted ?? 0}
         color="from-blue-500 to-blue-600"
-        subValue={`${stats.quotesAccepted} ${t('supplier.accepted')}`}
+        subValue={`${stats?.quotesAccepted ?? 0} ${t('supplier.accepted')}`}
       />
       <StatCard
         icon={<DollarSign size={24} className="text-white" />}
         label={t('supplier.totalRevenue')}
-        value={`${stats.totalRevenue.toLocaleString()} ${t('currency')}`}
+        value={`${(stats?.totalRevenue ?? 0).toLocaleString()} ${t('currency')}`}
         color="from-purple-500 to-purple-600"
       />
     </div>
@@ -169,13 +169,13 @@ export const SupplierDashboardView = memo(({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-600">{t('supplier.avgResponseTime')}</span>
-              <span className="font-bold text-slate-800">{stats.averageResponseTime}h</span>
+              <span className="font-bold text-slate-800">{stats?.averageResponseTime ?? 0}h</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-600">{t('supplier.rating')}</span>
               <div className="flex items-center gap-1">
                 <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                <span className="font-bold text-slate-800">{stats.supplierRating.toFixed(1)}</span>
+                <span className="font-bold text-slate-800">{(stats?.supplierRating ?? 0).toFixed(1)}</span>
               </div>
             </div>
           </div>

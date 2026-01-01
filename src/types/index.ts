@@ -14,3 +14,4 @@ export * from './feedback';
 export type { CouponCode, LoyaltyLevel, LoyaltySettings, CustomerLoyalty, PromotionalCampaign } from './loyalty';
 export * from './homepage';
 export * from './trader';
+export * from './auth';

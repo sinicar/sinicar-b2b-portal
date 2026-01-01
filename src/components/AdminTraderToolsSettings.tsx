@@ -3,7 +3,7 @@ import {
   ToolConfig, ToolKey, TraderToolAction, TraderToolType, TraderToolActionStatus,
   TraderToolsAdminFilters, TraderToolsAdminResponse
 } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { toolsAccessService } from '../services/toolsAccess';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
@@ -114,7 +114,15 @@ export const AdminTraderToolsSettings = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const configs = await MockApi.getToolConfigs();
+      const result = await Api.getToolConfigs();
+      // Safe array extraction - handle different response formats
+      const configs = Array.isArray(result) 
+        ? result 
+        : (result?.data && Array.isArray(result.data)) 
+          ? result.data 
+          : (result?.configs && Array.isArray(result.configs))
+            ? result.configs
+            : [];
       setToolConfigs(configs);
 
       const stats: typeof usageStats = {};
@@ -136,7 +144,7 @@ export const AdminTraderToolsSettings = () => {
         ...usageLogFilters,
         search: searchTerm || undefined
       };
-      const data = await MockApi.getTraderToolActionsAdmin(filters);
+      const data = await Api.getTraderToolActionsAdmin(filters);
       setUsageLogData(data);
     } catch (e) {
       addToast(language === 'ar' ? 'فشل في تحميل سجل الاستخدام' : 'Failed to load usage log', 'error');
@@ -154,7 +162,7 @@ export const AdminTraderToolsSettings = () => {
 
   const handleExportUsageLog = async () => {
     try {
-      const exportData = await MockApi.exportTraderToolActions(usageLogFilters);
+      const exportData = await Api.exportTraderToolActions(usageLogFilters);
       // Create CSV
       const headers = ['ID', 'Customer ID', 'Customer Name', 'Tool Type', 'Status', 'Device', 'Date', 'Has Input File', 'Has Output File'];
       const rows = exportData.map(row => [
@@ -214,7 +222,7 @@ export const AdminTraderToolsSettings = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await MockApi.saveToolConfigs(toolConfigs);
+      await Api.saveToolConfigs(toolConfigs);
       addToast(language === 'ar' ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully', 'success');
     } catch (e) {
       addToast(language === 'ar' ? 'حدث خطأ أثناء الحفظ' : 'Error saving settings', 'error');

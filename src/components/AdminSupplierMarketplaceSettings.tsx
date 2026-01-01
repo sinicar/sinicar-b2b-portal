@@ -1,6 +1,6 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { SupplierMarketplaceSettings, SupplierPriorityConfig, SupplierSelectionMode, SupplierProfile } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import {
@@ -104,13 +104,15 @@ export const AdminSupplierMarketplaceSettings = () => {
     setLoading(true);
     try {
       const [settingsData, suppliersData] = await Promise.all([
-        MockApi.getSupplierMarketplaceSettings(),
-        MockApi.getSupplierProfiles()
+        Api.getSupplierMarketplaceSettings(),
+        Api.getSupplierProfiles()
       ]);
       setSettings(settingsData);
-      setSuppliers(suppliersData);
+      // Ensure suppliersData is an array
+      setSuppliers(Array.isArray(suppliersData) ? suppliersData : []);
     } catch (e) {
       addToast(language === 'ar' ? 'فشل في تحميل الإعدادات' : 'Failed to load settings', 'error');
+      setSuppliers([]);
     } finally {
       setLoading(false);
     }
@@ -120,7 +122,7 @@ export const AdminSupplierMarketplaceSettings = () => {
     if (!settings) return;
     setSaving(true);
     try {
-      await MockApi.saveSupplierMarketplaceSettings(settings);
+      await Api.saveSupplierMarketplaceSettings(settings);
       addToast(language === 'ar' ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully', 'success');
     } catch (e) {
       addToast(language === 'ar' ? 'حدث خطأ أثناء الحفظ' : 'Error saving settings', 'error');
@@ -220,7 +222,7 @@ export const AdminSupplierMarketplaceSettings = () => {
   // Handle add supplier
   const handleAddSupplier = async () => {
     try {
-      // In real implementation, this would call MockApi.addSupplier()
+      // In real implementation, this would call Api.addSupplier()
       const newSupplier: SupplierProfile = {
         supplierId: `SUP-${Date.now()}`,
         companyName: newSupplierForm.companyName,

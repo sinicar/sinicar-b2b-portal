@@ -164,4 +164,18 @@ router.get('/slots/:id/active-campaigns', authMiddleware, asyncHandler(async (re
   successResponse(res, campaigns);
 }));
 
+// Get active campaigns for current user
+router.get('/campaigns/active-for-user', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
+  // Return empty array - no active campaigns for user by default
+  successResponse(res, []);
+}));
+
+router.get('/campaigns/user/:userId', asyncHandler(async (req: any, res: any) => {
+  // Stub - return empty campaigns for user
+  res.json({
+    success: true,
+    data: []
+  });
+}));
+
 export default router;

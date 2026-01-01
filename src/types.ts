@@ -1,6 +1,8 @@
 
 export type UserRole =
   | 'SUPER_ADMIN'
+  | 'ADMIN'
+  | 'SUPPLIER'
   | 'CUSTOMER_OWNER' // Was ADMIN
   | 'CUSTOMER_STAFF'; // Was EMPLOYEE
 
@@ -211,8 +213,6 @@ export interface User {
   lastActiveAt?: string; // ISO timestamp of last heartbeat (for online status)
 
   // --- Guest Mode ---
-  isGuest?: boolean; // Flag for guest users with restricted access
-
   // --- Extended Role/Status System (New) ---
   extendedRole?: ExtendedUserRole; // Extended role type (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER_*, MARKETER)
   accountStatus?: UserAccountStatus; // Approval workflow status (PENDING, APPROVED, REJECTED, BLOCKED)
@@ -227,6 +227,9 @@ export interface User {
   completionPercent?: number;        // Profile completion percentage (0-100)
   whatsapp?: string;                 // WhatsApp contact number
   clientCode?: string;               // Internal client code (optional)
+  username?: string;                 // Username alias
+  createdAt?: string;                // Account creation date
+  hasProfile?: boolean;              // Whether user has a business profile
 }
 
 // --- Notifications System (New) ---
@@ -437,6 +440,11 @@ export interface BusinessProfile {
   totalSpent?: number;
   totalApprovedOrders?: number;
   totalRejectedOrders?: number;
+
+  // Additional properties for compatibility
+  priceLevel?: PriceLevel;
+  businessType?: string;
+  businessName?: string;
 }
 
 export interface Product {
@@ -493,6 +501,7 @@ export interface Product {
   // Product Images (Command 19)
   mainImageUrl?: string | null;       // Main product image URL
   imageGallery?: string[];            // Array of additional image URLs
+  imageUrl?: string;                  // Alias for mainImageUrl
 }
 
 export interface CartItem extends Product {
@@ -901,7 +910,7 @@ export interface ApiConfig {
     customers: boolean;
     orders: boolean;
   };
-  webhooks: { url: string; events: string[]; active: boolean }[];
+  webhooks: WebhookConfig[];
   fieldMapping: string; // JSON String for mapping
   debugMode: boolean;
   rateLimit: string; // Requests per minute
@@ -1355,6 +1364,11 @@ export type PermissionResource =
   | 'roles'
   | 'export_center'
   | 'content_management'
+  | 'suppliers'
+  | 'permissions'
+  | 'reports'
+  | 'settings'
+  | 'trader_tools'
   | 'other';
 
 export interface Permission {
@@ -1364,10 +1378,14 @@ export interface Permission {
 
 export interface Role {
   id: string;
+  code?: string;             // رمز الدور (SUPER_ADMIN, ADMIN, etc.)
   name: string;           // اسم الدور بالعربية
+  nameAr?: string;        // اسم الدور بالعربية (بديل)
   description?: string;   // وصف الدور
   permissions: Permission[];
   isSystem?: boolean;     // أدوار النظام لا يمكن حذفها
+  isActive?: boolean;     // هل الدور مفعل
+  sortOrder?: number;     // ترتيب العرض
   createdAt?: string;
 }
 
@@ -1394,6 +1412,11 @@ export const PERMISSION_RESOURCE_LABELS: Record<PermissionResource, string> = {
   roles: 'الأدوار والصلاحيات',
   export_center: 'مركز التصدير',
   content_management: 'إدارة المحتوى',
+  suppliers: 'الموردون',
+  permissions: 'الصلاحيات',
+  reports: 'التقارير',
+  settings: 'الإعدادات',
+  trader_tools: 'أدوات التاجر',
   other: 'أخرى'
 };
 
@@ -1439,6 +1462,11 @@ export const RESOURCE_AVAILABLE_ACTIONS: Record<PermissionResource, PermissionAc
   roles: ['view', 'create', 'edit', 'delete', 'manage_roles'],
   export_center: ['view', 'export'],
   content_management: ['view', 'create', 'edit', 'delete'],
+  suppliers: ['view', 'create', 'edit', 'delete', 'export'],
+  permissions: ['view', 'configure'],
+  reports: ['view', 'export'],
+  settings: ['view', 'configure'],
+  trader_tools: ['view', 'configure'],
   other: ['view', 'other']
 };
 
@@ -1460,7 +1488,7 @@ export const STATUS_DOMAIN_LABELS: Record<StatusDomain, string> = {
 
 // --- Notification Management System Types ---
 
-export type NotificationChannel = 'toast' | 'popup' | 'banner' | 'bell' | 'email' | 'sms';
+export type NotificationChannel = 'toast' | 'popup' | 'banner' | 'bell' | 'email' | 'sms' | 'modal';
 
 export type NotificationCategory =
   | 'order'
@@ -1474,6 +1502,7 @@ export type NotificationCategory =
 
 export interface NotificationStyle {
   backgroundColor?: string;
+  bgColor?: string; // Alias for backgroundColor
   textColor?: string;
   borderColor?: string;
   iconColor?: string;
@@ -1487,18 +1516,19 @@ export interface NotificationStyle {
 
 export interface NotificationTemplate {
   id: string;
-  key: string;
+  key?: string;
   name: string;
   nameEn?: string;
-  category: NotificationCategory;
-  channel: NotificationChannel;
+  category?: NotificationCategory;
+  channel?: NotificationChannel;
   channels?: NotificationChannel[];
   type?: string;
-  isActive: boolean;
+  icon?: string;
+  isActive?: boolean;
   enabled?: boolean;
 
   // Localized content
-  content: {
+  content?: {
     ar: { title: string; message: string };
     en: { title: string; message: string };
     hi: { title: string; message: string };
@@ -1514,7 +1544,7 @@ export interface NotificationTemplate {
   };
 
   // Styling
-  style: NotificationStyle | {
+  style?: NotificationStyle | {
     bgColor?: string;
     textColor?: string;
     borderColor?: string;
@@ -1545,7 +1575,9 @@ export type DocumentTemplateType =
   | 'delivery_note'
   | 'packing_list'
   | 'price_list'
-  | 'report';
+  | 'report'
+  | 'packing'
+  | 'delivery';
 
 export type PageSize = 'A4' | 'A5' | 'Letter' | 'Legal';
 export type PageOrientation = 'portrait' | 'landscape';
@@ -1564,8 +1596,10 @@ export interface TemplateHeaderFooter {
   logoPosition?: 'left' | 'center' | 'right';
   logoSize?: number;
   showCompanyName: boolean;
+  showCompanyInfo?: boolean; // Alias for showCompanyName
   showDate: boolean;
   showPageNumber: boolean;
+  showPageNumbers?: boolean; // Alias for showPageNumber
   customText?: string;
   backgroundColor?: string;
   textColor?: string;
@@ -1616,6 +1650,7 @@ export interface TemplateSection {
 export interface DocumentTemplate {
   id: string;
   name: string;
+  nameEn?: string;
   nameAr: string;
   type: DocumentTemplateType;
   isDefault: boolean;
@@ -1638,7 +1673,7 @@ export interface DocumentTemplate {
   footer: TemplateHeaderFooter;
 
   // Sections
-  sections: TemplateSection[];
+  sections?: TemplateSection[];
 
   // Simple columns array for quick access
   columns?: string[];
@@ -1671,8 +1706,8 @@ export interface DocumentTemplate {
   };
 
   // Localization
-  defaultLanguage: 'ar' | 'en';
-  showBilingual: boolean;
+  defaultLanguage?: 'ar' | 'en';
+  showBilingual?: boolean;
 
   // Metadata
   createdAt?: string;
@@ -2126,7 +2161,7 @@ export interface SupplierProfile {
   status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'INACTIVE';
   internalNotes?: string;
   // New fields
-  supplierType?: 'LOCAL' | 'INTERNATIONAL';
+  supplierType?: 'LOCAL' | 'INTERNATIONAL' | 'UNREGISTERED';
   createdAt?: string;
   permissions?: {
     canPlaceOrders?: boolean;
@@ -2136,6 +2171,7 @@ export interface SupplierProfile {
     canUploadProducts?: boolean;
     maxProductsLimit?: number;
   };
+  deliveryHours?: string; // Delivery hours description
 }
 
 // ============================================================
@@ -2372,7 +2408,8 @@ export type PaymentFrequency = 'weekly' | 'monthly';
 export type InstallmentOfferStatus =
   | 'WAITING_FOR_CUSTOMER'
   | 'ACCEPTED_BY_CUSTOMER'
-  | 'REJECTED_BY_CUSTOMER';
+  | 'REJECTED_BY_CUSTOMER'
+  | 'SUPPLIER_OFFER_SUBMITTED';
 
 // Installment Offer Source
 export type InstallmentOfferSource = 'sinicar' | 'supplier';
@@ -3636,8 +3673,7 @@ export interface HomepageStats {
 
 // ===== Supplier Portal Types (Command 15) =====
 
-// Supplier Type (Local or International)
-export type SupplierType = 'LOCAL' | 'INTERNATIONAL';
+// Note: SupplierType is defined at line ~290 with 'LOCAL' | 'INTERNATIONAL' | 'SINICAR'
 
 // Supplier Request Status
 export type SupplierRequestStatus = 'NEW' | 'VIEWED' | 'QUOTED' | 'REJECTED' | 'ACCEPTED' | 'EXPIRED';
@@ -4470,3 +4506,4 @@ export interface SupplierPriceEntry {
   createdAt: string;
   updatedAt?: string;
 }
+

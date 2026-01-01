@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Search, 
@@ -31,7 +31,7 @@ import {
   ExternalLink,
   Headphones
 } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
   HomepageConfig, 
   HomepageStats, 
@@ -54,8 +54,8 @@ const getTextByLang = (text: MultilingualText | undefined, lang: string): string
   return text[langKey] || text.ar || text.en || '';
 };
 
-const getShortcutIcon = (iconName: string) => {
-  const iconMap: Record<string, JSX.Element> = {
+const getShortcutIcon = (iconName: string): React.ReactElement => {
+  const iconMap: Record<string, React.ReactElement> = {
     'search': <Search className="w-6 h-6" />,
     'file-text': <FileText className="w-6 h-6" />,
     'package': <Package className="w-6 h-6" />,
@@ -115,8 +115,8 @@ export const DynamicHomePage: React.FC<DynamicHomePageProps> = ({
       try {
         const customerType = mapProfileToHomepageType(profile);
         const [configData, statsData] = await Promise.all([
-          MockApi.getHomepageConfig(customerType),
-          MockApi.getHomepageStats(user.id)
+          Api.getHomepageConfig(customerType),
+          Api.getHomepageStats(user.id)
         ]);
         setConfig(configData);
         setStats(statsData);
@@ -194,9 +194,139 @@ export const DynamicHomePage: React.FC<DynamicHomePageProps> = ({
   }
 
   if (!config) {
+    // Fallback UI عند فشل تحميل الإعدادات - يعرض واجهة أساسية بدلاً من رسالة خطأ
     return (
-      <div className="text-center py-12">
-        <p className="text-slate-500">{t('common.error')}</p>
+      <div className="flex flex-col gap-8 pb-8 animate-fade-in">
+        {/* Hero Section - Fallback */}
+        <section className="relative w-full rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-r from-[#081a33] to-[#102b57]">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="relative z-10 px-6 py-12 md:px-12 md:py-16 lg:py-20">
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/20">
+                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <span className="text-white/90 text-sm font-medium">
+                  {t('homepage.welcomeBack', { name: user.name })}
+                </span>
+              </div>
+              
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight">
+                {t('customerDashboard.heroTitle', 'مرحباً بك في سيني كار')}
+              </h1>
+              
+              <p className="text-slate-200 text-lg md:text-xl font-medium max-w-2xl mx-auto mb-8">
+                {t('customerDashboard.heroSubtitle', 'منصة قطع غيار السيارات الأولى في المملكة')}
+              </p>
+
+              <div className="flex flex-wrap justify-center gap-4">
+                <button
+                  onClick={() => onNavigate('PRODUCT_SEARCH')}
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-4 rounded-xl shadow-lg shadow-blue-600/30 font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  <Search className="w-5 h-5" />
+                  {t('customerDashboard.searchParts', 'ابحث عن قطع غيار')}
+                  {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                </button>
+                
+                <button
+                  onClick={() => onNavigate('QUOTE_REQUEST')}
+                  className="inline-flex items-center gap-2 border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-4 rounded-xl backdrop-blur-sm font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  <FileText className="w-5 h-5" />
+                  {t('customerDashboard.quoteRequest', 'طلب تسعير')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Actions - Fallback */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6">
+            {t('homepage.quickActions', 'الإجراءات السريعة')}
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <button
+              onClick={() => onNavigate('PRODUCT_SEARCH')}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-blue-600 text-white">
+                <Search className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-sm md:text-base mb-1">
+                {t('customerDashboard.searchParts', 'بحث عن قطعة')}
+              </h3>
+            </button>
+            
+            <button
+              onClick={() => onNavigate('ORDERS')}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-emerald-600 text-white">
+                <Package className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-sm md:text-base mb-1">
+                {t('customerDashboard.orders', 'طلباتي')}
+              </h3>
+            </button>
+            
+            <button
+              onClick={() => onNavigate('QUOTE_REQUEST')}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-amber-600 text-white">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-sm md:text-base mb-1">
+                {t('customerDashboard.quoteRequest', 'طلب تسعير')}
+              </h3>
+            </button>
+            
+            <button
+              onClick={() => onNavigate('TRADER_TOOLS')}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-purple-600 text-white">
+                <Wrench className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-sm md:text-base mb-1">
+                {t('customerDashboard.traderTools', 'أدوات التاجر')}
+              </h3>
+            </button>
+          </div>
+        </section>
+
+        {/* Feature Cards - Fallback */}
+        <section>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+                <Truck className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800 mb-2">{t('homepage.fastShipping', 'شحن سريع')}</h3>
+              <p className="text-slate-600 text-sm">{t('homepage.fastShippingDesc', 'توصيل سريع لجميع مناطق المملكة')}</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200">
+              <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center mb-4">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800 mb-2">{t('homepage.qualityGuarantee', 'ضمان الجودة')}</h3>
+              <p className="text-slate-600 text-sm">{t('homepage.qualityGuaranteeDesc', 'جميع منتجاتنا أصلية ومضمونة')}</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200">
+              <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4">
+                <Headphones className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800 mb-2">{t('homepage.support', 'دعم فني')}</h3>
+              <p className="text-slate-600 text-sm">{t('homepage.supportDesc', 'فريق دعم متخصص على مدار الساعة')}</p>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }

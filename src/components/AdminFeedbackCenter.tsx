@@ -5,7 +5,8 @@ import {
   Bug, Lightbulb, AlertCircle, HelpCircle, MoreHorizontal, User, Clock, Send,
   CheckCircle, XCircle, Eye, AlertTriangle, Mail, Phone
 } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { 
   Feedback, FeedbackReply, FeedbackStatus, FeedbackCategory, FeedbackSenderType, 
   FeedbackPriority, FeedbackListFilters, FeedbackUpdateInput 
@@ -79,14 +80,16 @@ export default function AdminFeedbackCenter() {
   const loadFeedback = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await MockApi.getAdminFeedbackList({
+      const result = await Api.getAdminFeedbackList({
         ...filters,
         search: searchQuery || undefined,
         page,
         pageSize,
       });
-      setFeedbackList(result.items);
-      setTotal(result.total);
+      // استخدام normalizeListResponse لضمان items دائماً array
+      const { items, total } = normalizeListResponse<Feedback>(result);
+      setFeedbackList(items);
+      setTotal(total);
     } catch (error) {
       console.error('Failed to load feedback:', error);
     } finally {
@@ -96,7 +99,7 @@ export default function AdminFeedbackCenter() {
 
   const loadStats = useCallback(async () => {
     try {
-      const result = await MockApi.getFeedbackStats();
+      const result = await Api.getFeedbackStats();
       setStats({
         total: result.total,
         byStatus: result.byStatus,
@@ -116,7 +119,7 @@ export default function AdminFeedbackCenter() {
     setSelectedFeedback(feedback);
     setAdminNotes(feedback.adminNotes || '');
     try {
-      const feedbackReplies = await MockApi.getFeedbackReplies(feedback.id);
+      const feedbackReplies = await Api.getFeedbackReplies(feedback.id);
       setReplies(feedbackReplies);
     } catch (error) {
       console.error('Failed to load replies:', error);
@@ -128,7 +131,7 @@ export default function AdminFeedbackCenter() {
     setSaving(true);
     try {
       const updates: FeedbackUpdateInput = { status };
-      const updated = await MockApi.updateFeedback(selectedFeedback.id, updates, 'admin', 'مدير النظام');
+      const updated = await Api.updateFeedback(selectedFeedback.id, updates, 'admin', 'مدير النظام');
       if (updated) {
         setSelectedFeedback(updated);
         loadFeedback();
@@ -146,7 +149,7 @@ export default function AdminFeedbackCenter() {
     setSaving(true);
     try {
       const updates: FeedbackUpdateInput = { adminNotes };
-      const updated = await MockApi.updateFeedback(selectedFeedback.id, updates, 'admin', 'مدير النظام');
+      const updated = await Api.updateFeedback(selectedFeedback.id, updates, 'admin', 'مدير النظام');
       if (updated) {
         setSelectedFeedback(updated);
       }
@@ -161,7 +164,7 @@ export default function AdminFeedbackCenter() {
     if (!selectedFeedback || !newReply.trim()) return;
     setSaving(true);
     try {
-      const reply = await MockApi.addFeedbackReply(selectedFeedback.id, newReply.trim(), 'admin', 'مدير النظام');
+      const reply = await Api.addFeedbackReply(selectedFeedback.id, newReply.trim(), 'admin', 'مدير النظام');
       setReplies([...replies, reply]);
       setNewReply('');
     } catch (error) {
@@ -173,7 +176,7 @@ export default function AdminFeedbackCenter() {
 
   const handleExport = async () => {
     try {
-      const csv = await MockApi.exportFeedbackToCsv(filters);
+      const csv = await Api.exportFeedbackToCsv(filters);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);

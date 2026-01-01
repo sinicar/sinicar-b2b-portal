@@ -5,7 +5,7 @@ import {
   InstallmentSettings,
   PaymentFrequency
 } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import {
@@ -25,15 +25,18 @@ import {
   Check,
   Ban,
   Eye,
-  Package
+  Package,
+  AlertCircle
 } from 'lucide-react';
 
-const STATUS_CONFIGS: Record<string, { labelAr: string; labelEn: string; color: string; icon: ReactNode }> = {
-  'FORWARDED_TO_SUPPLIERS': { labelAr: 'متاح للعرض', labelEn: 'Available for Offer', color: 'bg-green-100 text-green-700', icon: <CheckCircle size={16} /> },
-  'WAITING_FOR_SUPPLIER_OFFERS': { labelAr: 'بانتظار عروض الموردين', labelEn: 'Waiting for Offers', color: 'bg-amber-100 text-amber-700', icon: <Clock size={16} /> },
-  'WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER': { labelAr: 'بانتظار قرار العميل', labelEn: 'Awaiting Customer', color: 'bg-blue-100 text-blue-700', icon: <AlertTriangle size={16} /> },
-  'ACTIVE_CONTRACT': { labelAr: 'عقد نشط', labelEn: 'Active', color: 'bg-green-100 text-green-700', icon: <CheckCircle size={16} /> },
-  'CLOSED': { labelAr: 'مغلق', labelEn: 'Closed', color: 'bg-slate-100 text-slate-600', icon: <Ban size={16} /> }
+const STATUS_CONFIGS: Record<string, { labelKey: string; color: string; icon: ReactNode }> = {
+  'FORWARDED_TO_SUPPLIERS': { labelKey: 'installment.status.available', color: 'bg-green-100 text-green-700', icon: <CheckCircle size={16} /> },
+  'WAITING_FOR_SUPPLIER_OFFERS': { labelKey: 'installment.status.waiting', color: 'bg-amber-100 text-amber-700', icon: <Clock size={16} /> },
+  'SUPPLIER_OFFER_SUBMITTED': { labelKey: 'installment.status.submitted', color: 'bg-blue-100 text-blue-700', icon: <Send size={16} /> },
+  'APPROVED_BY_CUSTOMER': { labelKey: 'installment.status.approved', color: 'bg-emerald-100 text-emerald-700', icon: <CheckCircle size={16} /> },
+  'REJECTED_BY_CUSTOMER': { labelKey: 'installment.status.rejected', color: 'bg-red-100 text-red-700', icon: <XCircle size={16} /> },
+  'COMPLETED': { labelKey: 'installment.status.completed', color: 'bg-slate-100 text-slate-700', icon: <CheckCircle size={16} /> },
+  'PENDING_APPROVAL': { labelKey: 'installment.status.pending_approval', color: 'bg-yellow-100 text-yellow-700', icon: <AlertCircle size={16} /> },
 };
 
 interface SupplierInstallmentPageProps {
@@ -48,10 +51,20 @@ export const SupplierInstallmentPage = ({ supplierId, supplierName }: SupplierIn
   const [myOffers, setMyOffers] = useState<InstallmentOffer[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<InstallmentRequest | null>(null);
   const [processingAction, setProcessingAction] = useState(false);
+  const [activeTab, setActiveTab] = useState<'requests' | 'my-offers'>('requests');
 
   const { addToast } = useToast();
   const { t, language } = useLanguage();
   const isRTL = language === 'ar';
+
+  const getStatusInfo = (status: string) => {
+    const config = STATUS_CONFIGS[status] || { labelKey: 'installment.status.unknown', color: 'bg-slate-100 text-slate-700', icon: <Clock size={16} /> };
+    return {
+      label: t(config.labelKey),
+      className: `flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color}`,
+      icon: config.icon
+    };
+  };
 
   useEffect(() => {
     loadData();
@@ -61,9 +74,9 @@ export const SupplierInstallmentPage = ({ supplierId, supplierName }: SupplierIn
     setLoading(true);
     try {
       const [settingsData, requestsData, offersData] = await Promise.all([
-        MockApi.getInstallmentSettings(),
-        MockApi.getInstallmentRequestsForSupplier(supplierId),
-        MockApi.getInstallmentOffers()
+        Api.getInstallmentSettings(),
+        Api.getInstallmentRequestsForSupplier(supplierId),
+        Api.getInstallmentOffers()
       ]);
       setSettings(settingsData);
       setRequests(requestsData);
@@ -103,7 +116,7 @@ export const SupplierInstallmentPage = ({ supplierId, supplierName }: SupplierIn
     ['FORWARDED_TO_SUPPLIERS', 'WAITING_FOR_SUPPLIER_OFFERS'].includes(r.status) && 
     !hasSubmittedOffer(r.id)
   );
-  const submittedRequests = requests.filter(r => hasSubmittedOffer(r.id));
+  const requestsWithMyOffers = requests.filter(r => hasSubmittedOffer(r.id));
 
   if (loading) {
     return (
@@ -177,7 +190,7 @@ export const SupplierInstallmentPage = ({ supplierId, supplierName }: SupplierIn
             <div>
               <div className="text-sm text-slate-500">{t('installment.pendingDecisions', 'بانتظار القرار')}</div>
               <div className="text-xl font-bold text-slate-800">
-                {myOffers.filter(o => o.status === 'WAITING_FOR_CUSTOMER').length}
+                {myOffers.filter(o => o.status === 'SUPPLIER_OFFER_SUBMITTED').length}
               </div>
             </div>
           </div>
@@ -185,146 +198,159 @@ export const SupplierInstallmentPage = ({ supplierId, supplierName }: SupplierIn
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="p-4 border-b border-slate-200 bg-slate-50">
-          <h2 className="font-semibold text-slate-800">
-            {t('installment.availableForOffer', 'طلبات متاحة للعرض')} ({availableRequests.length})
-          </h2>
+        <div className="flex border-b border-slate-200 bg-slate-50">
+          <button
+            onClick={() => setActiveTab('requests')}
+            className={`flex-1 pb-4 text-sm font-medium transition-colors relative ${activeTab === 'requests' ? 'text-brand-600' : 'text-slate-500 hover:text-slate-700'
+              }`}
+          >
+            {t('installment.availableRequests', 'طلبات متاحة')} ({availableRequests.length})
+            {activeTab === 'requests' && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-t-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('my-offers')}
+            className={`flex-1 pb-4 text-sm font-medium transition-colors relative ${activeTab === 'my-offers' ? 'text-brand-600' : 'text-slate-500 hover:text-slate-700'
+              }`}
+          >
+            {t('installment.myOffers', 'عروضي')} ({requestsWithMyOffers.length})
+            {activeTab === 'my-offers' && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-t-full" />
+            )}
+          </button>
         </div>
 
-        {availableRequests.length === 0 ? (
-          <div className="py-12 text-center text-slate-500">
-            <FileText className="mx-auto mb-4 text-slate-300" size={48} />
-            <p>{t('installment.noAvailableRequests', 'لا توجد طلبات متاحة حالياً')}</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {availableRequests.map(request => {
-              const statusConfig = STATUS_CONFIGS[request.status];
-              
-              return (
-                <div
-                  key={request.id}
-                  className="p-4 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-slate-500">#{request.id.slice(-8)}</span>
-                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig?.color}`}>
-                          {statusConfig?.icon}
-                          {isRTL ? statusConfig?.labelAr : statusConfig?.labelEn}
-                        </span>
+        {activeTab === 'requests' && (
+          availableRequests.length === 0 ? (
+            <div className="py-12 text-center text-slate-500">
+              <FileText className="mx-auto mb-4 text-slate-300" size={48} />
+              <p>{t('installment.noAvailableRequests', 'لا توجد طلبات متاحة حالياً')}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {availableRequests.map(request => {
+                const statusInfo = getStatusInfo(request.status);
+                
+                return (
+                  <div
+                    key={request.id}
+                    className="p-4 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-slate-500">#{request.id.slice(-8)}</span>
+                          <span className={statusInfo.className}>
+                            {statusInfo.icon}
+                            {statusInfo.label}
+                          </span>
+                        </div>
+                        <div className="font-medium text-slate-800">
+                          {request.customerName || t('installment.anonymousCustomer', 'عميل')}
+                        </div>
                       </div>
-                      <div className="font-medium text-slate-800">
-                        {request.customerName || t('installment.anonymousCustomer', 'عميل')}
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-brand-600">
+                          {formatCurrency(request.totalRequestedValue || 0)}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          {request.requestedDurationMonths} {t('installment.months', 'شهور')}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-brand-600">
-                        {formatCurrency(request.totalRequestedValue || 0)}
+
+                    {request.items.length > 0 && (
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {request.items.slice(0, 3).map(item => (
+                          <span key={item.id} className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-sm text-slate-600">
+                            <Package size={14} />
+                            {item.productName || item.productId}
+                          </span>
+                        ))}
+                        {request.items.length > 3 && (
+                          <span className="px-2 py-1 bg-slate-100 rounded text-sm text-slate-500">
+                            +{request.items.length - 3}
+                          </span>
+                        )}
                       </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
                       <div className="text-sm text-slate-500">
-                        {request.requestedDurationMonths} {t('installment.months', 'شهور')}
+                        <Calendar size={14} className="inline mr-1" />
+                        {formatDate(request.createdAt)}
+                      </div>
+                      <button
+                        onClick={() => setSelectedRequest(request)}
+                        className="flex items-center gap-1 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm rounded-lg transition-colors"
+                        data-testid={`button-submit-offer-${request.id}`}
+                      >
+                        <Send size={14} />
+                        {t('installment.submitOffer', 'تقديم عرض')}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
+
+        {activeTab === 'my-offers' && (
+          requestsWithMyOffers.length === 0 ? (
+            <div className="py-12 text-center text-slate-500">
+              <FileText className="mx-auto mb-4 text-slate-300" size={48} />
+              <p>{t('installment.noSubmittedOffers', 'لم تقدم أي عروض بعد')}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {requestsWithMyOffers.map(request => {
+                const myOffer = getMyOfferForRequest(request.id);
+                if (!myOffer) return null;
+                
+                const offerStatusInfo = getStatusInfo(myOffer.status);
+                
+                return (
+                  <div key={request.id} className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-slate-500">#{request.id.slice(-8)}</span>
+                          <span className={offerStatusInfo.className}>
+                            {offerStatusInfo.icon}
+                            {offerStatusInfo.label}
+                          </span>
+                        </div>
+                        <div className="font-medium text-slate-800">
+                          {request.customerName || t('installment.anonymousCustomer', 'عميل')}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-slate-500">{t('installment.myOffer', 'عرضي')}</div>
+                        <div className="text-lg font-bold text-brand-600">
+                          {formatCurrency(myOffer.totalApprovedValue)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  {request.items.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      {request.items.slice(0, 3).map(item => (
-                        <span key={item.id} className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-sm text-slate-600">
-                          <Package size={14} />
-                          {item.productName || item.productId}
-                        </span>
-                      ))}
-                      {request.items.length > 3 && (
-                        <span className="px-2 py-1 bg-slate-100 rounded text-sm text-slate-500">
-                          +{request.items.length - 3}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-4 text-sm text-slate-500">
+                      <span>
+                        {myOffer.schedule.numberOfInstallments} {t('installment.installments', 'قسط')}
+                      </span>
+                      <span>
+                        {formatCurrency(myOffer.schedule.installmentAmount)} / {t('installment.perInstallment', 'للقسط')}
+                      </span>
+                      <span>
+                        {myOffer.type === 'full' ? t('installment.fullApproval', 'موافقة كاملة') : t('installment.partialApproval', 'موافقة جزئية')}
+                      </span>
                     </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-slate-500">
-                      <Calendar size={14} className="inline mr-1" />
-                      {formatDate(request.createdAt)}
-                    </div>
-                    <button
-                      onClick={() => setSelectedRequest(request)}
-                      className="flex items-center gap-1 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm rounded-lg transition-colors"
-                      data-testid={`button-submit-offer-${request.id}`}
-                    >
-                      <Send size={14} />
-                      {t('installment.submitOffer', 'تقديم عرض')}
-                    </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )
         )}
       </div>
-
-      {submittedRequests.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-200 bg-slate-50">
-            <h2 className="font-semibold text-slate-800">
-              {t('installment.mySubmittedOffers', 'عروضي المقدمة')} ({submittedRequests.length})
-            </h2>
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {submittedRequests.map(request => {
-              const myOffer = getMyOfferForRequest(request.id);
-              if (!myOffer) return null;
-              
-              const offerStatusConfig: Record<string, { labelAr: string; labelEn: string; color: string }> = {
-                'WAITING_FOR_CUSTOMER': { labelAr: 'بانتظار قرار العميل', labelEn: 'Awaiting Customer', color: 'bg-amber-100 text-amber-700' },
-                'ACCEPTED_BY_CUSTOMER': { labelAr: 'تم القبول', labelEn: 'Accepted', color: 'bg-green-100 text-green-700' },
-                'REJECTED_BY_CUSTOMER': { labelAr: 'تم الرفض', labelEn: 'Rejected', color: 'bg-red-100 text-red-700' },
-                'EXPIRED': { labelAr: 'منتهي الصلاحية', labelEn: 'Expired', color: 'bg-slate-100 text-slate-600' }
-              };
-              const offerStatus = offerStatusConfig[myOffer.status] || offerStatusConfig['WAITING_FOR_CUSTOMER'];
-              
-              return (
-                <div key={request.id} className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-slate-500">#{request.id.slice(-8)}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${offerStatus.color}`}>
-                          {isRTL ? offerStatus.labelAr : offerStatus.labelEn}
-                        </span>
-                      </div>
-                      <div className="font-medium text-slate-800">
-                        {request.customerName || t('installment.anonymousCustomer', 'عميل')}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-slate-500">{t('installment.myOffer', 'عرضي')}</div>
-                      <div className="text-lg font-bold text-brand-600">
-                        {formatCurrency(myOffer.totalApprovedValue)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-slate-500">
-                    <span>
-                      {myOffer.schedule.numberOfInstallments} {t('installment.installments', 'قسط')}
-                    </span>
-                    <span>
-                      {formatCurrency(myOffer.schedule.installmentAmount)} / {t('installment.perInstallment', 'للقسط')}
-                    </span>
-                    <span>
-                      {myOffer.type === 'full' ? t('installment.fullApproval', 'موافقة كاملة') : t('installment.partialApproval', 'موافقة جزئية')}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {selectedRequest && settings && (
         <SubmitOfferModal
@@ -379,7 +405,7 @@ const SubmitOfferModal = ({
     
     setSubmitting(true);
     try {
-      await MockApi.supplierSubmitOffer(
+      await Api.supplierSubmitOffer(
         request.id,
         supplierId,
         supplierName || 'مورد',

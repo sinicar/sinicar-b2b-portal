@@ -1,6 +1,6 @@
 import { useState, FC } from 'react';
 import { SiteSettings, StatusLabelsConfig } from '../../types';
-import { MockApi } from '../../services/mockApi';
+import Api from '../../services/api';
 import { useToast } from '../../services/ToastContext';
 import { useLanguage } from '../../services/LanguageContext';
 import { 
@@ -99,7 +99,7 @@ export const StatusLabelsManager: FC<StatusLabelsManagerProps> = ({ settings, on
             statusLabels: updatedLabels
         });
         
-        await MockApi.updateStatusLabels(updatedLabels);
+        await Api.updateStatusLabels(updatedLabels);
         setEditingStatus(null);
         addToast(t('adminSettings.statusUpdated'), 'success');
     };
@@ -142,7 +142,7 @@ export const StatusLabelsManager: FC<StatusLabelsManagerProps> = ({ settings, on
             statusLabels: updatedLabels
         });
         
-        await MockApi.updateStatusLabels(updatedLabels);
+        await Api.updateStatusLabels(updatedLabels);
         setShowAddForm(false);
         setNewStatusKey('');
         setNewStatusLabel('');
@@ -159,7 +159,7 @@ export const StatusLabelsManager: FC<StatusLabelsManagerProps> = ({ settings, on
         }
 
         setCheckingUsage(true);
-        const usageCount = await MockApi.checkStatusUsage(selectedCategory as any, statusKey);
+        const usageCount = await Api.checkStatusUsage(selectedCategory as any, statusKey);
         setCheckingUsage(false);
 
         if (usageCount > 0) {
@@ -181,7 +181,7 @@ export const StatusLabelsManager: FC<StatusLabelsManagerProps> = ({ settings, on
             statusLabels: updatedLabels
         });
         
-        await MockApi.updateStatusLabels(updatedLabels);
+        await Api.updateStatusLabels(updatedLabels);
         setDeleteConfirm(null);
         addToast(t('adminSettings.statusDeleted'), 'success');
     };
@@ -202,7 +202,7 @@ export const StatusLabelsManager: FC<StatusLabelsManagerProps> = ({ settings, on
             statusLabels: updatedLabels
         });
         
-        await MockApi.updateStatusLabels(updatedLabels);
+        await Api.updateStatusLabels(updatedLabels);
         addToast(t('adminSettings.defaultStatusSet'), 'success');
     };
 

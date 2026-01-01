@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { Product, CartItem } from '../types';
 import { ProductCard } from './ProductCard';
 import { ArrowRight, Sparkles } from 'lucide-react';
@@ -18,7 +18,7 @@ export const NewArrivalsPage: React.FC<NewArrivalsPageProps> = ({ onAdd, onBack,
     const loadData = async () => {
       setLoading(true);
       try {
-        const data = await MockApi.getFeaturedProducts();
+        const data = await Api.getFeaturedProducts();
         setProducts(data.newArrivals);
       } catch (error) {
         console.error("Failed to load new arrivals", error);

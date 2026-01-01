@@ -1,6 +1,6 @@
 import { useState, useEffect, memo, useCallback, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
     CustomerPortalSettings, 
     MultilingualText, 
@@ -177,10 +177,10 @@ export const AdminCustomerPortalSettings = memo(() => {
     const loadSettings = async () => {
         setLoading(true);
         try {
-            const data = await MockApi.getCustomerPortalSettings();
+            const data = await Api.getCustomerPortalSettings();
             setSettings(data);
         } catch (error) {
-            addToast('error', 'Failed to load settings');
+            addToast('Failed to load settings', 'error');
         }
         setLoading(false);
     };
@@ -189,11 +189,11 @@ export const AdminCustomerPortalSettings = memo(() => {
         if (!settings) return;
         setSaving(true);
         try {
-            await MockApi.saveCustomerPortalSettings(settings);
-            addToast('success', t('adminPortalSettings.savedSuccess') || 'Settings saved successfully');
+            await Api.saveCustomerPortalSettings(settings);
+            addToast(t('adminPortalSettings.savedSuccess') || 'Settings saved successfully', 'success');
             setHasChanges(false);
         } catch (error) {
-            addToast('error', 'Failed to save settings');
+            addToast('Failed to save settings', 'error');
         }
         setSaving(false);
     };
@@ -202,12 +202,12 @@ export const AdminCustomerPortalSettings = memo(() => {
         if (!confirm(t('adminPortalSettings.confirmReset') || 'Are you sure you want to reset all settings to defaults?')) return;
         setLoading(true);
         try {
-            const defaults = await MockApi.resetCustomerPortalSettings();
+            const defaults = await Api.resetCustomerPortalSettings();
             setSettings(defaults);
-            addToast('success', 'Settings reset to defaults');
+            addToast('Settings reset to defaults', 'success');
             setHasChanges(false);
         } catch (error) {
-            addToast('error', 'Failed to reset settings');
+            addToast('Failed to reset settings', 'error');
         }
         setLoading(false);
     };

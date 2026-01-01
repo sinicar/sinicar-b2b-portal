@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ImportRequest, ImportRequestStatus, ImportRequestTimelineEntry } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
     Globe, Clock, CheckCircle, Ship, Archive, FileText, 
     Upload, Save, X, ChevronRight, ChevronLeft, MapPin, 
@@ -61,16 +61,17 @@ export const AdminImportManager: React.FC<AdminImportManagerProps> = ({ requests
     };
 
     // Sort requests by date desc
+    const safeRequests = Array.isArray(requests) ? requests : [];
     const sortedRequests = useMemo(() => {
-        return [...requests].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }, [requests]);
+        return [...safeRequests].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [safeRequests]);
 
     // Handlers
     const handleStatusUpdate = async (newStatus: ImportRequestStatus, note?: string) => {
         if (!selectedRequest) return;
         setIsUpdating(true);
         try {
-            await MockApi.updateImportRequestStatus(selectedRequest.id, newStatus, {
+            await Api.updateImportRequestStatus(selectedRequest.id, newStatus, {
                 note: note || '',
                 changedBy: 'Admin',
                 actorRole: 'ADMIN'
@@ -92,7 +93,7 @@ export const AdminImportManager: React.FC<AdminImportManagerProps> = ({ requests
         }
         setIsUpdating(true);
         try {
-            await MockApi.completeImportRequestPricing(selectedRequest.id, {
+            await Api.completeImportRequestPricing(selectedRequest.id, {
                 totalAmount: pricingForm.totalAmount,
                 pricingFileName: 'Price_Offer.pdf', // Mock file
                 adminName: 'Admin'
@@ -113,23 +114,23 @@ export const AdminImportManager: React.FC<AdminImportManagerProps> = ({ requests
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <p className="text-xs text-slate-500 font-bold uppercase">{t('adminImport.stats.newRequests')}</p>
-                    <p className="text-2xl font-black text-blue-600">{requests.filter(r => r.status === 'NEW').length}</p>
+                    <p className="text-2xl font-black text-blue-600">{safeRequests.filter(r => r.status === 'NEW').length}</p>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <p className="text-xs text-slate-500 font-bold uppercase">{t('adminImport.stats.inProgress')}</p>
                     <p className="text-2xl font-black text-yellow-600">
-                        {requests.filter(r => ['IN_FACTORY', 'SHIPMENT_BOOKED', 'ON_THE_SEA'].includes(r.status)).length}
+                        {safeRequests.filter(r => ['IN_FACTORY', 'SHIPMENT_BOOKED', 'ON_THE_SEA'].includes(r.status)).length}
                     </p>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <p className="text-xs text-slate-500 font-bold uppercase">{t('adminImport.stats.awaitingCustomer')}</p>
                     <p className="text-2xl font-black text-purple-600">
-                        {requests.filter(r => ['WAITING_CUSTOMER_EXCEL', 'PRICING_SENT', 'WAITING_CUSTOMER_APPROVAL'].includes(r.status)).length}
+                        {safeRequests.filter(r => ['WAITING_CUSTOMER_EXCEL', 'PRICING_SENT', 'WAITING_CUSTOMER_APPROVAL'].includes(r.status)).length}
                     </p>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <p className="text-xs text-slate-500 font-bold uppercase">{t('adminImport.stats.completed')}</p>
-                    <p className="text-2xl font-black text-green-600">{requests.filter(r => r.status === 'DELIVERED').length}</p>
+                    <p className="text-2xl font-black text-green-600">{safeRequests.filter(r => r.status === 'DELIVERED').length}</p>
                 </div>
             </div>
 

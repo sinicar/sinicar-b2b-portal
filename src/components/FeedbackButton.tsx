@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageSquarePlus, X, Send, Bug, Lightbulb, AlertCircle, HelpCircle, MoreHorizontal, Loader2, CheckCircle2 } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { FeedbackCategory, FeedbackPriority, FeedbackCreateInput } from '../types';
 
 interface FeedbackButtonProps {
@@ -45,7 +45,7 @@ export default function FeedbackButton({ user }: FeedbackButtonProps) {
   const [contact, setContact] = useState('');
 
   useEffect(() => {
-    MockApi.getFeedbackSettings().then(settings => {
+    Api.getFeedbackSettings().then(settings => {
       setIsEnabled(settings.enabled);
       setCategory(settings.defaultCategory);
       setPriority(settings.defaultPriority);
@@ -80,7 +80,7 @@ export default function FeedbackButton({ user }: FeedbackButtonProps) {
       };
 
       if (user) {
-        await MockApi.createFeedback(
+        await Api.createFeedback(
           input,
           user.id,
           user.name,
@@ -88,7 +88,7 @@ export default function FeedbackButton({ user }: FeedbackButtonProps) {
           user.role
         );
       } else {
-        await MockApi.createPublicFeedback({
+        await Api.createPublicFeedback({
           senderName: t('feedback.guest', 'زائر'),
           senderContact: contact,
           ...input,
@@ -257,7 +257,7 @@ export default function FeedbackButton({ user }: FeedbackButtonProps) {
 
                   <div className="text-xs text-slate-400 flex items-center gap-1">
                     <span>{t('feedback.pageContext', 'الصفحة الحالية')}:</span>
-                    <code className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{location}</code>
+                    <code className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{window.location.pathname}</code>
                   </div>
                 </div>
 

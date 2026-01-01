@@ -25,13 +25,26 @@ export interface AICompletionResult {
 }
 
 class AIService {
-  private openaiClient: OpenAI;
+  private openaiClient: OpenAI | null = null;
+  private isConfigured: boolean = false;
 
   constructor() {
-    this.openaiClient = new OpenAI({
-      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
-    });
+    const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    if (apiKey && !apiKey.includes('placeholder')) {
+      this.openaiClient = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: apiKey
+      });
+      this.isConfigured = true;
+    } else {
+      console.warn('⚠️ AI Service: OpenAI API key not configured. AI features will be disabled.');
+    }
+  }
+
+  private checkConfiguration(): void {
+    if (!this.isConfigured || !this.openaiClient) {
+      throw new Error('AI service is not configured. Please set OPENAI_API_KEY environment variable.');
+    }
   }
 
   async chat(

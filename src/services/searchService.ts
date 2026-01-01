@@ -1,6 +1,6 @@
 import { Product, SearchResult, SearchResultType, MissingAvailabilityStatus, SearchSourceType, User } from '../types';
 import { normalizePartNumberRaw, extractNumericCore } from '../utils/partNumberUtils';
-import { MockApi } from './mockApi';
+import { Api } from './api';
 
 export interface SearchContext {
   customerId: string | null;
@@ -51,9 +51,9 @@ export async function searchPartInCatalog(partNumber: string, applyVisibilityFil
   
   const numericCore = extractNumericCore(normalized);
   
-  const products = await MockApi.searchProducts('');
-  const stockThreshold = MockApi.getStockThreshold();
-  const minVisibleQty = MockApi.getMinVisibleQty();
+  const products = await Api.searchProducts('');
+  const stockThreshold = Api.getStockThreshold();
+  const minVisibleQty = Api.getMinVisibleQty();
   
   let bestMatch: Product | null = null;
   let bestScore = 0;
@@ -102,7 +102,7 @@ export async function searchPartInCatalog(partNumber: string, applyVisibilityFil
 }
 
 export function filterProductsForCustomer(products: Product[]): Product[] {
-  const minVisibleQty = MockApi.getMinVisibleQty();
+  const minVisibleQty = Api.getMinVisibleQty();
   return products.filter(product => {
     const qty = product.qtyTotal ?? product.stock ?? 0;
     return qty >= minVisibleQty;
@@ -170,7 +170,7 @@ async function handleNotFoundCase(
   searchSource: SearchSourceType
 ): Promise<void> {
   try {
-    await MockApi.logMissingPartFromSearch({
+    await Api.logMissingPartFromSearch({
       partNumber,
       normalizedPartNumber: normalizePartNumber(partNumber) || partNumber,
       customerId: context.customerId,
@@ -192,7 +192,7 @@ async function handleOutOfStockCase(
   normalizedQuery?: string
 ): Promise<void> {
   try {
-    await MockApi.logMissingPartFromSearch({
+    await Api.logMissingPartFromSearch({
       partNumber: product.partNumber,
       normalizedPartNumber: normalizedQuery || normalizePartNumberRaw(product.partNumber),
       productId: product.id,

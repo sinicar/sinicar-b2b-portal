@@ -1,6 +1,6 @@
 import { useState, useRef, FC, ChangeEvent, KeyboardEvent } from 'react';
 import { Upload, Search, FileSpreadsheet, Loader2, Download, Trash2, ArrowLeft, CheckCircle, AlertCircle, Package } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { User, AlternativePart, AlternativeUploadResult } from '../types';
 import { useToast } from '../services/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -120,7 +120,7 @@ export const AlternativesPage: FC<AlternativesPageProps> = ({ user, onBack }) =>
             }
 
             // Upload to API
-            const result = await MockApi.uploadAlternatives(rows, user.id, user.name);
+            const result = await Api.uploadAlternatives(rows, user.id, user.name);
             setUploadResult(result);
 
             if (result.rowsInserted > 0) {
@@ -152,7 +152,7 @@ export const AlternativesPage: FC<AlternativesPageProps> = ({ user, onBack }) =>
         setHasSearched(true);
 
         try {
-            const results = await MockApi.searchAlternatives(searchQuery.trim());
+            const results = await Api.searchAlternatives(searchQuery.trim());
             setSearchResults(results);
         } catch (error) {
             console.error('Search error:', error);

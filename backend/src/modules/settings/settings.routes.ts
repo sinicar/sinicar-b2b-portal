@@ -4,6 +4,36 @@ import { successResponse, errorResponse } from '../../utils/response';
 
 const router = Router();
 
+// ✅ New: Get SiteSettings format (compatible with Frontend)
+router.get('/site-settings', async (req: Request, res: Response) => {
+  try {
+    const siteSettings = await settingsService.getSiteSettings();
+    return successResponse(res, siteSettings, 'Site settings retrieved successfully');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
+// ✅ Banners endpoint (returns empty array for now - can be extended)
+router.get('/banners', async (req: Request, res: Response) => {
+  try {
+    // TODO: Implement proper banners storage in database
+    // For now, return empty array to prevent frontend errors
+    return successResponse(res, [], 'Banners retrieved successfully');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
+// ✅ News endpoint (returns empty array for now)
+router.get('/news', async (req: Request, res: Response) => {
+  try {
+    return successResponse(res, [], 'News retrieved successfully');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { category } = req.query;

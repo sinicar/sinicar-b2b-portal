@@ -51,6 +51,11 @@ export function createIndexedLookup<T>(
     keyField: keyof T
 ): Map<string, T> {
     const map = new Map<string, T>();
+    // Handle non-array inputs gracefully
+    if (!Array.isArray(items)) {
+        console.warn('createIndexedLookup: items is not an array', typeof items);
+        return map;
+    }
     items.forEach(item => {
         const key = String(item[keyField]);
         map.set(key, item);
@@ -66,6 +71,11 @@ export function createMultiFieldIndex<T>(
     fields: (keyof T)[]
 ): Map<string, Set<T>> {
     const index = new Map<string, Set<T>>();
+
+    // Handle non-array inputs gracefully
+    if (!Array.isArray(items)) {
+        return index;
+    }
 
     items.forEach(item => {
         fields.forEach(field => {

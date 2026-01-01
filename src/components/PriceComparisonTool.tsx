@@ -8,7 +8,7 @@ import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
 import { toolsAccessService } from '../services/toolsAccess';
 import { User, BusinessProfile } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 
 interface PriceComparisonToolProps {
   user: User;
@@ -136,7 +136,7 @@ export const PriceComparisonTool = ({ user, profile, onClose }: PriceComparisonT
     try {
       await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
       
-      const products = await MockApi.searchProducts(query);
+      const products = await Api.searchProducts(query);
       const product = products[0];
       
       if (!product) {

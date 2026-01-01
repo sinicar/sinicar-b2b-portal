@@ -15,6 +15,140 @@ export const ProductTabsContent: React.FC<ProductTabsContentProps> = ({
     products,
     onFileSelect
 }) => {
+    // Ensure products is always an array
+    const safeProducts = Array.isArray(products) ? products : [];
+
+    // =====================================================
+    // ALL HOOKS MUST BE AT THE TOP - NOT INSIDE CONDITIONS
+    // =====================================================
+
+    // Quality Settings State
+    const QUALITY_STORAGE_KEY = 'sinicar_quality_codes';
+    const DEFAULT_CODES = [
+        { id: '1', code: 'OEM', label: 'أصلي وكالة', labelAr: 'أصلي وكالة', labelEn: 'Original Equipment', description: 'قطع أصلية من المصنع الأصلي', defaultMarginAdjust: 5, isActive: true, sortOrder: 1 },
+        { id: '2', code: 'OES', label: 'أصلي مصنع', labelAr: 'أصلي مصنع', labelEn: 'OES Quality', description: 'نفس جودة الأصلي من مصنع معتمد', defaultMarginAdjust: 3, isActive: true, sortOrder: 2 },
+        { id: '3', code: 'AFT', label: 'بديل ممتاز', labelAr: 'بديل ممتاز', labelEn: 'Aftermarket Premium', description: 'بديل عالي الجودة', defaultMarginAdjust: 0, isActive: true, sortOrder: 3 },
+        { id: '4', code: 'CPY', label: 'تجاري', labelAr: 'تجاري', labelEn: 'Commercial Copy', description: 'نسخة تجارية اقتصادية', defaultMarginAdjust: -3, isActive: true, sortOrder: 4 },
+    ];
+    
+    const [qualityCodes, setQualityCodes] = React.useState<{
+        id: string;
+        code: string;
+        label: string;
+        labelAr?: string;
+        labelEn?: string;
+        description?: string;
+        defaultMarginAdjust?: number;
+        isActive: boolean;
+        sortOrder: number;
+    }[]>(DEFAULT_CODES);
+    
+    const [newCode, setNewCode] = React.useState({ code: '', labelAr: '', labelEn: '', description: '' });
+    const [showAddForm, setShowAddForm] = React.useState(false);
+
+    // Name Priority State
+    const PRIORITY_STORAGE_KEY = 'sinicar_name_priorities';
+    const [namePriorities, setNamePriorities] = React.useState<{
+        partNumber: string;
+        prioritySource: 'SINI_CAR' | string;
+        productNames: { source: string; name: string; isActive: boolean }[];
+    }[]>([]);
+
+    // Load quality codes from localStorage
+    React.useEffect(() => {
+        try {
+            const stored = localStorage.getItem(QUALITY_STORAGE_KEY);
+            if (stored) setQualityCodes(JSON.parse(stored));
+        } catch {
+            // Use defaults
+        }
+    }, []);
+
+    // Load name priorities from localStorage
+    React.useEffect(() => {
+        try {
+            const stored = localStorage.getItem(PRIORITY_STORAGE_KEY);
+            if (stored) setNamePriorities(JSON.parse(stored));
+        } catch {
+            // Use empty
+        }
+    }, []);
+
+    // Find duplicate part numbers in products
+    const duplicates = React.useMemo(() => {
+        const partMap = new Map<string, { source: string; name: string; image?: string }[]>();
+        safeProducts.forEach(p => {
+            const existing = partMap.get(p.partNumber) || [];
+            existing.push({
+                source: (p as any).supplierId || 'SINI_CAR',
+                name: p.name,
+                image: p.imageUrl || (p as any).image
+            });
+            partMap.set(p.partNumber, existing);
+        });
+        return Array.from(partMap.entries())
+            .filter(([_, arr]) => arr.length > 1)
+            .map(([pn, arr]) => ({ partNumber: pn, sources: arr }));
+    }, [safeProducts]);
+
+    // Helper functions for quality codes
+    const saveQualityCodes = (codes: typeof qualityCodes) => {
+        localStorage.setItem(QUALITY_STORAGE_KEY, JSON.stringify(codes));
+        setQualityCodes(codes);
+    };
+
+    const handleAddCode = () => {
+        if (!newCode.code || !newCode.labelAr) return;
+        const code = {
+            id: `${Date.now()}`,
+            code: newCode.code.toUpperCase(),
+            label: newCode.labelAr,
+            labelAr: newCode.labelAr,
+            labelEn: newCode.labelEn,
+            description: newCode.description,
+            defaultMarginAdjust: 0,
+            isActive: true,
+            sortOrder: qualityCodes.length + 1,
+        };
+        saveQualityCodes([...qualityCodes, code]);
+        setNewCode({ code: '', labelAr: '', labelEn: '', description: '' });
+        setShowAddForm(false);
+    };
+
+    const handleToggleActive = (id: string) => {
+        const updated = qualityCodes.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c);
+        saveQualityCodes(updated);
+    };
+
+    const handleDeleteCode = (id: string) => {
+        saveQualityCodes(qualityCodes.filter(c => c.id !== id));
+    };
+
+    // Helper functions for name priorities
+    const setPriority = (partNumber: string, source: string) => {
+        const updated = [...namePriorities];
+        const idx = updated.findIndex(p => p.partNumber === partNumber);
+        if (idx >= 0) {
+            updated[idx].prioritySource = source;
+        } else {
+            updated.push({
+                partNumber,
+                prioritySource: source,
+                productNames: []
+            });
+        }
+        setNamePriorities(updated);
+        localStorage.setItem(PRIORITY_STORAGE_KEY, JSON.stringify(updated));
+    };
+
+    const getPriority = (partNumber: string): string => {
+        return namePriorities.find(p => p.partNumber === partNumber)?.prioritySource || 'SINI_CAR';
+    };
+
+    // =====================================================
+    // RENDER LOGIC - CONDITIONS CAN BE USED HERE
+    // =====================================================
+
     // Items Database Tab
     if (activeTab === 'ITEMS_DATABASE') {
         return (
@@ -26,7 +160,7 @@ export const ProductTabsContent: React.FC<ProductTabsContentProps> = ({
                         </div>
                         <div>
                             <h3 className="text-lg font-black text-slate-800">قاعدة الأصناف الرئيسية</h3>
-                            <p className="text-sm text-slate-500">جميع الأصناف المسجلة في النظام ({products.length} صنف)</p>
+                            <p className="text-sm text-slate-500">جميع الأصناف المسجلة في النظام ({safeProducts.length} صنف)</p>
                         </div>
                     </div>
                     <div className="flex gap-2">
@@ -41,19 +175,19 @@ export const ProductTabsContent: React.FC<ProductTabsContentProps> = ({
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white rounded-xl p-4 border border-indigo-100">
-                        <p className="text-2xl font-black text-indigo-600">{products.length}</p>
+                        <p className="text-2xl font-black text-indigo-600">{safeProducts.length}</p>
                         <p className="text-xs text-slate-500 font-bold">إجمالي الأصناف</p>
                     </div>
                     <div className="bg-white rounded-xl p-4 border border-green-100">
-                        <p className="text-2xl font-black text-green-600">{products.filter(p => (p.stock || 0) > 0).length}</p>
+                        <p className="text-2xl font-black text-green-600">{safeProducts.filter(p => (p.stock || 0) > 0).length}</p>
                         <p className="text-xs text-slate-500 font-bold">متوفر</p>
                     </div>
                     <div className="bg-white rounded-xl p-4 border border-amber-100">
-                        <p className="text-2xl font-black text-amber-600">{products.filter(p => (p.stock || 0) === 0).length}</p>
+                        <p className="text-2xl font-black text-amber-600">{safeProducts.filter(p => (p.stock || 0) === 0).length}</p>
                         <p className="text-xs text-slate-500 font-bold">غير متوفر</p>
                     </div>
                     <div className="bg-white rounded-xl p-4 border border-slate-100">
-                        <p className="text-2xl font-black text-slate-600">{new Set(products.map(p => p.brand)).size}</p>
+                        <p className="text-2xl font-black text-slate-600">{new Set(safeProducts.map(p => p.brand)).size}</p>
                         <p className="text-xs text-slate-500 font-bold">ماركات</p>
                     </div>
                 </div>
@@ -65,71 +199,8 @@ export const ProductTabsContent: React.FC<ProductTabsContentProps> = ({
         );
     }
 
-    // Quality Settings Tab - Connected to real quality codes
+    // Quality Settings Tab - Using hooks from top level
     if (activeTab === 'QUALITY_SETTINGS') {
-        const [qualityCodes, setQualityCodes] = React.useState<{
-            id: string;
-            code: string;
-            label: string;
-            labelAr?: string;
-            labelEn?: string;
-            description?: string;
-            defaultMarginAdjust?: number;
-            isActive: boolean;
-            sortOrder: number;
-        }[]>([]);
-        const [newCode, setNewCode] = React.useState({ code: '', labelAr: '', labelEn: '', description: '' });
-        const [showAddForm, setShowAddForm] = React.useState(false);
-
-        const STORAGE_KEY = 'sinicar_quality_codes';
-        const DEFAULT_CODES = [
-            { id: '1', code: 'OEM', label: 'أصلي وكالة', labelAr: 'أصلي وكالة', labelEn: 'Original Equipment', description: 'قطع أصلية من المصنع الأصلي', defaultMarginAdjust: 5, isActive: true, sortOrder: 1 },
-            { id: '2', code: 'OES', label: 'أصلي مصنع', labelAr: 'أصلي مصنع', labelEn: 'OES Quality', description: 'نفس جودة الأصلي من مصنع معتمد', defaultMarginAdjust: 3, isActive: true, sortOrder: 2 },
-            { id: '3', code: 'AFT', label: 'بديل ممتاز', labelAr: 'بديل ممتاز', labelEn: 'Aftermarket Premium', description: 'بديل عالي الجودة', defaultMarginAdjust: 0, isActive: true, sortOrder: 3 },
-            { id: '4', code: 'CPY', label: 'تجاري', labelAr: 'تجاري', labelEn: 'Commercial Copy', description: 'نسخة تجارية اقتصادية', defaultMarginAdjust: -3, isActive: true, sortOrder: 4 },
-        ];
-
-        React.useEffect(() => {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                setQualityCodes(stored ? JSON.parse(stored) : DEFAULT_CODES);
-            } catch {
-                setQualityCodes(DEFAULT_CODES);
-            }
-        }, []);
-
-        const saveQualityCodes = (codes: typeof qualityCodes) => {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
-            setQualityCodes(codes);
-        };
-
-        const handleAddCode = () => {
-            if (!newCode.code || !newCode.labelAr) return;
-            const code = {
-                id: `${Date.now()}`,
-                code: newCode.code.toUpperCase(),
-                label: newCode.labelAr,
-                labelAr: newCode.labelAr,
-                labelEn: newCode.labelEn,
-                description: newCode.description,
-                defaultMarginAdjust: 0,
-                isActive: true,
-                sortOrder: qualityCodes.length + 1,
-            };
-            saveQualityCodes([...qualityCodes, code]);
-            setNewCode({ code: '', labelAr: '', labelEn: '', description: '' });
-            setShowAddForm(false);
-        };
-
-        const handleToggleActive = (id: string) => {
-            const updated = qualityCodes.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c);
-            saveQualityCodes(updated);
-        };
-
-        const handleDeleteCode = (id: string) => {
-            saveQualityCodes(qualityCodes.filter(c => c.id !== id));
-        };
-
         return (
             <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl p-6 mb-6">
                 <div className="flex items-center justify-between mb-6">
@@ -319,58 +390,8 @@ export const ProductTabsContent: React.FC<ProductTabsContentProps> = ({
         );
     }
 
-    // Name Priority Tab - Managing duplicate part numbers
+    // Name Priority Tab - Using hooks from top level
     if (activeTab === 'NAME_PRIORITY') {
-        const STORAGE_KEY = 'sinicar_name_priorities';
-
-        const [namePriorities, setNamePriorities] = React.useState<{
-            partNumber: string;
-            prioritySource: 'SINI_CAR' | string; // SINI_CAR or supplierId
-            productNames: { source: string; name: string; isActive: boolean }[];
-        }[]>(() => {
-            try {
-                return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            } catch { return []; }
-        });
-
-        // Find duplicate part numbers in products
-        const duplicates = React.useMemo(() => {
-            const partMap = new Map<string, { source: string; name: string; image?: string }[]>();
-            products.forEach(p => {
-                const existing = partMap.get(p.partNumber) || [];
-                existing.push({
-                    source: (p as any).supplierId || 'SINI_CAR',
-                    name: p.name,
-                    image: p.imageUrl || (p as any).image
-                });
-                partMap.set(p.partNumber, existing);
-            });
-            // Only return those with duplicates
-            return Array.from(partMap.entries())
-                .filter(([_, arr]) => arr.length > 1)
-                .map(([pn, arr]) => ({ partNumber: pn, sources: arr }));
-        }, [products]);
-
-        const setPriority = (partNumber: string, source: string) => {
-            const updated = [...namePriorities];
-            const idx = updated.findIndex(p => p.partNumber === partNumber);
-            if (idx >= 0) {
-                updated[idx].prioritySource = source;
-            } else {
-                updated.push({
-                    partNumber,
-                    prioritySource: source,
-                    productNames: []
-                });
-            }
-            setNamePriorities(updated);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-        };
-
-        const getPriority = (partNumber: string): string => {
-            return namePriorities.find(p => p.partNumber === partNumber)?.prioritySource || 'SINI_CAR';
-        };
-
         return (
             <div className="bg-gradient-to-br from-orange-50 to-white border border-orange-200 rounded-xl p-6 mb-6">
                 <div className="flex items-center justify-between mb-6">

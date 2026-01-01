@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, CheckCircle2, Clock, Trash2, X, Package, FileSpreadsheet, Search, AlertTriangle, Key, Info, Settings, Megaphone } from 'lucide-react';
 import { Notification, User, MarketingCampaign } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { formatDateTime } from '../utils/dateUtils';
 import { useToast } from '../services/ToastContext';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 interface NotificationBellProps {
     user: User;
@@ -21,6 +22,7 @@ interface ExtendedNotification extends Notification {
 }
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ user, customerType, onViewAll }) => {
+    const { t } = useTranslation(); // Use hook
     const [notifications, setNotifications] = useState<ExtendedNotification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -50,12 +52,20 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
     const loadNotifications = async () => {
         try {
             // Load regular notifications (now returns { items, unreadCount, total })
-            const notifResult = await MockApi.getNotificationsForUser(user.id);
-            const regularNotifs = notifResult.items;
+            const notifResult = await Api.getNotificationsForUser(user.id);
+            // Ensure regularNotifs is always an array
+            const regularNotifs = Array.isArray(notifResult?.items) ? notifResult.items : 
+                                  Array.isArray(notifResult) ? notifResult : [];
+            const apiUnreadCount = notifResult?.unreadCount || 0;
             
             // Load BELL type marketing campaigns (getActiveCampaignsForUser already filters dismissed ones)
-            const campaigns = await MockApi.getActiveCampaignsForUser(user.id, customerType);
-            const bellCampaigns = campaigns.filter(c => c.displayType === 'BELL');
+            let bellCampaigns: MarketingCampaign[] = [];
+            try {
+                const campaigns = await Api.getActiveCampaignsForUser(user.id, customerType);
+                bellCampaigns = Array.isArray(campaigns) ? campaigns.filter(c => c.displayType === 'BELL') : [];
+            } catch {
+                // Ignore campaign loading errors
+            }
             
             // Get list of campaigns the user has "read" in the bell (stored locally per session)
             const readCampaignIds = JSON.parse(localStorage.getItem(`siniCar_bell_read_${user.id}`) || '[]');
@@ -82,9 +92,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
             setNotifications(allNotifs);
             // Combine unread count from API with campaign unread count
             const campaignUnreadCount = campaignNotifs.filter(n => !n.isRead).length;
-            setUnreadCount(notifResult.unreadCount + campaignUnreadCount);
+            setUnreadCount(apiUnreadCount + campaignUnreadCount);
         } catch (e) {
             console.error("Failed to load notifications", e);
+            setNotifications([]);
+            setUnreadCount(0);
         }
     };
 
@@ -93,7 +105,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
         if (!isOpen && unreadCount > 0) {
             try {
                 // Mark regular notifications as read
-                await MockApi.markNotificationsAsRead(user.id);
+                await Api.markNotificationsAsRead(user.id);
                 
                 // Mark campaign notifications as read in localStorage
                 const unreadCampaignIds = notifications
@@ -117,21 +129,21 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
 
     const handleClearAll = async () => {
         try {
-            await MockApi.clearNotificationsForUser(user.id);
+            await Api.clearNotificationsForUser(user.id);
             setNotifications([]);
             setUnreadCount(0);
-            addToast('تم حذف جميع التنبيهات', 'success');
+            addToast(t('notifications.cleared', 'Cleared all notifications'), 'success'); // Should be localized toast too, but sticking to Notification keys for now
         } catch (e) {
             console.error("Failed to clear notifications", e);
-            addToast('حدث خطأ في حذف التنبيهات', 'error');
+            addToast(t('notifications.clearError', 'Failed to clear notifications'), 'error');
         }
     };
 
     const handleDeleteOne = async (notifId: string) => {
         try {
-            await MockApi.deleteNotification(user.id, notifId);
+            await Api.deleteNotification(user.id, notifId);
             setNotifications(prev => prev.filter(n => n.id !== notifId));
-            addToast('تم حذف التنبيه', 'success');
+            addToast(t('notifications.deleted', 'Notification deleted'), 'success');
         } catch (e) {
             console.error("Failed to delete notification", e);
         }
@@ -139,9 +151,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
 
     const handleDismissCampaign = async (campaignId: string, notifId: string) => {
         try {
-            await MockApi.dismissCampaignForUser(user.id, campaignId);
+            await Api.dismissCampaignForUser(user.id, campaignId);
             setNotifications(prev => prev.filter(n => n.id !== notifId));
-            addToast('تم إخفاء الإشعار', 'success');
+            addToast(t('notifications.dismissed', 'Notification dismissed'), 'success');
         } catch (e) {
             console.error("Failed to dismiss campaign", e);
         }
@@ -199,10 +211,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
         const diffHours = Math.floor(diffMins / 60);
         const diffDays = Math.floor(diffHours / 24);
 
-        if (diffMins < 1) return 'الآن';
-        if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
-        if (diffHours < 24) return `منذ ${diffHours} ساعة`;
-        if (diffDays < 7) return `منذ ${diffDays} يوم`;
+        if (diffMins < 1) return t('notifications.time.justNow');
+        if (diffMins < 60) return t('notifications.time.minAgo', { count: diffMins });
+        if (diffHours < 24) return t('notifications.time.hrAgo', { count: diffHours });
+        if (diffDays < 7) return t('notifications.time.dayAgo', { count: diffDays });
         return formatDateTime(dateStr).split('-')[1];
     };
 
@@ -211,7 +223,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
             <button 
                 onClick={handleOpen}
                 className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"
-                title="التنبيهات"
+                title={t('notifications.title')}
                 data-testid="button-notifications"
             >
                 <Bell size={24} />
@@ -225,10 +237,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
             {isOpen && (
                 <div className="absolute left-0 mt-3 w-80 md:w-[400px] bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-fade-in-up origin-top-left">
                     {/* Header */}
-                    <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex justify-between items-center">
+                    <div className="p-4 border-b border-slate-100 bg-linear-to-r from-slate-50 to-white flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <Bell size={18} className="text-brand-600" />
-                            <h3 className="font-bold text-slate-800 text-sm">مركز التنبيهات</h3>
+                            <h3 className="font-bold text-slate-800 text-sm">{t('notifications.center')}</h3>
                         </div>
                         <div className="flex items-center gap-2">
                             {notifications.length > 0 && (
@@ -237,7 +249,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                     className="text-[10px] text-red-500 hover:text-red-600 font-bold px-2 py-1 rounded hover:bg-red-50 transition-colors"
                                     data-testid="button-clear-all-notifications"
                                 >
-                                    مسح الكل
+                                    {t('notifications.clearAll')}
                                 </button>
                             )}
                             <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded-full">
@@ -254,7 +266,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                     <div 
                                         key={notif.id} 
                                         className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 group ${
-                                            notif.isCampaign ? 'bg-gradient-to-l from-pink-50/50 to-transparent' : 
+                                            notif.isCampaign ? 'bg-linear-to-l from-pink-50/50 to-transparent' : 
                                             !notif.isRead ? 'bg-blue-50/30' : ''
                                         }`}
                                         data-testid={`notification-item-${notif.id}`}
@@ -268,7 +280,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                                     <h4 className="text-sm font-bold text-slate-800 leading-tight">{notif.title}</h4>
                                                     {notif.isCampaign && (
                                                         <span className="text-[9px] bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded font-bold">
-                                                            عرض
+                                                            {t('notifications.view')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -286,7 +298,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                                             }
                                                         }}
                                                         className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all rounded hover:bg-red-50"
-                                                        title="حذف"
+                                                        title={t('notifications.delete')}
                                                         data-testid={`button-delete-notification-${notif.id}`}
                                                     >
                                                         <X size={12} />
@@ -310,7 +322,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                             )}
                                             {!notif.isRead && !notif.isCampaign && (
                                                 <span className="inline-block mt-1.5 text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-bold">
-                                                    جديد
+                                                    {t('notifications.new')}
                                                 </span>
                                             )}
                                         </div>
@@ -322,8 +334,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Bell size={28} className="text-slate-300" />
                                 </div>
-                                <p className="text-sm font-bold text-slate-600 mb-1">لا توجد تنبيهات</p>
-                                <p className="text-xs text-slate-400">ستظهر هنا جميع التحديثات الجديدة</p>
+                                <p className="text-sm font-bold text-slate-600 mb-1">{t('notifications.noNotifications')}</p>
+                                <p className="text-xs text-slate-400">{t('notifications.newUpdates')}</p>
                             </div>
                         )}
                     </div>
@@ -339,11 +351,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, custom
                                 className="w-full text-center text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
                                 data-testid="button-view-all-notifications"
                             >
-                                عرض جميع الإشعارات
+                                {t('notifications.viewAll')}
                             </button>
                         ) : notifications.length > 5 && (
                             <span className="text-xs text-slate-500 text-center block">
-                                عرض آخر {Math.min(notifications.length, 20)} تنبيه
+                                {t('notifications.showingLast', { count: Math.min(notifications.length, 20) })}
                             </span>
                         )}
                     </div>

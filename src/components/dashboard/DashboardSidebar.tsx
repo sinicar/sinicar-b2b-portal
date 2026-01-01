@@ -4,6 +4,7 @@ import {
     Box, ChevronLeft, Building2, X, Globe, Clock, History, Headphones,
     Wrench, Layers
 } from 'lucide-react';
+import { isFeatureVisibleForOwner, OwnerType } from '../../services/featureVisibilityService';
 
 export interface CollapsibleSidebarItemProps {
     icon: React.ReactNode;
@@ -18,8 +19,8 @@ export const CollapsibleSidebarItem = memo(({ icon, label, active, onClick, badg
     <button
         onClick={onClick}
         className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3.5 rounded-2xl mb-2 transition-all duration-300 group relative overflow-hidden ${active
-                ? 'bg-gradient-to-l from-brand-600 to-brand-700 text-white font-bold shadow-lg shadow-brand-900/40 scale-[1.02]'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium hover:scale-[1.01]'
+            ? 'bg-gradient-to-l from-brand-600 to-brand-700 text-white font-bold shadow-lg shadow-brand-900/40 scale-[1.02]'
+            : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium hover:scale-[1.01]'
             }`}
         title={collapsed ? label : undefined}
     >
@@ -59,10 +60,8 @@ export interface DashboardSidebarProps {
     tDynamic: (key: string, fallback?: string) => string;
     remainingCredits: number;
     isRTL: boolean;
-    isGuest: boolean;
-    guestSettings: any;
-    onGuestPageClick: () => void;
-    collapsed: boolean;
+        guestSettings: any;
+        collapsed: boolean;
     setCollapsed: (collapsed: boolean) => void;
     hasPermission: (key: string) => boolean;
     isOwner: boolean;
@@ -70,9 +69,29 @@ export interface DashboardSidebarProps {
 
 export const DashboardSidebar = memo(({
     user, profile, view, onViewChange, onLogout, sidebarOpen, setSidebarOpen,
-    t, tDynamic, remainingCredits, isRTL, isGuest, guestSettings, onGuestPageClick,
+    t, tDynamic, remainingCredits, isRTL, guestSettings,
     collapsed, setCollapsed, hasPermission, isOwner
 }: DashboardSidebarProps) => {
+    // Map user role to owner type for visibility checking
+    const getUserOwnerType = (): OwnerType => {
+        const role = user?.role?.toLowerCase() || 'customer';
+        const mapping: Record<string, OwnerType> = {
+            'customer': 'customers',
+            'supplier': 'suppliers',
+            'advertiser': 'advertisers',
+            'affiliate': 'affiliates',
+            'marketer': 'affiliates'
+        };
+        return mapping[role] || 'customers';
+    };
+
+    const ownerType = getUserOwnerType();
+
+    // Check if feature is visible based on visibility settings from UnifiedPermissionCenter
+    const isFeatureVisible = (featureId: string): boolean => {
+        return isFeatureVisibleForOwner(featureId, ownerType);
+    };
+
     const canAccessFeature = (permissionKey: string): boolean => {
         if (isOwner) return true;
         if (user.role === 'CUSTOMER' && !user.parentId) return true;
@@ -190,33 +209,39 @@ export const DashboardSidebar = memo(({
                 )}
                 <CollapsibleSidebarItem icon={<LayoutDashboard size={20} />} label={tDynamic('sidebar.home', 'الرئيسية')} active={view === 'HOME'} onClick={() => onViewChange('HOME')} collapsed={collapsed} />
 
-                <CollapsibleSidebarItem
-                    icon={<Package size={20} />}
-                    label={tDynamic('sidebar.orders', 'سجل الطلبات')}
-                    active={view === 'ORDERS'}
-                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORDERS')}
-                    badge={user.hasUnreadOrders ? true : undefined}
-                    collapsed={collapsed}
-                />
+                {isFeatureVisible('orders') && (
+                    <CollapsibleSidebarItem
+                        icon={<Package size={20} />}
+                        label={tDynamic('sidebar.orders', 'سجل الطلبات')}
+                        active={view === 'ORDERS'}
+                        onClick={() => onViewChange('ORDERS')}
+                        badge={user.hasUnreadOrders ? true : undefined}
+                        collapsed={collapsed}
+                    />
+                )}
 
-                <CollapsibleSidebarItem
-                    icon={<Search size={20} />}
-                    label={tDynamic('sidebar.quotes', 'طلبات التسعير')}
-                    active={view === 'QUOTE_REQUEST'}
-                    onClick={() => isGuest ? onGuestPageClick() : onViewChange('QUOTE_REQUEST')}
-                    badge={user.hasUnreadQuotes ? true : undefined}
-                    collapsed={collapsed}
-                />
-                <CollapsibleSidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('IMPORT_CHINA')} collapsed={collapsed} />
-                {canAccessFeature('cust_use_trader_tools') && (
-                    <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
+                {isFeatureVisible('quotes') && (
+                    <CollapsibleSidebarItem
+                        icon={<Search size={20} />}
+                        label={tDynamic('sidebar.quotes', 'طلبات التسعير')}
+                        active={view === 'QUOTE_REQUEST'}
+                        onClick={() => onViewChange('QUOTE_REQUEST')}
+                        badge={user.hasUnreadQuotes ? true : undefined}
+                        collapsed={collapsed}
+                    />
+                )}
+                {isFeatureVisible('imports') && (
+                    <CollapsibleSidebarItem icon={<Globe size={20} />} label={tDynamic('sidebar.import', 'الاستيراد من الصين')} active={view === 'IMPORT_CHINA'} onClick={() => onViewChange('IMPORT_CHINA')} collapsed={collapsed} />
                 )}
                 {canAccessFeature('cust_use_trader_tools') && (
-                    <CollapsibleSidebarItem icon={<Clock size={20} />} label={tDynamic('sidebar.toolsHistory', 'سجل الأدوات')} active={view === 'TOOLS_HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TOOLS_HISTORY')} collapsed={collapsed} />
+                    <CollapsibleSidebarItem icon={<Wrench size={20} />} label={tDynamic('sidebar.traderTools', 'أدوات التاجر')} active={view === 'TRADER_TOOLS'} onClick={() => onViewChange('TRADER_TOOLS')} collapsed={collapsed} />
                 )}
-                <CollapsibleSidebarItem icon={<Package size={20} />} label={tDynamic('sidebar.productSearch', 'الطلبات السريعة')} active={view === 'PRODUCT_SEARCH'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('PRODUCT_SEARCH')} collapsed={collapsed} />
-                <CollapsibleSidebarItem icon={<Layers size={20} />} label={tDynamic('sidebar.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ALTERNATIVES')} collapsed={collapsed} />
-                <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('HISTORY')} collapsed={collapsed} />
+                {canAccessFeature('cust_use_trader_tools') && (
+                    <CollapsibleSidebarItem icon={<Clock size={20} />} label={tDynamic('sidebar.toolsHistory', 'سجل الأدوات')} active={view === 'TOOLS_HISTORY'} onClick={() => onViewChange('TOOLS_HISTORY')} collapsed={collapsed} />
+                )}
+                <CollapsibleSidebarItem icon={<Package size={20} />} label={tDynamic('sidebar.productSearch', 'الطلبات السريعة')} active={view === 'PRODUCT_SEARCH'} onClick={() => onViewChange('PRODUCT_SEARCH')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<Layers size={20} />} label={tDynamic('sidebar.alternatives', 'بدائل الأصناف')} active={view === 'ALTERNATIVES'} onClick={() => onViewChange('ALTERNATIVES')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<History size={20} />} label={tDynamic('sidebar.history', 'سجل البحث')} active={view === 'HISTORY'} onClick={() => onViewChange('HISTORY')} collapsed={collapsed} />
 
                 {!collapsed && (
                     <div className="flex items-center gap-2 px-3 py-2 mt-6 mb-2">
@@ -225,9 +250,9 @@ export const DashboardSidebar = memo(({
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                     </div>
                 )}
-                <CollapsibleSidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ORGANIZATION')} collapsed={collapsed} />
-                {canAccessFeature('org_manage_team') && (
-                    <CollapsibleSidebarItem icon={<Users size={20} />} label={tDynamic('sidebar.teamManagement', 'إدارة الفريق')} active={view === 'TEAM_MANAGEMENT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('TEAM_MANAGEMENT')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<Building2 size={20} />} label={tDynamic('sidebar.organization', 'إدارة المنشأة')} active={view === 'ORGANIZATION'} onClick={() => onViewChange('ORGANIZATION')} collapsed={collapsed} />
+                {isFeatureVisible('team') && canAccessFeature('org_manage_team') && (
+                    <CollapsibleSidebarItem icon={<Users size={20} />} label={tDynamic('sidebar.teamManagement', 'إدارة الفريق')} active={view === 'TEAM_MANAGEMENT'} onClick={() => onViewChange('TEAM_MANAGEMENT')} collapsed={collapsed} />
                 )}
 
                 {!collapsed && (
@@ -237,7 +262,7 @@ export const DashboardSidebar = memo(({
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                     </div>
                 )}
-                <CollapsibleSidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => isGuest ? onGuestPageClick() : onViewChange('ABOUT')} collapsed={collapsed} />
+                <CollapsibleSidebarItem icon={<Headphones size={20} />} label={tDynamic('sidebar.support', 'عن الشركة / الدعم')} active={view === 'ABOUT'} onClick={() => onViewChange('ABOUT')} collapsed={collapsed} />
             </nav>
 
             <div className={`${collapsed ? 'p-2' : 'p-4'} border-t border-white/10 relative`}>
@@ -258,3 +283,4 @@ export const DashboardSidebar = memo(({
         </aside>
     );
 });
+

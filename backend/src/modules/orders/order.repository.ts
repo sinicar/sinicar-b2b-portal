@@ -99,7 +99,7 @@ export class OrderRepository {
     branchId?: string;
     totalAmount: number;
     items: Array<{
-      productId: string;
+      productId?: string; // Optional: products may not exist in DB
       partNumber: string;
       name: string;
       quantity: number;

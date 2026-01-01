@@ -4,6 +4,35 @@ import { successResponse, errorResponse } from '../../utils/response';
 
 const router = Router();
 
+// Stub endpoints for frontend compatibility (TODO: implement properly)
+router.get('/levels', async (req: Request, res: Response) => {
+  try {
+    return successResponse(res, [], 'Pricing levels retrieved');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
+router.get('/matrix', async (req: Request, res: Response) => {
+  try {
+    return successResponse(res, { rows: [], columns: [] }, 'Pricing matrix retrieved');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
+router.get('/settings', async (req: Request, res: Response) => {
+  try {
+    return successResponse(res, {
+      baseCurrency: 'SAR',
+      defaultMarkup: 20,
+      autoCalculate: true
+    }, 'Pricing settings retrieved');
+  } catch (error: any) {
+    return errorResponse(res, error.message);
+  }
+});
+
 router.post('/calculate', async (req: Request, res: Response) => {
   try {
     const { supplierId, supplierCurrency, supplierPrice, customerCurrency, qualityCodeId } = req.body;

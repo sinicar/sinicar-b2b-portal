@@ -1,6 +1,6 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { Marketer, MarketerSettings, MarketerCommissionEntry, CustomerReferral, CommissionStatus, CommissionType } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import { 
@@ -69,9 +69,9 @@ export const AdminMarketersPage = () => {
     setLoading(true);
     try {
       const [marketersData, commissionsData, settingsData] = await Promise.all([
-        MockApi.getMarketers(),
-        MockApi.getMarketerCommissions(),
-        MockApi.getMarketerSettings()
+        Api.getMarketers(),
+        Api.getMarketerCommissions(),
+        Api.getMarketerSettings()
       ]);
       setMarketers(marketersData);
       setCommissions(commissionsData);
@@ -87,7 +87,7 @@ export const AdminMarketersPage = () => {
     if (!settings) return;
     setSaving(true);
     try {
-      await MockApi.saveMarketerSettings(settings);
+      await Api.saveMarketerSettings(settings);
       addToast(language === 'ar' ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully', 'success');
     } catch (e) {
       addToast(language === 'ar' ? 'حدث خطأ أثناء الحفظ' : 'Error saving settings', 'error');
@@ -103,7 +103,7 @@ export const AdminMarketersPage = () => {
     }
     
     try {
-      await MockApi.addMarketer({
+      await Api.addMarketer({
         name: newMarketer.name,
         phone: newMarketer.phone,
         email: newMarketer.email,
@@ -125,7 +125,7 @@ export const AdminMarketersPage = () => {
     const marketer = marketers.find(m => m.id === id);
     if (!marketer) return;
     
-    await MockApi.updateMarketer(id, { active: !marketer.active });
+    await Api.updateMarketer(id, { active: !marketer.active });
     setMarketers(prev => prev.map(m => 
       m.id === id ? { ...m, active: !m.active } : m
     ));
@@ -140,7 +140,7 @@ export const AdminMarketersPage = () => {
   const deleteMarketer = async (id: string) => {
     if (!confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المسوق؟' : 'Are you sure you want to delete this marketer?')) return;
     
-    await MockApi.deleteMarketer(id);
+    await Api.deleteMarketer(id);
     setMarketers(prev => prev.filter(m => m.id !== id));
     addToast(language === 'ar' ? 'تم حذف المسوق' : 'Marketer deleted', 'info');
   };
@@ -157,7 +157,7 @@ export const AdminMarketersPage = () => {
   };
 
   const updateCommissionStatus = async (id: string, status: CommissionStatus) => {
-    await MockApi.updateMarketerCommissionStatus(id, status, 'admin');
+    await Api.updateMarketerCommissionStatus(id, status, 'admin');
     setCommissions(prev => prev.map(c => 
       c.id === id ? { ...c, status, approvedAt: status === 'APPROVED' ? new Date().toISOString() : c.approvedAt } : c
     ));

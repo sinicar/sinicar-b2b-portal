@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, FC, ReactNode, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { simulatePriceCalculation, invalidatePricingCache } from '../services/pricingEngine';
 import {
     ConfigurablePriceLevel,
@@ -48,31 +48,47 @@ export const AdminPricingCenter: FC<AdminPricingCenterProps> = ({ onRefresh }) =
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [
-                fetchedLevels,
-                fetchedMatrix,
-                fetchedProfiles,
-                fetchedSettings,
-                fetchedProducts,
-                fetchedCustomers
-            ] = await Promise.all([
-                MockApi.getPriceLevels(),
-                MockApi.getProductPriceMatrix(),
-                MockApi.getAllCustomerPricingProfiles(),
-                MockApi.getGlobalPricingSettings(),
-                MockApi.searchProducts(''),
-                MockApi.getAllUsers()
-            ]);
+            // Use individual try-catch for each to prevent total failure
+            let fetchedLevels: ConfigurablePriceLevel[] = [];
+            let fetchedMatrix: ProductPriceEntry[] = [];
+            let fetchedProfiles: CustomerPricingProfile[] = [];
+            let fetchedSettings: GlobalPricingSettings | null = null;
+            let fetchedProducts: Product[] = [];
+            let fetchedCustomers: Array<{ user: User; profile: BusinessProfile }> = [];
 
-            setLevels(fetchedLevels);
-            setMatrix(fetchedMatrix);
-            setProfiles(fetchedProfiles);
+            // Load each data source individually
+            try { fetchedLevels = (await Api.getPriceLevels()) || []; } 
+            catch (e) { console.warn('Failed to load price levels:', e); }
+
+            try { fetchedMatrix = (await Api.getProductPriceMatrix()) || []; } 
+            catch (e) { console.warn('Failed to load price matrix:', e); }
+
+            try { fetchedProfiles = (await Api.getAllCustomerPricingProfiles()) || []; } 
+            catch (e) { console.warn('Failed to load customer profiles:', e); }
+
+            try { 
+                fetchedSettings = await Api.getGlobalPricingSettings();
+                // Keep null as fallback - the type requires specific fields
+            } catch (e) { 
+                console.warn('Failed to load pricing settings:', e);
+                // fetchedSettings remains null
+            }
+
+            try { fetchedProducts = (await Api.searchProducts('')) || []; } 
+            catch (e) { console.warn('Failed to load products:', e); }
+
+            try { fetchedCustomers = (await Api.getAllUsers()) || []; } 
+            catch (e) { console.warn('Failed to load customers:', e); }
+
+            setLevels(Array.isArray(fetchedLevels) ? fetchedLevels : []);
+            setMatrix(Array.isArray(fetchedMatrix) ? fetchedMatrix : []);
+            setProfiles(Array.isArray(fetchedProfiles) ? fetchedProfiles : []);
             setSettings(fetchedSettings);
-            setProducts(fetchedProducts);
-            setCustomers(fetchedCustomers);
+            setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+            setCustomers(Array.isArray(fetchedCustomers) ? fetchedCustomers : []);
         } catch (error) {
             console.error('Error loading pricing data:', error);
-            addToast('error', 'خطأ في تحميل بيانات التسعير');
+            addToast('خطأ في تحميل بيانات التسعير', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -272,7 +288,7 @@ const PriceLevelsTab: FC<{
         }
 
         try {
-            await MockApi.addPriceLevel(newLevel as any);
+            await Api.addPriceLevel(newLevel as any);
             addToast('success', 'تمت إضافة المستوى بنجاح');
             setIsAdding(false);
             setNewLevel({
@@ -294,7 +310,7 @@ const PriceLevelsTab: FC<{
         if (!editingLevel) return;
 
         try {
-            await MockApi.updatePriceLevel(editingLevel.id, editingLevel);
+            await Api.updatePriceLevel(editingLevel.id, editingLevel);
             addToast('success', 'تم تحديث المستوى بنجاح');
             setEditingLevel(null);
             invalidatePricingCache();
@@ -308,7 +324,7 @@ const PriceLevelsTab: FC<{
         if (!confirm('هل أنت متأكد من حذف هذا المستوى؟')) return;
 
         try {
-            await MockApi.deletePriceLevel(id);
+            await Api.deletePriceLevel(id);
             addToast('success', 'تم حذف المستوى بنجاح');
             invalidatePricingCache();
             onUpdate();
@@ -319,7 +335,7 @@ const PriceLevelsTab: FC<{
 
     const handleToggleActive = async (level: ConfigurablePriceLevel) => {
         try {
-            await MockApi.updatePriceLevel(level.id, { isActive: !level.isActive });
+            await Api.updatePriceLevel(level.id, { isActive: !level.isActive });
             invalidatePricingCache();
             onUpdate();
         } catch (error) {
@@ -622,7 +638,7 @@ const PriceMatrixTab: FC<{
         }
 
         try {
-            await MockApi.addProductPriceEntry(newEntry as any);
+            await Api.addProductPriceEntry(newEntry as any);
             addToast('success', 'تمت إضافة السعر بنجاح');
             setIsAdding(false);
             setNewEntry({ productId: '', priceLevelId: '', price: 0 });
@@ -637,7 +653,7 @@ const PriceMatrixTab: FC<{
         if (!editingEntry) return;
 
         try {
-            await MockApi.updateProductPriceEntry(editingEntry.id, editingEntry);
+            await Api.updateProductPriceEntry(editingEntry.id, editingEntry);
             addToast('success', 'تم تحديث السعر بنجاح');
             setEditingEntry(null);
             invalidatePricingCache();
@@ -651,7 +667,7 @@ const PriceMatrixTab: FC<{
         if (!confirm('هل أنت متأكد من حذف هذا السعر؟')) return;
 
         try {
-            await MockApi.deleteProductPriceEntry(id);
+            await Api.deleteProductPriceEntry(id);
             addToast('success', 'تم حذف السعر بنجاح');
             invalidatePricingCache();
             onUpdate();
@@ -712,7 +728,7 @@ const PriceMatrixTab: FC<{
                 }
 
                 if (entries.length > 0) {
-                    const result = await MockApi.bulkImportPriceMatrix(entries);
+                    const result = await Api.bulkImportPriceMatrix(entries);
                     addToast('success', `تم استيراد ${result.imported} سعر جديد وتحديث ${result.updated} سعر`);
                     if (result.errors.length > 0) {
                         console.error('Import errors:', result.errors);
@@ -984,7 +1000,7 @@ const CustomerProfilesTab: FC<{
         if (!editingProfile) return;
 
         try {
-            await MockApi.upsertCustomerPricingProfile(editingProfile);
+            await Api.upsertCustomerPricingProfile(editingProfile);
             addToast('success', 'تم حفظ ملف التسعير بنجاح');
             invalidatePricingCache();
             onUpdate();
@@ -998,7 +1014,7 @@ const CustomerProfilesTab: FC<{
         if (!confirm('هل أنت متأكد من حذف ملف التسعير لهذا العميل؟')) return;
 
         try {
-            await MockApi.deleteCustomerPricingProfile(selectedCustomer);
+            await Api.deleteCustomerPricingProfile(selectedCustomer);
             addToast('success', 'تم حذف ملف التسعير');
             setSelectedCustomer(null);
             setEditingProfile(null);
@@ -1310,7 +1326,7 @@ const SettingsTab: FC<{
 
     const handleSaveSettings = async () => {
         try {
-            await MockApi.saveGlobalPricingSettings(settings);
+            await Api.saveGlobalPricingSettings(settings);
             addToast('success', 'تم حفظ الإعدادات بنجاح');
             invalidatePricingCache();
             onUpdate();

@@ -12,7 +12,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { AIConversation, AIChatMessage } from '../types';
 
@@ -102,7 +102,7 @@ Help customers with:
 ${userName ? `Customer name: ${userName}` : ''}
 Be concise and helpful.`;
 
-      const response = await MockApi.sendAIMessage({
+      const response = await Api.sendAIMessage({
         message: inputValue.trim(),
         conversationHistory: messages,
         systemPrompt,
@@ -134,7 +134,7 @@ Be concise and helpful.`;
           updatedAt: new Date().toISOString(),
           totalTokensUsed: response.tokensUsed || 0
         };
-        await MockApi.saveAIConversation(conversation);
+        await Api.saveAIConversation(conversation);
       }
 
     } catch (error: any) {

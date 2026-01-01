@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { BusinessProfile, User, Order, ActivityLogEntry, CustomerStatus, PriceLevel, StaffStatus, QuoteRequest, OrderStatus, CustomerType, CustomerNote, AdminCustomerFilters, CustomerActivityLevel, CustomerOrderBehavior } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
     Search, Filter, ChevronRight, ChevronLeft, Eye, EyeOff, ShieldAlert, 
     CheckCircle, XCircle, Clock, MoreHorizontal, UserCheck, Users, UserPlus,
@@ -125,7 +125,7 @@ export const AdminCustomersPage: React.FC = () => {
                 sortDirection: sortConfig.direction
             };
             
-            const response = await MockApi.getAdminCustomers(filters);
+            const response = await Api.getAdminCustomers(filters);
             setCustomers(response.items);
             setTotalCount(response.total);
         } catch (e) {
@@ -138,8 +138,8 @@ export const AdminCustomersPage: React.FC = () => {
     const loadDropdownData = async () => {
         try {
             const [marketersList, employeesList] = await Promise.all([
-                MockApi.getMarketersForDropdown(),
-                MockApi.getEmployeesForDropdown()
+                Api.getMarketersForDropdown(),
+                Api.getEmployeesForDropdown()
             ]);
             setMarketers(marketersList);
             setEmployees(employeesList);
@@ -155,7 +155,7 @@ export const AdminCustomersPage: React.FC = () => {
     useEffect(() => {
         const loadStats = async () => {
             try {
-                const stats = await MockApi.getCustomerStats();
+                const stats = await Api.getCustomerStats();
                 setStatsSummary({ 
                     total: stats.total, 
                     active: stats.active, 
@@ -233,13 +233,13 @@ export const AdminCustomersPage: React.FC = () => {
 
         setAddingCustomer(true);
         try {
-            await MockApi.createCustomerFromAdmin(newCustomerForm);
+            await Api.createCustomerFromAdmin(newCustomerForm);
             addToast(t('adminCustomers.addCustomer.success'), 'success');
             setShowAddCustomerModal(false);
             resetAddCustomerForm();
             loadCustomers();
             // Reload stats
-            const stats = await MockApi.getCustomerStats();
+            const stats = await Api.getCustomerStats();
             setStatsSummary({ 
                 total: stats.total, 
                 active: stats.active, 
@@ -979,9 +979,9 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
     useEffect(() => {
         // Load Logs & Staff immediately
         const loadSubData = async () => {
-            const logs = await MockApi.getCustomerActivityLogs(customer.userId);
+            const logs = await Api.getCustomerActivityLogs(customer.userId);
             setActivityLogs(logs);
-            const emps = await MockApi.getEmployees(customer.userId);
+            const emps = await Api.getEmployees(customer.userId);
             setStaff(emps);
         };
         loadSubData();
@@ -991,7 +991,9 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
     useEffect(() => {
         if (activeTab === 'ORDERS' && orders.length === 0 && !loadingOrders) {
             setLoadingOrders(true);
-            MockApi.getAllOrders().then(allOrders => {
+            Api.getAllOrders().then(result => {
+                // استخراج items من النتيجة الموحّدة {items, total}
+                const allOrders = Array.isArray(result) ? result : (result?.items ?? []);
                 // Filter orders by userId or businessId matching the customer
                 const customerOrders = allOrders.filter(o => 
                     o.userId === customer.userId || o.businessId === customer.userId
@@ -1006,7 +1008,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
     useEffect(() => {
         if (activeTab === 'QUOTES' && quotes.length === 0 && !loadingQuotes) {
             setLoadingQuotes(true);
-            MockApi.getAllQuoteRequests().then(allQuotes => {
+            Api.getAllQuoteRequests().then(allQuotes => {
                 // Filter quotes by userId matching the customer
                 const customerQuotes = allQuotes.filter(q => q.userId === customer.userId);
                 setQuotes(customerQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -1018,7 +1020,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
     const handleSaveStatus = async () => {
         setIsSaving(true);
         try {
-            await MockApi.updateCustomerStatus(customer.userId, status, suspendedUntil);
+            await Api.updateCustomerStatus(customer.userId, status, suspendedUntil);
             addToast('تم تحديث حالة العميل', 'success');
             onUpdate();
         } catch (e) {
@@ -1031,7 +1033,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
     const handleAddPoints = async () => {
         const points = prompt('أدخل عدد النقاط للإضافة:', '50');
         if (points && parseInt(points) > 0) {
-            await MockApi.addCustomerSearchPoints(customer.userId, parseInt(points));
+            await Api.addCustomerSearchPoints(customer.userId, parseInt(points));
             addToast(`تم إضافة ${points} نقطة بنجاح`, 'success');
             onUpdate();
         }
@@ -1046,7 +1048,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                 addToast(`لا يمكن خصم أكثر من الرصيد المتبقي (${currentBalance} نقطة)`, 'error');
                 return;
             }
-            const success = await MockApi.deductCustomerSearchPoints(customer.userId, pointsNum);
+            const success = await Api.deductCustomerSearchPoints(customer.userId, pointsNum);
             if (success) {
                 addToast(`تم خصم ${points} نقطة بنجاح`, 'success');
                 onUpdate();
@@ -1058,10 +1060,10 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
 
     const handleToggleStaff = async (staffId: string, currentStatus: string) => {
         const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-        await MockApi.updateStaffStatus(staffId, newStatus);
+        await Api.updateStaffStatus(staffId, newStatus);
         addToast('تم تحديث حالة الموظف', 'success');
         // Refresh local staff list
-        const emps = await MockApi.getEmployees(customer.userId);
+        const emps = await Api.getEmployees(customer.userId);
         setStaff(emps);
     };
 
@@ -1179,7 +1181,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                         value={customer.priceVisibility || 'HIDDEN'}
                                         onChange={async (e) => {
                                             const newValue = e.target.value as 'VISIBLE' | 'HIDDEN';
-                                            await MockApi.updateCustomerPriceVisibility(customer.userId, newValue);
+                                            await Api.updateCustomerPriceVisibility(customer.userId, newValue);
                                             addToast(`${t('adminCustomers.detail.priceDisplayChanged')} ${newValue === 'VISIBLE' ? t('adminCustomers.detail.visible') : t('adminCustomers.detail.hidden')}`, 'success');
                                             onUpdate();
                                         }}
@@ -1406,7 +1408,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                     </div>
                                 </div>
                                 <button 
-                                    onClick={() => MockApi.resetFailedLogin(customer.userId).then(() => {addToast(t('adminCustomers.detail.security.counterReset'), 'success'); onUpdate();})}
+                                    onClick={() => Api.resetFailedLogin(customer.userId).then(() => {addToast(t('adminCustomers.detail.security.counterReset'), 'success'); onUpdate();})}
                                     className="mt-4 w-full border border-slate-300 text-slate-600 py-2 rounded-lg text-sm hover:bg-slate-50"
                                 >
                                     {t('adminCustomers.detail.security.resetCounter')}
@@ -1428,7 +1430,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                                     addToast(t('adminCustomers.detail.security.adminNotFound'), 'error');
                                                     return;
                                                 }
-                                                const result = await MockApi.adminResetPassword(adminUser.id, customer.userId, newPassword);
+                                                const result = await Api.adminResetPassword(adminUser.id, customer.userId, newPassword);
                                                 if (result.success) {
                                                     addToast(result.message, 'success');
                                                 } else {
@@ -1488,7 +1490,7 @@ const CustomerDetailPanel: React.FC<DetailPanelProps> = ({ customer, onClose, on
                                 </h3>
                                 <div className="flex gap-2 text-xs">
                                     <span className="bg-green-50 text-green-700 px-2 py-1 rounded-lg font-bold">
-                                        {t('adminCustomers.detail.orders.completed')}: {orders.filter(o => o.status === 'DELIVERED').length}
+                                        {t('adminCustomers.detail.orders.completed')}: {orders.filter(o => o.status as string === OrderStatus.DELIVERED).length}
                                     </span>
                                     <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded-lg font-bold">
                                         {t('adminCustomers.detail.orders.ongoing')}: {orders.filter(o => ['PENDING', 'APPROVED', 'SHIPPED'].includes(o.status as string)).length}
@@ -1657,7 +1659,7 @@ const CustomerNotesTab: React.FC<CustomerNotesTabProps> = ({ customerId, custome
     const loadNotes = async () => {
         setLoading(true);
         try {
-            const result = await MockApi.getCustomerNotes(customerId, 1, 50);
+            const result = await Api.getCustomerNotes(customerId, 1, 50);
             setNotes(result.notes);
         } catch (e) {
             console.error('Error loading notes:', e);
@@ -1674,7 +1676,7 @@ const CustomerNotesTab: React.FC<CustomerNotesTabProps> = ({ customerId, custome
 
         setSaving(true);
         try {
-            await MockApi.addCustomerNote(
+            await Api.addCustomerNote(
                 customerId, 
                 newNoteText, 
                 'super-admin', 

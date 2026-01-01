@@ -32,14 +32,13 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({
     initialAdminUser = null
 }) => {
     const setAdminUser = useAuthStore((state) => state.setAdminUser);
-    const initialized = useAuthStore((state) => state.initialized);
 
     // تهيئة المستخدم عند تغيير initialAdminUser
     useEffect(() => {
-        if (initialAdminUser && !initialized) {
+        if (initialAdminUser) {
             setAdminUser(initialAdminUser);
         }
-    }, [initialAdminUser, setAdminUser, initialized]);
+    }, [initialAdminUser, setAdminUser]);
 
     // لا نحتاج Context Provider بعد الآن - Zustand هو الـ store
     return <>{children}</>;
@@ -99,7 +98,7 @@ interface PermissionGateProps {
  */
 export const PermissionGate: React.FC<PermissionGateProps> = ({
     resource,
-    action = 'view',
+    action = 'view' as PermissionAction,
     children,
     fallback = null
 }) => {
@@ -127,7 +126,7 @@ interface PermissionGuardProps {
  */
 export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     resource,
-    action = 'view',
+    action = 'view' as PermissionAction,
     children,
     redirectTo = '/'
 }) => {

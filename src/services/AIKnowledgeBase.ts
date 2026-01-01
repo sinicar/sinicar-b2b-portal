@@ -101,10 +101,10 @@ export const SYSTEM_MODULES: SystemModule[] = [
   {
     name: 'Permissions',
     nameAr: 'نظام الصلاحيات',
-    description: 'Role-based access control and permission management',
-    descriptionAr: 'التحكم في الوصول بناءً على الأدوار وإدارة الصلاحيات',
-    files: ['src/components/AdminPermissionCenter.tsx', 'src/services/PermissionContext.tsx'],
-    mainEntry: 'src/components/AdminPermissionCenter.tsx'
+    description: 'Unified permission center with role-based access control and permission management',
+    descriptionAr: 'مركز الصلاحيات الموحد للتحكم في الوصول بناءً على الأدوار وإدارة الصلاحيات',
+    files: ['src/components/UnifiedPermissionCenter.tsx', 'src/services/PermissionContext.tsx', 'src/stores/useAuthStore.ts'],
+    mainEntry: 'src/components/UnifiedPermissionCenter.tsx'
   }
 ];
 
@@ -144,7 +144,7 @@ export const FILES_KNOWLEDGE: FileKnowledge[] = [
     description: 'Main customer dashboard with sidebar navigation, product search, cart, and orders',
     descriptionAr: 'لوحة تحكم العميل الرئيسية مع التنقل الجانبي والبحث والسلة والطلبات',
     type: 'component',
-    dependencies: ['mockApi', 'OrganizationContext', 'CustomerPortalSettingsContext'],
+    dependencies: ['Api', 'OrganizationContext', 'CustomerPortalSettingsContext'],
     canModify: true,
     modificationRisk: 'medium'
   },
@@ -153,7 +153,7 @@ export const FILES_KNOWLEDGE: FileKnowledge[] = [
     description: 'Admin control panel with statistics, customer management, and settings',
     descriptionAr: 'لوحة تحكم المدير مع الإحصائيات وإدارة العملاء والإعدادات',
     type: 'component',
-    dependencies: ['mockApi', 'PermissionContext', 'AdminBadgesContext'],
+    dependencies: ['Api', 'PermissionContext', 'AdminBadgesContext'],
     canModify: true,
     modificationRisk: 'medium'
   },
@@ -224,11 +224,11 @@ export const FILES_KNOWLEDGE: FileKnowledge[] = [
 
   // === SERVICES ===
   {
-    path: 'src/services/mockApi.ts',
+    path: 'src/services/Api.ts',
     description: 'Mock backend API with localStorage persistence (6486 lines)',
     descriptionAr: 'واجهة API وهمية مع حفظ البيانات في localStorage',
     type: 'service',
-    exports: ['MockApi'],
+    exports: ['Api'],
     canModify: true,
     modificationRisk: 'high'
   },
@@ -467,11 +467,11 @@ export const SYSTEM_HEALTH_CHECKS = [
 
 export function getKnowledgeForAI(language: 'ar' | 'en' = 'ar'): string {
   const isAr = language === 'ar';
-  
-  let knowledge = isAr 
+
+  let knowledge = isAr
     ? '# قاعدة معرفة نظام SINI CAR\n\n'
     : '# SINI CAR System Knowledge Base\n\n';
-  
+
   knowledge += isAr
     ? '## نظرة عامة\n'
     : '## Overview\n';
@@ -504,7 +504,7 @@ export function getFileInfo(filePath: string): FileKnowledge | undefined {
 
 export function searchKnowledge(query: string): FileKnowledge[] {
   const lowerQuery = query.toLowerCase();
-  return FILES_KNOWLEDGE.filter(f => 
+  return FILES_KNOWLEDGE.filter(f =>
     f.path.toLowerCase().includes(lowerQuery) ||
     f.description.toLowerCase().includes(lowerQuery) ||
     f.descriptionAr.includes(query)

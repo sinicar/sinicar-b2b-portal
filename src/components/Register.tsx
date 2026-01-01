@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { CustomerCategory, AccountOpeningRequest, UploadedDocument, SiteSettings } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { CheckCircle, ArrowRight, ArrowLeft, Building2, User, FileText, Briefcase, Car, Shield, Send, Upload, X, File, Image, AlertCircle, Wrench } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
@@ -39,7 +39,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
 
   // Load site settings for customizable texts
   useEffect(() => {
-    MockApi.getSettings().then(setSiteSettings);
+    Api.getSettings().then(setSiteSettings);
   }, []);
 
   const [formData, setFormData] = useState<Partial<AccountOpeningRequest>>({
@@ -158,7 +158,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
     setLoading(true);
 
     try {
-        await MockApi.createAccountOpeningRequest({
+        await Api.createAccountOpeningRequest({
             category,
             ...formData,
             phone: formData.phone || '', // Ensure strings
@@ -196,7 +196,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitchToLogin }
             <p className="text-xs text-slate-400 mt-1">{t('register.documents.fileTypes')}</p>
             <input 
               type="file"
-              ref={el => fileInputRefs.current[docKey] = el}
+              ref={el => { fileInputRefs.current[docKey] = el; }}
               className="hidden"
               accept=".pdf,.jpg,.jpeg,.png,.webp"
               onChange={(e) => {

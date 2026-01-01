@@ -119,7 +119,22 @@ interface AIAnalysisResult {
 const API_BASE = '/api/v1';
 
 const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem('siniCar_auth_token');
+  // Try multiple token sources for compatibility
+  let token = localStorage.getItem('siniCar_auth_token');
+  
+  // Fallback: extract token from session
+  if (!token) {
+    const session = localStorage.getItem('b2b_session_sini_v2');
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        token = sessionData.token || sessionData.authToken || null;
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }
+  
   return {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})

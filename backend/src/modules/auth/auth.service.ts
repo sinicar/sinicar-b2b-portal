@@ -32,7 +32,17 @@ export class AuthService {
     const { identifier, password, loginType } = input;
 
     if (loginType === 'owner') {
-      const user = await authRepository.findUserByClientId(identifier);
+      // Try to find user by clientId first, then by email
+      let user = await authRepository.findUserByClientId(identifier);
+      
+      // If not found by clientId, try email
+      if (!user && identifier.includes('@')) {
+        const userByEmail = await authRepository.findUserByEmail(identifier);
+        if (userByEmail) {
+          // Re-fetch with full includes like findUserByClientId provides
+          user = await authRepository.findUserByClientId(userByEmail.clientId);
+        }
+      }
       
       if (!user) {
         throw new UnauthorizedError('معرف العميل أو كلمة المرور غير صحيحة');
@@ -95,6 +105,8 @@ export class AuthService {
           email: user.email,
           phone: user.phone,
           role: user.role,
+          isSupplier: user.isSupplier,
+          isCustomer: user.isCustomer,
           profile: user.profile
         },
         ...tokens

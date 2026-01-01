@@ -9,7 +9,7 @@ import {
 import { useToast } from '../services/ToastContext';
 import { Modal } from './Modal';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 
 interface OrdersPageProps {
   orders: Order[];
@@ -74,8 +74,8 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({ orders: initialOrders, q
   // View State
   const [viewMode, setViewMode] = useState<'ORDERS' | 'QUOTES'>('ORDERS');
   
-  // Data State
-  const [localOrders, setLocalOrders] = useState<Order[]>(initialOrders);
+  // Data State - تأكد من أن الـ array موجود
+  const [localOrders, setLocalOrders] = useState<Order[]>(initialOrders ?? []);
   
   // Filters State
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +93,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({ orders: initialOrders, q
   const { addToast } = useToast();
 
   useEffect(() => {
-    setLocalOrders(initialOrders);
+    setLocalOrders(initialOrders ?? []);
   }, [initialOrders]);
 
   // Reset pagination when filters change
@@ -103,7 +103,9 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({ orders: initialOrders, q
 
   // --- Filtering Logic (Memoized) ---
   const filteredOrders = useMemo(() => {
-    let result = [...localOrders];
+    // تأكد من أن localOrders هو Array
+    const safeOrders = Array.isArray(localOrders) ? localOrders : [];
+    let result = [...safeOrders];
     if (searchTerm) {
       const lowerTerm = searchTerm.toLowerCase();
       result = result.filter(o => o.id.toLowerCase().includes(lowerTerm));
@@ -167,7 +169,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({ orders: initialOrders, q
 
       if (window.confirm('هل أنت متأكد من إلغاء هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.')) {
           try {
-              await MockApi.cancelOrder(order.id, 'CUSTOMER');
+              await Api.cancelOrder(order.id, 'CUSTOMER');
               // Update local state locally to reflect change immediately
               const updated = localOrders.map(o => o.id === order.id ? {...o, status: OrderStatus.CANCELLED, cancelledBy: 'CUSTOMER' as const, cancelledAt: new Date().toISOString()} : o);
               setLocalOrders(updated);
@@ -197,7 +199,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({ orders: initialOrders, q
       
       if (window.confirm('هل أنت متأكد من حذف هذا الطلب نهائيًا من السجل؟')) {
           try {
-              await MockApi.deleteOrder(order.id);
+              await Api.deleteOrder(order.id);
               // Update local state locally to reflect change immediately
               const updated = localOrders.filter(o => o.id !== order.id);
               setLocalOrders(updated);

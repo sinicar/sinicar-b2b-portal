@@ -1,7 +1,7 @@
 import { useState, useEffect, memo } from 'react';
 import { X, ExternalLink, Megaphone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MarketingCampaign } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useLanguage } from '../services/LanguageContext';
 
 interface MarketingBannerProps {
@@ -17,7 +17,7 @@ export const MarketingBanner = memo(({ userId, customerType }: MarketingBannerPr
 
     useEffect(() => {
         const loadCampaigns = async () => {
-            const activeCampaigns = await MockApi.getActiveCampaignsForUser(userId, customerType);
+            const activeCampaigns = await Api.getActiveCampaignsForUser(userId, customerType);
             const bannerCampaigns = activeCampaigns
                 .filter(c => c.displayType === 'BANNER')
                 .sort((a, b) => b.priority - a.priority);
@@ -27,7 +27,7 @@ export const MarketingBanner = memo(({ userId, customerType }: MarketingBannerPr
     }, [userId, customerType]);
 
     const handleDismiss = async (campaignId: string) => {
-        await MockApi.dismissCampaignForUser(userId, campaignId);
+        await Api.dismissCampaignForUser(userId, campaignId);
         setDismissed(prev => {
             const newDismissed = new Set([...prev, campaignId]);
             // Calculate new visible campaigns count
@@ -143,7 +143,7 @@ export const MarketingPopup = memo(({ userId, customerType, onClose }: Marketing
 
     useEffect(() => {
         const loadCampaigns = async () => {
-            const activeCampaigns = await MockApi.getActiveCampaignsForUser(userId, customerType);
+            const activeCampaigns = await Api.getActiveCampaignsForUser(userId, customerType);
             const popupCampaigns = activeCampaigns
                 .filter(c => c.displayType === 'POPUP')
                 .sort((a, b) => b.priority - a.priority);
@@ -159,7 +159,7 @@ export const MarketingPopup = memo(({ userId, customerType, onClose }: Marketing
     const handleDismiss = async () => {
         const currentCampaign = campaigns[currentIndex];
         if (currentCampaign) {
-            await MockApi.dismissCampaignForUser(userId, currentCampaign.id);
+            await Api.dismissCampaignForUser(userId, currentCampaign.id);
         }
         
         if (currentIndex < campaigns.length - 1) {
@@ -175,7 +175,7 @@ export const MarketingPopup = memo(({ userId, customerType, onClose }: Marketing
     const handleSkip = () => {
         setIsVisible(false);
         campaigns.forEach(c => {
-            MockApi.dismissCampaignForUser(userId, c.id);
+            Api.dismissCampaignForUser(userId, c.id);
         });
         setTimeout(() => {
             onClose?.();
@@ -315,7 +315,7 @@ export const MarketingDashboardCard = memo(({ userId, customerType }: MarketingD
 
     useEffect(() => {
         const loadCampaigns = async () => {
-            const activeCampaigns = await MockApi.getActiveCampaignsForUser(userId, customerType);
+            const activeCampaigns = await Api.getActiveCampaignsForUser(userId, customerType);
             const cardCampaigns = activeCampaigns
                 .filter(c => c.displayType === 'DASHBOARD_CARD')
                 .sort((a, b) => b.priority - a.priority);
@@ -325,7 +325,7 @@ export const MarketingDashboardCard = memo(({ userId, customerType }: MarketingD
     }, [userId, customerType]);
 
     const handleDismiss = async (campaignId: string) => {
-        await MockApi.dismissCampaignForUser(userId, campaignId);
+        await Api.dismissCampaignForUser(userId, campaignId);
         setDismissed(prev => new Set([...prev, campaignId]));
     };
 

@@ -33,9 +33,9 @@ declare global {
 export type Environment = 'development' | 'production' | 'test';
 
 /**
- * API mode determines whether to use mock (localStorage) or REST (real backend)
+ * API mode determines whether to use mock (localStorage), REST (real backend), or Supabase
  */
-export type ApiMode = 'mock' | 'rest';
+export type ApiMode = 'mock' | 'rest' | 'supabase';
 
 /**
  * HTTP methods supported by the API client
@@ -189,7 +189,7 @@ function getEnvVar(key: string, fallback: string = ''): string {
       return import.meta.env[viteKey] as string;
     }
   }
-  
+
   // Try process.env (for SSR or Node.js)
   if (typeof process !== 'undefined' && process.env) {
     if (process.env[key] !== undefined) {
@@ -200,7 +200,7 @@ function getEnvVar(key: string, fallback: string = ''): string {
       return process.env[viteKey] as string;
     }
   }
-  
+
   return fallback;
 }
 
@@ -209,15 +209,15 @@ function getEnvVar(key: string, fallback: string = ''): string {
  */
 function detectEnvironment(): Environment {
   const envVar = getEnvVar('NODE_ENV', 'development');
-  
+
   if (envVar === 'production') return 'production';
   if (envVar === 'test') return 'test';
-  
+
   // Check for Vite dev mode
   if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
     return 'development';
   }
-  
+
   return 'development';
 }
 
@@ -226,20 +226,34 @@ function detectEnvironment(): Environment {
  * Falls back to 'mock' if not specified or if baseUrl is not available
  */
 function detectApiMode(): ApiMode {
+  // ======================================
+  // REST MODE: استخدام Backend الحقيقي
+  // ======================================
+  return 'rest';
+
+  // === الكود الأصلي للتطوير (معلّق) ===
+  /*
   const modeVar = getEnvVar('API_MODE', 'mock');
   const baseUrl = getEnvVar('API_BASE_URL', '');
-  
+  const useSupabase = getEnvVar('USE_SUPABASE', 'false');
+
+  // Check if Supabase mode is enabled
+  if (useSupabase === 'true' || modeVar === 'supabase') {
+    return 'supabase';
+  }
+
   // If explicitly set to 'rest' but no baseUrl, fall back to mock
   if (modeVar === 'rest' && !baseUrl) {
     console.warn('[apiConfig] API_MODE is "rest" but API_BASE_URL is not set. Falling back to mock mode.');
     return 'mock';
   }
-  
-  if (modeVar === 'rest' || modeVar === 'mock') {
+
+  if (modeVar === 'rest' || modeVar === 'mock' || modeVar === 'supabase') {
     return modeVar;
   }
-  
+
   return 'mock';
+  */
 }
 
 // ============================================================================
@@ -269,28 +283,28 @@ function detectApiMode(): ApiMode {
 export const apiConfig: ApiConfigType = {
   env: detectEnvironment(),
   apiMode: detectApiMode(),
-  baseUrl: getEnvVar('API_BASE_URL', 'https://api.sini-pro-erp.com/v1'),
+  baseUrl: getEnvVar('API_BASE_URL', 'http://localhost:3005/api/v1'),
   version: '2.0.0',
-  
+
   timeouts: {
     default: 30000,   // 30 seconds
     upload: 120000,   // 2 minutes
     download: 60000   // 1 minute
   },
-  
+
   retry: {
     maxRetries: 3,
     baseDelay: 1000,    // 1 second
     maxDelay: 10000,    // 10 seconds
     exponentialBackoff: true
   },
-  
+
   defaultHeaders: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'Accept-Language': 'ar'
   },
-  
+
   endpoints: {
     auth: {
       login: '/auth/login',
@@ -354,7 +368,7 @@ export const apiConfig: ApiConfigType = {
       create: '/activity-logs'
     }
   },
-  
+
   debug: detectEnvironment() === 'development',
   storagePrefix: 'b2b_',
   isInitialized: true
@@ -376,6 +390,13 @@ export function isMockMode(): boolean {
  */
 export function isRestMode(): boolean {
   return apiConfig.apiMode === 'rest';
+}
+
+/**
+ * Checks if the application is running in Supabase mode
+ */
+export function isSupabaseMode(): boolean {
+  return apiConfig.apiMode === 'supabase';
 }
 
 /**
@@ -429,8 +450,8 @@ export function debugLog(category: string, message: string, data?: any): void {
  * @param context - Optional additional context
  */
 export function errorLog(
-  category: string, 
-  message: string, 
+  category: string,
+  message: string,
   error: unknown,
   context?: Record<string, any>
 ): void {

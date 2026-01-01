@@ -1,4 +1,4 @@
-import { MockApi } from './mockApi';
+import { Api } from './api';
 import { ToolKey, ToolConfig, CustomerToolsOverride, BusinessProfile, TraderToolType } from '../types';
 
 // Mapping from ToolKey to TraderToolType
@@ -31,7 +31,7 @@ export const toolsAccessService = {
     customerType?: string
   ): Promise<ToolAccessResult> {
     try {
-      const config = await MockApi.getToolConfig(toolKey);
+      const config = await Api.getToolConfig(toolKey);
       
       if (!config) {
         return {
@@ -60,7 +60,7 @@ export const toolsAccessService = {
         };
       }
 
-      const override = await MockApi.getCustomerToolsOverride(customerId);
+      const override = await Api.getCustomerToolsOverride(customerId);
 
       if (override && !override.useGlobalDefaults) {
         if (override.forcedDisabledTools?.includes(toolKey)) {
@@ -73,8 +73,8 @@ export const toolsAccessService = {
         }
 
         if (override.forcedEnabledTools?.includes(toolKey)) {
-          const usageToday = await MockApi.getCustomerToolUsageToday(customerId, toolKey);
-          const usageThisMonth = await MockApi.getCustomerToolUsageThisMonth(customerId, toolKey);
+          const usageToday = await Api.getCustomerToolUsageToday(customerId, toolKey);
+          const usageThisMonth = await Api.getCustomerToolUsageThisMonth(customerId, toolKey);
           
           const customLimit = override.customLimits?.find(l => l.toolKey === toolKey);
           const dailyLimit = customLimit?.maxFilesPerDay ?? config.maxFilesPerDay;
@@ -137,8 +137,8 @@ export const toolsAccessService = {
         }
       }
 
-      const usageToday = await MockApi.getCustomerToolUsageToday(customerId, toolKey);
-      const usageThisMonth = await MockApi.getCustomerToolUsageThisMonth(customerId, toolKey);
+      const usageToday = await Api.getCustomerToolUsageToday(customerId, toolKey);
+      const usageThisMonth = await Api.getCustomerToolUsageThisMonth(customerId, toolKey);
       const dailyLimit = config.maxFilesPerDay;
       const monthlyLimit = config.maxFilesPerMonth;
 
@@ -204,7 +204,7 @@ export const toolsAccessService = {
     customerId: string,
     customerType?: string
   ): Promise<ToolConfig[]> {
-    const configs = await MockApi.getToolConfigs();
+    const configs = await Api.getToolConfigs();
     const accessResults = await this.getAllToolsAccess(customerId, customerType);
     
     return configs
@@ -242,10 +242,10 @@ export const toolsAccessService = {
     processingTimeMs?: number,
     metadata?: Record<string, any>
   ): Promise<void> {
-    const config = await MockApi.getToolConfig(toolKey);
+    const config = await Api.getToolConfig(toolKey);
     
     if (config?.logUsageForAnalytics) {
-      await MockApi.addToolUsageRecord({
+      await Api.addToolUsageRecord({
         customerId,
         toolKey,
         usedAt: new Date().toISOString(),
@@ -260,7 +260,7 @@ export const toolsAccessService = {
     // Also log to the new TraderToolAction system for comprehensive tracking
     const traderToolType = TOOL_KEY_TO_TRADER_TYPE[toolKey];
     if (traderToolType) {
-      await MockApi.logTraderToolAction(
+      await Api.logTraderToolAction(
         customerId,
         traderToolType,
         metadata || {},
@@ -287,7 +287,7 @@ export const toolsAccessService = {
     uniqueCustomers: number;
     byDay: { date: string; count: number }[];
   }> {
-    const records = await MockApi.getToolUsageRecords(customerId, toolKey);
+    const records = await Api.getToolUsageRecords(customerId, toolKey);
     
     const now = new Date();
     let startDate: Date;

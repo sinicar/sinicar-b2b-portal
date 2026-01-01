@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { Product, ExcelColumnPreset, ExcelColumnMapping, INTERNAL_PRODUCT_FIELDS, SiteSettings } from '../types';
 import {
     Upload, Download, Search, Package, AlertTriangle, CheckCircle,
@@ -92,13 +92,17 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     }, []);
 
     const loadVisibilitySettings = async () => {
-        const settings = await MockApi.getSettings();
+        const settings = await Api.getSettings();
         setVisibilityThreshold(settings.minVisibleQty ?? 1);
     };
 
-    const loadColumnPresets = () => {
-        const presets = MockApi.getExcelColumnPresets();
-        setColumnPresets(presets);
+    const loadColumnPresets = async () => {
+        try {
+            const presets = await Api.getExcelColumnPresets();
+            setColumnPresets(Array.isArray(presets) ? presets : []);
+        } catch (error) {
+            setColumnPresets([]);
+        }
     };
 
     const initializeNewPreset = () => {
@@ -127,14 +131,14 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         }
 
         if (presetMode === 'create') {
-            MockApi.createExcelColumnPreset({
+            Api.createExcelColumnPreset({
                 name: presetForm.name,
                 isDefault: columnPresets.length === 0,
                 mappings: presetForm.mappings
             });
             addToast(t('adminProducts.columnPresets.created', 'تم إنشاء الإعداد بنجاح'), 'success');
         } else if (editingPreset) {
-            MockApi.updateExcelColumnPreset(editingPreset.id, {
+            Api.updateExcelColumnPreset(editingPreset.id, {
                 name: presetForm.name,
                 mappings: presetForm.mappings
             });
@@ -147,14 +151,14 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
 
     const handleDeletePreset = (id: string) => {
         if (confirm(t('adminProducts.columnPresets.deleteConfirm', 'هل أنت متأكد من حذف هذا الإعداد؟'))) {
-            MockApi.deleteExcelColumnPreset(id);
+            Api.deleteExcelColumnPreset(id);
             addToast(t('adminProducts.columnPresets.deleted', 'تم حذف الإعداد'), 'info');
             loadColumnPresets();
         }
     };
 
     const handleSetDefault = (id: string) => {
-        MockApi.setDefaultExcelColumnPreset(id);
+        Api.setDefaultExcelColumnPreset(id);
         addToast(t('adminProducts.columnPresets.setDefault', 'تم تعيين الإعداد الافتراضي'), 'success');
         loadColumnPresets();
     };
@@ -217,7 +221,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             addToast(t('adminProducts.selectProductsFirst', 'الرجاء تحديد منتجات أولاً'), 'error');
             return;
         }
-        const count = await MockApi.bulkUpdateProductVisibility(Array.from(selectedProducts), true);
+        const count = await Api.bulkUpdateProductVisibility(Array.from(selectedProducts), true);
         addToast(t('adminProducts.visibilityApplied', `تم تطبيق قاعدة إخفاء الكمية على ${count} منتج`, { count }), 'success');
         loadProducts();
         clearSelection();
@@ -228,22 +232,22 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
             addToast(t('adminProducts.selectProductsFirst', 'الرجاء تحديد منتجات أولاً'), 'error');
             return;
         }
-        const count = await MockApi.bulkUpdateProductVisibility(Array.from(selectedProducts), false);
+        const count = await Api.bulkUpdateProductVisibility(Array.from(selectedProducts), false);
         addToast(t('adminProducts.visibilityRemoved', `تم إزالة قاعدة إخفاء الكمية من ${count} منتج`, { count }), 'success');
         loadProducts();
         clearSelection();
     };
 
     const saveVisibilityThreshold = async () => {
-        const settings = await MockApi.getSettings();
-        await MockApi.updateSettings({ ...settings, minVisibleQty: visibilityThreshold });
+        const settings = await Api.getSettings();
+        await Api.updateSettings({ ...settings, minVisibleQty: visibilityThreshold });
         addToast(t('adminProducts.visibility.saved', 'تم حفظ الحد الأدنى لعرض الكمية'), 'success');
     };
 
     const loadProducts = async () => {
         setLoading(true);
         try {
-            const data = await MockApi.getProducts();
+            const data = await Api.getProducts();
             setProducts(data);
         } catch (err) {
             addToast(t('adminProducts.loadFailed', 'فشل في تحميل المنتجات'), 'error');
@@ -253,9 +257,10 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     };
 
     const filteredProducts = useMemo(() => {
-        if (!debouncedSearchQuery.trim()) return products;
+        const safeProducts = Array.isArray(products) ? products : [];
+        if (!debouncedSearchQuery.trim()) return safeProducts;
         const q = debouncedSearchQuery.toLowerCase();
-        return products.filter(p =>
+        return safeProducts.filter(p =>
             p.partNumber.toLowerCase().includes(q) ||
             p.name.toLowerCase().includes(q) ||
             (p.brand && p.brand.toLowerCase().includes(q)) ||
@@ -264,11 +269,12 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
     }, [products, debouncedSearchQuery]);
 
     const paginatedProducts = useMemo(() => {
+        const safeFiltered = Array.isArray(filteredProducts) ? filteredProducts : [];
         const start = (page - 1) * ITEMS_PER_PAGE;
-        return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
+        return safeFiltered.slice(start, start + ITEMS_PER_PAGE);
     }, [filteredProducts, page]);
 
-    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil((Array.isArray(filteredProducts) ? filteredProducts.length : 0) / ITEMS_PER_PAGE);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -279,8 +285,8 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         setShowImportModal(true);
 
         try {
-            const defaultPreset = MockApi.getDefaultExcelColumnPreset();
-            const result = await MockApi.importProductsFromOnyxExcel(file, defaultPreset?.id);
+            const defaultPreset = Api.getDefaultExcelColumnPreset();
+            const result = await Api.importProductsFromOnyxExcel(file, defaultPreset?.id);
             setImportResult(result);
             addToast(t('adminProducts.importModal.importSuccess', 'تم الاستيراد بنجاح'), 'success');
             loadProducts();
@@ -296,7 +302,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
 
     const handleDownloadTemplate = () => {
         try {
-            MockApi.generateOnyxExcelTemplate();
+            Api.generateOnyxExcelTemplate();
             addToast(t('adminProducts.templateDownloaded', 'تم تحميل نموذج Excel'), 'success');
         } catch (err) {
             addToast(t('adminProducts.templateDownloadFailed', 'فشل في تحميل النموذج'), 'error');
@@ -323,10 +329,10 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
 
         try {
             if (editingProduct) {
-                await MockApi.updateProduct(editingProduct.id, productForm);
+                await Api.updateProduct(editingProduct.id, productForm);
                 addToast(t('adminProducts.productSaved', 'تم تحديث المنتج'), 'success');
             } else {
-                await MockApi.addProduct(productForm as Omit<Product, 'id' | 'createdAt'>);
+                await Api.addProduct(productForm as Omit<Product, 'id' | 'createdAt'>);
                 addToast(t('adminProducts.productCreated', 'تم إضافة المنتج'), 'success');
             }
             loadProducts();
@@ -341,7 +347,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
         if (!confirm(t('adminProducts.deleteConfirm', 'هل أنت متأكد من حذف هذا المنتج؟'))) return;
 
         try {
-            await MockApi.deleteProduct(id);
+            await Api.deleteProduct(id);
             addToast(t('adminProducts.productDeleted', 'تم حذف المنتج'), 'success');
             loadProducts();
             onRefresh?.();
@@ -430,7 +436,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({ onRefresh 
                                         onChange={handleFileSelect}
                                     />
                                 </label>
-                                {columnPresets.find(p => p.isDefault) && (
+                                {Array.isArray(columnPresets) && columnPresets.find(p => p.isDefault) && (
                                     <div className="absolute -bottom-6 right-0 text-xs text-slate-500 whitespace-nowrap">
                                         سيستخدم: {columnPresets.find(p => p.isDefault)?.name}
                                     </div>

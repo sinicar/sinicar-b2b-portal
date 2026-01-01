@@ -1,5 +1,73 @@
 {
-  "common": {
+  "supplier": {
+    "dashboard": "डैशबोर्ड",
+    "purchaseOrders": "खरीद आदेश",
+    "products": "मेरे उत्पाद",
+    "installments": "किस्त अनुरोध",
+    "team": "टीम",
+    "settings": "सेटिंग्स",
+    "profileImage": "प्रोफ़ाइल छवि",
+    "uploadImage": "छवि अपलोड करें",
+    "removeImage": "छवि हटाएँ",
+    "welcome": "स्वागत है, {{name}}",
+    "logout": "लॉग आउट",
+    "noEmployees": "कोई कर्मचारी नहीं मिला",
+    "addFirstEmployee": "शुरू करने के लिए अपना पहला कर्मचारी जोड़ें",
+    "customerServices": "ग्राहक सेवाएँ",
+    "quickOrders": "त्वरित आदेश",
+    "excelPurchase": "Excel खरीद",
+    "images": "उत्पाद चित्र",
+    "orders": {
+      "new": "नए आदेश",
+      "preparing": "तैयार हो रहा है",
+      "shipping": "शिपिंग",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द",
+      "id": "आदेश आईडी",
+      "customer": "ग्राहक",
+      "date": "दिनांक",
+      "amount": "राशी",
+      "status": "स्थिति",
+      "actions": "क्रियाएँ",
+      "viewDetails": "विवरण देखें",
+      "noOrders": "इस श्रेणी में कोई आदेश नहीं",
+      "quickOrder": "त्वरित आदेश",
+      "excelOrder": "Excel अपलोड करें"
+    },
+    "teamManagement": {
+      "title": "टीम प्रबंधन",
+      "addMember": "सदस्य जोड़ें",
+      "name": "नाम",
+      "email": "ईमेल",
+      "role": "भूमिका",
+      "status": "स्थिति",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    }
+  },
+  "installment": {
+    "supplierTitle": "आपूर्तिकर्ता किस्त अनुरोध",
+    "availableRequests": "उपलब्ध अनुरोध",
+    "myOffers": "मेरे प्रस्ताव",
+    "submitOffer": "प्रस्ताव प्रस्तुत करें",
+    "viewDetails": "विवरण देखें",
+    "status": {
+      "available": "प्रस्ताव के लिए उपलब्ध",
+      "waiting": "प्रस्तावों की प्रतीक्षा में",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "completed": "पूर्ण",
+      "pending_approval": "अनुमोदन लंबित"
+    },
+    "table": {
+      "requestDate": "अनुरोध दिनांक",
+      "amount": "राशी",
+      "period": "अवधि",
+      "client": "ग्राहक",
+      "actions": "क्रियाएँ"
+    },
+    "empty": "वर्तमान में कोई किस्त अनुरोध नहीं"
+  },
     "appName": "सिनी कार",
     "siniCar": "सिनी कार",
     "appSlogan": "थोक ऑटो पार्ट्स पोर्टल",
@@ -69,8 +137,7 @@
     "first": "पहला",
     "last": "अंतिम",
     "selectAll": "सभी चुनें",
-    "deselectAll": "सभी अचयनित करें"
-  },
+    "deselectAll": "सभी अचयनित करें",
   "login": {
     "wholesaleLogin": "थोक ग्राहक लॉगिन",
     "b2bPortal": "सिनी कार B2B पोर्टल",
@@ -2582,5 +2649,57 @@
     "deleteConfirm": "क्या आप इस प्रतिक्रिया को हटाना चाहते हैं?",
     "deleteSuccess": "प्रतिक्रिया सफलतापूर्वक हटाई गई",
     "deleteError": "प्रतिक्रिया हटाने में विफल"
+  },
+  "notifications": {
+    "title": "सूचनाएं",
+    "center": "सूचना केंद्र",
+    "clearAll": "सभी साफ़ करें",
+    "markAllRead": "सभी को पढ़ा हुआ चिह्नित करें",
+    "viewAll": "सभी सूचनाएं देखें",
+    "noNotifications": "कोई सूचना नहीं",
+    "newUpdates": "नई सूचनाएं यहां दिखाई देंगी",
+    "new": "नया",
+    "view": "देखें",
+    "delete": "हटाएं",
+    "refresh": "ताज़ा करें",
+    "filterByType": "प्रकार के अनुसार फ़िल्टर करें",
+    "unread": "अपठित",
+    "showingLast": "पिछली {{count}} सूचनाएं दिखा रहा है",
+    "types": {
+      "orderUpdate": "ऑर्डर अपडेट",
+      "searchPoints": "खोज अंक",
+      "quote": "उद्धरण",
+      "general": "सामान्य",
+      "accountUpdate": "खाता अपडेट",
+      "importUpdate": "आयात अपडेट",
+      "system": "सिस्टम",
+      "marketing": "विपणन",
+      "accountApproved": "खाता स्वीकृत",
+      "accountRejected": "खाता अस्वीकृत",
+      "purchaseRequest": "खरीद अनुरोध",
+      "newMessage": "नया संदेश",
+      "newCustomer": "नया ग्राहक",
+      "customerOrder": "ग्राहक ऑर्डर",
+      "supplierRequest": "आपूर्तिकर्ता अनुरोध",
+      "accountRequest": "खाता अनुरोध",
+      "quoteRequest": "उद्धरण अनुरोध",
+      "importRequest": "आयात अनुरोध",
+      "abandonedCart": "छोड़ी गई गाड़ी"
+    },
+    "categories": {
+      "all": "सभी",
+      "orders": "ऑर्डर",
+      "account": "खाता",
+      "requests": "अनुरोध",
+      "quotes": "उद्धरण",
+      "points": "अंक",
+      "system": "सिस्टम"
+    },
+    "time": {
+      "justNow": "अभी",
+      "minAgo": "{{count}} मिनट पहले",
+      "hrAgo": "{{count}} घंटे पहले",
+      "dayAgo": "{{count}} दिन पहले"
+    }
   }
 }

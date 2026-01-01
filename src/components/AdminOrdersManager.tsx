@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Order, OrderInternalStatus, OrderStatus, User } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { 
     FileText, Search, Filter, Eye, X, ChevronRight, ChevronLeft, 
     Truck, CheckCircle, Clock, Save, History, Edit, AlertCircle, ShoppingBag, Lock
@@ -116,7 +117,7 @@ export const AdminOrdersManager: React.FC<AdminOrdersManagerProps> = ({ orders, 
         if (!selectedOrder) return;
         setIsUpdating(true);
         try {
-            await MockApi.adminUpdateOrderStatus(selectedOrder.id, newStatus, 'Admin');
+            await Api.adminUpdateOrderStatus(selectedOrder.id, newStatus, 'Admin');
             addToast(t('adminOrders.externalStatusUpdated'), 'success');
             onUpdate();
             setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
@@ -131,10 +132,12 @@ export const AdminOrdersManager: React.FC<AdminOrdersManagerProps> = ({ orders, 
         if (!selectedOrder) return;
         setIsUpdating(true);
         try {
-            await MockApi.updateOrderInternalStatus(selectedOrder.id, newStatus, 'Admin', internalNote);
+            await Api.updateOrderInternalStatus(selectedOrder.id, newStatus, 'Admin', internalNote);
             addToast(t('adminOrders.internalStatusUpdated'), 'success');
             onUpdate();
-            const updatedOrder = (await MockApi.getAllOrders()).find(o => o.id === selectedOrder.id);
+            // استخدام normalizeListResponse للحصول على array آمن
+            const { items: allOrders } = normalizeListResponse<Order>(await Api.getAllOrders());
+            const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
             if(updatedOrder) setSelectedOrder(updatedOrder);
         } catch (e) {
             addToast(t('adminOrders.updateFailed'), 'error');

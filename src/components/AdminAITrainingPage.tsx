@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import { Api } from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
+import { AITrainingHeader, AITrainingTabs, PromptCard, ConversationCard, KnowledgeEntryCard, TestCaseCard } from '../features/admin-ai/components';
+import { TabType as AITabType } from '../features/admin-ai/types';
 import {
     Brain,
     BookOpen,
@@ -571,6 +573,19 @@ export default function AdminAITrainingPage() {
         }));
     };
 
+    // Conversation Edit Handler (named callback for wiring)
+    const handleConversationEdit = (conv: TrainingConversation) => {
+        setEditingConversation(conv);
+        setConversationForm({
+            title: conv.title,
+            category: conv.category,
+            messages: conv.messages,
+            rating: conv.rating,
+            enabled: conv.enabled
+        });
+        setShowConversationModal(true);
+    };
+
     // System Prompts Functions
     const savePrompt = () => {
         if (!promptForm.name.trim() || !promptForm.content.trim()) {
@@ -624,6 +639,22 @@ export default function AdminAITrainingPage() {
         });
         setEditingPrompt(null);
         setShowPromptModal(false);
+    };
+
+    // Prompt Edit Handler (named callback for wiring)
+    const handlePromptEdit = (prompt: SystemPrompt) => {
+        setEditingPrompt(prompt);
+        setPromptForm({
+            name: prompt.name,
+            nameAr: prompt.nameAr,
+            description: prompt.description,
+            content: prompt.content,
+            contentAr: prompt.contentAr,
+            type: prompt.type,
+            enabled: prompt.enabled,
+            order: prompt.order
+        });
+        setShowPromptModal(true);
     };
 
     // Testing Functions
@@ -693,6 +724,13 @@ export default function AdminAITrainingPage() {
         } finally {
             setTestingInProgress(false);
         }
+    };
+
+    // Test Delete Handler (named callback for wiring)
+    const handleTestDelete = (testId: string) => {
+        const updated = testCases.filter(t => t.id !== testId);
+        setTestCases(updated);
+        localStorage.setItem('ai_test_cases', JSON.stringify(updated));
     };
 
     // Export/Import Functions
@@ -786,96 +824,53 @@ export default function AdminAITrainingPage() {
     return (
         <div className="p-6 space-y-6" dir={dir}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                            <Brain className="w-8 h-8" />
+            <AITrainingHeader
+                title={isRTL ? 'إدارة تدريب الذكاء الاصطناعي' : 'AI Training Management'}
+                subtitle={isRTL ? 'درّب وخصّص الذكاء الاصطناعي حسب احتياجاتك' : 'Train and customize AI according to your needs'}
+                isRTL={isRTL}
+                onExport={exportData}
+                onImport={importData}
+                statsSlot={
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                            <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
+                                <BookOpen size={16} />
+                                <span>{isRTL ? 'قاعدة المعرفة' : 'Knowledge Base'}</span>
+                            </div>
+                            <p className="text-2xl font-bold" data-testid="text-knowledge-count">{knowledgeEntries.length}</p>
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-bold" data-testid="text-page-title">
-                                {isRTL ? 'إدارة تدريب الذكاء الاصطناعي' : 'AI Training Management'}
-                            </h1>
-                            <p className="text-purple-100 text-sm">
-                                {isRTL ? 'درّب وخصّص الذكاء الاصطناعي حسب احتياجاتك' : 'Train and customize AI according to your needs'}
-                            </p>
+                        <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                            <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
+                                <MessageSquare size={16} />
+                                <span>{isRTL ? 'المحادثات' : 'Conversations'}</span>
+                            </div>
+                            <p className="text-2xl font-bold" data-testid="text-conversations-count">{conversations.length}</p>
+                        </div>
+                        <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                            <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
+                                <Settings2 size={16} />
+                                <span>{isRTL ? 'البرومبتات' : 'Prompts'}</span>
+                            </div>
+                            <p className="text-2xl font-bold" data-testid="text-prompts-count">{systemPrompts.length}</p>
+                        </div>
+                        <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                            <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
+                                <TestTube size={16} />
+                                <span>{isRTL ? 'الاختبارات' : 'Test Cases'}</span>
+                            </div>
+                            <p className="text-2xl font-bold" data-testid="text-tests-count">{testCases.length}</p>
                         </div>
                     </div>
-                    <div className="flex gap-2">
-                        <label className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl cursor-pointer transition-colors flex items-center gap-2">
-                            <Upload size={18} />
-                            <span>{isRTL ? 'استيراد' : 'Import'}</span>
-                            <input 
-                                type="file" 
-                                accept=".json" 
-                                onChange={importData} 
-                                className="hidden" 
-                                data-testid="input-import-data"
-                            />
-                        </label>
-                        <button 
-                            onClick={exportData}
-                            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors flex items-center gap-2"
-                            data-testid="button-export-data"
-                        >
-                            <Download size={18} />
-                            <span>{isRTL ? 'تصدير' : 'Export'}</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Stats Summary */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
-                            <BookOpen size={16} />
-                            <span>{isRTL ? 'قاعدة المعرفة' : 'Knowledge Base'}</span>
-                        </div>
-                        <p className="text-2xl font-bold" data-testid="text-knowledge-count">{knowledgeEntries.length}</p>
-                    </div>
-                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
-                            <MessageSquare size={16} />
-                            <span>{isRTL ? 'المحادثات' : 'Conversations'}</span>
-                        </div>
-                        <p className="text-2xl font-bold" data-testid="text-conversations-count">{conversations.length}</p>
-                    </div>
-                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
-                            <Settings2 size={16} />
-                            <span>{isRTL ? 'البرومبتات' : 'Prompts'}</span>
-                        </div>
-                        <p className="text-2xl font-bold" data-testid="text-prompts-count">{systemPrompts.length}</p>
-                    </div>
-                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 text-purple-200 text-sm mb-1">
-                            <TestTube size={16} />
-                            <span>{isRTL ? 'الاختبارات' : 'Test Cases'}</span>
-                        </div>
-                        <p className="text-2xl font-bold" data-testid="text-tests-count">{testCases.length}</p>
-                    </div>
-                </div>
-            </div>
+                }
+            />
 
             {/* Tabs */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex overflow-x-auto border-b border-slate-200">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
-                                activeTab === tab.id
-                                    ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50/50'
-                                    : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50'
-                            }`}
-                            data-testid={`tab-${tab.id}`}
-                        >
-                            <tab.icon size={18} />
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+                <AITrainingTabs
+                    tabs={tabs.map(t => ({ id: t.id, icon: t.icon, label: t.label }))}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
 
                 <div className="p-6">
                     {/* Knowledge Base Tab */}
@@ -928,62 +923,14 @@ export default function AdminAITrainingPage() {
                                     </div>
                                 ) : (
                                     filteredKnowledge.map((entry) => (
-                                        <div 
+                                        <KnowledgeEntryCard
                                             key={entry.id}
-                                            className={`border rounded-xl p-5 transition-all ${entry.enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50 opacity-60'}`}
-                                            data-testid={`knowledge-entry-${entry.id}`}
-                                        >
-                                            <div className="flex items-start justify-between gap-4 mb-3">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                            entry.category === 'products' ? 'bg-blue-100 text-blue-700' :
-                                                            entry.category === 'orders' ? 'bg-green-100 text-green-700' :
-                                                            entry.category === 'shipping' ? 'bg-orange-100 text-orange-700' :
-                                                            entry.category === 'returns' ? 'bg-red-100 text-red-700' :
-                                                            'bg-slate-100 text-slate-700'
-                                                        }`}>
-                                                            {CATEGORIES.find(c => c.value === entry.category)?.[isRTL ? 'labelAr' : 'labelEn']}
-                                                        </span>
-                                                        <span className="text-xs text-slate-400 flex items-center gap-1">
-                                                            <Star size={12} className="text-yellow-500" />
-                                                            {entry.priority}
-                                                        </span>
-                                                        <span className="text-xs text-slate-400 flex items-center gap-1">
-                                                            <BarChart3 size={12} />
-                                                            {entry.usageCount} {isRTL ? 'استخدام' : 'uses'}
-                                                        </span>
-                                                    </div>
-                                                    <h3 className="font-semibold text-slate-800 mb-2">{entry.question}</h3>
-                                                    <p className="text-sm text-slate-600 whitespace-pre-line">{entry.answer}</p>
-                                                    {entry.tags.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1.5 mt-3">
-                                                            {entry.tags.map((tag, i) => (
-                                                                <span key={i} className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full text-xs">
-                                                                    #{tag}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => editKnowledge(entry)}
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                        data-testid={`button-edit-knowledge-${entry.id}`}
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteKnowledge(entry.id)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        data-testid={`button-delete-knowledge-${entry.id}`}
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            entry={entry}
+                                            isRTL={isRTL}
+                                            categories={CATEGORIES}
+                                            onEdit={editKnowledge}
+                                            onDelete={deleteKnowledge}
+                                        />
                                     ))
                                 )}
                             </div>
@@ -1009,81 +956,14 @@ export default function AdminAITrainingPage() {
 
                             <div className="grid gap-4">
                                 {conversations.map((conv) => (
-                                    <div 
+                                    <ConversationCard
                                         key={conv.id}
-                                        className="border border-slate-200 rounded-xl p-5 bg-white"
-                                        data-testid={`conversation-${conv.id}`}
-                                    >
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <h3 className="font-semibold text-slate-800">{conv.title}</h3>
-                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs">
-                                                    {CATEGORIES.find(c => c.value === conv.category)?.[isRTL ? 'labelAr' : 'labelEn']}
-                                                </span>
-                                                <div className="flex items-center gap-1">
-                                                    {Array.from({ length: 5 }).map((_, i) => (
-                                                        <Star 
-                                                            key={i} 
-                                                            size={14} 
-                                                            className={i < conv.rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200'}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingConversation(conv);
-                                                        setConversationForm({
-                                                            title: conv.title,
-                                                            category: conv.category,
-                                                            messages: conv.messages,
-                                                            rating: conv.rating,
-                                                            enabled: conv.enabled
-                                                        });
-                                                        setShowConversationModal(true);
-                                                    }}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    data-testid={`button-edit-conversation-${conv.id}`}
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => deleteConversation(conv.id)}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    data-testid={`button-delete-conversation-${conv.id}`}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-3 max-h-60 overflow-y-auto">
-                                            {conv.messages.map((msg, i) => (
-                                                <div 
-                                                    key={i}
-                                                    className={`flex gap-3 ${msg.role === 'assistant' ? 'justify-start' : 'justify-end'}`}
-                                                >
-                                                    {msg.role === 'assistant' && (
-                                                        <div className="p-2 bg-purple-100 rounded-full h-fit">
-                                                            <Bot size={16} className="text-purple-600" />
-                                                        </div>
-                                                    )}
-                                                    <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm ${
-                                                        msg.role === 'assistant'
-                                                            ? 'bg-slate-100 text-slate-800 rounded-tl-sm'
-                                                            : 'bg-purple-600 text-white rounded-tr-sm'
-                                                    }`}>
-                                                        {msg.content}
-                                                    </div>
-                                                    {msg.role === 'user' && (
-                                                        <div className="p-2 bg-slate-200 rounded-full h-fit">
-                                                            <User size={16} className="text-slate-600" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                        conversation={conv}
+                                        isRTL={isRTL}
+                                        categories={CATEGORIES}
+                                        onEdit={handleConversationEdit}
+                                        onDelete={deleteConversation}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -1108,71 +988,13 @@ export default function AdminAITrainingPage() {
 
                             <div className="space-y-4">
                                 {systemPrompts.sort((a, b) => a.order - b.order).map((prompt) => (
-                                    <div 
+                                    <PromptCard
                                         key={prompt.id}
-                                        className={`border rounded-xl p-5 transition-all ${prompt.enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50 opacity-60'}`}
-                                        data-testid={`prompt-${prompt.id}`}
-                                    >
-                                        <div className="flex items-start justify-between gap-4 mb-3">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                        prompt.type === 'system' ? 'bg-blue-100 text-blue-700' :
-                                                        prompt.type === 'persona' ? 'bg-purple-100 text-purple-700' :
-                                                        prompt.type === 'context' ? 'bg-green-100 text-green-700' :
-                                                        'bg-orange-100 text-orange-700'
-                                                    }`}>
-                                                        {prompt.type === 'system' ? (isRTL ? 'نظام' : 'System') :
-                                                         prompt.type === 'persona' ? (isRTL ? 'شخصية' : 'Persona') :
-                                                         prompt.type === 'context' ? (isRTL ? 'سياق' : 'Context') :
-                                                         (isRTL ? 'تعليمات' : 'Instruction')}
-                                                    </span>
-                                                    <span className="text-xs text-slate-400">#{prompt.order}</span>
-                                                    {!prompt.enabled && (
-                                                        <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs">
-                                                            {isRTL ? 'معطّل' : 'Disabled'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <h3 className="font-semibold text-slate-800 mb-1">
-                                                    {isRTL ? prompt.nameAr || prompt.name : prompt.name}
-                                                </h3>
-                                                <p className="text-sm text-slate-500 mb-3">{prompt.description}</p>
-                                                <pre className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg whitespace-pre-wrap font-sans max-h-40 overflow-y-auto">
-                                                    {isRTL ? prompt.contentAr || prompt.content : prompt.content}
-                                                </pre>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingPrompt(prompt);
-                                                        setPromptForm({
-                                                            name: prompt.name,
-                                                            nameAr: prompt.nameAr,
-                                                            description: prompt.description,
-                                                            content: prompt.content,
-                                                            contentAr: prompt.contentAr,
-                                                            type: prompt.type,
-                                                            enabled: prompt.enabled,
-                                                            order: prompt.order
-                                                        });
-                                                        setShowPromptModal(true);
-                                                    }}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    data-testid={`button-edit-prompt-${prompt.id}`}
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => deletePrompt(prompt.id)}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    data-testid={`button-delete-prompt-${prompt.id}`}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        prompt={prompt}
+                                        isRTL={isRTL}
+                                        onEdit={handlePromptEdit}
+                                        onDelete={deletePrompt}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -1271,53 +1093,13 @@ export default function AdminAITrainingPage() {
 
                                 <div className="space-y-3">
                                     {testCases.map((test) => (
-                                        <div 
+                                        <TestCaseCard
                                             key={test.id}
-                                            className={`border rounded-xl p-4 ${
-                                                test.passed === undefined ? 'border-slate-200 bg-white' :
-                                                test.passed ? 'border-green-200 bg-green-50' :
-                                                'border-red-200 bg-red-50'
-                                            }`}
-                                            data-testid={`test-case-${test.id}`}
-                                        >
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        {test.passed === undefined ? (
-                                                            <HelpCircle size={18} className="text-slate-400" />
-                                                        ) : test.passed ? (
-                                                            <CheckCircle size={18} className="text-green-600" />
-                                                        ) : (
-                                                            <XCircle size={18} className="text-red-600" />
-                                                        )}
-                                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs">
-                                                            {CATEGORIES.find(c => c.value === test.category)?.[isRTL ? 'labelAr' : 'labelEn']}
-                                                        </span>
-                                                        {test.score !== undefined && (
-                                                            <span className={`text-xs font-medium ${test.score >= 80 ? 'text-green-600' : test.score >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
-                                                                {test.score}%
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-sm font-medium text-slate-800 mb-1">{isRTL ? 'الإدخال:' : 'Input:'} {test.input}</p>
-                                                    <p className="text-sm text-slate-600 mb-1">{isRTL ? 'المتوقع:' : 'Expected:'} {test.expectedOutput}</p>
-                                                    {test.actualOutput && (
-                                                        <p className="text-sm text-slate-500">{isRTL ? 'الفعلي:' : 'Actual:'} {test.actualOutput}</p>
-                                                    )}
-                                                </div>
-                                                <button
-                                                    onClick={() => {
-                                                        const updated = testCases.filter(t => t.id !== test.id);
-                                                        setTestCases(updated);
-                                                        localStorage.setItem('ai_test_cases', JSON.stringify(updated));
-                                                    }}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    data-testid={`button-delete-test-${test.id}`}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </div>
+                                            testCase={test}
+                                            isRTL={isRTL}
+                                            categories={CATEGORIES}
+                                            onDelete={handleTestDelete}
+                                        />
                                     ))}
                                 </div>
                             </div>

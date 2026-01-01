@@ -14,7 +14,8 @@ export const env = {
   },
   
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5000'
+    // Support comma-separated origins
+    origin: process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || ['http://localhost:5000']
   },
   
   api: {

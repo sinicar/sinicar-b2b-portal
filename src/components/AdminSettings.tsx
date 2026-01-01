@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Banner, SiteSettings, StatusLabelsConfig, GuestModeSettings, NotificationTemplate, NotificationSettings, DocumentTemplate, PrintSettings } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { Settings, Image as ImageIcon, Server, Palette, Save, Upload, Plus, Trash2, Eye, EyeOff, RefreshCcw, Check, X, ShieldAlert, Monitor, Wifi, Activity, Type, Radio, Megaphone, Tags, Pencil, Link2, Database, Package, ShoppingCart, Users, FileText, Warehouse, DollarSign, RefreshCw, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Webhook, Settings2, Anchor, Headphones, Truck, ShieldCheck, Globe, Star, Clock, Award, UserX, Bell, Printer, Layout, Copy, Move, AlignLeft, AlignCenter, AlignRight, Volume2, MessageSquare, AlertCircle, AlertTriangle, Info, CheckCircle2, XCircle, Sparkles, Zap, Mail, Smartphone, Lock } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
@@ -38,16 +38,42 @@ export const AdminSettings: React.FC = () => {
         setLoading(true);
         try {
             const [s, b] = await Promise.all([
-                MockApi.getSettings(),
-                MockApi.getBanners()
+                Api.getSettings(),
+                Api.getBanners()
             ]);
-            if (!s.whySiniCarFeatures || s.whySiniCarFeatures.length === 0) {
-                s.whySiniCarFeatures = defaultFeatures;
+            // Ensure settings is valid
+            const validSettings = s || {} as SiteSettings;
+            if (!validSettings.whySiniCarFeatures || validSettings.whySiniCarFeatures.length === 0) {
+                validSettings.whySiniCarFeatures = defaultFeatures;
             }
-            setSettings(s);
-            setBanners(b);
+            // Ensure required fields exist
+            if (!validSettings.apiConfig) {
+                validSettings.apiConfig = { baseUrl: '', authToken: '', syncInterval: 'HOURLY', environment: 'PRODUCTION' };
+            }
+            if (!validSettings.uiTexts) {
+                validSettings.uiTexts = {};
+            }
+            setSettings(validSettings);
+            setBanners(Array.isArray(b) ? b : []);
         } catch (e) {
-            addToast('فشل في تحميل الإعدادات', 'error');
+            console.error('Failed to load settings:', e);
+            // Provide default settings so the page loads
+            setSettings({
+                siteName: 'Sini Car',
+                supportPhone: '',
+                supportEmail: '',
+                tickerEnabled: false,
+                tickerText: '',
+                tickerSpeed: 3,
+                tickerBgColor: '#1e3a5f',
+                tickerTextColor: '#ffffff',
+                maintenanceMode: false,
+                apiConfig: { baseUrl: '', authToken: '', syncInterval: 'HOURLY', environment: 'PRODUCTION' },
+                whySiniCarFeatures: defaultFeatures,
+                uiTexts: {}
+            } as SiteSettings);
+            setBanners([]);
+            addToast('فشل في تحميل الإعدادات، يتم استخدام القيم الافتراضية', 'error');
         } finally {
             setLoading(false);
         }
@@ -57,7 +83,7 @@ export const AdminSettings: React.FC = () => {
         if (!settings) return;
         setSaving(true);
         try {
-            await MockApi.updateSettings(settings);
+            await Api.updateSettings(settings);
             addToast('تم حفظ الإعدادات بنجاح', 'success');
             // We might need to reload window or notify context to update texts immediately
             // For now, next route change will pick it up or we can force reload
@@ -99,7 +125,7 @@ export const AdminSettings: React.FC = () => {
         };
         const updated = [...banners, bannerToAdd];
         setBanners(updated);
-        await MockApi.updateBanners(updated);
+        await Api.updateBanners(updated);
         setShowBannerForm(false);
         setNewBanner({ title: '', subtitle: '', buttonText: 'تصفح الآن', colorClass: 'from-slate-700 to-slate-900', isActive: true });
         addToast('تم إضافة البنر', 'success');
@@ -109,7 +135,7 @@ export const AdminSettings: React.FC = () => {
         if (confirm('هل أنت متأكد من حذف هذا البنر؟')) {
             const updated = banners.filter(b => b.id !== id);
             setBanners(updated);
-            await MockApi.updateBanners(updated);
+            await Api.updateBanners(updated);
             addToast('تم حذف البنر', 'info');
         }
     };
@@ -117,7 +143,7 @@ export const AdminSettings: React.FC = () => {
     const toggleBanner = async (id: string) => {
         const updated = banners.map(b => b.id === id ? { ...b, isActive: !b.isActive } : b);
         setBanners(updated);
-        await MockApi.updateBanners(updated);
+        await Api.updateBanners(updated);
     };
 
     // Text Manager Handler
@@ -774,7 +800,7 @@ export const AdminSettings: React.FC = () => {
                                                     ...settings,
                                                     apiConfig: {
                                                         ...settings.apiConfig,
-                                                        webhooks: [...webhooks, { url: input.value, events: ['order.created'], active: true }]
+                                                        webhooks: [...webhooks, { id: `wh_${Date.now()}`, name: 'New Webhook', url: input.value, events: ['order.created'], isActive: true, secret: '', status: 'Inactive' as const }]
                                                     }
                                                 });
                                                 input.value = '';
@@ -792,7 +818,7 @@ export const AdminSettings: React.FC = () => {
                                     <div className="space-y-2">
                                         {settings.apiConfig.webhooks.map((webhook, idx) => (
                                             <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                                                <div className={`w-2 h-2 rounded-full ${webhook.active ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                <div className={`w-2 h-2 rounded-full ${webhook.isActive ? 'bg-green-500' : 'bg-slate-300'}`} />
                                                 <code className="flex-1 text-sm font-mono text-slate-600 truncate">{webhook.url}</code>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded">

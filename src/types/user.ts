@@ -1,9 +1,9 @@
-export type UserRole = 
-  | 'SUPER_ADMIN' 
+export type UserRole =
+  | 'SUPER_ADMIN'
   | 'CUSTOMER_OWNER' // Was ADMIN
   | 'CUSTOMER_STAFF'; // Was EMPLOYEE
 
-export type ExtendedUserRole = 
+export type ExtendedUserRole =
   | 'SUPER_ADMIN'              // مشرف عام
   | 'ADMIN'                    // مدير النظام
   | 'EMPLOYEE'                 // موظف
@@ -12,7 +12,7 @@ export type ExtendedUserRole =
   | 'SUPPLIER_INTERNATIONAL'   // مورد دولي
   | 'MARKETER';                // مسوق
 
-export type UserAccountStatus = 
+export type UserAccountStatus =
   | 'PENDING'    // قيد الانتظار
   | 'APPROVED'   // مقبول
   | 'REJECTED'   // مرفوض
@@ -38,7 +38,7 @@ export type CustomerCategory =
   | 'MAINTENANCE_CENTER'   // مركز صيانة
   | 'SALES_REP';           // مندوب مبيعات
 
-export type AccountRequestStatus = 
+export type AccountRequestStatus =
   | 'NEW'           // طلب جديد
   | 'UNDER_REVIEW'  // قيد المراجعة
   | 'APPROVED'      // تم الموافقة
@@ -125,7 +125,7 @@ export interface AccountOpeningRequest {
 
   createdAt: string;
   updatedAt?: string;
-  
+
   // Admin Badge Tracking
   isNew?: boolean;                        // For admin sidebar badge - true when unseen by admin
 }
@@ -159,16 +159,16 @@ export interface User {
   email: string; // Kept for contact purposes only
   password?: string; // For Owners
   role: UserRole;
-  
+
   // Relationship Fields
   parentId?: string; // If staff, links to the main account (Customer Owner ID)
   businessId?: string; // The Company/Entity ID (Shared between Owner and Staff)
-  
+
   isActive?: boolean; // For banning users
   branchId?: string; // Which branch they belong to
   employeeRole?: EmployeeRole; // Specific permissions
   phone?: string;
-  
+
   // Staff Specific
   activationCode?: string; // كود التفعيل للدخول
 
@@ -193,13 +193,11 @@ export interface User {
   lastLoginAt?: string | null;
   failedLoginAttempts?: number;
   riskyLoginFlag?: boolean;
-  
+
   // --- Activity Tracking ---
   lastActiveAt?: string; // ISO timestamp of last heartbeat (for online status)
-  
-  // --- Guest Mode ---
-  isGuest?: boolean; // Flag for guest users with restricted access
 
+  // --- Guest Mode ---
   // --- Extended Role/Status System (New) ---
   extendedRole?: ExtendedUserRole; // Extended role type (ADMIN, EMPLOYEE, CUSTOMER, SUPPLIER_*, MARKETER)
   accountStatus?: UserAccountStatus; // Approval workflow status (PENDING, APPROVED, REJECTED, BLOCKED)
@@ -208,6 +206,10 @@ export interface User {
   completionPercent?: number;        // Profile completion percentage (0-100)
   whatsapp?: string;                 // WhatsApp contact number
   clientCode?: string;               // Internal client code (optional)
+
+  // --- Platform Staff Fields ---
+  isPlatformStaff?: boolean;         // Flag: User is platform staff (not customer staff)
+  staffRole?: 'super_admin' | 'operations_manager' | 'support' | 'accountant' | 'sales'; // Platform staff role
 }
 
 export interface BusinessProfile {
@@ -219,24 +221,24 @@ export interface BusinessProfile {
   crNumber: string; // Commercial Registration
   taxNumber: string;
   nationalAddress: string;
-  
+
   // Legacy Type
   customerType: CustomerType;
-  
+
   deviceFingerprint: string;
   branches: Branch[];
   isApproved: boolean; // Approved by System #1
 
   // --- New Advanced Fields for Admin Base ---
-  
+
   // Enhanced Type & Status
   businessCustomerType?: BusinessCustomerType; // Mapped from AccountRequest
   assignedPriceLevel?: PriceLevel;             // LEVEL_1 / LEVEL_2 ...
   status?: CustomerStatus;
-  
+
   // نوع رؤية الأسعار - VISIBLE = ظاهرة دائماً, HIDDEN = تحتاج نقاط بحث
   priceVisibility?: PriceVisibilityType;
-  
+
   // Access Control
   portalAccessStart?: string | null;
   portalAccessEnd?: string | null;
@@ -248,13 +250,13 @@ export interface BusinessProfile {
 
   // Staff Limits
   staffLimit?: number | null;          // الحد الأقصى لعدد الموظفين
-  
+
   // Security
   lastLoginAt?: string | null;
   lastLoginIp?: string | null;
   failedLoginAttempts?: number;        // محاولات فاشلة منذ آخر نجاح
   riskyLoginFlag?: boolean;            // علم أن هذا العميل لديه سلوك دخول غريب
-  
+
   // Internal Notes
   internalNotes?: string;
 
@@ -268,27 +270,27 @@ export interface BusinessProfile {
   totalInvoicesCount?: number;         // عدد الطلبات التي تحولت إلى فاتورة
   totalSearchesCount?: number;         // إجمالي عمليات البحث
   missingRequestsCount?: number;       // عدد النواقص المسجلة منه
-  
+
   // Marketing Campaigns - dismissed campaign IDs
   dismissedCampaignIds?: string[];
-  
+
   // Supplier Marketplace - Customer can act as supplier
   canActAsSupplier?: boolean;
   supplierProfileId?: string;
   supplierApprovedAt?: string;
   supplierApprovedBy?: string;
-  
+
   // Marketer Referral - if customer was referred
   referredByMarketerId?: string;
   referredAt?: string;
-  
+
   // Trader Tools - customer-specific tool access
   toolsOverrideId?: string;
-  
+
   // Customer Segments/Tags - for segmentation and marketing
   segments?: string[];
   tags?: string[];
-  
+
   // CRM Enhancement Fields (Command 14)
   email?: string;
   whatsapp?: string;
@@ -356,3 +358,4 @@ export interface AdminCustomerSummary {
  * - Pricing visibility types (PriceLevel, PriceVisibilityType)
  * - Activity tracking types (CustomerActivityLevel, CustomerOrderBehavior)
  */
+

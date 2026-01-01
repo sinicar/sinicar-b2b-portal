@@ -201,6 +201,189 @@ export class SupplierService {
 
     return stats;
   }
+
+  // ============ Supplier Portal Endpoints (SECURE) ============
+
+  // Helper: Get supplierId for current user OR throw 403
+  async getMySupplierIdOrThrow(currentUserId: string): Promise<string> {
+    const supplierUser = await supplierRepository.getSupplierUserByUserId(currentUserId);
+    if (!supplierUser) {
+      throw new ForbiddenError('لا يوجد لديك صلاحية كمورد');
+    }
+    return supplierUser.supplierId;
+  }
+
+  // Helper: Validate supplier access - checks if user belongs to supplier
+  private async validateSupplierAccess(supplierId: string, currentUserId: string, currentUserRole: string): Promise<void> {
+    // Admin can access any supplier
+    if (currentUserRole === 'SUPER_ADMIN') {
+      return;
+    }
+    
+    // For supplier users, check SupplierUser table
+    const userSupplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    if (userSupplierId !== supplierId) {
+      throw new ForbiddenError('لا يمكنك الوصول لبيانات مورد آخر');
+    }
+  }
+
+  // ===== /me endpoints (derive supplierId from token) =====
+
+  // A) Dashboard for current user's supplier
+  async getMyDashboard(currentUserId: string) {
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    return supplierRepository.getDashboard(supplierId);
+  }
+
+  // B) Products for current user's supplier
+  async getMyProducts(currentUserId: string, pagination: PaginationParams, search?: string) {
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    return supplierRepository.getProducts(supplierId, pagination, search);
+  }
+
+  // C) Requests for current user's supplier
+  async getMyRequests(currentUserId: string, pagination: PaginationParams) {
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    return supplierRepository.getRequests(supplierId, pagination);
+  }
+
+  // D) Settings for current user's supplier
+  async getMySettings(currentUserId: string) {
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    return supplierRepository.getSupplierSettings(supplierId);
+  }
+
+  // E) Update settings for current user's supplier
+  async updateMySettings(currentUserId: string, data: any) {
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    return supplierRepository.updateSupplierSettings(supplierId, data);
+  }
+
+  // ===== /:id endpoints (for admin OR validated supplier access) =====
+
+  // A) Dashboard by ID (admin or owner)
+  async getDashboard(supplierId: string, currentUserId: string, currentUserRole: string) {
+    await this.validateSupplierAccess(supplierId, currentUserId, currentUserRole);
+    return supplierRepository.getDashboard(supplierId);
+  }
+
+  // B) Products by ID (admin or owner)
+  async getProducts(supplierId: string, currentUserId: string, currentUserRole: string, pagination: PaginationParams, search?: string) {
+    await this.validateSupplierAccess(supplierId, currentUserId, currentUserRole);
+    return supplierRepository.getProducts(supplierId, pagination, search);
+  }
+
+  // C) Requests by ID (admin or owner)
+  async getRequests(supplierId: string, currentUserId: string, currentUserRole: string, pagination: PaginationParams) {
+    await this.validateSupplierAccess(supplierId, currentUserId, currentUserRole);
+    return supplierRepository.getRequests(supplierId, pagination);
+  }
+
+  // D) Supplier settings by ID (admin or owner)
+  async getSupplierSettings(supplierId: string, currentUserId: string, currentUserRole: string) {
+    await this.validateSupplierAccess(supplierId, currentUserId, currentUserRole);
+    return supplierRepository.getSupplierSettings(supplierId);
+  }
+
+  // E) Update supplier settings by ID (admin or owner)
+  async updateSupplierSettings(supplierId: string, currentUserId: string, currentUserRole: string, data: any) {
+    await this.validateSupplierAccess(supplierId, currentUserId, currentUserRole);
+    return supplierRepository.updateSupplierSettings(supplierId, data);
+  }
+
+  // ===== Assignment Management (Admin only) =====
+
+  async createAssignment(data: {
+    supplierId: string;
+    requestType: string;
+    requestId: string;
+    priority?: string;
+    supplierNotes?: string;
+    createdByAdminId?: string;
+  }) {
+    return supplierRepository.createAssignment(data);
+  }
+
+  async getAssignments(filters: { supplierId?: string; requestType?: string; status?: string }, pagination: PaginationParams) {
+    return supplierRepository.getAssignments(filters, pagination);
+  }
+
+  async updateAssignmentStatus(assignmentId: string, status: string, notes?: string) {
+    return supplierRepository.updateAssignmentStatus(assignmentId, status, notes);
+  }
+
+  // ===== Supplier-facing Assignment Status Update =====
+
+  // Valid transitions for supplier
+  private static SUPPLIER_TRANSITIONS: Record<string, string[]> = {
+    'NEW': ['ACCEPTED', 'REJECTED'],
+    'ACCEPTED': ['IN_PROGRESS'],
+    'IN_PROGRESS': ['SHIPPED'],
+    'SHIPPED': [], // Terminal state for supplier
+    'REJECTED': [], // Terminal state
+    'CANCELLED': [] // Cannot be changed by supplier
+  };
+
+  // Supplier can update their own assignment status
+  async updateMyAssignmentStatus(
+    currentUserId: string,
+    assignmentId: string,
+    newStatus: string,
+    notes?: string
+  ) {
+    // 1. Get supplier ID for current user
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+
+    // 2. Get assignment
+    const assignment = await supplierRepository.getAssignmentById(assignmentId);
+    if (!assignment) {
+      throw new NotFoundError('التخصيص غير موجود');
+    }
+
+    // 3. Validate ownership (IDOR prevention)
+    if (assignment.supplierId !== supplierId) {
+      throw new ForbiddenError('لا يمكنك تحديث تخصيص مورد آخر');
+    }
+
+    // 4. Validate transition
+    const allowedTransitions = SupplierService.SUPPLIER_TRANSITIONS[assignment.status] || [];
+    if (!allowedTransitions.includes(newStatus)) {
+      throw new BadRequestError(
+        `لا يمكن الانتقال من "${assignment.status}" إلى "${newStatus}". التحولات المسموحة: ${allowedTransitions.join(', ') || 'لا يوجد'}`
+      );
+    }
+
+    // 5. Supplier cannot set CANCELLED
+    if (newStatus === 'CANCELLED') {
+      throw new ForbiddenError('الإلغاء متاح للمدير فقط');
+    }
+
+    // 6. Update with audit log
+    return supplierRepository.updateSupplierAssignmentStatus(
+      assignmentId,
+      assignment.status,
+      newStatus,
+      currentUserId,
+      'SUPPLIER',
+      notes
+    );
+  }
+
+  // Get audit logs for an assignment (supplier can only view their own)
+  async getMyAssignmentAuditLogs(currentUserId: string, assignmentId: string) {
+    const supplierId = await this.getMySupplierIdOrThrow(currentUserId);
+    const assignment = await supplierRepository.getAssignmentById(assignmentId);
+    
+    if (!assignment || assignment.supplierId !== supplierId) {
+      throw new ForbiddenError('لا يمكنك عرض سجلات تخصيص مورد آخر');
+    }
+
+    return supplierRepository.getAssignmentAuditLogs(assignmentId);
+  }
 }
 
 export const supplierService = new SupplierService();
+
+
+
+

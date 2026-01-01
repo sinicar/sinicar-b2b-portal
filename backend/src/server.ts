@@ -39,7 +39,7 @@ function startServer() {
 ║  Environment: ${env.nodeEnv.padEnd(33)}║
 ║  Port: ${env.port.toString().padEnd(40)}║
 ║  API Version: ${env.api.version.padEnd(33)}║
-║  CORS Origin: ${env.cors.origin.padEnd(33)}║
+║  CORS Origin: ${(Array.isArray(env.cors.origin) ? env.cors.origin.join(', ') : env.cors.origin).slice(0, 30).padEnd(33)}║
 ╚══════════════════════════════════════════════════╝
     `);
   });

@@ -9,7 +9,7 @@ import {
   PaymentFrequency,
   InstallmentStats
 } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import {
@@ -89,11 +89,11 @@ export const AdminInstallmentsPage = () => {
     setLoading(true);
     try {
       const [requestsData, offersData, settingsData, profilesData, statsData] = await Promise.all([
-        MockApi.getInstallmentRequests(),
-        MockApi.getInstallmentOffers(),
-        MockApi.getInstallmentSettings(),
-        MockApi.getCustomerCreditProfiles(),
-        MockApi.getInstallmentStats()
+        Api.getInstallmentRequests(),
+        Api.getInstallmentOffers(),
+        Api.getInstallmentSettings(),
+        Api.getCustomerCreditProfiles(),
+        Api.getInstallmentStats()
       ]);
       setRequests(requestsData);
       setOffers(offersData);
@@ -124,32 +124,33 @@ export const AdminInstallmentsPage = () => {
   };
 
   const getFilteredRequests = () => {
+    const safeRequests = requests || [];
     switch (activeTab) {
       case 'pending':
-        return requests.filter(r => r.status === 'PENDING_SINICAR_REVIEW');
+        return safeRequests.filter(r => r.status === 'PENDING_SINICAR_REVIEW');
       case 'customer-decisions':
-        return requests.filter(r => 
+        return safeRequests.filter(r => 
           ['WAITING_FOR_CUSTOMER_DECISION_ON_PARTIAL_SINICAR', 'WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER'].includes(r.status)
         );
       case 'forwarded':
-        return requests.filter(r => 
+        return safeRequests.filter(r => 
           ['FORWARDED_TO_SUPPLIERS', 'WAITING_FOR_SUPPLIER_OFFERS'].includes(r.status)
         );
       case 'active':
-        return requests.filter(r => r.status === 'ACTIVE_CONTRACT');
+        return safeRequests.filter(r => r.status === 'ACTIVE_CONTRACT');
       default:
         return [];
     }
   };
 
-  const pendingCount = requests.filter(r => r.status === 'PENDING_SINICAR_REVIEW').length;
-  const customerDecisionCount = requests.filter(r => 
+  const pendingCount = (requests || []).filter(r => r.status === 'PENDING_SINICAR_REVIEW').length;
+  const customerDecisionCount = (requests || []).filter(r => 
     ['WAITING_FOR_CUSTOMER_DECISION_ON_PARTIAL_SINICAR', 'WAITING_FOR_CUSTOMER_DECISION_ON_SUPPLIER_OFFER'].includes(r.status)
   ).length;
-  const forwardedCount = requests.filter(r => 
+  const forwardedCount = (requests || []).filter(r => 
     ['FORWARDED_TO_SUPPLIERS', 'WAITING_FOR_SUPPLIER_OFFERS'].includes(r.status)
   ).length;
-  const activeCount = requests.filter(r => r.status === 'ACTIVE_CONTRACT').length;
+  const activeCount = (requests || []).filter(r => r.status === 'ACTIVE_CONTRACT').length;
 
   if (loading) {
     return (
@@ -307,7 +308,7 @@ export const AdminInstallmentsPage = () => {
               settings={settings}
               onSave={async (updated) => {
                 try {
-                  await MockApi.updateInstallmentSettings(updated);
+                  await Api.updateInstallmentSettings(updated);
                   await loadData();
                   addToast(t('installment.settingsSaved', 'تم حفظ الإعدادات'), 'success');
                 } catch (error) {
@@ -339,14 +340,14 @@ export const AdminInstallmentsPage = () => {
             setProcessingAction(true);
             try {
               if (action === 'approve_full' || action === 'approve_partial') {
-                await MockApi.recordSinicarDecision(selectedRequest.id, {
+                await Api.recordSinicarDecision(selectedRequest.id, {
                   decisionType: action,
                   offer: data?.offer,
                   adminNotes: data?.notes
                 });
                 addToast(t('installment.decisionRecorded', 'تم تسجيل القرار'), 'success');
               } else if (action === 'reject') {
-                await MockApi.recordSinicarDecision(selectedRequest.id, {
+                await Api.recordSinicarDecision(selectedRequest.id, {
                   decisionType: 'reject',
                   adminNotes: data?.notes,
                   forwardToSuppliers: data?.forwardToSuppliers,
@@ -354,7 +355,7 @@ export const AdminInstallmentsPage = () => {
                 });
                 addToast(t('installment.requestRejected', 'تم رفض الطلب'), 'success');
               } else if (action === 'forward') {
-                await MockApi.forwardRequestToSuppliers(selectedRequest.id, data?.supplierIds || []);
+                await Api.forwardRequestToSuppliers(selectedRequest.id, data?.supplierIds || []);
                 addToast(t('installment.forwarded', 'تم تحويل الطلب للموردين'), 'success');
               }
               await loadData();

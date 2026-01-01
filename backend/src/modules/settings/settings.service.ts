@@ -2,6 +2,77 @@ import prisma from '../../lib/prisma';
 import { GlobalSetting, FeatureFlag, QualityCode, BrandCode, ShippingMethod, ShippingZone, ExcelImportTemplate } from '@prisma/client';
 
 export class SettingsService {
+  /**
+   * Get all settings as SiteSettings format for Frontend compatibility
+   * يُرجع جميع الإعدادات بتنسيق SiteSettings المتوافق مع الـ Frontend
+   */
+  async getSiteSettings(): Promise<any> {
+    const settings = await prisma.globalSetting.findMany();
+    
+    // Convert key-value pairs to SiteSettings object
+    const settingsMap: Record<string, any> = {};
+    for (const setting of settings) {
+      try {
+        // Try to parse JSON values
+        if (setting.valueType === 'JSON') {
+          settingsMap[setting.key] = JSON.parse(setting.value);
+        } else if (setting.valueType === 'BOOLEAN') {
+          settingsMap[setting.key] = setting.value === 'true';
+        } else if (setting.valueType === 'NUMBER') {
+          settingsMap[setting.key] = Number(setting.value);
+        } else {
+          settingsMap[setting.key] = setting.value;
+        }
+      } catch {
+        settingsMap[setting.key] = setting.value;
+      }
+    }
+
+    // Build SiteSettings object with defaults
+    return {
+      siteName: settingsMap['app_name'] || settingsMap['siteName'] || 'SINI CAR',
+      description: settingsMap['app_description'] || settingsMap['description'] || '',
+      supportPhone: settingsMap['contact_phone'] || settingsMap['supportPhone'] || '',
+      supportWhatsapp: settingsMap['whatsapp_number'] || settingsMap['supportWhatsapp'] || '',
+      supportEmail: settingsMap['contact_email'] || settingsMap['supportEmail'] || '',
+      announcementBarColor: settingsMap['announcementBarColor'] || '#1e3a5f',
+      fontFamily: settingsMap['fontFamily'] || 'Almarai',
+      maintenanceMode: settingsMap['is_maintenance_mode'] || settingsMap['maintenanceMode'] || false,
+      primaryColor: settingsMap['primary_color'] || settingsMap['primaryColor'] || '#1e40af',
+      logoUrl: settingsMap['app_logo'] || settingsMap['logoUrl'] || '',
+      tickerEnabled: settingsMap['tickerEnabled'] ?? false,
+      tickerText: settingsMap['tickerText'] || '',
+      tickerSpeed: settingsMap['tickerSpeed'] || 3,
+      tickerBgColor: settingsMap['tickerBgColor'] || '#1e3a5f',
+      tickerTextColor: settingsMap['tickerTextColor'] || '#ffffff',
+      guestModeEnabled: settingsMap['guestModeEnabled'] ?? false,
+      minVisibleQty: settingsMap['min_order_amount'] || settingsMap['minVisibleQty'] || 1,
+      stockThreshold: settingsMap['stockThreshold'] || 0,
+      uiTexts: settingsMap['uiTexts'] || {},
+      statusLabels: settingsMap['statusLabels'] || null,
+      whySiniCarFeatures: settingsMap['whySiniCarFeatures'] || [],
+      guestSettings: settingsMap['guestSettings'] || null,
+      orderStatusPointsConfig: settingsMap['orderStatusPointsConfig'] || null,
+      authPageTexts: settingsMap['authPageTexts'] || null,
+      quantityModalSettings: settingsMap['quantityModalSettings'] || null,
+      productImagesSettings: settingsMap['productImagesSettings'] || null,
+      // ApiConfig with defaults
+      apiConfig: settingsMap['apiConfig'] || {
+        baseUrl: '',
+        authToken: '',
+        enableLiveSync: false,
+        endpoints: { products: '', orders: '', customers: '' },
+        environment: 'PRODUCTION',
+        syncInterval: 'HOURLY',
+        syncEntities: { products: false, inventory: false, prices: false, customers: false, orders: false },
+        webhooks: [],
+        fieldMapping: '{}',
+        debugMode: false,
+        rateLimit: '100'
+      }
+    };
+  }
+
   async getAllSettings(category?: string): Promise<GlobalSetting[]> {
     return prisma.globalSetting.findMany({
       where: category ? { category, isVisible: true } : { isVisible: true },

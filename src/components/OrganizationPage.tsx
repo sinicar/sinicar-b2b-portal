@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Branch, EmployeeRole, UserRole } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { 
     Building2, Users, Plus, Edit, Trash2, MapPin, 
     Phone, Shield, ShoppingCart, Lock, Search, X, Check, Eye,
@@ -63,8 +64,10 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
         setLoading(true);
         try {
             // Re-fetch profile to get latest branches
-            const usersWithProfile = await MockApi.getAllUsers();
-            const myProfile = usersWithProfile.find(u => u.user.id === mainProfileUserId)?.profile;
+            const usersResult = await Api.getAllUsers();
+            const usersWithProfile = normalizeListResponse(usersResult).items as Array<{ user?: { id: string }; id?: string; profile?: any }>;
+            const foundUser = usersWithProfile.find((u) => u.user?.id === mainProfileUserId || u.id === mainProfileUserId);
+            const myProfile = foundUser?.profile;
             
             if (myProfile) {
                 setBranches(myProfile.branches || []);
@@ -80,8 +83,9 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
                 });
             }
 
-            const emps = await MockApi.getEmployees(mainProfileUserId);
-            setEmployees(emps);
+            const empsResult = await Api.getEmployees(mainProfileUserId);
+            const { items: emps } = normalizeListResponse(empsResult);
+            setEmployees(Array.isArray(emps) ? emps as User[] : []);
 
         } catch (error) {
             console.error(error);
@@ -95,7 +99,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
     const handleSaveProfile = async () => {
         setProfileLoading(true);
         try {
-            await MockApi.updateCustomerProfile(mainProfileUserId, companyProfile);
+            await Api.updateCustomerProfile(mainProfileUserId, companyProfile);
             addToast('تم حفظ معلومات المنشأة بنجاح', 'success');
         } catch (e: any) {
             addToast(e.message || 'فشل حفظ البيانات', 'error');
@@ -112,7 +116,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
         }
         setIsSaving(true);
         try {
-            await MockApi.addBranch(mainProfileUserId, branchForm as any);
+            await Api.addBranch(mainProfileUserId, branchForm as any);
             addToast('تم إضافة الفرع بنجاح', 'success');
             setShowBranchModal(false);
             setBranchForm({});
@@ -127,7 +131,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
     const handleDeleteBranch = async (id: string) => {
         if (!confirm('هل أنت متأكد من حذف هذا الفرع؟')) return;
         try {
-            await MockApi.deleteBranch(mainProfileUserId, id);
+            await Api.deleteBranch(mainProfileUserId, id);
             addToast('تم حذف الفرع', 'info');
             loadData();
         } catch (e) {
@@ -144,7 +148,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
         setIsSaving(true);
         try {
             // Returns the created user object AND the plain activation code
-            const result = await MockApi.addEmployee(mainProfileUserId, employeeForm);
+            const result = await Api.addEmployee(mainProfileUserId, employeeForm);
             
             addToast('تم إضافة الموظف بنجاح', 'success');
             setShowEmployeeModal(false);
@@ -163,7 +167,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
 
     const handleToggleStatus = async (id: string) => {
         try {
-            await MockApi.toggleEmployeeStatus(id);
+            await Api.toggleEmployeeStatus(id);
             addToast('تم تحديث حالة الموظف', 'success');
             loadData();
         } catch(e) {
@@ -174,7 +178,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
     const handleDeleteEmployee = async (id: string) => {
         if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) return;
         try {
-            await MockApi.deleteEmployee(id);
+            await Api.deleteEmployee(id);
             addToast('تم حذف حساب الموظف', 'info');
             loadData();
         } catch (e) {
@@ -204,7 +208,7 @@ export const OrganizationPage: React.FC<OrganizationPageProps> = ({ user, mainPr
 
         setPasswordLoading(true);
         try {
-            const result = await MockApi.changePassword(
+            const result = await Api.changePassword(
                 user.id,
                 passwordForm.oldPassword,
                 passwordForm.newPassword

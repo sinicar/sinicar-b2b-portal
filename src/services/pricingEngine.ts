@@ -1,4 +1,4 @@
-import { MockApi } from './mockApi';
+import { Api } from './api';
 import {
     ConfigurablePriceLevel,
     ProductPriceEntry,
@@ -53,9 +53,9 @@ const loadPricingData = async (): Promise<{
     }
     
     const [settings, levels, matrix] = await Promise.all([
-        MockApi.getGlobalPricingSettings(),
-        MockApi.getPriceLevels(),
-        MockApi.getProductPriceMatrix()
+        Api.getGlobalPricingSettings(),
+        Api.getPriceLevels(),
+        Api.getProductPriceMatrix()
     ]);
     
     cachedSettings = settings;
@@ -224,7 +224,7 @@ export const getEffectivePriceForCustomer = async (
         // Get customer pricing profile if available
         let profile: CustomerPricingProfile | null = null;
         if (customerId) {
-            profile = await MockApi.getCustomerPricingProfile(customerId);
+            profile = await Api.getCustomerPricingProfile(customerId);
             if (profile) {
                 result.calculationSteps.push(`تم العثور على ملف تسعير للعميل: ${customerId}`);
             }

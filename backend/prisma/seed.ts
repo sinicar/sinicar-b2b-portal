@@ -3,8 +3,54 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Helper: Check if string is valid UUID
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+// Migration: Clean up legacy string IDs
+async function migrateLegacyIds() {
+  console.log('🔄 Checking for legacy IDs...');
+
+  // Find SupplierProfile with non-UUID IDs
+  const allProfiles = await prisma.supplierProfile.findMany();
+  const legacyProfiles = allProfiles.filter(p => !isValidUUID(p.id));
+
+  if (legacyProfiles.length === 0) {
+    console.log('✅ No legacy IDs found.');
+    return;
+  }
+
+  console.log(`🔄 Found ${legacyProfiles.length} legacy IDs to migrate...`);
+
+  for (const profile of legacyProfiles) {
+    console.log(`   Deleting legacy SupplierProfile: ${profile.id}`);
+    
+    // Delete related SupplierUser records first
+    await prisma.supplierUser.deleteMany({
+      where: { supplierId: profile.id }
+    });
+
+    // Delete related SupplierRequestAssignment records
+    await prisma.supplierRequestAssignment.deleteMany({
+      where: { supplierId: profile.id }
+    });
+
+    // Delete the SupplierProfile
+    await prisma.supplierProfile.delete({
+      where: { id: profile.id }
+    });
+  }
+
+  console.log('✅ Legacy IDs cleaned up.');
+}
+
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // Run migration first
+  await migrateLegacyIds();
 
   const sarCurrency = await prisma.currency.upsert({
     where: { code: 'SAR' },
@@ -189,39 +235,49 @@ async function main() {
 
   console.log('✅ Roles created');
 
-  // Create demo users with simple numbered credentials
-  const demoUsers = [
-    { num: 1, name: 'مدير عام', role: 'SUPER_ADMIN' },
-    { num: 2, name: 'مدير', role: 'ADMIN' },
-    { num: 3, name: 'موظف', role: 'STAFF' },
-    { num: 4, name: 'عميل', role: 'CUSTOMER' },
-    { num: 5, name: 'مورد', role: 'SUPPLIER' },
-    { num: 6, name: 'مسوق', role: 'MARKETER' },
+  // كلمة المرور الموحدة للجميع: "1"
+  const universalPassword = await bcrypt.hash('1', 10);
+
+  // المستخدمين الثلاثة الأساسيين فقط
+  const coreUsers = [
+    { clientId: 'user-1', name: 'الأدمن الرئيسي', role: 'SUPER_ADMIN', email: 'admin@sinicar.com', isCustomer: false, isSupplier: false },
+    { clientId: 'user-2', name: 'عميل', role: 'CUSTOMER', email: 'customer@sinicar.com', isCustomer: true, isSupplier: false },
+    { clientId: 'user-5', name: 'مورد', role: 'SUPPLIER', email: 'supplier@sinicar.com', isCustomer: false, isSupplier: true },
   ];
 
-  for (const user of demoUsers) {
-    const hashedPassword = await bcrypt.hash(String(user.num), 10);
+  for (const user of coreUsers) {
     await prisma.user.upsert({
-      where: { clientId: `user-${user.num}` },
-      update: {},
-      create: {
-        clientId: `user-${user.num}`,
+      where: { clientId: user.clientId },
+      update: {
+        password: universalPassword,
         name: user.name,
-        email: `${user.num}@sinicar.com`,
-        phone: `05000000${user.num}`,
-        whatsapp: `05000000${user.num}`,
-        password: hashedPassword,
+        role: user.role,
+        email: user.email,
+        status: 'ACTIVE',
+        isActive: true,
+        failedLoginAttempts: 0, // إعادة تعيين عداد المحاولات الفاشلة
+      },
+      create: {
+        clientId: user.clientId,
+        name: user.name,
+        email: user.email,
+        phone: `050000000${user.clientId.slice(-1)}`,
+        whatsapp: `050000000${user.clientId.slice(-1)}`,
+        password: universalPassword,
         role: user.role,
         status: 'ACTIVE',
         isActive: true,
-        isCustomer: user.role === 'CUSTOMER',
-        isSupplier: user.role === 'SUPPLIER',
+        isCustomer: user.isCustomer,
+        isSupplier: user.isSupplier,
         completionPercent: 100,
       },
     });
   }
 
-  console.log('✅ Demo users created (1-6)');
+  console.log('✅ Core users created:');
+  console.log('   user-1 (Admin) / password: 1');
+  console.log('   user-2 (Customer) / password: 1');
+  console.log('   user-5 (Supplier) / password: 1');
 
   // Create SupplierProfile and SupplierUser for user-5 (supplier demo user)
   const supplierUser = await prisma.user.findFirst({
@@ -229,45 +285,54 @@ async function main() {
   });
 
   if (supplierUser) {
-    const supplierProfileId = 'supplier-profile-1';
-    await prisma.supplierProfile.upsert({
-      where: { id: supplierProfileId },
-      update: {},
-      create: {
-        id: supplierProfileId,
-        customerId: supplierUser.id,
-        companyName: 'شركة الأمل للتوريد',
-        contactName: 'مورد',
-        contactEmail: supplierUser.email || '5@sinicar.com',
-        contactPhone: supplierUser.phone || '050000005',
-        country: 'SA',
-        city: 'الرياض',
-        vatNumber: '300000000000001',
-        crNumber: '1010000001',
-        preferredCurrency: 'SAR',
-        supplierType: SupplierType.LOCAL,
-        status: 'ACTIVE',
-        rating: 4.5,
-      }
+    // Use a consistent UUID format instead of a text ID
+    // First, check if a SupplierProfile already exists for this user
+    let supplierProfile = await prisma.supplierProfile.findFirst({
+      where: { customerId: supplierUser.id }
     });
 
-    // Create SupplierUser record (owner)
-    const supplierUserId = `supplier-user-${supplierUser.id}`;
-    await prisma.supplierUser.upsert({
-      where: { id: supplierUserId },
-      update: {},
-      create: {
-        id: supplierUserId,
-        supplierId: supplierProfileId,
-        userId: supplierUser.id,
-        roleCode: 'SUPPLIER_OWNER',
-        isOwner: true,
-        isActive: true,
-        jobTitle: 'المدير العام',
-      }
+    if (!supplierProfile) {
+      // Create new SupplierProfile - Prisma will auto-generate UUID
+      supplierProfile = await prisma.supplierProfile.create({
+        data: {
+          customerId: supplierUser.id,
+          companyName: 'شركة الأمل للتوريد',
+          contactName: 'مورد',
+          contactEmail: supplierUser.email || '5@sinicar.com',
+          contactPhone: supplierUser.phone || '050000005',
+          country: 'SA',
+          city: 'الرياض',
+          vatNumber: '300000000000001',
+          crNumber: '1010000001',
+          preferredCurrency: 'SAR',
+          supplierType: SupplierType.LOCAL,
+          status: 'ACTIVE',
+          rating: 4.5,
+        }
+      });
+    }
+
+    // Check if SupplierUser already exists
+    const existingSupplierUser = await prisma.supplierUser.findFirst({
+      where: { userId: supplierUser.id }
     });
 
-    console.log('✅ SupplierProfile and SupplierUser created for user-5');
+    if (!existingSupplierUser) {
+      // Create SupplierUser record (owner) - Prisma will auto-generate UUID
+      await prisma.supplierUser.create({
+        data: {
+          supplierId: supplierProfile.id,
+          userId: supplierUser.id,
+          roleCode: 'SUPPLIER_OWNER',
+          isOwner: true,
+          isActive: true,
+          jobTitle: 'المدير العام',
+        }
+      });
+    }
+
+    console.log(`✅ SupplierProfile created with UUID: ${supplierProfile.id}`);
+    console.log('✅ SupplierUser linked to SupplierProfile');
   }
 
   const permissions = [

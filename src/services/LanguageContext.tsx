@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe, Check, ChevronDown } from 'lucide-react';
-import { MockApi } from './mockApi';
+import { Api } from './api';
 import i18n, { languages, changeLanguage as i18nChangeLanguage, getDirection } from './i18n';
 
 export type Language = 'ar' | 'en' | 'hi' | 'zh';
@@ -13,6 +13,7 @@ interface LanguageContextProps {
     tDynamic: (key: string, fallback: string) => string;
     dir: 'rtl' | 'ltr';
     fontFamily: string;
+    isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
@@ -51,7 +52,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     useEffect(() => {
         const loadTexts = async () => {
             try {
-                const settings = await MockApi.getSettings();
+                const settings = await Api.getSettings();
                 if (settings.uiTexts) {
                     setUiTexts(settings.uiTexts);
                 }
@@ -74,9 +75,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const dir = getDirection(language);
     const fontFamily = 'Tajawal, system-ui, sans-serif';
+    const isRTL = dir === 'rtl';
 
     return (
-        <LanguageContext.Provider value={{ language, setLanguage, t, tDynamic, dir, fontFamily }}>
+        <LanguageContext.Provider value={{ language, setLanguage, t, tDynamic, dir, fontFamily, isRTL }}>
             {children}
         </LanguageContext.Provider>
     );

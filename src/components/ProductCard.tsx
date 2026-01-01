@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product, CartItem, User } from '../types';
 import { Package, Plus, Check, Minus, ShoppingCart, Lock, Info, Search, Eye, Settings, Disc, Box } from 'lucide-react';
 import { useToast } from '../services/ToastContext';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 
 interface ProductCardProps {
   product: Product;
@@ -21,7 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, cart, 
 
   useEffect(() => {
       // Check if price was recently viewed
-      if (user && MockApi.hasRecentPriceView(user.id, product.id)) {
+      if (user && Api.hasRecentPriceView(user.id, product.id)) {
           setIsPriceRevealed(true);
       }
   }, [user, product.id]);
@@ -37,14 +37,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, cart, 
       setLoadingPrice(true);
       
       // 1. Check history again (client-side safety)
-      if (MockApi.hasRecentPriceView(user.id, product.id)) {
+      if (Api.hasRecentPriceView(user.id, product.id)) {
           setIsPriceRevealed(true);
           setLoadingPrice(false);
           return;
       }
 
       // 2. Check Credits
-      if (!MockApi.canShowPrice(user)) {
+      if (!Api.canShowPrice(user)) {
            addToast("لقد استهلكت جميع نقاط البحث المتاحة لهذا اليوم.", "error");
            setLoadingPrice(false);
            return;
@@ -52,8 +52,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAdd, cart, 
 
       // 3. Deduct & Log
       try {
-          await MockApi.incrementSearchUsage(user.id);
-          await MockApi.logPriceView(user, product);
+          await Api.incrementSearchUsage(user.id);
+          await Api.logPriceView(user, product);
           setIsPriceRevealed(true);
           if (onPriceReveal) onPriceReveal();
           addToast("تم خصم نقطة واحدة لعرض السعر", "info");

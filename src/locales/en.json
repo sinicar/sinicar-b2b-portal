@@ -1,5 +1,84 @@
 {
   "common": {
+    "error": "An unexpected error occurred. Please try again.",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "noData": "No data available",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "success": "Success"
+  },
+  "supplier": {
+    "dashboard": "Dashboard",
+    "purchaseOrders": "Purchase Orders",
+    "products": "My Products",
+    "installments": "Installment Requests",
+    "team": "Team",
+    "settings": "Settings",
+    "profileImage": "Profile Image",
+    "uploadImage": "Upload Image",
+    "removeImage": "Remove Image",
+    "welcome": "Welcome, {{name}}",
+    "logout": "Logout",
+    "noEmployees": "No Employees Found",
+    "addFirstEmployee": "Add your first employee to get started",
+    "customerServices": "Customer Services",
+    "quickOrders": "Quick Orders",
+    "excelPurchase": "Excel Purchase",
+    "images": "Product Images",
+    "orders": {
+      "new": "New Orders",
+      "preparing": "Preparing",
+      "shipping": "Shipping",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "id": "Order ID",
+      "customer": "Customer",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "viewDetails": "View Details",
+      "noOrders": "No orders in this category",
+      "quickOrder": "Quick Order",
+      "excelOrder": "Upload Excel"
+    },
+    "teamManagement": {
+      "title": "Team Management",
+      "addMember": "Add Member",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "installment": {
+    "supplierTitle": "Supplier Installment Requests",
+    "availableRequests": "Available Requests",
+    "myOffers": "My Offers",
+    "submitOffer": "Submit Offer",
+    "viewDetails": "View Details",
+    "status": {
+      "available": "Available for Offer",
+      "waiting": "Waiting for Offers",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "pending_approval": "Pending Approval"
+    },
+    "table": {
+      "requestDate": "Request Date",
+      "amount": "Amount",
+      "period": "Period",
+      "client": "Client",
+      "actions": "Actions"
+    },
+    "empty": "No installment requests currently"
+  },
     "appName": "Sini Car",
     "siniCar": "Sini Car",
     "appSlogan": "Wholesale Auto Parts Portal",
@@ -69,8 +148,7 @@
     "first": "First",
     "last": "Last",
     "selectAll": "Select All",
-    "deselectAll": "Deselect All"
-  },
+    "deselectAll": "Deselect All",
   "login": {
     "wholesaleLogin": "Wholesale Customer Login",
     "b2bPortal": "SINI CAR B2B PORTAL",
@@ -1001,12 +1079,20 @@
     },
     "table": {
       "customer": "Customer",
+      "businessName": "Business Name",
       "city": "City",
       "priceLevel": "Price Level",
+      "activity": "Activity",
       "ordersCount": "Orders Count",
+      "orders": "Orders",
       "totalPurchases": "Total Purchases",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "action": "Action",
+      "searches": "Searches",
+      "lastLogin": "Last Login",
+      "noMatching": "No matching customers found",
+      "suspiciousBehavior": "Suspicious behavior"
     },
     "view": "View",
     "noMatchingCustomers": "No matching customers found",
@@ -3137,5 +3223,57 @@
     "testFailed": "Failed to send message",
     "confirmDelete": "Are you sure you want to delete this template?",
     "searchLogs": "Search message logs..."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "center": "Notification Center",
+    "clearAll": "Clear All",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View All Notifications",
+    "noNotifications": "No notifications",
+    "newUpdates": "New notifications will appear here",
+    "new": "New",
+    "view": "View",
+    "delete": "Delete",
+    "refresh": "Refresh",
+    "filterByType": "Filter by type",
+    "unread": "Unread",
+    "showingLast": "Showing last {{count}} notifications",
+    "types": {
+      "orderUpdate": "Order Update",
+      "searchPoints": "Search Points",
+      "quote": "Quote",
+      "general": "General",
+      "accountUpdate": "Account Update",
+      "importUpdate": "Import Update",
+      "system": "System",
+      "marketing": "Marketing",
+      "accountApproved": "Account Approved",
+      "accountRejected": "Account Rejected",
+      "purchaseRequest": "Purchase Request",
+      "newMessage": "New Message",
+      "newCustomer": "New Customer",
+      "customerOrder": "Customer Order",
+      "supplierRequest": "Supplier Request",
+      "accountRequest": "Account Request",
+      "quoteRequest": "Quote Request",
+      "importRequest": "Import Request",
+      "abandonedCart": "Abandoned Cart"
+    },
+    "categories": {
+      "all": "All",
+      "orders": "Orders",
+      "account": "Account",
+      "requests": "Requests",
+      "quotes": "Quotes",
+      "points": "Points",
+      "system": "System"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minAgo": "{{count}}m ago",
+      "hrAgo": "{{count}}h ago",
+      "dayAgo": "{{count}}d ago"
+    }
   }
 }

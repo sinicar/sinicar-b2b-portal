@@ -81,47 +81,47 @@ enum MessageStatus {
 // ============ User & Auth Models ============
 
 model User {
-  id                   String    @id @default(uuid())
-  clientId             String    @unique
-  name                 String
-  email                String?
-  phone                String?
-  password             String?
-  role                 String    @default("CUSTOMER_OWNER")
-  employeeRole         String?
-  status               String    @default("PENDING")
-  isActive             Boolean   @default(true)
-  parentId             String?
-  businessId           String?
-  activationCode       String?
-  passwordResetToken   String?
-  passwordResetExpiry  DateTime?
-  searchLimit          Int       @default(100)
-  searchUsed           Int       @default(0)
-  failedLoginAttempts  Int       @default(0)
-  lastLoginAt          DateTime?
-  lastActiveAt         DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  
-  isCustomer           Boolean   @default(true)
-  isSupplier           Boolean   @default(false)
-  completionPercent    Int       @default(0)
-  whatsapp             String?
-  clientCode           String?
-  
-  preferredCurrency    String?
-  preferredLanguage    String    @default("ar")
+  id                  String    @id @default(uuid())
+  clientId            String    @unique
+  name                String
+  email               String?
+  phone               String?
+  password            String?
+  role                String    @default("CUSTOMER_OWNER")
+  employeeRole        String?
+  status              String    @default("PENDING")
+  isActive            Boolean   @default(true)
+  parentId            String?
+  businessId          String?
+  activationCode      String?
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+  searchLimit         Int       @default(100)
+  searchUsed          Int       @default(0)
+  failedLoginAttempts Int       @default(0)
+  lastLoginAt         DateTime?
+  lastActiveAt        DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  parent               User?     @relation("UserHierarchy", fields: [parentId], references: [id])
-  children             User[]    @relation("UserHierarchy")
-  profile              BusinessProfile?
-  organizationUsers    OrganizationUser[]
-  orders               Order[]
-  quoteRequests        QuoteRequest[]
-  installmentRequests  InstallmentRequest[]
-  activityLogs         ActivityLog[]
-  roleAssignments      UserRoleAssignment[]
+  isCustomer        Boolean @default(true)
+  isSupplier        Boolean @default(false)
+  completionPercent Int     @default(0)
+  whatsapp          String?
+  clientCode        String?
+
+  preferredCurrency String?
+  preferredLanguage String  @default("ar")
+
+  parent              User?                @relation("UserHierarchy", fields: [parentId], references: [id])
+  children            User[]               @relation("UserHierarchy")
+  profile             BusinessProfile?
+  organizationUsers   OrganizationUser[]
+  orders              Order[]
+  quoteRequests       QuoteRequest[]
+  installmentRequests InstallmentRequest[]
+  activityLogs        ActivityLog[]
+  roleAssignments     UserRoleAssignment[]
 }
 
 model BusinessProfile {
@@ -147,33 +147,33 @@ model BusinessProfile {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  branches              Branch[]
-  documents             Document[]
+  branches  Branch[]
+  documents Document[]
 }
 
 model Branch {
-  id            String   @id @default(uuid())
-  profileId     String
-  profile       BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name          String
-  city          String
-  phone         String?
-  address       String?
-  managerName   String?
-  managerPhone  String?
-  isMainBranch  Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  id           String          @id @default(uuid())
+  profileId    String
+  profile      BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name         String
+  city         String
+  phone        String?
+  address      String?
+  managerName  String?
+  managerPhone String?
+  isMainBranch Boolean         @default(false)
+  createdAt    DateTime        @default(now())
 }
 
 model Document {
-  id          String   @id @default(uuid())
-  profileId   String
-  profile     BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  type        String
-  fileName    String
-  fileUrl     String
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
+  id        String          @id @default(uuid())
+  profileId String
+  profile   BusinessProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type      String
+  fileName  String
+  fileUrl   String
+  status    String          @default("PENDING")
+  createdAt DateTime        @default(now())
 }
 
 model ActivityLog {
@@ -192,122 +192,121 @@ model ActivityLog {
 // ============ Organization Models ============
 
 model Organization {
-  id                   String   @id @default(uuid())
-  type                 String   @default("TRADER")
-  name                 String
-  ownerUserId          String
-  maxEmployees         Int      @default(5)
-  allowCustomPermissions Boolean @default(false)
-  status               String   @default("ACTIVE")
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  type                   String   @default("TRADER")
+  name                   String
+  ownerUserId            String
+  maxEmployees           Int      @default(5)
+  allowCustomPermissions Boolean  @default(false)
+  status                 String   @default("ACTIVE")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  users                OrganizationUser[]
-  invitations          TeamInvitation[]
-  activityLogs         OrgActivityLog[]
+  users        OrganizationUser[]
+  invitations  TeamInvitation[]
+  activityLogs OrgActivityLog[]
 }
 
 model OrganizationUser {
-  id              String   @id @default(uuid())
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role            String   @default("STAFF")
-  permissions     String?
-  jobTitle        String?
-  department      String?
-  status          String   @default("ACTIVE")
-  invitedBy       String?
-  joinedAt        DateTime @default(now())
-  lastActiveAt    DateTime?
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("STAFF")
+  permissions    String?
+  jobTitle       String?
+  department     String?
+  status         String       @default("ACTIVE")
+  invitedBy      String?
+  joinedAt       DateTime     @default(now())
+  lastActiveAt   DateTime?
 }
 
 model TeamInvitation {
-  id              String   @id @default(uuid())
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  email           String
-  phone           String?
-  role            String   @default("STAFF")
-  inviteCode      String   @unique
-  status          String   @default("PENDING")
-  expiresAt       DateTime
-  createdBy       String
-  acceptedAt      DateTime?
-  createdAt       DateTime @default(now())
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  phone          String?
+  role           String       @default("STAFF")
+  inviteCode     String       @unique
+  status         String       @default("PENDING")
+  expiresAt      DateTime
+  createdBy      String
+  acceptedAt     DateTime?
+  createdAt      DateTime     @default(now())
 }
 
 model OrgActivityLog {
-  id              String   @id @default(uuid())
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId          String
-  userName        String?
-  action          String
-  description     String
-  metadata        String?
-  createdAt       DateTime @default(now())
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  userName       String?
+  action         String
+  description    String
+  metadata       String?
+  createdAt      DateTime     @default(now())
 }
 
 // ============ Product Models ============
 
 model Product {
-  id              String   @id @default(uuid())
-  partNumber      String   @unique
-  name            String
-  nameEn          String?
-  nameAr          String?
-  nameZh          String?
-  brand           String?
-  category        String?
-  description     String?
-  imageUrl        String?
-  imageGallery    String[]
-  priceRetail     Float    @default(0)
-  priceWholesale  Float    @default(0)
-  priceVip        Float    @default(0)
-  stock           Int      @default(0)
-  isActive        Boolean  @default(true)
-  qualityCodeId   String?
-  qualityCode     QualityCode? @relation(fields: [qualityCodeId], references: [id])
-  brandCodeId     String?
-  brandCode       BrandCode? @relation(fields: [brandCodeId], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String       @id @default(uuid())
+  partNumber     String       @unique
+  name           String
+  nameEn         String?
+  nameAr         String?
+  nameZh         String?
+  brand          String?
+  category       String?
+  description    String?
+  imageUrl       String?
+  imageGallery   String[]
+  priceRetail    Float        @default(0)
+  priceWholesale Float        @default(0)
+  priceVip       Float        @default(0)
+  stock          Int          @default(0)
+  isActive       Boolean      @default(true)
+  qualityCodeId  String?
+  qualityCode    QualityCode? @relation(fields: [qualityCodeId], references: [id])
+  brandCodeId    String?
+  brandCode      BrandCode?   @relation(fields: [brandCodeId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  orderItems      OrderItem[]
-  quoteItems      QuoteItem[]
+  quoteItems QuoteItem[]
+  orderItems OrderItem[]
 }
 
 // ============ Order Models ============
 
 model Order {
-  id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  businessId      String?
-  branchId        String?
-  status          String   @default("PENDING")
-  internalStatus  String   @default("NEW")
-  internalNotes   String?
-  totalAmount     Float    @default(0)
-  currency        String   @default("SAR")
-  cancelledBy     String?
-  cancelledAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  businessId     String?
+  branchId       String?
+  status         String    @default("PENDING")
+  internalStatus String    @default("NEW")
+  internalNotes  String?
+  totalAmount    Float     @default(0)
+  currency       String    @default("SAR")
+  cancelledBy    String?
+  cancelledAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  items           OrderItem[]
-  statusHistory   OrderStatusHistory[]
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
 }
 
 model OrderItem {
   id          String   @id @default(uuid())
   orderId     String
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String?
-  product     Product? @relation(fields: [productId], references: [id])
+  productId   String? // No foreign key - products may not exist in DB
   partNumber  String
   name        String
   quantity    Int
@@ -315,6 +314,7 @@ model OrderItem {
   totalPrice  Float
   qualityCode String?
   createdAt   DateTime @default(now())
+  product     Product? @relation(fields: [productId], references: [id])
 }
 
 model OrderStatusHistory {
@@ -328,65 +328,65 @@ model OrderStatusHistory {
 }
 
 model QuoteRequest {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  userName     String?
-  companyName  String?
-  priceType    String?
-  status       String   @default("NEW")
-  resultReady  Boolean  @default(false)
-  processedAt  DateTime?
-  qualityCode  String?
-  createdAt    DateTime @default(now())
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  userName    String?
+  companyName String?
+  priceType   String?
+  status      String    @default("NEW")
+  resultReady Boolean   @default(false)
+  processedAt DateTime?
+  qualityCode String?
+  createdAt   DateTime  @default(now())
 
-  items        QuoteItem[]
+  items QuoteItem[]
 }
 
 model QuoteItem {
-  id           String   @id @default(uuid())
+  id           String       @id @default(uuid())
   quoteId      String
   quote        QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   productId    String?
-  product      Product? @relation(fields: [productId], references: [id])
+  product      Product?     @relation(fields: [productId], references: [id])
   partNumber   String
   partName     String?
   requestedQty Int
   matchedPrice Float?
   notes        String?
-  status       String   @default("PENDING")
+  status       String       @default("PENDING")
   qualityCode  String?
 }
 
 // ============ Installment Models ============
 
 model InstallmentRequest {
-  id                      String   @id @default(uuid())
+  id                      String    @id @default(uuid())
   customerId              String
-  customer                User     @relation(fields: [customerId], references: [id])
+  customer                User      @relation(fields: [customerId], references: [id])
   customerName            String?
   totalRequestedValue     Float
-  paymentFrequency        String   @default("MONTHLY")
+  paymentFrequency        String    @default("MONTHLY")
   requestedDurationMonths Int
-  status                  String   @default("PENDING_SINICAR_REVIEW")
-  sinicarDecision         String   @default("PENDING")
+  status                  String    @default("PENDING_SINICAR_REVIEW")
+  sinicarDecision         String    @default("PENDING")
   adminNotes              String?
-  allowedForSuppliers     Boolean  @default(false)
+  allowedForSuppliers     Boolean   @default(false)
   forwardedToSupplierIds  String?
   reviewedBy              String?
   reviewedAt              DateTime?
   acceptedOfferId         String?
   closedAt                DateTime?
   closedReason            String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
-  items                   InstallmentItem[]
-  offers                  InstallmentOffer[]
+  items  InstallmentItem[]
+  offers InstallmentOffer[]
 }
 
 model InstallmentItem {
-  id             String   @id @default(uuid())
+  id             String             @id @default(uuid())
   requestId      String
   request        InstallmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
   partNumber     String
@@ -396,32 +396,32 @@ model InstallmentItem {
 }
 
 model InstallmentOffer {
-  id                 String   @id @default(uuid())
+  id                 String             @id @default(uuid())
   requestId          String
   request            InstallmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  sourceType         String   @default("SINICAR")
+  sourceType         String             @default("SINICAR")
   supplierId         String?
   supplierName       String?
-  type               String   @default("FULL")
+  type               String             @default("FULL")
   itemsApproved      String?
   totalApprovedValue Float
   schedule           String?
   notes              String?
-  status             String   @default("WAITING_FOR_CUSTOMER")
+  status             String             @default("WAITING_FOR_CUSTOMER")
   createdBy          String?
-  createdAt          DateTime @default(now())
+  createdAt          DateTime           @default(now())
 }
 
 model InstallmentSettings {
-  id                   String  @id @default(uuid())
-  key                  String  @unique @default("global")
-  enableInstallments   Boolean @default(true)
-  allowSupplierOffers  Boolean @default(true)
-  minInstallmentValue  Float   @default(1000)
-  maxInstallmentValue  Float   @default(100000)
-  minDurationMonths    Int     @default(3)
-  maxDurationMonths    Int     @default(24)
-  defaultCommission    Float   @default(5)
+  id                  String  @id @default(uuid())
+  key                 String  @unique @default("global")
+  enableInstallments  Boolean @default(true)
+  allowSupplierOffers Boolean @default(true)
+  minInstallmentValue Float   @default(1000)
+  maxInstallmentValue Float   @default(100000)
+  minDurationMonths   Int     @default(3)
+  maxDurationMonths   Int     @default(24)
+  defaultCommission   Float   @default(5)
 }
 
 // ============ Supplier Models (Extended) ============
@@ -438,141 +438,180 @@ model SupplierGroup {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  suppliers            SupplierProfile[]
+  suppliers SupplierProfile[]
 }
 
 model SupplierProfile {
-  id                   String       @id @default(uuid())
-  customerId           String
-  companyName          String
-  contactName          String?
-  contactPhone         String?
-  contactEmail         String?
-  categories           String?
-  regions              String?
-  rating               Float        @default(0)
-  totalRevenue         Float        @default(0)
-  status               String       @default("PENDING")
-  
-  supplierType         SupplierType @default(LOCAL)
-  groupId              String?
-  group                SupplierGroup? @relation(fields: [groupId], references: [id])
-  customMarginPercent  Float?
-  
-  country              String?
-  city                 String?
-  vatNumber            String?
-  crNumber             String?
-  preferredCurrency    String       @default("SAR")
-  allowedCurrencies    String[]
-  shippingOriginCity   String?
-  languageHint         String?
-  
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  id           String  @id @default(uuid())
+  customerId   String
+  companyName  String
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  categories   String?
+  regions      String?
+  rating       Float   @default(0)
+  totalRevenue Float   @default(0)
+  status       String  @default("PENDING")
 
-  catalogItems         SupplierCatalogItem[]
-  excelUploads         SupplierExcelUpload[]
+  supplierType        SupplierType   @default(LOCAL)
+  groupId             String?
+  group               SupplierGroup? @relation(fields: [groupId], references: [id])
+  customMarginPercent Float?
+
+  country            String?
+  city               String?
+  vatNumber          String?
+  crNumber           String?
+  preferredCurrency  String   @default("SAR")
+  allowedCurrencies  String[]
+  shippingOriginCity String?
+  languageHint       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  catalogItems SupplierCatalogItem[]
+  excelUploads SupplierExcelUpload[]
 }
 
 model SupplierCatalogItem {
-  id              String   @id @default(uuid())
-  supplierId      String
-  supplier        SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  partNumber      String
-  partName        String?
-  originalName    String?
+  id               String          @id @default(uuid())
+  supplierId       String
+  supplier         SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  partNumber       String
+  partName         String?
+  originalName     String?
   translatedNameAr String?
   translatedNameEn String?
-  brand           String?
-  price           Float
-  currency        String   @default("SAR")
-  qualityCodeId   String?
-  qualityCode     QualityCode? @relation(fields: [qualityCodeId], references: [id])
-  brandCodeId     String?
-  brandCode       BrandCode? @relation(fields: [brandCodeId], references: [id])
-  stock           Int      @default(0)
-  leadTimeDays    Int      @default(7)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  brand            String?
+  price            Float
+  currency         String          @default("SAR")
+  qualityCodeId    String?
+  qualityCode      QualityCode?    @relation(fields: [qualityCodeId], references: [id])
+  brandCodeId      String?
+  brandCode        BrandCode?      @relation(fields: [brandCodeId], references: [id])
+  stock            Int             @default(0)
+  leadTimeDays     Int             @default(7)
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 }
 
 model SupplierExcelUpload {
-  id              String       @id @default(uuid())
-  supplierId      String
-  supplier        SupplierProfile @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  templateId      String?
-  template        ExcelImportTemplate? @relation(fields: [templateId], references: [id])
+  id               String               @id @default(uuid())
+  supplierId       String
+  supplier         SupplierProfile      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  templateId       String?
+  template         ExcelImportTemplate? @relation(fields: [templateId], references: [id])
   originalFileName String
-  originalFileUrl String
-  status          UploadStatus @default(PENDING_REVIEW)
-  aiSummary       String?
-  adminComment    String?
-  rowsTotal       Int          @default(0)
-  rowsValid       Int          @default(0)
-  rowsInvalid     Int          @default(0)
-  unknownCodes    String[]
-  reviewedBy      String?
-  reviewedAt      DateTime?
-  createdAt       DateTime     @default(now())
+  originalFileUrl  String
+  status           UploadStatus         @default(PENDING_REVIEW)
+  aiSummary        String?
+  adminComment     String?
+  rowsTotal        Int                  @default(0)
+  rowsValid        Int                  @default(0)
+  rowsInvalid      Int                  @default(0)
+  unknownCodes     String[]
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  createdAt        DateTime             @default(now())
 }
 
 model SupplierMarketplaceSettings {
-  id                       String  @id @default(uuid())
-  key                      String  @unique @default("global")
-  enableMarketplace        Boolean @default(true)
+  id                           String  @id @default(uuid())
+  key                          String  @unique @default("global")
+  enableMarketplace            Boolean @default(true)
   hideRealSupplierFromCustomer Boolean @default(false)
-  markupPercentage         Float   @default(0)
+  markupPercentage             Float   @default(0)
 }
 
 model SupplierUser {
-  id              String   @id @default(uuid())
-  supplierId      String
-  userId          String
-  roleCode        String   @default("SUPPLIER_STAFF")
-  isOwner         Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  jobTitle        String?
-  invitedBy       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id         String   @id @default(uuid())
+  supplierId String
+  userId     String
+  roleCode   String   @default("SUPPLIER_STAFF")
+  isOwner    Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  jobTitle   String?
+  invitedBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([supplierId, userId])
   @@index([supplierId])
   @@index([userId])
 }
 
+// ============ Supplier Request Assignment (Middle-Man Layer) ============
+// Links requests to suppliers WITHOUT exposing customer identity
+model SupplierRequestAssignment {
+  id               String   @id @default(uuid())
+  supplierId       String
+  requestType      String // "QUOTE" | "ORDER" | "IMPORT" | "MISSING" | "INSTALLMENT"
+  requestId        String // UUID of the underlying request (QuoteRequest.id, Order.id, etc.)
+  status           String   @default("NEW") // "NEW" | "ACCEPTED" | "IN_PROGRESS" | "SHIPPED" | "REJECTED" | "CANCELLED"
+  priority         String   @default("NORMAL") // "LOW" | "NORMAL" | "HIGH" | "URGENT"
+  internalNotes    String? // Admin-only notes (not visible to supplier)
+  supplierNotes    String? // Notes visible to supplier
+  createdByAdminId String? // Which admin created this assignment
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  auditLog SupplierAssignmentAudit[]
+
+  @@unique([supplierId, requestType, requestId])
+  @@index([supplierId])
+  @@index([requestType, requestId])
+  @@index([status])
+}
+
+// Audit log for assignment status changes
+model SupplierAssignmentAudit {
+  id              String                    @id @default(uuid())
+  assignmentId    String
+  assignment      SupplierRequestAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  oldStatus       String
+  newStatus       String
+  changedByUserId String
+  changedByRole   String // "SUPPLIER" | "ADMIN"
+  notes           String?
+  changedAt       DateTime                  @default(now())
+
+  @@index([assignmentId])
+  @@index([changedByUserId])
+}
+
 // ============ Currency & Pricing Models ============
 
 model Currency {
-  id            String   @id @default(uuid())
-  code          String   @unique
-  name          String
-  nameAr        String?
-  nameEn        String?
-  symbol        String
-  isBase        Boolean  @default(false)
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  nameAr    String?
+  nameEn    String?
+  symbol    String
+  isBase    Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   exchangeRates ExchangeRate[]
 }
 
 model ExchangeRate {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   currencyId    String
-  currency      Currency @relation(fields: [currencyId], references: [id], onDelete: Cascade)
+  currency      Currency  @relation(fields: [currencyId], references: [id], onDelete: Cascade)
   rateToBase    Float
-  syncPercent   Float    @default(100)
-  effectiveFrom DateTime @default(now())
+  syncPercent   Float     @default(100)
+  effectiveFrom DateTime  @default(now())
   effectiveTo   DateTime?
-  isActive      Boolean  @default(true)
+  isActive      Boolean   @default(true)
   updatedBy     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([currencyId, effectiveFrom])
 }
@@ -594,8 +633,8 @@ model QualityCode {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  products            Product[]
-  catalogItems        SupplierCatalogItem[]
+  products     Product[]
+  catalogItems SupplierCatalogItem[]
 }
 
 model BrandCode {
@@ -619,69 +658,69 @@ model BrandCode {
 // ============ Excel Import Templates ============
 
 model ExcelImportTemplate {
-  id                  String   @id @default(uuid())
-  name                String
-  nameAr              String?
-  nameEn              String?
-  description         String?
-  templateType        String   @default("SUPPLIER_PRODUCT")
-  languageHint        String?
-  instructionsText    String?
-  instructionsTextAr  String?
-  templateFileUrl     String?
-  isActive            Boolean  @default(true)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  name               String
+  nameAr             String?
+  nameEn             String?
+  description        String?
+  templateType       String   @default("SUPPLIER_PRODUCT")
+  languageHint       String?
+  instructionsText   String?
+  instructionsTextAr String?
+  templateFileUrl    String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  columns             TemplateColumn[]
-  uploads             SupplierExcelUpload[]
+  columns TemplateColumn[]
+  uploads SupplierExcelUpload[]
 }
 
 model TemplateColumn {
-  id           String   @id @default(uuid())
+  id           String              @id @default(uuid())
   templateId   String
   template     ExcelImportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   columnKey    String
   columnName   String
   columnNameAr String?
   columnIndex  Int
-  isRequired   Boolean  @default(false)
-  dataType     String   @default("TEXT")
+  isRequired   Boolean             @default(false)
+  dataType     String              @default("TEXT")
   defaultValue String?
   validation   String?
-  sortOrder    Int      @default(0)
+  sortOrder    Int                 @default(0)
 }
 
 // ============ Shipping Configuration ============
 
 model ShippingMethod {
-  id            String   @id @default(uuid())
-  code          String   @unique
-  name          String
-  nameAr        String?
-  nameEn        String?
-  description   String?
-  baseRate      Float    @default(0)
-  perKgRate     Float    @default(0)
-  minCharge     Float    @default(0)
-  deliveryDays  Int      @default(7)
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(uuid())
+  code         String   @unique
+  name         String
+  nameAr       String?
+  nameEn       String?
+  description  String?
+  baseRate     Float    @default(0)
+  perKgRate    Float    @default(0)
+  minCharge    Float    @default(0)
+  deliveryDays Int      @default(7)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model ShippingZone {
-  id            String   @id @default(uuid())
-  code          String   @unique
-  name          String
-  nameAr        String?
-  countries     String[]
-  extraRatePerKg Float   @default(0)
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(uuid())
+  code           String   @unique
+  name           String
+  nameAr         String?
+  countries      String[]
+  extraRatePerKg Float    @default(0)
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // ============ Permission System ============
@@ -699,9 +738,9 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  permissions     RolePermission[]
-  users           UserRoleAssignment[]
-  defaultGroups   RolePermissionGroup[]
+  permissions   RolePermission[]
+  users         UserRoleAssignment[]
+  defaultGroups RolePermissionGroup[]
 }
 
 model Permission {
@@ -718,35 +757,35 @@ model Permission {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roles           RolePermission[]
-  groupPermissions PermissionGroupPermission[]
-  userOverrides   UserPermissionOverride[]
+  roles                       RolePermission[]
+  groupPermissions            PermissionGroupPermission[]
+  userOverrides               UserPermissionOverride[]
   supplierEmployeePermissions SupplierEmployeePermission[]
 }
 
 model RolePermission {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   roleId       String
-  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissionId String
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  effect       String   @default("ALLOW")
-  canCreate    Boolean  @default(false)
-  canRead      Boolean  @default(true)
-  canUpdate    Boolean  @default(false)
-  canDelete    Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  effect       String     @default("ALLOW")
+  canCreate    Boolean    @default(false)
+  canRead      Boolean    @default(true)
+  canUpdate    Boolean    @default(false)
+  canDelete    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
 
   @@unique([roleId, permissionId])
 }
 
 model UserRoleAssignment {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId    String
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  isActive  Boolean  @default(true)
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  isActive   Boolean  @default(true)
   assignedBy String?
   assignedAt DateTime @default(now())
 
@@ -754,17 +793,17 @@ model UserRoleAssignment {
 }
 
 model PermissionGroup {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  name        String
-  nameAr      String?
-  nameEn      String?
-  description String?
-  isSystemDefault Boolean @default(false)
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(uuid())
+  code            String   @unique
+  name            String
+  nameAr          String?
+  nameEn          String?
+  description     String?
+  isSystemDefault Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   permissions PermissionGroupPermission[]
   roles       RolePermissionGroup[]
@@ -772,91 +811,91 @@ model PermissionGroup {
 }
 
 model PermissionGroupPermission {
-  id           String   @id @default(uuid())
+  id           String          @id @default(uuid())
   groupId      String
   group        PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   permissionId String
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  effect       String   @default("ALLOW")
-  createdAt    DateTime @default(now())
+  permission   Permission      @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  effect       String          @default("ALLOW")
+  createdAt    DateTime        @default(now())
 
   @@unique([groupId, permissionId])
 }
 
 model RolePermissionGroup {
-  id        String   @id @default(uuid())
+  id        String          @id @default(uuid())
   roleId    String
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role      Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
   groupId   String
   group     PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  createdAt DateTime        @default(now())
 
   @@unique([roleId, groupId])
 }
 
 model UserPermissionGroup {
-  id        String   @id @default(uuid())
-  userId    String
-  groupId   String
-  group     PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id         String          @id @default(uuid())
+  userId     String
+  groupId    String
+  group      PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   assignedBy String?
-  createdAt DateTime @default(now())
+  createdAt  DateTime        @default(now())
 
   @@unique([userId, groupId])
 }
 
 model UserPermissionOverride {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   userId       String
   permissionId String
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  effect       String   @default("ALLOW")
+  effect       String     @default("ALLOW")
   reason       String?
   assignedBy   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   @@unique([userId, permissionId])
 }
 
 model CustomerFeatureVisibility {
-  id                     String   @id @default(uuid())
-  customerId             String
-  featureCode            String
-  visibility             String   @default("SHOW")
+  id                      String   @id @default(uuid())
+  customerId              String
+  featureCode             String
+  visibility              String   @default("SHOW")
   conditionProfilePercent Int?
-  reason                 String?
-  assignedBy             String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  reason                  String?
+  assignedBy              String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   @@unique([customerId, featureCode])
 }
 
 model SupplierEmployee {
-  id               String   @id @default(uuid())
-  supplierId       String
-  userId           String
-  roleWithinSupplier String @default("SUPPLIER_VIEWER")
-  jobTitle         String?
-  department       String?
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  supplierId         String
+  userId             String
+  roleWithinSupplier String   @default("SUPPLIER_VIEWER")
+  jobTitle           String?
+  department         String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  permissions      SupplierEmployeePermission[]
+  permissions SupplierEmployeePermission[]
 
   @@unique([supplierId, userId])
 }
 
 model SupplierEmployeePermission {
-  id                 String   @id @default(uuid())
+  id                 String           @id @default(uuid())
   supplierEmployeeId String
   supplierEmployee   SupplierEmployee @relation(fields: [supplierEmployeeId], references: [id], onDelete: Cascade)
   permissionId       String
-  permission         Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  effect             String   @default("ALLOW")
-  createdAt          DateTime @default(now())
+  permission         Permission       @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  effect             String           @default("ALLOW")
+  createdAt          DateTime         @default(now())
 
   @@unique([supplierEmployeeId, permissionId])
 }
@@ -904,7 +943,7 @@ model FeatureFlag {
   metadata    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   featureAccess FeatureAccess[]
 }
 
@@ -916,9 +955,9 @@ model FeatureAccess {
   isEnabled   Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  feature     FeatureFlag @relation(fields: [featureCode], references: [key])
-  
+
+  feature FeatureFlag @relation(fields: [featureCode], references: [key])
+
   @@unique([ownerType, ownerId, featureCode])
   @@index([ownerType, ownerId])
 }
@@ -926,17 +965,17 @@ model FeatureAccess {
 // ============ Advertising Models ============
 
 model Advertiser {
-  id            String   @id @default(uuid())
-  name          String
-  contactName   String?
-  contactEmail  String?
-  contactPhone  String?
-  balance       Float    @default(0)
-  status        String   @default("ACTIVE")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+  balance      Float    @default(0)
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  campaigns     AdCampaign[]
+  campaigns AdCampaign[]
 }
 
 model AdSlot {
@@ -952,27 +991,27 @@ model AdSlot {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  campaigns     AdCampaign[]
+  campaigns AdCampaign[]
 }
 
 model AdCampaign {
-  id            String   @id @default(uuid())
-  advertiserId  String
-  advertiser    Advertiser @relation(fields: [advertiserId], references: [id])
-  slotId        String
-  slot          AdSlot   @relation(fields: [slotId], references: [id])
-  title         String
-  imageUrl      String?
-  targetUrl     String?
-  budget        Float    @default(0)
-  spent         Float    @default(0)
-  impressions   Int      @default(0)
-  clicks        Int      @default(0)
-  startDate     DateTime
-  endDate       DateTime
-  status        String   @default("PENDING")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String     @id @default(uuid())
+  advertiserId String
+  advertiser   Advertiser @relation(fields: [advertiserId], references: [id])
+  slotId       String
+  slot         AdSlot     @relation(fields: [slotId], references: [id])
+  title        String
+  imageUrl     String?
+  targetUrl    String?
+  budget       Float      @default(0)
+  spent        Float      @default(0)
+  impressions  Int        @default(0)
+  clicks       Int        @default(0)
+  startDate    DateTime
+  endDate      DateTime
+  status       String     @default("PENDING")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 // ============ Tools Models ============
@@ -995,19 +1034,19 @@ model ToolConfig {
 }
 
 model CustomerToolsOverride {
-  id          String   @id @default(uuid())
-  customerId  String   @unique
-  overrides   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  customerId String   @unique
+  overrides  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model ToolUsageRecord {
-  id          String   @id @default(uuid())
-  customerId  String
-  toolKey     String
-  metadata    String?
-  usageDate   DateTime @default(now())
+  id         String   @id @default(uuid())
+  customerId String
+  toolKey    String
+  metadata   String?
+  usageDate  DateTime @default(now())
 }
 
 model PriceComparisonSession {
@@ -1039,54 +1078,54 @@ model SupplierPriceRecord {
 // ============ Marketer Models ============
 
 model Marketer {
-  id              String   @id @default(uuid())
-  userId          String?
-  name            String
-  email           String
-  phone           String
-  paymentMethod   String?
-  bankDetails     String?
-  commissionRate  Float    @default(5)
-  referralCode    String   @unique
-  referralUrl     String?
-  referralCount   Int      @default(0)
-  totalEarnings   Float    @default(0)
-  pendingPayouts  Float    @default(0)
-  paidAmount      Float    @default(0)
-  status          String   @default("PENDING")
-  approvedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String    @id @default(uuid())
+  userId         String?
+  name           String
+  email          String
+  phone          String
+  paymentMethod  String?
+  bankDetails    String?
+  commissionRate Float     @default(5)
+  referralCode   String    @unique
+  referralUrl    String?
+  referralCount  Int       @default(0)
+  totalEarnings  Float     @default(0)
+  pendingPayouts Float     @default(0)
+  paidAmount     Float     @default(0)
+  status         String    @default("PENDING")
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  referrals       CustomerReferral[]
-  commissions     MarketerCommission[]
+  referrals   CustomerReferral[]
+  commissions MarketerCommission[]
 }
 
 model CustomerReferral {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   marketerId   String
-  marketer     Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  marketer     Marketer  @relation(fields: [marketerId], references: [id], onDelete: Cascade)
   customerId   String
   customerName String?
-  status       String   @default("PENDING")
+  status       String    @default("PENDING")
   convertedAt  DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 }
 
 model MarketerCommission {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   marketerId       String
-  marketer         Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  marketer         Marketer  @relation(fields: [marketerId], references: [id], onDelete: Cascade)
   orderId          String
   customerId       String
   customerName     String?
   orderAmount      Float
   commissionRate   Float
   commissionAmount Float
-  status           String   @default("PENDING")
+  status           String    @default("PENDING")
   approvedAt       DateTime?
   paidAt           DateTime?
-  createdAt        DateTime @default(now())
+  createdAt        DateTime  @default(now())
 }
 
 model MarketerSettings {
@@ -1101,20 +1140,20 @@ model MarketerSettings {
 // ============ Account Opening Request ============
 
 model AccountOpeningRequest {
-  id            String   @id @default(uuid())
-  companyName   String
-  ownerName     String
-  phone         String
-  email         String?
-  region        String?
-  city          String?
-  crNumber      String?
-  businessType  String?
-  status        String   @default("PENDING")
-  reviewedBy    String?
-  reviewedAt    DateTime?
-  adminNotes    String?
-  createdAt     DateTime @default(now())
+  id           String    @id @default(uuid())
+  companyName  String
+  ownerName    String
+  phone        String
+  email        String?
+  region       String?
+  city         String?
+  crNumber     String?
+  businessType String?
+  status       String    @default("PENDING")
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  adminNotes   String?
+  createdAt    DateTime  @default(now())
 }
 
 // ============ Message Templates & Communication Center ============
@@ -1143,7 +1182,7 @@ model MessageTemplate {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  logs        MessageLog[]
+  logs MessageLog[]
 
   @@unique([event, channel, language])
   @@index([event])
@@ -1152,31 +1191,31 @@ model MessageTemplate {
 }
 
 model MessageLog {
-  id            String         @id @default(uuid())
-  templateId    String?
-  template      MessageTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  event         MessageEvent
-  channel       MessageChannel
-  language      String         @default("ar")
-  recipientId   String?
-  recipientType String?
-  recipientName String?
+  id             String           @id @default(uuid())
+  templateId     String?
+  template       MessageTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  event          MessageEvent
+  channel        MessageChannel
+  language       String           @default("ar")
+  recipientId    String?
+  recipientType  String?
+  recipientName  String?
   recipientPhone String?
   recipientEmail String?
-  subject       String?
-  body          String         @db.Text
-  variables     String?
-  status        MessageStatus  @default(PENDING)
-  sentAt        DateTime?
-  deliveredAt   DateTime?
-  readAt        DateTime?
-  errorMessage  String?
-  errorCode     String?
-  retryCount    Int            @default(0)
-  externalId    String?
-  metadata      String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  subject        String?
+  body           String           @db.Text
+  variables      String?
+  status         MessageStatus    @default(PENDING)
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  errorMessage   String?
+  errorCode      String?
+  retryCount     Int              @default(0)
+  externalId     String?
+  metadata       String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([event])
   @@index([channel])
@@ -1186,7 +1225,7 @@ model MessageLog {
 }
 
 model MessageTemplateVariable {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   event       MessageEvent
   code        String
   name        String
@@ -1194,10 +1233,10 @@ model MessageTemplateVariable {
   nameEn      String?
   description String?
   sampleValue String?
-  isRequired  Boolean  @default(false)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isRequired  Boolean      @default(false)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([event, code])
   @@index([event])
@@ -1230,20 +1269,20 @@ model MessageSettings {
 // ============ Core Notification System ============
 
 model Notification {
-  id          String         @id @default(uuid())
-  userId      String
-  event       MessageEvent
-  title       String
-  body        String         @db.Text
-  link        String?
-  imageUrl    String?
-  priority    String         @default("normal")
-  category    String?
-  isRead      Boolean        @default(false)
-  readAt      DateTime?
-  metadata    String?
-  createdAt   DateTime       @default(now())
-  expiresAt   DateTime?
+  id        String       @id @default(uuid())
+  userId    String
+  event     MessageEvent
+  title     String
+  body      String       @db.Text
+  link      String?
+  imageUrl  String?
+  priority  String       @default("normal")
+  category  String?
+  isRead    Boolean      @default(false)
+  readAt    DateTime?
+  metadata  String?
+  createdAt DateTime     @default(now())
+  expiresAt DateTime?
 
   @@index([userId])
   @@index([userId, isRead])
@@ -1252,15 +1291,15 @@ model Notification {
 }
 
 model UserNotificationSettings {
-  id                  String       @id @default(uuid())
-  userId              String
-  event               MessageEvent
-  enableInApp         Boolean      @default(true)
-  enableEmail         Boolean      @default(true)
-  enableWhatsApp      Boolean      @default(false)
-  languagePreference  String       @default("ar")
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  id                 String       @id @default(uuid())
+  userId             String
+  event              MessageEvent
+  enableInApp        Boolean      @default(true)
+  enableEmail        Boolean      @default(true)
+  enableWhatsApp     Boolean      @default(false)
+  languagePreference String       @default("ar")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
   @@unique([userId, event])
   @@index([userId])

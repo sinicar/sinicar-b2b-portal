@@ -1,15 +1,15 @@
 /**
- * API Configuration
- * 
- * هذا الملف يتحكم في مصدر البيانات:
- * - USE_MOCK_API = true  → يستخدم بيانات تجريبية (localStorage)
- * - USE_MOCK_API = false → يستخدم API حقيقي
- * - USE_SUPABASE = true  → يستخدم Supabase
- * 
- * للربط بـ Supabase:
- * 1. غيّر USE_MOCK_API إلى false
- * 2. غيّر USE_SUPABASE إلى true
- */
+* API Configuration
+* 
+* هذا الملف يتحكم في مصدر البيانات:
+* - USE_MOCK_API = true  → يستخدم بيانات تجريبية (localStorage)
+* - USE_MOCK_API = false → يستخدم API حقيقي
+* - USE_SUPABASE = true  → يستخدم Supabase
+* 
+* للربط بـ Supabase:
+* 1. غيّر USE_MOCK_API إلى false
+* 2. غيّر USE_SUPABASE إلى true
+*/
 
 export const API_CONFIG = {
     /**
@@ -31,7 +31,7 @@ export const API_CONFIG = {
      * مثال: "https://api.sinicar.com/v1"
      * أو: "https://your-backend.onrender.com/api"
      */
-    BASE_URL: import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1",
+    BASE_URL: import.meta.env.VITE_API_URL || "http://localhost:3005/api/v1",
 
     /**
      * مهلة الطلبات (بالميلي ثانية)

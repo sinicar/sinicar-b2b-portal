@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { MockApi } from './mockApi';
+import { Api } from './api';
 import { Organization, OrganizationType, OrganizationUser, OrganizationUserRole, ScopedPermissionKey, OrganizationActivityLog, OrganizationStats, TeamInvitation } from '../types';
 
 interface OrganizationContextType {
@@ -60,15 +60,27 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
       let org: Organization | null = null;
       
       if (orgType) {
-        const orgs = await MockApi.getOrganizations();
-        org = orgs.find(o => o.type === orgType && o.ownerUserId === userId) || null;
+        const response = await Api.getOrganizations();
+        // Safe array extraction - handle different API response formats
+        const orgsArray = Array.isArray(response) 
+          ? response 
+          : Array.isArray((response as any)?.data?.items) 
+            ? (response as any).data.items 
+            : Array.isArray((response as any)?.data?.organizations)
+              ? (response as any).data.organizations
+              : Array.isArray((response as any)?.data)
+                ? (response as any).data
+                : Array.isArray((response as any)?.items)
+                  ? (response as any).items
+                  : [];
+        org = orgsArray.find((o: Organization) => o.type === orgType && o.ownerUserId === userId) || null;
       } else {
-        org = await MockApi.getOrganizationByOwnerUserId(userId);
+        org = await Api.getOrganizationByOwnerUserId(userId);
       }
       
       if (org) {
         setCurrentOrganization(org);
-        const orgUser = await MockApi.getOrganizationUser(org.id, userId);
+        const orgUser = await Api.getOrganizationUser(org.id, userId);
         setCurrentOrgUser(orgUser);
       } else {
         setCurrentOrganization(null);
@@ -86,12 +98,24 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
     setCurrentUserId(userId);
     
     try {
-      const orgs = await MockApi.getOrganizationsByUserId(userId);
-      setOrganizations(orgs);
+      const response = await Api.getOrganizationsByUserId(userId);
+      // Safe array extraction - handle different API response formats
+      const orgsArray = Array.isArray(response) 
+        ? response 
+        : Array.isArray((response as any)?.data?.items) 
+          ? (response as any).data.items 
+          : Array.isArray((response as any)?.data?.organizations)
+            ? (response as any).data.organizations
+            : Array.isArray((response as any)?.data)
+              ? (response as any).data
+              : Array.isArray((response as any)?.items)
+                ? (response as any).items
+                : [];
+      setOrganizations(orgsArray);
       
-      if (orgs.length > 0 && !currentOrganization) {
-        setCurrentOrganization(orgs[0]);
-        const orgUser = await MockApi.getOrganizationUser(orgs[0].id, userId);
+      if (orgsArray.length > 0 && !currentOrganization) {
+        setCurrentOrganization(orgsArray[0]);
+        const orgUser = await Api.getOrganizationUser(orgsArray[0].id, userId);
         setCurrentOrgUser(orgUser);
       }
     } catch (error) {
@@ -106,10 +130,10 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
     
     setIsLoading(true);
     try {
-      const org = await MockApi.getOrganizationById(orgId);
+      const org = await Api.getOrganizationById(orgId);
       if (org) {
         setCurrentOrganization(org);
-        const orgUser = await MockApi.getOrganizationUser(orgId, currentUserId);
+        const orgUser = await Api.getOrganizationUser(orgId, currentUserId);
         setCurrentOrgUser(orgUser);
       }
     } catch (error) {
@@ -123,13 +147,13 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
     if (!currentOrganization?.id) return;
     
     try {
-      const org = await MockApi.getOrganizationById(currentOrganization.id);
+      const org = await Api.getOrganizationById(currentOrganization.id);
       if (org) {
         setCurrentOrganization(org);
       }
       
       if (currentUserId) {
-        const orgUser = await MockApi.getOrganizationUser(currentOrganization.id, currentUserId);
+        const orgUser = await Api.getOrganizationUser(currentOrganization.id, currentUserId);
         setCurrentOrgUser(orgUser);
       }
     } catch (error) {
@@ -150,7 +174,7 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
     if (!currentOrganization || !currentUserId) return [];
     
     if (currentOrganization.ownerUserId === currentUserId || currentOrgUser?.role === 'owner') {
-      return MockApi.getPermissionsByOrganizationType(currentOrganization.type);
+      return Api.getPermissionsByOrganizationType(currentOrganization.type);
     }
     
     return currentOrgUser?.permissions ?? [];
@@ -158,14 +182,14 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const getTeamMembers = useCallback(async (): Promise<OrganizationUser[]> => {
     if (!currentOrganization?.id) return [];
-    return await MockApi.getOrganizationUsers(currentOrganization.id);
+    return await Api.getOrganizationUsers(currentOrganization.id);
   }, [currentOrganization?.id]);
 
   const addTeamMember = useCallback(async (data: { userId: string; role: OrganizationUserRole; permissions: ScopedPermissionKey[]; jobTitle?: string; department?: string }): Promise<OrganizationUser | null> => {
     if (!currentOrganization?.id) return null;
     
     try {
-      const member = await MockApi.createOrganizationUser(currentOrganization.id, data);
+      const member = await Api.createOrganizationUser(currentOrganization.id, data);
       return member;
     } catch (error) {
       console.error('Failed to add team member:', error);
@@ -175,7 +199,7 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const updateTeamMember = useCallback(async (memberId: string, data: Partial<OrganizationUser>): Promise<OrganizationUser | null> => {
     try {
-      return await MockApi.updateOrganizationUser(memberId, data);
+      return await Api.updateOrganizationUser(memberId, data);
     } catch (error) {
       console.error('Failed to update team member:', error);
       return null;
@@ -184,7 +208,7 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const deactivateTeamMember = useCallback(async (memberId: string): Promise<boolean> => {
     try {
-      const result = await MockApi.deactivateOrganizationUser(memberId);
+      const result = await Api.deactivateOrganizationUser(memberId);
       return result !== null;
     } catch (error) {
       console.error('Failed to deactivate team member:', error);
@@ -194,7 +218,7 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const reactivateTeamMember = useCallback(async (memberId: string): Promise<boolean> => {
     try {
-      const result = await MockApi.reactivateOrganizationUser(memberId);
+      const result = await Api.reactivateOrganizationUser(memberId);
       return result !== null;
     } catch (error) {
       console.error('Failed to reactivate team member:', error);
@@ -204,7 +228,7 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const removeTeamMember = useCallback(async (memberId: string): Promise<boolean> => {
     try {
-      return await MockApi.removeOrganizationUser(memberId);
+      return await Api.removeOrganizationUser(memberId);
     } catch (error) {
       console.error('Failed to remove team member:', error);
       return false;
@@ -213,14 +237,14 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const getInvitations = useCallback(async (): Promise<TeamInvitation[]> => {
     if (!currentOrganization?.id) return [];
-    return await MockApi.getTeamInvitations(currentOrganization.id);
+    return await Api.getTeamInvitations(currentOrganization.id);
   }, [currentOrganization?.id]);
 
   const createInvitation = useCallback(async (data: { email: string; phone?: string; name?: string; role: OrganizationUserRole; permissions: ScopedPermissionKey[] }): Promise<TeamInvitation | null> => {
     if (!currentOrganization?.id || !currentUserId) return null;
     
     try {
-      return await MockApi.createTeamInvitation(currentOrganization.id, currentUserId, data);
+      return await Api.createTeamInvitation(currentOrganization.id, currentUserId, data);
     } catch (error) {
       console.error('Failed to create invitation:', error);
       return null;
@@ -229,7 +253,7 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const cancelInvitation = useCallback(async (invitationId: string): Promise<boolean> => {
     try {
-      return await MockApi.cancelTeamInvitation(invitationId);
+      return await Api.cancelTeamInvitation(invitationId);
     } catch (error) {
       console.error('Failed to cancel invitation:', error);
       return false;
@@ -238,14 +262,14 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const getActivityLogs = useCallback(async (limit: number = 100): Promise<OrganizationActivityLog[]> => {
     if (!currentOrganization?.id) return [];
-    return await MockApi.getOrganizationActivityLogs(currentOrganization.id, limit);
+    return await Api.getOrganizationActivityLogs(currentOrganization.id, limit);
   }, [currentOrganization?.id]);
 
   const logActivity = useCallback(async (actionType: string, category: OrganizationActivityLog['actionCategory'], metadata?: Record<string, any>): Promise<void> => {
     if (!currentOrganization?.id || !currentUserId) return;
     
     try {
-      await MockApi.logOrganizationActivity(currentOrganization.id, currentUserId, actionType, category, metadata);
+      await Api.logOrganizationActivity(currentOrganization.id, currentUserId, actionType, category, metadata);
     } catch (error) {
       console.error('Failed to log activity:', error);
     }
@@ -253,12 +277,12 @@ export const OrganizationProvider: React.FC<Props> = ({ children }) => {
 
   const getStats = useCallback(async (): Promise<OrganizationStats | null> => {
     if (!currentOrganization?.id) return null;
-    return await MockApi.getOrganizationStats(currentOrganization.id);
+    return await Api.getOrganizationStats(currentOrganization.id);
   }, [currentOrganization?.id]);
 
   const canAddMember = useCallback(async (): Promise<{ allowed: boolean; reason?: string }> => {
     if (!currentOrganization?.id) return { allowed: false, reason: 'لا توجد منظمة نشطة' };
-    return await MockApi.canAddTeamMember(currentOrganization.id);
+    return await Api.canAddTeamMember(currentOrganization.id);
   }, [currentOrganization?.id]);
 
   return (

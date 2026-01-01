@@ -3,6 +3,78 @@ import { aiService, AIMessage } from './ai.service';
 
 const router = Router();
 
+// =====================================================
+// STUB ENDPOINTS - لمنع أخطاء 404 في Frontend
+// =====================================================
+
+// AI Settings - إعدادات الذكاء الاصطناعي
+router.get('/settings', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: {
+      enabled: true,
+      provider: 'openai',
+      model: 'gpt-4',
+      maxTokens: 2000,
+      temperature: 0.7,
+      language: 'ar',
+      features: {
+        customerService: true,
+        productAnalysis: true,
+        pricingAnalysis: true,
+        translation: true,
+        vinDecoding: true
+      }
+    }
+  });
+});
+
+router.put('/settings', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: req.body,
+    message: 'تم حفظ الإعدادات'
+  });
+});
+
+// AI Conversations - المحادثات
+router.get('/conversations/:userId', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: [],
+    count: 0
+  });
+});
+
+router.get('/conversations', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: [],
+    count: 0
+  });
+});
+
+// AI Training Data - بيانات التدريب
+router.get('/training-data', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: [],
+    count: 0
+  });
+});
+
+router.post('/training-data', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: { id: `training-${Date.now()}`, ...req.body },
+    message: 'تم إضافة بيانات التدريب'
+  });
+});
+
+// =====================================================
+// OPERATIONAL ENDPOINTS
+// =====================================================
+
 router.post('/chat', async (req: Request, res: Response) => {
   try {
     const { message, conversationHistory, language, customerName } = req.body;

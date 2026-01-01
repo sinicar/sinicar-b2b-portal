@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Upload, FileText, CheckCircle, ArrowLeft, Download, AlertTriangle, Loader2, ShieldCheck, Cog, Layers, ArrowRight, Printer, ChevronRight, ChevronLeft, Clock } from 'lucide-react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { User, QuoteItem, PriceType, QuoteRequest } from '../types';
 import { useToast } from '../services/ToastContext';
 import { formatDateTime, formatDate } from '../utils/dateUtils';
@@ -42,8 +43,10 @@ export const QuoteRequestPage: React.FC<QuoteRequestPageProps> = ({ user, onSucc
     }, [isSuccess]);
 
     const loadRecentQuotes = async () => {
-        const all = await MockApi.getAllQuoteRequests();
-        setRecentQuotes(all.filter(q => q.userId === user.id).reverse());
+        const result = await Api.getAllQuoteRequests();
+        // استخدام normalizeListResponse لضمان items دائماً array
+        const { items } = normalizeListResponse<QuoteRequest>(result);
+        setRecentQuotes(items.filter(q => q.userId === user.id).reverse());
     };
 
     // Memoized pagination logic
@@ -160,8 +163,8 @@ export const QuoteRequestPage: React.FC<QuoteRequestPageProps> = ({ user, onSucc
 
     const submitQuote = async (items: QuoteItem[]) => {
         try {
-            const profile = (await MockApi.getAllUsers()).find(u => u.user.id === user.id)?.profile;
-            await MockApi.createQuoteRequest({
+            const profile = (await Api.getAllUsers()).find(u => u.user.id === user.id)?.profile;
+            await Api.createQuoteRequest({
                 userId: user.id,
                 userName: user.name,
                 companyName: profile?.companyName || 'Unknown',

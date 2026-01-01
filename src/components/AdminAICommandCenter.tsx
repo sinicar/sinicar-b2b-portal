@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import { Api } from '../services/api';
 import { useToast } from '../services/ToastContext';
 import { useLanguage } from '../services/LanguageContext';
 import {
@@ -124,7 +124,7 @@ const DYNAMIC_PAGES_KEY = 'ai_dynamic_pages';
 
 export default function AdminAICommandCenter() {
     const { t } = useTranslation();
-    const { showToast } = useToast();
+    const { addToast } = useToast();
     const { language } = useLanguage();
     const isRTL = language === 'ar';
     
@@ -208,7 +208,7 @@ export default function AdminAICommandCenter() {
     const restoreBackup = async (backupId: string) => {
         const backup = backups.find(b => b.id === backupId);
         if (!backup) {
-            showToast(isRTL ? 'النسخة الاحتياطية غير موجودة' : 'Backup not found', 'error');
+            addToast(isRTL ? 'النسخة الاحتياطية غير موجودة' : 'Backup not found', 'error');
             return;
         }
 
@@ -222,7 +222,7 @@ export default function AdminAICommandCenter() {
             });
 
             loadData();
-            showToast(
+            addToast(
                 isRTL ? 'تم استعادة النسخة الاحتياطية بنجاح' : 'Backup restored successfully',
                 'success'
             );
@@ -237,7 +237,7 @@ export default function AdminAICommandCenter() {
                 saveHistory(updatedHistory);
             }
         } catch (error) {
-            showToast(isRTL ? 'فشل في استعادة النسخة الاحتياطية' : 'Failed to restore backup', 'error');
+            addToast(isRTL ? 'فشل في استعادة النسخة الاحتياطية' : 'Failed to restore backup', 'error');
         }
     };
 
@@ -510,11 +510,11 @@ export default function AdminAICommandCenter() {
             commandEntry.resultAr = resultAr;
             commandEntry.executedAt = new Date().toISOString();
 
-            showToast(isRTL ? resultAr : result, 'success');
+            addToast(isRTL ? resultAr : result, 'success');
         } catch (error: any) {
             commandEntry.status = 'failed';
             commandEntry.error = error.message || 'Execution failed';
-            showToast(isRTL ? 'فشل في تنفيذ الأمر' : 'Command execution failed', 'error');
+            addToast(isRTL ? 'فشل في تنفيذ الأمر' : 'Command execution failed', 'error');
         }
 
         const finalHistory = history.map(h => h.id === commandEntry.id ? commandEntry : h);

@@ -41,7 +41,7 @@ import {
     generateImageId,
     createWatermarkPreviewCanvas
 } from '../services/imageService';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 
 // Tab type
 type TabType = 'IMAGES' | 'UPLOAD' | 'WATERMARK' | 'REPORTS' | 'PRODUCTS' | 'APPROVALS';
@@ -102,7 +102,7 @@ export const AdminProductImagesPage: React.FC = () => {
         try {
             const storedImages = localStorage.getItem('sini_product_images');
             const storedSettings = localStorage.getItem('sini_watermark_settings');
-            const allProducts = await MockApi.searchProducts('');
+            const allProducts = await Api.searchProducts('');
 
             setImages(storedImages ? JSON.parse(storedImages) : []);
             setWatermarkSettings(storedSettings ? JSON.parse(storedSettings) : DEFAULT_WATERMARK_SETTINGS);
@@ -232,7 +232,8 @@ export const AdminProductImagesPage: React.FC = () => {
         const fileList = e.target.files;
         if (!fileList || fileList.length === 0) return;
 
-        const files = Array.from(fileList).filter(f => isValidImageFormat(f));
+        const allFiles: File[] = Array.from(fileList);
+        const files: File[] = allFiles.filter((file: File) => isValidImageFormat(file));
         if (files.length === 0) {
             addToast('لا توجد ملفات صور صالحة', 'error');
             return;
@@ -245,7 +246,7 @@ export const AdminProductImagesPage: React.FC = () => {
         let matched = 0, unmatched = 0, updated = 0;
 
         for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+            const file: File = files[i];
             setUploadProgress({ current: i + 1, total: files.length, phase: `معالجة: ${file.name}` });
 
             const partNumber = extractPartNumberFromFileName(file.name) || '';
@@ -902,7 +903,7 @@ export const AdminProductImagesPage: React.FC = () => {
                         />
                         {singlePartNumber && hasExistingImage(singlePartNumber) && (
                             <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                                <AlertCircle size={18} className="text-amber-500" title="يوجد صورة سابقة لهذا الرقم" />
+                                <AlertCircle size={18} className="text-amber-500" />
                             </div>
                         )}
                     </div>
@@ -1316,7 +1317,7 @@ export const AdminProductImagesPage: React.FC = () => {
 
             {/* Preview Modal */}
             {previewImage && (
-                <Modal onClose={() => setPreviewImage(null)} title="معاينة الصورة">
+                <Modal isOpen={true} onClose={() => setPreviewImage(null)} title="معاينة الصورة">
                     <div className="p-4">
                         <img src={previewImage} alt="Preview" className="max-w-full max-h-[70vh] mx-auto rounded-lg" />
                     </div>
@@ -1325,7 +1326,7 @@ export const AdminProductImagesPage: React.FC = () => {
 
             {/* Edit Modal */}
             {editingImage && (
-                <Modal onClose={() => setEditingImage(null)} title="تعديل ربط الصورة">
+                <Modal isOpen={true} onClose={() => setEditingImage(null)} title="تعديل ربط الصورة">
                     <div className="p-6 space-y-4">
                         <div className="flex gap-4">
                             <img

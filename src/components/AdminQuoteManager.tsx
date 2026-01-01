@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { QuoteRequest, QuoteItem, QuoteRequestStatus } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { 
     Search, Filter, CheckCircle, XCircle, Clock, Eye, 
     MoreHorizontal, FileText, Download, CheckSquare, 
@@ -56,7 +56,7 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
 
     // Filtering
     const filteredQuotes = useMemo(() => {
-        let res = [...quotes];
+        let res = [...(quotes || [])];
         if (searchTerm) {
             const lower = searchTerm.toLowerCase();
             res = res.filter(q => 
@@ -132,10 +132,10 @@ export const AdminQuoteManager: React.FC<AdminQuoteManagerProps> = ({ quotes, on
             };
             
             // Save updates first
-            await MockApi.updateQuoteRequest(updatedQuote);
+            await Api.updateQuoteRequest(updatedQuote);
             
             // Finalize
-            await MockApi.finalizeQuoteRequest(selectedQuote.id, 'Admin', generalNote);
+            await Api.finalizeQuoteRequest(selectedQuote.id, 'Admin', generalNote);
             
             addToast(t('adminQuoteManager.toast.pricingSentSuccess'), 'success');
             onUpdate();

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { User, BusinessProfile, Product, Order, CartItem, OrderStatus, QuoteRequest, UserRole, SearchHistoryItem, SiteSettings, SearchResultType, GuestModeSettings } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { services } from '../services/serviceFactory';
 import { useIsMobile } from '../hooks/useIsMobile';
 import {
     DashboardSidebar,
@@ -45,6 +46,7 @@ import { ProductSearchPage } from './ProductSearchPage';
 import { TeamManagementPage } from './TeamManagementPage';
 import { useOrganization } from '../services/OrganizationContext';
 import { useCustomerPortalSettings, isFeatureEnabled, getDashboardSections, getNavigationItems } from '../services/CustomerPortalSettingsContext';
+import { normalizeListResponse } from '../services/normalize';
 
 interface DashboardProps {
     user: User;
@@ -71,7 +73,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     const visibleNavigationItems = useMemo(() => getNavigationItems(portalSettings), [portalSettings]);
 
     // Add IMPORT_CHINA and TRADER_TOOLS and ALTERNATIVES and NOTIFICATIONS to view state
-    const [view, setView] = useState<'HOME' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TOOLS_HISTORY' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES' | 'PRODUCT_SEARCH' | 'NOTIFICATIONS'>('HOME');
+    const [view, setView] = useState<'HOME' | 'HOME_LEGACY' | 'ORDERS' | 'QUOTE_REQUEST' | 'ORGANIZATION' | 'ABOUT' | 'HISTORY' | 'IMPORT_CHINA' | 'TRADER_TOOLS' | 'TOOLS_HISTORY' | 'TEAM_MANAGEMENT' | 'ALTERNATIVES' | 'PRODUCT_SEARCH' | 'NOTIFICATIONS'>('HOME');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -139,44 +141,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         setCartIconElement(element);
     }, []);
 
-    // Guest Mode State - Show prompt when guest tries restricted action
-    const [showGuestPrompt, setShowGuestPrompt] = useState(false);
-    const isGuest = user.isGuest === true;
 
-    // Marketing Popup State - Only show for non-guest users
-    const [showMarketingPopup, setShowMarketingPopup] = useState(!user.isGuest);
+    // Marketing Popup State
+    const [showMarketingPopup, setShowMarketingPopup] = useState(true);
 
-    // Guest Mode Settings Helper Functions
-    const guestSettings = settings?.guestSettings;
+    // Guest mode stubs (guest mode removed, but some UI references remain)
+    // These are always false/no-op since guest mode is disabled
+    const showBlurOverlay = false;
+    const setShowGuestPrompt = (_show: boolean) => { /* no-op */ };
 
-    // Get blur class based on admin settings
-    const getBlurClass = () => {
-        if (!isGuest) return '';
-        const intensity = guestSettings?.blurIntensity || 'medium';
-        switch (intensity) {
-            case 'light': return 'blur-sm'; // 4px
-            case 'medium': return 'blur-md'; // 12px
-            case 'heavy': return 'blur-lg'; // 16px
-            default: return 'blur-md';
-        }
-    };
-
-    // Check if section should be visible (even if blurred)
-    const isSectionVisible = (section: 'businessTypes' | 'mainServices' | 'howItWorks' | 'whySiniCar' | 'cart' | 'marketingCards') => {
-        if (!isGuest) return true;
-        const settingsMap = {
-            businessTypes: guestSettings?.showBusinessTypes,
-            mainServices: guestSettings?.showMainServices,
-            howItWorks: guestSettings?.showHowItWorks,
-            whySiniCar: guestSettings?.showWhySiniCar,
-            cart: guestSettings?.showCart,
-            marketingCards: guestSettings?.showMarketingCards
-        };
-        return settingsMap[section] !== false; // Default to true if undefined
-    };
-
-    // Check if blur overlay should be shown
-    const showBlurOverlay = isGuest && guestSettings?.showBlurOverlay !== false;
 
     const { t, tDynamic, dir } = useLanguage();
     const { addToast } = useToast();
@@ -184,19 +157,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Data Loading
     useEffect(() => {
         const loadData = async () => {
-            const [ordersData, quotesData, productsData, settingsData] = await Promise.all([
-                MockApi.getOrders(user.id),
-                MockApi.getAllQuoteRequests(),
-                MockApi.searchProducts(''), // Fetch all for client-side search
-                MockApi.getSettings()
+            const [ordersResult, quotesData, productsData, settingsData] = await Promise.all([
+                Api.getOrders(user.id),
+                Api.getAllQuoteRequests(),
+                Api.searchProducts(''), // Fetch all for client-side search
+                Api.getSettings()
             ]);
-            setOrders(ordersData);
+            // getOrders ترجع الآن { items, total } مباشرة
+            setOrders(ordersResult.items ?? []);
             setQuoteRequests(quotesData.filter(q => q.userId === user.id));
             setAllProducts(productsData);
             setSettings(settingsData);
 
             // Load History
-            setSearchHistory(MockApi.getSearchHistoryForUser(user.id));
+            setSearchHistory(Api.getSearchHistoryForUser(user.id));
         };
         loadData();
     }, [user.id, view]); // Reload when view changes to refresh data
@@ -209,7 +183,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     // Log Page View Logic
     useEffect(() => {
-        MockApi.recordActivity({
+        Api.recordActivity({
             userId: user.id,
             userName: user.name,
             role: user.role,
@@ -222,11 +196,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
     // Heartbeat for Online Status Tracking
     useEffect(() => {
         // Record initial heartbeat on mount
-        MockApi.recordHeartbeat(user.id);
+        Api.recordHeartbeat(user.id);
 
         // Update heartbeat every 60 seconds
         const heartbeatInterval = setInterval(() => {
-            MockApi.recordHeartbeat(user.id);
+            Api.recordHeartbeat(user.id);
         }, 60000);
 
         return () => clearInterval(heartbeatInterval);
@@ -242,21 +216,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     // Abandoned Cart Tracking - Save cart changes for admin tracking
     useEffect(() => {
-        if (!user.id || user.isGuest) return;
+        if (!user.id ) return;
 
         // Debounce cart saves to avoid excessive writes
         const timer = setTimeout(async () => {
             if (cart.length > 0) {
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                await MockApi.saveAbandonedCart(user.id, cart, total);
+                await Api.saveAbandonedCart(user.id, cart, total);
             } else {
                 // Cart is empty, clear abandoned cart
-                await MockApi.clearAbandonedCart(user.id);
+                await Api.clearAbandonedCart(user.id);
             }
         }, 2000); // 2 second debounce
 
         return () => clearTimeout(timer);
-    }, [cart, user.id, user.isGuest]);
+    }, [cart, user.id, false]);
 
     // Handle View Change Logic - Wrapped in Callback
     const handleSetView = useCallback(async (newView: typeof view) => {
@@ -265,7 +239,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         // Mark orders as read when viewing ORDERS
         if (newView === 'ORDERS' && user.hasUnreadOrders) {
             try {
-                await MockApi.markOrdersAsReadForUser(user.id);
+                await Api.markOrdersAsReadForUser(user.id);
                 onRefreshUser(); // Updates the user prop in App.tsx -> Dashboard
             } catch (e) {
                 console.error("Failed to mark orders as read", e);
@@ -275,7 +249,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         // Mark quotes as read when viewing QUOTE_REQUEST
         if (newView === 'QUOTE_REQUEST' && user.hasUnreadQuotes) {
             try {
-                await MockApi.markQuotesAsReadForUser(user.id);
+                await Api.markQuotesAsReadForUser(user.id);
                 onRefreshUser(); // Updates the user prop in App.tsx -> Dashboard
             } catch (e) {
                 console.error("Failed to mark quotes as read", e);
@@ -326,10 +300,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         e.preventDefault();
 
         // Block guests from searching
-        if (isGuest) {
-            setShowGuestPrompt(true);
-            return;
-        }
+        
 
         const trimmedQuery = searchQuery.trim();
 
@@ -365,16 +336,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         e.stopPropagation();
 
         // Block guests from viewing prices
-        if (isGuest) {
-            setShowGuestPrompt(true);
-            return;
-        }
+        
 
         // Reset quantity for new modal opening
         setModalQuantity(1);
 
         // Check local state or history first
-        if (revealedSearchIds.has(product.id) || MockApi.hasRecentPriceView(user.id, product.id)) {
+        if (revealedSearchIds.has(product.id) || Api.hasRecentPriceView(user.id, product.id)) {
             setRevealedSearchIds(prev => new Set(prev).add(product.id));
             setPriceModalProduct(product); // Open Modal directly
             return;
@@ -384,8 +352,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
         try {
             // Attempt to consume credit
-            await MockApi.incrementSearchUsage(user.id);
-            await MockApi.logPriceView(user, product);
+            await Api.incrementSearchUsage(user.id);
+            await Api.logPriceView(user, product);
 
             // Update UI State
             setRevealedSearchIds(prev => new Set(prev).add(product.id));
@@ -449,10 +417,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
     const handleAddToCart = (product: Product, quantity: number, startElement?: HTMLElement | null) => {
         // Block guests from adding to cart
-        if (isGuest) {
-            setShowGuestPrompt(true);
-            return;
-        }
+        
 
         const existingItem = cart.find(item => item.id === product.id);
 
@@ -501,7 +466,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
         if (cart.length === 0) return;
         try {
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.15;
-            await MockApi.createOrder({
+            await services.orders.createOrder({
                 userId: user.id,
                 items: cart,
                 totalAmount: total,
@@ -509,7 +474,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             });
 
             // Mark abandoned cart as converted (order submitted)
-            await MockApi.convertAbandonedCart(user.id);
+            await Api.convertAbandonedCart(user.id);
 
             setCart([]);
 
@@ -520,7 +485,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             }, 3000);
 
             // Fetch updated orders silently to keep state fresh if they navigate later
-            MockApi.getOrders(user.id).then(setOrders);
+            Api.getOrders(user.id).then(result => {
+                const { items } = normalizeListResponse<Order>(result);
+                setOrders(items);
+            });
 
         } catch (e) {
             addToast(t('customerDashboard.orderSubmitError'), 'error');
@@ -560,118 +528,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             {/* New First Time User Modal */}
             <UsageIntroModal />
 
-            {/* Guest Restriction Modal - Professional Marketing Style */}
-            <Modal isOpen={showGuestPrompt} onClose={() => setShowGuestPrompt(false)} maxWidth="max-w-lg">
-                <div className="bg-white rounded-2xl p-6 md:p-8 w-full mx-auto space-y-6">
-                    {/* Header with Logo */}
-                    <div className="text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-200">
-                            <Building2 size={40} className="text-white" />
-                        </div>
-                        <h3 className="text-xl md:text-2xl font-black text-slate-800">
-                            {t('guestMode.restrictedTitle')}
-                        </h3>
-                        <p className="text-brand-600 font-bold text-sm mt-1">
-                            {t('guestMode.restrictedSubtitle')}
-                        </p>
-                    </div>
-
-                    {/* Target Audience */}
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                        <p className="text-slate-600 font-bold text-sm mb-3 text-center">
-                            {t('guestMode.restrictedMessage')}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
-                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Package size={16} className="text-blue-600" />
-                                </div>
-                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.partsStores')}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
-                                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <ShieldCheck size={16} className="text-green-600" />
-                                </div>
-                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.insuranceCompanies')}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
-                                <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                                    <Car size={16} className="text-amber-600" />
-                                </div>
-                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.rentalCompanies')}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
-                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <Users size={16} className="text-purple-600" />
-                                </div>
-                                <span className="text-xs font-bold text-slate-700">{t('guestMode.targetAudience.salesReps')}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Benefits */}
-                    <div className="space-y-2">
-                        <p className="text-slate-800 font-bold text-sm text-center">{t('guestMode.benefitsTitle')}</p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200">
-                                <CheckCircle size={12} /> {t('guestMode.benefits.prices')}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-200">
-                                <CheckCircle size={12} /> {t('guestMode.benefits.catalog')}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-200">
-                                <CheckCircle size={12} /> {t('guestMode.benefits.orders')}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-bold rounded-full border border-purple-200">
-                                <CheckCircle size={12} /> {t('guestMode.benefits.support')}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Call to Action */}
-                    <div className="bg-gradient-to-r from-brand-50 to-blue-50 rounded-xl p-4 border border-brand-100 text-center">
-                        <p className="text-slate-700 font-bold text-sm leading-relaxed">
-                            {t('guestMode.callToAction')}
-                        </p>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                onClick={() => {
-                                    setShowGuestPrompt(false);
-                                    onLogout();
-                                }}
-                                className="py-3 px-4 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-200"
-                                data-testid="button-guest-login"
-                            >
-                                <UserIcon size={18} />
-                                {t('guestMode.loginButton')}
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowGuestPrompt(false);
-                                    onLogout();
-                                }}
-                                className="py-3 px-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200"
-                                data-testid="button-guest-request-account"
-                            >
-                                <FileText size={18} />
-                                {t('guestMode.requestAccountButton')}
-                            </button>
-                        </div>
-                        <button
-                            onClick={() => setShowGuestPrompt(false)}
-                            className="w-full py-2.5 px-6 bg-slate-100 text-slate-500 rounded-xl font-medium hover:bg-slate-200 transition-colors text-sm"
-                            data-testid="button-guest-cancel"
-                        >
-                            {t('guestMode.browseOnly')}
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
             {/* Mobile Sidebar Overlay - Must be BEFORE sidebar in DOM but with lower z-index */}
             <div
                 className={`fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -691,11 +547,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 setSidebarOpen={setSidebarOpen}
                 t={t}
                 tDynamic={tDynamic}
-                remainingCredits={remainingCredits}
+                remainingCredits={typeof remainingCredits === 'string' ? 0 : remainingCredits}
                 isRTL={dir === 'rtl'}
-                isGuest={isGuest}
                 guestSettings={settings?.guestSettings}
-                onGuestPageClick={() => setShowGuestPrompt(true)}
                 collapsed={sidebarCollapsed}
                 setCollapsed={handleSetSidebarCollapsed}
                 hasPermission={hasPermission}
@@ -708,7 +562,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                 <ClientTicker />
 
                 {/* Marketing Banner - Only for non-guest users */}
-                {!isGuest && (
+                {(
                     <MarketingBanner
                         userId={user.id}
                         customerType={profile?.businessType}
@@ -778,7 +632,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                             </div>
 
                                             {/* Search is disabled for guests if allowSearch = false */}
-                                            {isGuest && guestSettings?.allowSearch === false ? (
+                                            {false ? (
                                                 <button
                                                     onClick={() => setShowGuestPrompt(true)}
                                                     className="w-full h-12 md:h-16 px-4 md:px-6 bg-white/90 text-slate-500 rounded-full shadow-2xl shadow-slate-900/30 flex items-center justify-center gap-2 md:gap-3 cursor-pointer hover:bg-white transition-colors"
@@ -822,8 +676,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     {/* Results Container - FIXED positioning via Portal */}
                                                     <div
                                                         className={`fixed bg-white shadow-2xl text-right overflow-hidden flex flex-col animate-slide-up ${isMobile
-                                                                ? 'inset-x-0 bottom-0 rounded-t-3xl border-t-2 border-slate-200 max-h-[80vh]'
-                                                                : 'rounded-2xl border border-slate-200 max-h-96'
+                                                            ? 'inset-x-0 bottom-0 rounded-t-3xl border-t-2 border-slate-200 max-h-[80vh]'
+                                                            : 'rounded-2xl border border-slate-200 max-h-96'
                                                             }`}
                                                         style={{
                                                             zIndex: 99999,
@@ -916,7 +770,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                             ) : searchResults.length > 0 ? (
                                                                 <div className="relative">
                                                                     {/* Guest Blur Overlay - controlled by admin settings */}
-                                                                    {isGuest && guestSettings?.showSearchResults !== false && showBlurOverlay && (
+                                                                    {false && (
                                                                         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-xl">
                                                                             <div className="text-center p-6">
                                                                                 <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -935,11 +789,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                                             </div>
                                                                         </div>
                                                                     )}
-                                                                    <div className={`divide-y divide-slate-100 ${isGuest && guestSettings?.showSearchResults !== false ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
+                                                                    <div className={`divide-y divide-slate-100 ${''}`}>
                                                                         {searchResults.map(product => {
-                                                                            const isRevealed = revealedSearchIds.has(product.id) || MockApi.hasRecentPriceView(user.id, product.id);
+                                                                            const isRevealed = revealedSearchIds.has(product.id) || Api.hasRecentPriceView(user.id, product.id);
                                                                             const qty = product.qtyTotal ?? product.stock ?? 0;
-                                                                            const minVisible = MockApi.getMinVisibleQty();
+                                                                            const minVisible = Api.getMinVisibleQty();
                                                                             const isOutOfStock = qty <= 0;
 
                                                                             return (
@@ -1027,7 +881,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                     <div className="xl:col-span-3 space-y-12">
 
                                         {/* Section: Who We Serve - Premium Design */}
-                                        {isSectionVisible('businessTypes') && (
+                                        {(
                                             <section className="relative">
                                                 {showBlurOverlay && (
                                                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-3xl">
@@ -1059,7 +913,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 </div>
 
                                                 {/* Cards Grid - Premium Layout */}
-                                                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
+                                                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 `}>
                                                     <BusinessTypeCard
                                                         icon={<Building2 size={26} />}
                                                         title={t('customerDashboard.partsStores')}
@@ -1093,7 +947,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         )}
 
                                         {/* Section: Key Services - Premium Interactive Cards */}
-                                        {isSectionVisible('mainServices') && (
+                                        {(
                                             <section className="relative">
                                                 {showBlurOverlay && (
                                                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-3xl">
@@ -1125,9 +979,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                 </div>
 
                                                 {/* Services Grid - Enhanced Interactive */}
-                                                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 ${isGuest ? `${getBlurClass()} pointer-events-none select-none` : ''}`}>
+                                                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 `}>
                                                     <div
-                                                        onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('QUOTE_REQUEST')}
+                                                        onClick={() => handleSetView('QUOTE_REQUEST')}
                                                         className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-blue-300 hover:-translate-y-1 overflow-hidden"
                                                         data-testid="card-quote-request"
                                                     >
@@ -1144,7 +998,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     </div>
 
                                                     <div
-                                                        onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('IMPORT_CHINA')}
+                                                        onClick={() => handleSetView('IMPORT_CHINA')}
                                                         className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1 overflow-hidden"
                                                         data-testid="card-import-china"
                                                     >
@@ -1161,7 +1015,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     </div>
 
                                                     <div
-                                                        onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('ORDERS')}
+                                                        onClick={() => handleSetView('ORDERS')}
                                                         className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-amber-300 hover:-translate-y-1 overflow-hidden"
                                                         data-testid="card-orders"
                                                     >
@@ -1178,7 +1032,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     </div>
 
                                                     <div
-                                                        onClick={() => isGuest ? setShowGuestPrompt(true) : handleSetView('ORGANIZATION')}
+                                                        onClick={() => handleSetView('ORGANIZATION')}
                                                         className="group relative bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-purple-300 hover:-translate-y-1 overflow-hidden"
                                                         data-testid="card-organization"
                                                     >
@@ -1198,8 +1052,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         )}
 
                                         {/* Section: How it Works - Premium Design */}
-                                        {isSectionVisible('howItWorks') && (
-                                            <section className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl relative overflow-hidden ${isGuest ? 'select-none' : ''}`}>
+                                        {(
+                                            <section className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl relative overflow-hidden `}>
                                                 {/* Background Pattern */}
                                                 <div className="absolute inset-0 opacity-10">
                                                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500 rounded-full -mr-48 -mt-48 blur-3xl"></div>
@@ -1235,7 +1089,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                                     </div>
                                                 </div>
 
-                                                <div className={`relative z-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 ${isGuest ? getBlurClass() : ''}`}>
+                                                <div className={`relative z-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 `}>
                                                     {/* Connecting Line (Desktop) */}
                                                     <div className="hidden lg:block absolute top-16 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-brand-600/50 via-brand-500/50 to-brand-600/50"></div>
 
@@ -1261,8 +1115,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         )}
 
                                         {/* Section: Why Sini Car - Premium Features */}
-                                        {isSectionVisible('whySiniCar') && (
-                                            <section className={`relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                        {(
+                                            <section className={`relative `}>
                                                 {showBlurOverlay && (
                                                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-3xl">
                                                         <button
@@ -1330,8 +1184,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
 
                                     {/* Right Content: Compact Cart (controlled by admin settings) */}
                                     <div className="xl:col-span-1 space-y-6 sticky top-6">
-                                        {isSectionVisible('cart') && (
-                                            <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                        {(
+                                            <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative `}>
                                                 {showBlurOverlay && (
                                                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
                                                         <button
@@ -1398,8 +1252,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                         )}
 
                                         {/* Quick Info Cards (controlled by admin settings) */}
-                                        {isSectionVisible('marketingCards') && (
-                                            <div className={`space-y-4 relative ${isGuest ? `${getBlurClass()} select-none` : ''}`}>
+                                        {(
+                                            <div className={`space-y-4 relative `}>
                                                 {showBlurOverlay && (
                                                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-2xl">
                                                         <button
@@ -1605,8 +1459,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
                                     disabled={priceModalProduct.stock === 0}
                                     data-testid="button-modal-add-to-cart"
                                     className={`flex-1 py-2.5 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${priceModalProduct.stock > 0
-                                            ? 'bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-md shadow-brand-500/20'
-                                            : 'bg-slate-300 cursor-not-allowed shadow-none'
+                                        ? 'bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-md shadow-brand-500/20'
+                                        : 'bg-slate-300 cursor-not-allowed shadow-none'
                                         }`}
                                 >
                                     <ShoppingCart size={15} />
@@ -1659,7 +1513,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             )}
 
             {/* Marketing Popup - Only for non-guest users */}
-            {showMarketingPopup && !isGuest && (
+            {showMarketingPopup && (
                 <MarketingPopup
                     userId={user.id}
                     customerType={profile?.businessType}
@@ -1668,7 +1522,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, onLogout, o
             )}
 
             {/* Feedback Button - Global floating button */}
-            {!isGuest && <FeedbackButton user={{ id: user.id, name: user.name, phone: user.phone, email: user.email, role: user.role }} />}
+            {<FeedbackButton user={{ id: user.id, name: user.name, phone: user.phone, email: user.email, role: user.role }} />}
         </div>
     );
 };
+
+

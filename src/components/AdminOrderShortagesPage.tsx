@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { OrderShortage, OrderShortageStatus } from '../types/order';
 import {
     Search, Filter, Download, ChevronRight, ChevronLeft, Eye,
@@ -56,10 +56,19 @@ export const AdminOrderShortagesPage: React.FC<AdminOrderShortagesPageProps> = (
     const loadShortages = async () => {
         setIsLoading(true);
         try {
-            const data = await MockApi.getOrderShortages();
+            const result = await Api.getOrderShortages();
+            // Safe array extraction - handle different response formats
+            const data = Array.isArray(result) 
+                ? result 
+                : (result?.data && Array.isArray(result.data)) 
+                    ? result.data 
+                    : (result?.shortages && Array.isArray(result.shortages))
+                        ? result.shortages
+                        : [];
             setShortages(data);
         } catch (error) {
             console.error('Error loading shortages:', error);
+            setShortages([]); // Fallback to empty array
             addToast('فشل تحميل البيانات', 'error');
         } finally {
             setIsLoading(false);
@@ -124,7 +133,7 @@ export const AdminOrderShortagesPage: React.FC<AdminOrderShortagesPageProps> = (
         setIsSaving(true);
 
         try {
-            await MockApi.updateOrderShortageStatus(
+            await Api.updateOrderShortageStatus(
                 selectedShortage.id,
                 editForm.status,
                 editForm.internalNotes,

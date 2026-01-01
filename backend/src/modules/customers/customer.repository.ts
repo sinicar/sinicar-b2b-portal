@@ -2,6 +2,7 @@ import prisma from '../../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { CustomerStatus, CustomerType, PriceLevel } from '../../types/enums';
 import { PaginationParams, createPaginatedResult } from '../../utils/pagination';
+// Force reload: 2025-12-29 06:25
 
 export interface CustomerFilters {
   search?: string;
@@ -41,6 +42,27 @@ export class CustomerRepository {
       where.profile = profileWhere;
     }
 
+    // حقول الفرز المسموحة في جدول User
+    const validUserSortFields = ['name', 'clientId', 'email', 'phone', 'createdAt', 'lastLoginAt', 'status'];
+    
+    // تحديد orderBy بناءً على نوع الفرز
+    let orderBy: Prisma.UserOrderByWithRelationInput;
+    const sortOrder = pagination.sortOrder || 'desc';
+    
+    if (pagination.sortBy === 'totalOrdersCount') {
+      // الفرز حسب عدد الطلبات باستخدام Prisma relation count
+      orderBy = { orders: { _count: sortOrder } };
+    } else if (pagination.sortBy === 'totalSearchesCount') {
+      // الفرز حسب عدد طلبات عروض الأسعار (كبديل لعمليات البحث)
+      orderBy = { quoteRequests: { _count: sortOrder } };
+    } else {
+      // الفرز العادي حسب حقول User
+      const sortField = validUserSortFields.includes(pagination.sortBy || '') 
+        ? pagination.sortBy! 
+        : 'createdAt';
+      orderBy = { [sortField]: sortOrder };
+    }
+    
     const [data, total] = await Promise.all([
       prisma.user.findMany({
         where,
@@ -50,16 +72,27 @@ export class CustomerRepository {
           },
           organizationUsers: {
             include: { organization: true }
+          },
+          // إضافة _count للحصول على عدد الطلبات وطلبات عروض الأسعار
+          _count: {
+            select: { orders: true, quoteRequests: true }
           }
         },
-        orderBy: { [pagination.sortBy || 'createdAt']: pagination.sortOrder },
+        orderBy,
         skip: (pagination.page! - 1) * pagination.limit!,
         take: pagination.limit
       }),
       prisma.user.count({ where })
     ]);
 
-    return createPaginatedResult(data, total, pagination.page!, pagination.limit!);
+    // تحويل البيانات لإضافة totalOrdersCount و totalSearchesCount من _count
+    const enrichedData = data.map(user => ({
+      ...user,
+      totalOrdersCount: (user as any)._count?.orders || 0,
+      totalSearchesCount: (user as any)._count?.quoteRequests || 0
+    }));
+
+    return createPaginatedResult(enrichedData, total, pagination.page!, pagination.limit!);
   }
 
   async findById(id: string) {

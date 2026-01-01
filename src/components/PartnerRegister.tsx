@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../services/LanguageContext';
 import { useToast } from '../services/ToastContext';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import LanguageSwitcher from './LanguageSwitcher';
 import {
     Building2, Globe, Megaphone, Sparkles, ArrowRight, ArrowLeft,
@@ -228,7 +228,7 @@ export const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onBack, onChec
                 });
             }
 
-            await MockApi.createPartnerRequest(requestData);
+            await Api.createPartnerRequest(requestData);
             setSuccess(true);
             addToast('تم إرسال طلبك بنجاح! سنتواصل معك قريباً', 'success');
         } catch (error) {
@@ -246,7 +246,7 @@ export const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onBack, onChec
 
         setLoading(true);
         try {
-            const result = await MockApi.checkPartnerRequestStatus(statusCheckPhone, statusCheckPassword);
+            const result = await Api.checkPartnerRequestStatus(statusCheckPhone, statusCheckPassword);
             setStatusResult(result);
         } catch (error) {
             addToast('لم يتم العثور على طلب بهذه البيانات', 'error');
@@ -257,11 +257,11 @@ export const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onBack, onChec
 
     // === Tab Components ===
 
-    const tabs = [
-        { id: 'LOCAL_SUPPLIER' as const, icon: Building2, ...PARTNER_TYPES.LOCAL_SUPPLIER },
-        { id: 'INTERNATIONAL_SUPPLIER' as const, icon: Globe, ...PARTNER_TYPES.INTERNATIONAL_SUPPLIER },
-        { id: 'MARKETER' as const, icon: Megaphone, ...PARTNER_TYPES.MARKETER },
-        { id: 'ADVERTISER' as const, icon: Sparkles, ...PARTNER_TYPES.ADVERTISER },
+    const tabs: { id: PartnerType; icon: React.ComponentType<{ size?: number }>; label: string; labelEn: string; color: string; description: string }[] = [
+        { id: 'LOCAL_SUPPLIER' as const, icon: Building2, label: PARTNER_TYPES.LOCAL_SUPPLIER.label, labelEn: PARTNER_TYPES.LOCAL_SUPPLIER.labelEn, color: PARTNER_TYPES.LOCAL_SUPPLIER.color, description: PARTNER_TYPES.LOCAL_SUPPLIER.description },
+        { id: 'INTERNATIONAL_SUPPLIER' as const, icon: Globe, label: PARTNER_TYPES.INTERNATIONAL_SUPPLIER.label, labelEn: PARTNER_TYPES.INTERNATIONAL_SUPPLIER.labelEn, color: PARTNER_TYPES.INTERNATIONAL_SUPPLIER.color, description: PARTNER_TYPES.INTERNATIONAL_SUPPLIER.description },
+        { id: 'MARKETER' as const, icon: Megaphone, label: PARTNER_TYPES.MARKETER.label, labelEn: PARTNER_TYPES.MARKETER.labelEn, color: PARTNER_TYPES.MARKETER.color, description: PARTNER_TYPES.MARKETER.description },
+        { id: 'ADVERTISER' as const, icon: Sparkles, label: PARTNER_TYPES.ADVERTISER.label, labelEn: PARTNER_TYPES.ADVERTISER.labelEn, color: PARTNER_TYPES.ADVERTISER.color, description: PARTNER_TYPES.ADVERTISER.description },
     ];
 
     // === Render ===
@@ -428,7 +428,7 @@ export const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onBack, onChec
                                     : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow'
                                 }`}
                         >
-                            <tab.icon size={24} />
+                            {(() => { const Icon = tab.icon; return <Icon size={24} />; })()}
                             <div className="text-start">
                                 <p className="font-bold">{tab.label}</p>
                                 <p className={`text-xs ${activeTab === tab.id ? 'text-white/80' : 'text-slate-400'}`}>

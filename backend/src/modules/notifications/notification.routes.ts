@@ -27,6 +27,44 @@ const router = Router();
 
 router.use(authMiddleware);
 
+// Create notification (Admin only)
+router.post('/', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user || !['SUPER_ADMIN', 'ADMIN'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, error: 'غير مصرح' });
+    }
+
+    const { userId, event, title, body, link, priority, category, metadata } = req.body;
+
+    if (!userId || !event || !title || !body) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'يجب توفير userId, event, title, body' 
+      });
+    }
+
+    const notification = await notificationService.createNotification({
+      userId,
+      event: event as MessageEvent,
+      title,
+      body,
+      link,
+      priority: priority || 'normal',
+      category,
+      metadata,
+    });
+
+    res.json({
+      success: true,
+      data: notification,
+      message: 'تم إنشاء الإشعار بنجاح',
+    });
+  } catch (error: any) {
+    console.error('[Notifications] Error creating notification:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {

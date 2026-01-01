@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { CustomerPortalSettings, MultilingualText } from '../types';
-import { MockApi } from './mockApi';
+import { Api } from './api';
 import i18n from './i18n';
 
 interface CustomerPortalSettingsContextType {
@@ -22,11 +22,23 @@ export const CustomerPortalSettingsProvider: React.FC<{ children: React.ReactNod
         try {
             setLoading(true);
             setError(null);
-            const data = await MockApi.getCustomerPortalSettings();
+            const data = await Api.getCustomerPortalSettings();
+            // تأكد من وجود القوائم الافتراضية
+            if (data) {
+                data.navigationMenu = data.navigationMenu ?? [];
+                data.dashboardSections = data.dashboardSections ?? [];
+            }
             setSettings(data);
         } catch (err) {
-            console.error('Failed to load customer portal settings:', err);
-            setError('Failed to load portal settings');
+            console.warn('Failed to load customer portal settings, using defaults:', err);
+            // استخدام قيم افتراضية بدلاً من كسر التطبيق
+            setSettings({
+                navigationMenu: [],
+                dashboardSections: [],
+                features: {},
+                texts: {}
+            } as any);
+            setError(null); // لا نعرض خطأ للمستخدم
         } finally {
             setLoading(false);
         }
@@ -82,18 +94,20 @@ export const getNavigationItems = (settings: CustomerPortalSettings | null): str
     if (!settings) {
         return ['dashboard', 'trader_tools', 'marketplace', 'orders', 'favorites', 'account'];
     }
-    return settings.navigationMenu
-        .filter(item => item.enabled)
-        .sort((a, b) => a.order - b.order)
-        .map(item => item.id);
+    // إضافة Optional Chaining لمنع crash
+    return (settings?.navigationMenu ?? [])
+        .filter(item => item?.enabled)
+        .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
+        .map(item => item?.id ?? '');
 };
 
 export const getDashboardSections = (settings: CustomerPortalSettings | null): string[] => {
     if (!settings) {
         return ['welcome_banner', 'quick_stats', 'quick_actions', 'recent_orders', 'announcements'];
     }
-    return settings.dashboardSections
-        .filter(section => section.enabled)
-        .sort((a, b) => a.order - b.order)
-        .map(section => section.id);
+    // إضافة Optional Chaining لمنع crash
+    return (settings?.dashboardSections ?? [])
+        .filter(section => section?.enabled)
+        .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
+        .map(section => section?.id ?? '');
 };

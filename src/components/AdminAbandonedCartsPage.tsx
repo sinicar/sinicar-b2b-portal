@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
 import { AbandonedCart, ExtendedUserRole } from '../types';
 import { formatDateTime } from '../utils/dateUtils';
 import { usePermission } from '../services/PermissionContext';
@@ -29,7 +29,7 @@ export const AdminAbandonedCartsPage: FC<AdminAbandonedCartsPageProps> = ({ onRe
     const loadCarts = async () => {
         setLoading(true);
         try {
-            const data = await MockApi.getAbandonedCarts();
+            const data = await Api.getAbandonedCarts();
             setCarts(data);
         } catch (error) {
             console.error('Failed to load abandoned carts:', error);
@@ -57,6 +57,7 @@ export const AdminAbandonedCartsPage: FC<AdminAbandonedCartsPageProps> = ({ onRe
 
     const getRoleBadge = (role?: ExtendedUserRole) => {
         const roleLabels: Record<ExtendedUserRole, { label: string; color: string }> = {
+            SUPER_ADMIN: { label: 'مدير عام', color: 'bg-red-100 text-red-700' },
             ADMIN: { label: 'مدير', color: 'bg-purple-100 text-purple-700' },
             EMPLOYEE: { label: 'موظف', color: 'bg-blue-100 text-blue-700' },
             CUSTOMER: { label: 'عميل', color: 'bg-green-100 text-green-700' },

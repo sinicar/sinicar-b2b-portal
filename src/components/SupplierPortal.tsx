@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Api } from '../services/api';
+import { ApiClient } from '../services/apiClient';
 import {
   User,
   SupplierProduct,
@@ -152,26 +153,57 @@ export const SupplierPortal = ({ user, onLogout }: SupplierPortalProps) => {
   const [importResult, setImportResult] = useState<SupplierExcelImportResult | null>(null);
 
   const loadDashboard = useCallback(async () => {
-    const data = await Api.getSupplierDashboard(user.id);
-    setStats(data);
-  }, [user.id]);
+    try {
+      const response = await ApiClient.suppliers.getMyDashboard();
+      setStats(response?.data || response || {});
+    } catch (err) {
+      console.error('Failed to load dashboard:', err);
+      setStats({} as SupplierDashboardStats);
+    }
+  }, []);
 
   const loadProducts = useCallback(async () => {
-    const data = await Api.getSupplierProducts(user.id, productFilters);
-    setProducts(data.items);
-    setProductTotal(data.total);
-  }, [user.id, productFilters]);
+    try {
+      const response = await ApiClient.suppliers.getMyProducts({
+        page: productFilters.page,
+        limit: productFilters.pageSize,
+        q: productFilters.search
+      });
+      const data = response?.data || [];
+      setProducts(data);
+      setProductTotal(response?.pagination?.total || data.length);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      setProducts([]);
+      setProductTotal(0);
+    }
+  }, [productFilters]);
 
   const loadRequests = useCallback(async () => {
-    const data = await Api.getSupplierRequests(user.id, requestFilters);
-    setRequests(data.items);
-    setRequestTotal(data.total);
-  }, [user.id, requestFilters]);
+    try {
+      const response = await ApiClient.suppliers.getMyRequests({
+        page: requestFilters.page,
+        limit: requestFilters.pageSize
+      });
+      const data = response?.data || [];
+      setRequests(data);
+      setRequestTotal(response?.pagination?.total || data.length);
+    } catch (err) {
+      console.error('Failed to load requests:', err);
+      setRequests([]);
+      setRequestTotal(0);
+    }
+  }, [requestFilters]);
 
   const loadSettings = useCallback(async () => {
-    const data = await Api.getSupplierSettings(user.id);
-    setSettings(data);
-  }, [user.id]);
+    try {
+      const response = await ApiClient.suppliers.getMySettings();
+      setSettings(response?.data || response || {});
+    } catch (err) {
+      console.error('Failed to load settings:', err);
+      setSettings({} as SupplierSettings);
+    }
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -601,7 +633,7 @@ const RequestsView = memo(({ requests, total, filters, onFiltersChange, onQuote,
         <div className="flex items-center gap-2">
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); onFiltersChange({ ...filters, status: e.target.value, page: 1 }); }}
+            onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); onFiltersChange({ ...filters, status: e.target.value as 'ALL' | 'NEW' | 'VIEWED' | 'QUOTED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED', page: 1 }); }}
             className="px-4 py-2.5 border border-slate-200 rounded-xl font-bold text-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none"
             data-testid="select-status-filter"
           >
@@ -1592,7 +1624,8 @@ const SupplierTeamView = memo(({ supplierId, t, currentUser }: {
 // Supplier Images View - for uploading product images
 const SupplierImagesView = memo(({ supplierId, t }: {
   supplierId: string;
-  t: (key: string, fallback?: string) => string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
 }) => {
   const [products, setProducts] = useState<SupplierProduct[]>([]);
   const [images, setImages] = useState<ProductImage[]>([]);

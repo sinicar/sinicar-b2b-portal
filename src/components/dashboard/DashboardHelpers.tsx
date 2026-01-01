@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from 'react';
 import { SiteSettings } from '../../types';
-import { MockApi } from '../../services/mockApi';
+import Api from '../../services/api';
 
 export interface SidebarItemProps {
     icon: React.ReactNode;
@@ -91,7 +91,7 @@ export const ClientTicker = memo(() => {
     const [settings, setSettings] = useState<SiteSettings | null>(null);
 
     useEffect(() => {
-        MockApi.getSettings().then(setSettings);
+        Api.getSettings().then(setSettings);
     }, []);
 
     if (!settings || !settings.tickerEnabled) return null;

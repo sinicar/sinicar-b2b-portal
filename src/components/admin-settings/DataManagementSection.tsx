@@ -1,6 +1,6 @@
 import { useState, FC, ChangeEvent } from 'react';
 import { SiteSettings } from '../../types';
-import { MockApi } from '../../services/mockApi';
+import Api from '../../services/api';
 import { useToast } from '../../services/ToastContext';
 import { useLanguage } from '../../services/LanguageContext';
 import { 
@@ -65,7 +65,7 @@ export const DataManagementSection: FC<DataManagementSectionProps> = ({ settings
 
     const handleExportBackup = async () => {
         try {
-            const backup = await MockApi.exportAllData();
+            const backup = await Api.exportAllData();
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -87,7 +87,7 @@ export const DataManagementSection: FC<DataManagementSectionProps> = ({ settings
 
         setResetLoading(true);
         try {
-            await MockApi.resetAllData();
+            await Api.resetAllData();
             addToast('تم مسح جميع البيانات بنجاح', 'success');
             setShowResetConfirm(false);
             setResetStep('initial');

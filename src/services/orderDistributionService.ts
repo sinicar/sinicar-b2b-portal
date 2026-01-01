@@ -13,6 +13,14 @@ import {
     Product
 } from '../types';
 
+// Extended Product type with optional supplier fields
+type ExtendedProduct = Product & {
+    supplierId?: string;
+    supplierName?: string;
+    qualityCode?: string;
+    source?: string;
+};
+
 interface OrderDistributionItem {
     partNumber: string;
     quantity: number;
@@ -64,7 +72,7 @@ interface SupplierProductMatch {
  */
 export function distributeOrderToSuppliers(
     request: OrderDistributionRequest,
-    allProducts: Product[],
+    allProducts: ExtendedProduct[],
     supplierPriorities: Map<string, number>
 ): OrderDistributionResult {
     const purchaseOrders: SupplierPurchaseOrder[] = [];
@@ -176,7 +184,7 @@ export function distributeOrderToSuppliers(
 
 function findProductMatches(
     partNumber: string,
-    products: Product[],
+    products: ExtendedProduct[],
     orderType: PurchaseOrderType,
     priorityMap: Map<string, number>
 ): SupplierProductMatch[] {
@@ -209,7 +217,7 @@ function findProductMatches(
     return matches;
 }
 
-function getSupplierType(product: Product): SupplierType {
+function getSupplierType(product: ExtendedProduct): SupplierType {
     // Check if product is from Sini Car's own stock
     if (!product.supplierId || product.supplierId === 'sinicar') {
         return 'SINICAR';
@@ -257,7 +265,7 @@ function addItemToSupplier(
  */
 export function previewOrderDistribution(
     request: OrderDistributionRequest,
-    allProducts: Product[],
+    allProducts: ExtendedProduct[],
     supplierPriorities: Map<string, number>
 ): {
     distribution: Array<{

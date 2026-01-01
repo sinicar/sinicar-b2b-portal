@@ -83,7 +83,7 @@ const COMMAND_HISTORY_KEY = 'ai_programming_command_history';
 export default function AICommandModal() {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const { isCommandCenterOpen, closeCommandCenter, currentPage, initialTab, shouldAutoRunDiagnostics, clearAutoRunDiagnostics } = useProgrammingMode();
   const isRTL = language === 'ar';
   
@@ -232,7 +232,7 @@ export default function AICommandModal() {
       setPreview(parsed);
       setActiveTab('preview');
     } catch (error) {
-      showToast(isRTL ? 'فشل في تحليل الأمر' : 'Failed to parse command', 'error');
+      addToast(isRTL ? 'فشل في تحليل الأمر' : 'Failed to parse command', 'error');
     }
     setIsProcessing(false);
   };
@@ -255,7 +255,7 @@ export default function AICommandModal() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     saveToHistory(historyItem);
-    showToast(isRTL ? 'تم تنفيذ الأمر بنجاح!' : 'Command executed successfully!', 'success');
+    addToast(isRTL ? 'تم تنفيذ الأمر بنجاح!' : 'Command executed successfully!', 'success');
     
     setPreview(null);
     setCommand('');
@@ -274,7 +274,7 @@ export default function AICommandModal() {
     };
     
     saveToHistory(historyItem);
-    showToast(isRTL ? 'تم رفض الأمر' : 'Command rejected', 'info');
+    addToast(isRTL ? 'تم رفض الأمر' : 'Command rejected', 'info');
     
     setPreview(null);
     setActiveTab('command');
@@ -331,7 +331,7 @@ export default function AICommandModal() {
     }
     
     setIsScanning(false);
-    showToast(isRTL ? 'اكتمل فحص النظام' : 'System scan complete', 'success');
+    addToast(isRTL ? 'اكتمل فحص النظام' : 'System scan complete', 'success');
   };
 
   // Auto-run diagnostics when triggered from quick action

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const orderItemSchema = z.object({
-  productId: z.string().uuid('معرف المنتج غير صالح'),
+  productId: z.string().min(1, 'معرف المنتج مطلوب'), // Accept any string, not just UUID
   partNumber: z.string().min(1, 'رقم القطعة مطلوب'),
   name: z.string().min(1, 'اسم القطعة مطلوب'),
   quantity: z.number().min(1, 'الكمية يجب أن تكون 1 على الأقل'),

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, KeyboardEvent } from 'react';
 import { Search, Plus, Minus, Trash2, Send, Loader2, Package, ShoppingCart, Layers, X, Download, Upload, FileSpreadsheet, ChevronLeft, ChevronRight, Eye, EyeOff, Coins } from 'lucide-react';
 import { User, Product, BusinessProfile, AlternativePart } from '../types';
-import { MockApi } from '../services/mockApi';
+import Api from '../services/api';
+import { normalizeListResponse } from '../services/normalize';
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
 import ProductImageViewer from './ProductImageViewer';
@@ -67,7 +68,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         if (profile) {
             const newBalance = Math.max(0, searchPointsRemaining - 1);
             const profiles = JSON.parse(localStorage.getItem('sinicar_profiles') || '[]');
-            const idx = profiles.findIndex((p: any) => p.id === profile.id);
+            const idx = profiles.findIndex((p: any) => p.userId === profile.userId);
             if (idx >= 0) {
                 profiles[idx].searchPointsRemaining = newBalance;
                 localStorage.setItem('sinicar_profiles', JSON.stringify(profiles));
@@ -114,7 +115,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
             } catch { }
         }
 
-        MockApi.searchProducts('').then(products => {
+        Api.searchProducts('').then(products => {
             const uniqueBrands = [...new Set(products.map(p => p.brand).filter(Boolean))] as string[];
             setBrands(uniqueBrands);
         });
@@ -131,7 +132,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         setCurrentPage(1);
 
         try {
-            const result = await MockApi.advancedSearchProducts({
+            const result = await Api.advancedSearchProducts({
                 q: searchQuery,
                 brand: brandFilter || undefined,
                 make: makeFilter || undefined,
@@ -140,8 +141,10 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                 pageSize
             });
 
-            setSearchResults(result.items);
-            setTotalResults(result.total);
+            // استخدام normalizeListResponse لضمان items دائماً array
+            const { items, total } = normalizeListResponse<Product>(result);
+            setSearchResults(items);
+            setTotalResults(total);
         } catch (error) {
             console.error('Search error:', error);
         } finally {
@@ -154,7 +157,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         setCurrentPage(newPage);
 
         try {
-            const result = await MockApi.advancedSearchProducts({
+            const result = await Api.advancedSearchProducts({
                 q: searchQuery,
                 brand: brandFilter || undefined,
                 make: makeFilter || undefined,
@@ -163,8 +166,10 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
                 pageSize
             });
 
-            setSearchResults(result.items);
-            setTotalResults(result.total);
+            // استخدام normalizeListResponse لضمان items دائماً array
+            const { items, total } = normalizeListResponse<Product>(result);
+            setSearchResults(items);
+            setTotalResults(total);
         } catch (error) {
             console.error('Page change error:', error);
         } finally {
@@ -221,27 +226,51 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         setSuccessMessage('');
 
         try {
-            const result = await MockApi.createPurchaseRequest(
-                user.id,
-                user.name,
-                profile?.companyName || '',
-                requestItems
-            );
+            // Convert request items to match backend schema: productId, partNumber, name, quantity, unitPrice
+            const orderItems = requestItems.map(item => ({
+                productId: item.productId, // Backend expects 'productId' not 'id'
+                partNumber: item.partNumber,
+                name: item.productName,
+                quantity: item.quantity,
+                unitPrice: item.priceAtRequest || 0 // Backend expects 'unitPrice' not 'price'
+            }));
 
-            if (result.success) {
+            const totalAmount = orderItems.reduce((sum, item) => (item.unitPrice || 0) * item.quantity + sum, 0);
+
+            console.log('📦 Creating order with items:', orderItems);
+            console.log('📦 Total amount:', totalAmount);
+            console.log('📦 User ID:', user.id);
+
+            // Create a proper Order object using createOrder
+            const newOrder = await Api.createOrder({
+                items: orderItems,
+                notes: 'طلب سريع من بوابة البحث',
+                totalAmount: totalAmount, // Required for Api fallback
+                userId: user.id // Required for Api fallback
+            });
+
+            console.log('✅ Order created:', newOrder);
+
+            // Verify the order was saved to localStorage
+            const savedOrders = JSON.parse(localStorage.getItem('b2b_orders_sini_v2') || '[]');
+            console.log('📋 All orders in localStorage:', savedOrders);
+
+            if (newOrder && newOrder.id) {
                 setSuccessMessage(isRtl
-                    ? `تم إرسال الطلب بنجاح! رقم الطلب: ${result.requestId}`
-                    : `Request sent successfully! Request ID: ${result.requestId}`
+                    ? `تم إرسال الطلب بنجاح! رقم الطلب: ${newOrder.id}`
+                    : `Order sent successfully! Order ID: ${newOrder.id}`
                 );
                 setRequestItems([]);
                 localStorage.removeItem(STORAGE_KEY);
             }
         } catch (error) {
-            console.error('Send request error:', error);
+            console.error('❌ Send request error:', error);
         } finally {
             setIsSending(false);
         }
     };
+
+
 
     const openAlternativesModal = async (partNumber: string, productName: string) => {
         setAlternativesModal({ open: true, partNumber, productName });
@@ -249,7 +278,7 @@ export function ProductSearchPage({ user, profile, onBack }: ProductSearchPagePr
         setAlternatives([]);
 
         try {
-            const results = await MockApi.searchAlternatives(partNumber);
+            const results = await Api.searchAlternatives(partNumber);
             setAlternatives(results);
         } catch (error) {
             console.error('Alternatives search error:', error);
