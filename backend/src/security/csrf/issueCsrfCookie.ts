@@ -29,7 +29,11 @@ export function generateCsrfToken(): string {
  * @returns The generated token (or null if disabled)
  */
 export function issueCsrfCookie(res: Response): string | null {
+  // Debug: log env var value
+  console.log('[CSRF] ENABLE_CSRF_COOKIE =', process.env.ENABLE_CSRF_COOKIE);
+  
   if (!isCsrfCookieEnabled()) {
+    console.log('[CSRF] Cookie issuance DISABLED');
     return null;
   }
 
