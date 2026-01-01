@@ -19,13 +19,16 @@ export const CSRF_HEADER_NAME = 'X-CSRF-Token';
  * Cookie options for CSRF token
  * Note: httpOnly MUST be false for double-submit pattern
  */
-export const getCsrfCookieOptions = () => ({
-  httpOnly: false, // MUST be false - JS needs to read this cookie
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
-  path: '/',
-  maxAge: 24 * 60 * 60 * 1000, // 24 hours
-});
+export const getCsrfCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: false, // MUST be false - JS needs to read this cookie
+    secure: isProd, // Only require HTTPS in production
+    sameSite: (isProd ? 'strict' : 'lax') as 'strict' | 'lax', // Lax in dev for cross-port
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  };
+};
 
 /**
  * Methods that require CSRF validation

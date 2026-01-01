@@ -55,6 +55,7 @@ async function apiRequest<T>(
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
+    credentials: features.enableApiCredentials ? 'include' : 'same-origin',
     headers,
   });
 
