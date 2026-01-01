@@ -3,6 +3,9 @@
  * يستبدل Api بطلبات API فعلية
  */
 
+import { features } from '../config/features';
+import { sessionRefresh } from './api/session';
+
 // Ensure API_BASE_URL is always a string
 const envApiUrl = import.meta.env.VITE_API_URL;
 const API_BASE_URL: string = typeof envApiUrl === 'string' ? envApiUrl : 'http://localhost:3005/api/v1';
@@ -18,10 +21,13 @@ const setAuthToken = (token: string | null) => {
   }
 };
 
+// Track if we're currently refreshing to prevent loops
+let isRefreshing = false;
+
 // Request helper with authentication
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit & { _retry?: boolean } = {}
 ): Promise<T> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -44,6 +50,25 @@ async function apiRequest<T>(
     ...options,
     headers,
   });
+
+  // Handle 401 with optional refresh (gated behind feature flag)
+  if (response.status === 401 && features.enableSessionRefresh && !options._retry && !isRefreshing) {
+    try {
+      isRefreshing = true;
+      const refreshResult = await sessionRefresh();
+      setAuthToken(refreshResult.accessToken);
+      isRefreshing = false;
+      
+      // Retry the original request once
+      return apiRequest<T>(endpoint, { ...options, _retry: true });
+    } catch (refreshError) {
+      isRefreshing = false;
+      // Refresh failed, fall through to normal 401 handling
+      if (import.meta.env.DEV) {
+        console.warn('[ApiClient] Token refresh failed:', refreshError);
+      }
+    }
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
