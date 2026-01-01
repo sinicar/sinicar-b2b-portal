@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        // Dev proxy to eliminate cross-origin cookie issues
+        proxy: {
+          '/api': {
+            target: 'http://localhost:3005',
+            changeOrigin: true,
+            secure: false,
+          },
+        },
       },
       plugins: [react()],
       define: {

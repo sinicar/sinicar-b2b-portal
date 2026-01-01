@@ -1,89 +1,112 @@
 # CSRF Smoke Test Results
 
 > **Date**: 2026-01-01  
-> **Commit**: `aa1a3df` (includes C8 fixes)  
-> **Status**: ❌ PARTIALLY FAILED
+> **Commit**: Testing with Vite Proxy (C9.2)  
+> **Status**: ⚠️ IN PROGRESS - Proxy Added, Needs Fresh Restart
+
+---
+
+## Configuration Changes Applied
+
+### 1. Vite Proxy Added (`vite.config.ts`)
+
+```typescript
+server: {
+  port: 3000,
+  host: '0.0.0.0',
+  proxy: {
+    '/api': {
+      target: 'http://localhost:3005',
+      changeOrigin: true,
+      secure: false,
+    },
+  },
+},
+```
+
+### 2. API Base URL Updated (`src/services/apiClient.ts`)
+
+```typescript
+const API_BASE_URL: string = typeof envApiUrl === 'string' 
+  ? envApiUrl 
+  : (import.meta.env.DEV ? '/api/v1' : 'http://localhost:3005/api/v1');
+```
 
 ---
 
 ## Test Environment
 
 | Setting | Value |
-|---------|-------|
+| ------- | ----- |
 | Backend Port | 3005 |
-| Frontend Port | 3000 |
+| Frontend Port | 3000 (target), 3001 (new instance) |
+| Proxy Active | `/api` → `http://localhost:3005` |
 | ENABLE_CSRF | true |
 | ENABLE_CSRF_COOKIE | true |
-| CORS_ORIGIN | http://localhost:3000 |
-| CSRF Middleware | ENABLED ✅ |
 
 ---
 
-## Test Results
+## Test Results (Partial - Stale Server Issue)
 
-| Test | Description | Status | Evidence |
-|------|-------------|--------|----------|
-| **A** | Cookie Issuance | ❌ FAIL | `document.cookie` empty after login |
-| **B** | Header Sending | ❌ FAIL | No cookie = no header to send |
-| **C** | Missing Header Rejection | ✅ PASS | 403 `missing_header` |
-| **D** | Missing Cookie Rejection | ✅ PASS | 403 `missing_cookie` |
-| **E** | Success Path | ❌ FAIL | Blocked by failing A |
-| **F** | CORS Sanity | ✅ PASS | No CORS errors |
-
----
-
-## Evidence: Test A - Cookie Issuance FAIL
-
-### What We Checked
-```javascript
-// After successful UI login (redirected to dashboard)
-document.cookie
-// Result: "" (empty string)
-```
-
-### Console Logs
-- Login status: 200 OK (via UI)
-- Auth token stored in localStorage ✅
-- XSRF-TOKEN in document.cookie: **NOT FOUND**
+| Test | Description | Status | Notes |
+| ---- | ----------- | ------ | ----- |
+| **A** | Cookie Issuance | ❌ FAIL | Cookie not in `document.cookie` |
+| **B** | Header Sending | ❌ FAIL | No cookie = no header |
+| **C** | Missing Header (403) | ✅ PASS | Backend rejects correctly |
+| **D** | Missing Cookie (403) | ✅ PASS | Backend rejects correctly |
+| **E** | Success Path | ❌ FAIL | Blocked by A |
+| **F** | CORS Sanity | ✅ PASS | No CORS errors on proxy port |
 
 ---
 
-## Root Cause Analysis
+## Current Blocker
 
-The cookie is likely either:
+**Old frontend on port 3000 using outdated code** (before proxy changes)
 
-1. **Not being sent by backend** - `Set-Cookie` header missing from login response
-2. **Rejected by browser** - Cross-origin cookie blocked despite `credentials: 'include'`
-
-### Possible Issues
-
-| Issue | Likelihood | Fix |
-|-------|------------|-----|
-| Frontend not sending `credentials: 'include'` | HIGH | Ensure `VITE_ENABLE_API_CREDENTIALS=true` |
-| Browser blocking cross-port cookie | MEDIUM | Use Vite proxy instead of direct cross-origin |
-| `ENABLE_CSRF_COOKIE` not reaching backend | LOW | Verify env var |
+The new frontend instance started on port 3001 (because 3000 was in use).
+The proxy IS working on port 3001, but the application code there still uses absolute URL.
 
 ---
 
-## Next Steps
+## Required Action
 
-1. **Verify frontend flags active**:
+1. **Kill all frontend processes** (ports 3000, 3001)
+2. **Restart frontend** with new code:
+
    ```bash
-   npx cross-env VITE_ENABLE_CSRF_HEADERS=true VITE_ENABLE_API_CREDENTIALS=true npm run dev
+   npx cross-env VITE_ENABLE_CSRF_HEADERS=true npm run dev
    ```
 
-2. **Alternative: Use Vite proxy** to avoid cross-origin:
-   - Route `/api` through Vite to backend
-   - Cookies stay same-origin
+3. **Re-run tests A-F** on port 3000
 
-3. **Debug Set-Cookie**: Check backend Network tab response for `Set-Cookie` header
+---
+
+## Evidence
+
+### Proxy Works (port 3001)
+
+```javascript
+fetch('/api/v1/health')
+// Returns: 404 "Path not found" from backend
+// Proves proxy is forwarding requests correctly
+```
+
+### CSRF Middleware Works
+
+```json
+{
+  "error": "CSRF validation failed",
+  "code": "CSRF_INVALID",
+  "reason": "missing_cookie"
+}
+```
 
 ---
 
 ## Test Credentials
 
 | User | Role | Password |
-|------|------|----------|
+| ---- | ---- | -------- |
 | user-1 | ادمن (Admin) | 1 |
 | user-2 | عميل (Customer) | 1 |
 | user-3 | مورد (Supplier) | 1 |

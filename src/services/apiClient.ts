@@ -8,8 +8,11 @@ import { sessionRefresh } from './api/session';
 import { getCsrfHeaders } from './security/csrf';
 
 // Ensure API_BASE_URL is always a string
+// In dev, use relative path (handled by Vite proxy); in prod, use env var or absolute URL
 const envApiUrl = import.meta.env.VITE_API_URL;
-const API_BASE_URL: string = typeof envApiUrl === 'string' ? envApiUrl : 'http://localhost:3005/api/v1';
+const API_BASE_URL: string = typeof envApiUrl === 'string' 
+  ? envApiUrl 
+  : (import.meta.env.DEV ? '/api/v1' : 'http://localhost:3005/api/v1');
 
 // Token management - يُقرأ من localStorage في كل request
 const getAuthToken = () => localStorage.getItem('auth_token');
