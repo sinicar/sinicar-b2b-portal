@@ -102,12 +102,26 @@ After login:
 
 ## Known Gaps / Next Steps
 
-| Gap | Priority | Notes |
-|-----|----------|-------|
-| Logout endpoint to clear cookie | High | Add `clearAuthCookie(res)` to logout route |
-| Cookie refresh strategy | Medium | Align with JWT refresh flow |
-| Disable JSON accessToken in cookie mode | Low | Future flag to omit from response |
-| Cookie domain for subdomains | Low | Needed if API on different subdomain |
+| Gap | Priority | Status |
+|-----|----------|--------|
+| Logout endpoint to clear cookie | ~~High~~ | ✅ Done (`clearAuthCookie`) |
+| Cookie refresh strategy | Medium | Pending |
+| Disable JSON accessToken in cookie mode | Low | Future |
+| Cookie domain for subdomains | Low | Future |
+
+---
+
+## Go/No-Go Checklist
+
+Before enabling cookie mode broadly, all smoke tests must PASS:
+
+- [ ] T5 - Cookie issued, no localStorage token
+- [ ] T6 - API requests work via cookie bridge
+- [ ] T7 - Logout clears AUTH_TOKEN cookie
+- [ ] T8 - Session terminates properly on logout
+- [ ] T10 - No regressions in admin views
+
+See [Auth Cookie Smoke Test Results](./AUTH_COOKIE_SMOKE_TEST_RESULTS.md) for detailed test matrix.
 
 ---
 
@@ -115,3 +129,5 @@ After login:
 
 - [CSRF Cookie Auth Design](./CSRF_COOKIE_AUTH_DESIGN.md)
 - [CSRF Smoke Test Results](./CSRF_SMOKE_TEST_RESULTS.md)
+- [Auth Cookie Smoke Test Results](./AUTH_COOKIE_SMOKE_TEST_RESULTS.md)
+
