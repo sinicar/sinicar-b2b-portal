@@ -5,6 +5,7 @@
 
 import { features } from '../config/features';
 import { sessionRefresh } from './api/session';
+import { getCsrfHeaders } from './security/csrf';
 
 // Ensure API_BASE_URL is always a string
 const envApiUrl = import.meta.env.VITE_API_URL;
@@ -29,8 +30,14 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit & { _retry?: boolean } = {}
 ): Promise<T> {
+  // Get CSRF headers if enabled (only for state-changing methods)
+  const method = options.method?.toUpperCase() || 'GET';
+  const needsCsrf = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+  const csrfHeaders = (features.enableCsrfHeaders && needsCsrf) ? getCsrfHeaders() : {};
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    ...csrfHeaders,
     ...options.headers,
   };
 
