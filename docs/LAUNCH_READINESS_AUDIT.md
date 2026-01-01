@@ -259,19 +259,92 @@ VITE_ENABLE_CSRF_HEADERS=true
 
 ---
 
-## Verification Result
+## 8. Security Modes
 
+### Header Token Mode (Development/Internal)
+
+Default mode. Token stored in localStorage.
+
+```bash
+# Backend — all security OFF
+ENABLE_AUTH_COOKIE=false
+ENABLE_CSRF=false
+RATE_LIMIT_ENABLED=false
+
+# Frontend
+VITE_ENABLE_AUTH_COOKIE_MODE=false
+VITE_ENABLE_CSRF_HEADERS=false
 ```
-npm run verify
-✅ check:deps — All modules clean
-✅ typecheck — No errors
-✅ build — 2860 modules, 8.96s
+
+**When to use**: Development, internal VPN, staging.
+
+---
+
+### Cookie Mode (Public Production)
+
+HttpOnly cookie for auth token, CSRF protection enabled.
+
+```bash
+# Backend
+ENABLE_AUTH_COOKIE=true
+ENABLE_CSRF=true
+ENABLE_CSRF_COOKIE=true
+RATE_LIMIT_ENABLED=true
+CORS_ORIGIN=https://app.sinicar.com
+
+# Frontend
+VITE_ENABLE_AUTH_COOKIE_MODE=true
+VITE_ENABLE_API_CREDENTIALS=true
+VITE_ENABLE_CSRF_HEADERS=true
 ```
+
+**When to use**: Public internet, production.
+
+---
+
+### Rollback Steps
+
+If cookie mode causes issues:
+
+1. **Backend**: Set all `ENABLE_*` to `false`
+2. **Frontend**: Set all `VITE_ENABLE_*` to `false`
+3. Restart both servers
+4. Users will need to re-login
+
+No code changes required.
+
+---
+
+## 9. Final Public Smoke Tests
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| P1 | Login | `Set-Cookie: AUTH_TOKEN=...; HttpOnly` | ⬜ |
+| P2 | Login | `Set-Cookie: XSRF-TOKEN=...` | ⬜ |
+| P3 | Authenticated GET | Works with cookie | ⬜ |
+| P4 | POST without X-XSRF-TOKEN | 403 Forbidden | ⬜ |
+| P5 | POST with X-XSRF-TOKEN | 200 OK | ⬜ |
+| P6 | Logout | Cookies cleared | ⬜ |
+| P7 | Rate limit spam | 429 after limit | ⬜ |
+| P8 | X-Request-Id | Header present | ⬜ |
+| P9 | Supplier isolation | No customer data visible | ⬜ |
+| P10 | Admin can see all | Full dashboard works | ⬜ |
+
+---
+
+## Go/No-Go Final Decision
+
+| Mode | Status | Condition |
+|------|--------|-----------|
+| Internal (Header) | ✅ GO | Now |
+| Public (Cookie) | ⚠️ CONDITIONAL | Pass P1-P10 smoke tests |
 
 ---
 
 ## Related Docs
 
+- [PRODUCTION_ENV_TEMPLATE.md](./PRODUCTION_ENV_TEMPLATE.md)
 - [AUTH_COOKIE_MIGRATION.md](./AUTH_COOKIE_MIGRATION.md)
 - [AUTH_COOKIE_SMOKE_TEST_RESULTS.md](./AUTH_COOKIE_SMOKE_TEST_RESULTS.md)
 - [CSRF_COOKIE_AUTH_DESIGN.md](./CSRF_COOKIE_AUTH_DESIGN.md)
+- [LAUNCH_READINESS_FIXES_P0_P1.md](./LAUNCH_READINESS_FIXES_P0_P1.md)
