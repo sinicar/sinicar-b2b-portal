@@ -1,59 +1,64 @@
 # CSRF Smoke Test Results
 
-> **Date**: 2026-01-01
-> **Status**: ❌ FAILED - Requires Fix
-> **Tester**: Automated Browser Test
-
-## Execution Notes
-
-**Test executed with CSRF flags enabled:**
-- Backend: `ENABLE_CSRF=true`, `ENABLE_CSRF_COOKIE=true`
-- Frontend: `VITE_ENABLE_CSRF_HEADERS=true`
+> **Date**: 2026-01-01  
+> **Status**: ⚠️ BLOCKED - Requires Server Restart  
+> **Commit Tested**: `3f5f3c7` (C8 fix)
 
 ---
 
-## Test Results Summary
+## Test Environment Issue
 
-| Test | Description | Status | Notes |
-|------|-------------|--------|-------|
-| **A** | Login Cookie Issuance | ❌ FAIL | Cookie NOT set after login |
-| **B** | Header Sending | ⚠️ N/A | Cannot test - no cookie |
-| **C** | Missing Header (403) | ⚠️ N/A | Cannot test - no cookie |
-| **D** | Missing Cookie (403) | ✅ PASS | Logout returns 403 with `reason: missing_cookie` |
-| **E** | Success Path | ❌ FAIL | Blocked by missing cookie |
-| **F** | CORS Sanity | ⚠️ ISSUE | Cross-origin cookie not sent |
+**BLOCKER:** The running servers did not pick up the C8 code changes:
+- Backend still running with old `sameSite: 'strict'` 
+- Frontend not receiving CSRF cookie due to cross-port restrictions
 
----
+**Required Action:**
+1. Stop ALL running servers (kill ports 3000, 3001, 3005)
+2. Restart with all flags:
 
-## Detailed Findings
+```bash
+# Terminal 1 - Backend
+cd backend
+npx cross-env ENABLE_CSRF=true ENABLE_CSRF_COOKIE=true npm run dev
 
-### Test A: Login Cookie Issuance ❌
-
-**Steps Performed:**
-1. Navigated to http://localhost:3000
-2. Logged in with `user-1` / `1`
-3. Login succeeded - redirected to Admin Dashboard
-4. Checked `document.cookie`
-
-**Result:** XSRF-TOKEN cookie **NOT FOUND**
-
-**Evidence:**
-```javascript
-document.cookie
-// Returns: "" (empty string)
+# Terminal 2 - Frontend  
+npx cross-env VITE_ENABLE_CSRF_HEADERS=true VITE_ENABLE_API_CREDENTIALS=true npm run dev
 ```
 
 ---
 
-### Test D: Missing Cookie Validation ✅
+## Test Results (With Old Code)
 
-**Steps Performed:**
-1. Attempted logout while logged in
-2. Backend returned 403
+| Test | Description | Status | Notes |
+|------|-------------|--------|-------|
+| **A** | Cookie Issuance | ❌ FAIL | `XSRF-TOKEN` not found in `document.cookie` |
+| **B** | Header Sending | ❌ FAIL | No `X-CSRF-Token` header in requests |
+| **C** | Missing Header Rejection | ✅ PASS | Backend returns 403 `missing_header` |
+| **D** | Missing Cookie Rejection | ✅ PASS | Backend returns 403 `missing_cookie` |
+| **E** | Success Path | ❌ FAIL | Cannot complete - blocked by A |
+| **F** | CORS Sanity | ✅ PASS | No CORS errors in console |
 
-**Result:** Backend correctly rejects requests with missing cookie
+---
 
-**Evidence:**
+## Evidence
+
+### Test A Failure
+```javascript
+document.cookie
+// Returns: "" (empty string)
+// Expected: "XSRF-TOKEN=..."
+```
+
+### Test C Success
+```json
+{
+  "error": "CSRF validation failed",
+  "code": "CSRF_INVALID",
+  "reason": "missing_header"
+}
+```
+
+### Test D Success  
 ```json
 {
   "error": "CSRF validation failed",
@@ -64,88 +69,55 @@ document.cookie
 
 ---
 
-## Root Cause Analysis
+## Analysis
 
-### Issue 1: Cross-Origin Cookie Not Set
-
-The frontend runs on `localhost:3000` and backend on `localhost:3005`.
-
-**Problem:** The `res.cookie()` call in `issueCsrfCookie.ts` sets the cookie, but it's bound to the backend's origin (port 3005), not the frontend's origin (port 3000).
-
-**Solution Options:**
-
-1. **Option A (Recommended):** Add `credentials: 'include'` to fetch requests
-   - File: `src/services/apiClient.ts`
-   - Add to fetch options: `credentials: 'include'`
-
-2. **Option B:** Change `sameSite` from `strict` to `lax`
-   - File: `backend/src/security/csrf/csrfConfig.ts`
-   - For cross-port dev environment
-
-3. **Option C:** Use Vite proxy to route `/api` through same origin
-   - Already may be configured in `vite.config.ts`
+1. **Backend CSRF validation is working** - correctly rejects requests without tokens
+2. **Cookie issuance is NOT reaching browser** - `Set-Cookie` header either:
+   - Not being sent by backend (old code)
+   - Not being accepted by browser (SameSite=strict across ports)
+3. **Frontend is NOT sending credentials** - `credentials: 'include'` may not be active
 
 ---
 
-## Proposed Fix (Smallest Change)
+## C8 Fixes Applied (Need Server Restart)
 
-### File: `src/services/apiClient.ts`
-
-```diff
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-+   credentials: 'include', // Send cookies cross-origin
-    headers,
-  });
-```
-
-### File: `backend/src/security/csrf/csrfConfig.ts`
-
-```diff
-  export const getCsrfCookieOptions = () => ({
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
--   sameSite: 'strict' as const,
-+   sameSite: 'lax' as const, // Allow cross-port in dev
-    path: '/',
-    maxAge: 24 * 60 * 60 * 1000,
-  });
-```
-
-### Backend CORS (if needed)
-
-Ensure CORS allows credentials:
+### 1. Frontend Feature Flag
 ```typescript
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
+// src/config/features.ts
+enableApiCredentials: import.meta.env.VITE_ENABLE_API_CREDENTIALS === 'true'
 ```
 
----
+### 2. Frontend Credentials Gated
+```typescript
+// src/services/apiClient.ts
+credentials: features.enableApiCredentials ? 'include' : 'same-origin'
+```
 
-## Production Safety Confirmation
-
-| Setting | Default Value | Status |
-|---------|---------------|--------|
-| `ENABLE_CSRF` | `false` (OFF) | ✅ Safe |
-| `ENABLE_CSRF_COOKIE` | `false` (OFF) | ✅ Safe |
-| `VITE_ENABLE_CSRF_HEADERS` | Not set = OFF | ✅ Safe |
-
-✅ **All flags default to OFF — production behavior unchanged.**
+### 3. Backend Cookie Options (Dev-Friendly)
+```typescript
+// backend/src/security/csrf/csrfConfig.ts
+const isProd = process.env.NODE_ENV === 'production';
+return {
+  httpOnly: false,
+  secure: isProd,
+  sameSite: (isProd ? 'strict' : 'lax') as const,
+  path: '/',
+  maxAge: 24 * 60 * 60 * 1000,
+};
+```
 
 ---
 
 ## Next Steps
 
-1. [ ] Apply the proposed fix for `credentials: 'include'`
-2. [ ] Change `sameSite` to `'lax'` for dev environment
-3. [ ] Re-run smoke tests A-F
-4. [ ] Document final results
+- [ ] User manually restarts servers with correct env flags
+- [ ] Re-run tests A-F
+- [ ] Update this document with final PASS/FAIL results
+- [ ] Commit final results
 
 ---
 
-## Test Credentials Used
+## Test Credentials
 
 | User | Role | Password |
 |------|------|----------|
