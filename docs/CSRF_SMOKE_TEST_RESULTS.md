@@ -1,169 +1,154 @@
 # CSRF Smoke Test Results
 
 > **Date**: 2026-01-01
-> **Status**: ⚠️ Requires Manual Execution
-> **Tester**: User (Manual Testing Required)
+> **Status**: ❌ FAILED - Requires Fix
+> **Tester**: Automated Browser Test
 
 ## Execution Notes
 
-**Automated testing blocked by:**
-1. `.env` files are gitignored — cannot modify programmatically
-2. Backend startup requires manual `.env` configuration
-3. Tests A-F must be executed manually by user
+**Test executed with CSRF flags enabled:**
+- Backend: `ENABLE_CSRF=true`, `ENABLE_CSRF_COOKIE=true`
+- Frontend: `VITE_ENABLE_CSRF_HEADERS=true`
 
-**Action Required:** Follow setup instructions below, then run tests manually.
+---
 
-### Backend (`backend/.env`)
+## Test Results Summary
 
-```env
-ENABLE_CSRF=true
-ENABLE_CSRF_COOKIE=true
+| Test | Description | Status | Notes |
+|------|-------------|--------|-------|
+| **A** | Login Cookie Issuance | ❌ FAIL | Cookie NOT set after login |
+| **B** | Header Sending | ⚠️ N/A | Cannot test - no cookie |
+| **C** | Missing Header (403) | ⚠️ N/A | Cannot test - no cookie |
+| **D** | Missing Cookie (403) | ✅ PASS | Logout returns 403 with `reason: missing_cookie` |
+| **E** | Success Path | ❌ FAIL | Blocked by missing cookie |
+| **F** | CORS Sanity | ⚠️ ISSUE | Cross-origin cookie not sent |
+
+---
+
+## Detailed Findings
+
+### Test A: Login Cookie Issuance ❌
+
+**Steps Performed:**
+1. Navigated to http://localhost:3000
+2. Logged in with `user-1` / `1`
+3. Login succeeded - redirected to Admin Dashboard
+4. Checked `document.cookie`
+
+**Result:** XSRF-TOKEN cookie **NOT FOUND**
+
+**Evidence:**
+```javascript
+document.cookie
+// Returns: "" (empty string)
 ```
 
-### Frontend (`.env.local` or inline)
+---
 
-```env
-VITE_ENABLE_CSRF_HEADERS=true
+### Test D: Missing Cookie Validation ✅
+
+**Steps Performed:**
+1. Attempted logout while logged in
+2. Backend returned 403
+
+**Result:** Backend correctly rejects requests with missing cookie
+
+**Evidence:**
+```json
+{
+  "error": "CSRF validation failed",
+  "code": "CSRF_INVALID", 
+  "reason": "missing_cookie"
+}
 ```
 
 ---
 
-## Test Cases
+## Root Cause Analysis
 
-### Test A: Login Cookie Issuance
+### Issue 1: Cross-Origin Cookie Not Set
 
-| Step | Expected | Result |
-|------|----------|--------|
-| 1. Start backend with CSRF flags enabled | Server starts | ⏳ Pending |
-| 2. Start frontend with CSRF header flag enabled | Dev server starts | ⏳ Pending |
-| 3. Navigate to login page | Login form appears | ⏳ Pending |
-| 4. Login with valid credentials | Login succeeds | ⏳ Pending |
-| 5. Open DevTools → Application → Cookies | `XSRF-TOKEN` cookie present | ⏳ Pending |
-| 6. Verify cookie properties | `HttpOnly: false`, `SameSite: Strict` | ⏳ Pending |
+The frontend runs on `localhost:3000` and backend on `localhost:3005`.
 
----
+**Problem:** The `res.cookie()` call in `issueCsrfCookie.ts` sets the cookie, but it's bound to the backend's origin (port 3005), not the frontend's origin (port 3000).
 
-### Test B: Header Sending
+**Solution Options:**
 
-| Step | Expected | Result |
-|------|----------|--------|
-| 1. With login completed, open Network tab | Network tab open | ⏳ Pending |
-| 2. Trigger a POST/PUT/DELETE request | Request sent | ⏳ Pending |
-| 3. Inspect request headers | `X-CSRF-Token` header present | ⏳ Pending |
-| 4. Verify header value matches cookie | Values match | ⏳ Pending |
+1. **Option A (Recommended):** Add `credentials: 'include'` to fetch requests
+   - File: `src/services/apiClient.ts`
+   - Add to fetch options: `credentials: 'include'`
+
+2. **Option B:** Change `sameSite` from `strict` to `lax`
+   - File: `backend/src/security/csrf/csrfConfig.ts`
+   - For cross-port dev environment
+
+3. **Option C:** Use Vite proxy to route `/api` through same origin
+   - Already may be configured in `vite.config.ts`
 
 ---
 
-### Test C: Missing Header Test (Force Fail)
+## Proposed Fix (Smallest Change)
 
-| Step | Expected | Result |
-|------|----------|--------|
-| 1. Set `VITE_ENABLE_CSRF_HEADERS=false` | Flag disabled | ⏳ Pending |
-| 2. Restart frontend dev server | Server restarts | ⏳ Pending |
-| 3. Trigger a POST/PUT/DELETE request | Request sent WITHOUT header | ⏳ Pending |
-| 4. Expect 403 response | `{ error: "CSRF validation failed", reason: "missing_header" }` | ⏳ Pending |
+### File: `src/services/apiClient.ts`
 
----
+```diff
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
++   credentials: 'include', // Send cookies cross-origin
+    headers,
+  });
+```
 
-### Test D: Missing Cookie Test (Force Fail)
+### File: `backend/src/security/csrf/csrfConfig.ts`
 
-| Step | Expected | Result |
-|------|----------|--------|
-| 1. Re-enable `VITE_ENABLE_CSRF_HEADERS=true` | Flag enabled | ⏳ Pending |
-| 2. Restart frontend dev server | Server restarts | ⏳ Pending |
-| 3. Delete `XSRF-TOKEN` cookie in DevTools | Cookie removed | ⏳ Pending |
-| 4. Trigger a POST/PUT/DELETE request | Request sent WITH header but no cookie | ⏳ Pending |
-| 5. Expect 403 response | `{ error: "CSRF validation failed", reason: "missing_cookie" }` | ⏳ Pending |
+```diff
+  export const getCsrfCookieOptions = () => ({
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+-   sameSite: 'strict' as const,
++   sameSite: 'lax' as const, // Allow cross-port in dev
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+```
 
----
+### Backend CORS (if needed)
 
-### Test E: Success Path
-
-| Step | Expected | Result |
-|------|----------|--------|
-| 1. Login again to re-issue cookie | Cookie restored | ⏳ Pending |
-| 2. Ensure frontend flag enabled | `VITE_ENABLE_CSRF_HEADERS=true` | ⏳ Pending |
-| 3. Trigger a POST/PUT/DELETE request | Request sent with valid header + cookie | ⏳ Pending |
-| 4. Expect success response | 200 or 201 status | ⏳ Pending |
-
----
-
-### Test F: CORS Sanity
-
-| Step | Expected | Result |
-|------|----------|--------|
-| 1. Check Console for CORS errors | No CORS errors | ⏳ Pending |
-| 2. Verify `credentials: include` working | Cookies sent cross-origin | ⏳ Pending |
-
----
-
-## Summary
-
-| Test | Description | Status |
-|------|-------------|--------|
-| A | Login Cookie Issuance | ⏳ Pending |
-| B | Header Sending | ⏳ Pending |
-| C | Missing Header (403) | ⏳ Pending |
-| D | Missing Cookie (403) | ⏳ Pending |
-| E | Success Path | ⏳ Pending |
-| F | CORS Sanity | ⏳ Pending |
-
----
-
-## Issues Found
-
-_None yet - pending manual testing_
-
----
-
-## Fixes Required
-
-_None yet - pending manual testing_
+Ensure CORS allows credentials:
+```typescript
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+```
 
 ---
 
 ## Production Safety Confirmation
 
-| Setting | Default Value | Notes |
-|---------|---------------|-------|
-| `ENABLE_CSRF` (backend) | `false` (OFF) | Validation middleware disabled |
-| `ENABLE_CSRF_COOKIE` (backend) | `false` (OFF) | No cookie issued on login |
-| `VITE_ENABLE_CSRF_HEADERS` (frontend) | Not set = OFF | No CSRF header sent |
+| Setting | Default Value | Status |
+|---------|---------------|--------|
+| `ENABLE_CSRF` | `false` (OFF) | ✅ Safe |
+| `ENABLE_CSRF_COOKIE` | `false` (OFF) | ✅ Safe |
+| `VITE_ENABLE_CSRF_HEADERS` | Not set = OFF | ✅ Safe |
 
 ✅ **All flags default to OFF — production behavior unchanged.**
 
 ---
 
-## Manual Test Instructions
+## Next Steps
 
-### Quick Start
-
-```bash
-# Terminal 1: Backend
-cd backend
-# Edit .env to add:
-#   ENABLE_CSRF=true
-#   ENABLE_CSRF_COOKIE=true
-npm run dev
-
-# Terminal 2: Frontend
-cd ..
-# Create .env.local with:
-#   VITE_ENABLE_CSRF_HEADERS=true
-npm run dev
-```
-
-### After Testing
-
-1. Update this document with test results
-2. Mark each test as ✅ PASS or ❌ FAIL
-3. Document any issues in "Issues Found" section
-4. Commit updated results
+1. [ ] Apply the proposed fix for `credentials: 'include'`
+2. [ ] Change `sameSite` to `'lax'` for dev environment
+3. [ ] Re-run smoke tests A-F
+4. [ ] Document final results
 
 ---
 
-## Next Steps (After Testing)
+## Test Credentials Used
 
-1. If all tests pass → CSRF implementation is production-ready
-2. If issues found → Fix and re-test
-3. Update design doc with any learnings
+| User | Role | Password |
+|------|------|----------|
+| user-1 | ادمن (Admin) | 1 |
+| user-2 | عميل (Customer) | 1 |
+| user-3 | مورد (Supplier) | 1 |
