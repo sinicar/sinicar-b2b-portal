@@ -15,13 +15,20 @@ const API_BASE_URL: string = typeof envApiUrl === 'string'
   : '/api/v1';
 
 // Token management - يُقرأ من localStorage في كل request
+// When cookie mode is enabled, token is in HttpOnly cookie (not accessible here)
 const getAuthToken = () => localStorage.getItem('auth_token');
 
 const setAuthToken = (token: string | null) => {
-  if (token) {
-    localStorage.setItem('auth_token', token);
-  } else {
+  // In cookie mode, don't persist token to localStorage (it's in HttpOnly cookie)
+  // Always clear to avoid stale tokens from previous mode
+  if (!token) {
     localStorage.removeItem('auth_token');
+    return;
+  }
+  
+  // Only write to localStorage if NOT in cookie mode
+  if (!features.enableAuthCookieMode) {
+    localStorage.setItem('auth_token', token);
   }
 };
 

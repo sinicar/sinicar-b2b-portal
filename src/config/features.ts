@@ -6,9 +6,11 @@
  *   VITE_ENABLE_SESSION_REFRESH=true
  *   VITE_ENABLE_CSRF_HEADERS=true
  *   VITE_ENABLE_API_CREDENTIALS=true
+ *   VITE_ENABLE_AUTH_COOKIE_MODE=true
  */
 export const features = {
   enableSessionRefresh: import.meta.env.VITE_ENABLE_SESSION_REFRESH === 'true',
   enableCsrfHeaders: import.meta.env.VITE_ENABLE_CSRF_HEADERS === 'true',
   enableApiCredentials: import.meta.env.VITE_ENABLE_API_CREDENTIALS === 'true',
+  enableAuthCookieMode: import.meta.env.VITE_ENABLE_AUTH_COOKIE_MODE === 'true',
 } as const;
