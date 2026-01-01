@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError, ValidationError, AccountStatusError } from '../utils/errors';
 import { env } from '../config/env';
+import { RequestWithId, logger } from './requestId.middleware';
 
 export function errorHandler(
   err: Error,
@@ -8,7 +9,16 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error('Error:', err);
+  const requestId = (req as RequestWithId).requestId || 'unknown';
+  
+  // Structured error logging
+  logger.error('Request error', {
+    requestId,
+    path: req.path,
+    method: req.method,
+    error: err.message,
+    stack: env.isDevelopment ? err.stack : undefined
+  });
 
   if (err instanceof ValidationError) {
     return res.status(err.statusCode).json({

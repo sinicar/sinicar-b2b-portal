@@ -7,6 +7,8 @@ import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { validateCsrf } from './security/csrf';
 import { authCookieBridge } from './middlewares/authCookieBridge';
+import { generalLimiter, rateLimitConfig, logRateLimitStatus } from './middleware/rateLimit.middleware';
+import { requestIdMiddleware } from './middleware/requestId.middleware';
 
 // Feature flags
 const enableCsrf = process.env.ENABLE_CSRF === 'true';
@@ -26,6 +28,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parser (required for CSRF and auth cookie)
 app.use(cookieParser());
+
+// Request ID for tracing
+app.use(requestIdMiddleware);
+
+// Global rate limiting (feature-flagged, OFF by default)
+app.use(generalLimiter);
 
 // Auth cookie bridge (reads cookie, sets Authorization header) - feature-flagged, OFF by default
 if (enableAuthCookie) {
@@ -60,10 +68,12 @@ function startServer() {
 ║  Port: ${env.port.toString().padEnd(40)}║
 ║  API Version: ${env.api.version.padEnd(33)}║
 ║  CORS Origin: ${(Array.isArray(env.cors.origin) ? env.cors.origin.join(', ') : env.cors.origin).slice(0, 30).padEnd(33)}║
+║  Rate Limit: ${(rateLimitConfig.enabled ? 'ENABLED' : 'DISABLED').padEnd(35)}║
 ║  CSRF Middleware: ${(enableCsrf ? 'ENABLED' : 'DISABLED').padEnd(29)}║
 ║  Auth Cookie: ${(enableAuthCookie ? 'ENABLED' : 'DISABLED').padEnd(33)}║
 ╚══════════════════════════════════════════════════╝
     `);
+    logRateLimitStatus();
   });
 }
 
