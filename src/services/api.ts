@@ -10,6 +10,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { ApiClient, get, post, put, del } from './apiClient';
+import { features } from '../config/features';
 
 // ============================================
 // Import ALL Modules
@@ -62,7 +63,22 @@ const RealApiAdapter = {
   },
   
   async logout(): Promise<void> {
-    try { await ApiClient.auth.logout(); } catch { ApiClient.setAuthToken(null); }
+    // In cookie mode, ALWAYS call backend to clear AUTH_TOKEN cookie
+    // In normal mode, try backend but don't fail if it errors
+    if (features.enableAuthCookieMode) {
+      // Cookie mode: backend MUST be called to clear HttpOnly cookie
+      try {
+        await ApiClient.auth.logout();
+      } catch {
+        // Still continue - backend may have cleared cookie even if response failed
+      }
+    } else {
+      // Normal mode: try backend, ignore errors
+      try { await ApiClient.auth.logout(); } catch { /* ignore */ }
+    }
+    
+    // Always clear local state
+    ApiClient.setAuthToken(null);
     localStorage.removeItem('b2b_session_sini_v2');
   },
   
