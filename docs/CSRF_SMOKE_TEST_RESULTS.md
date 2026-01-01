@@ -1,12 +1,17 @@
 # CSRF Smoke Test Results
 
 > **Date**: 2026-01-01
-> **Status**: Ready for Manual Test
-> **Tester**: [To be filled after manual testing]
+> **Status**: ⚠️ Requires Manual Execution
+> **Tester**: User (Manual Testing Required)
 
----
+## Execution Notes
 
-## Environment Configuration
+**Automated testing blocked by:**
+1. `.env` files are gitignored — cannot modify programmatically
+2. Backend startup requires manual `.env` configuration
+3. Tests A-F must be executed manually by user
+
+**Action Required:** Follow setup instructions below, then run tests manually.
 
 ### Backend (`backend/.env`)
 
