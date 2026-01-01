@@ -19,7 +19,7 @@ import {
   updatePassword
 } from './password-reset.service';
 import { issueCsrfCookie } from '../../security/csrf';
-import { issueAuthCookie } from '../../security/authCookie';
+import { issueAuthCookie, clearAuthCookie } from '../../security/authCookie';
 
 const router = Router();
 
@@ -42,6 +42,10 @@ router.post('/register', validate(registerSchema), asyncHandler(async (req: any,
 
 router.post('/logout', authMiddleware, asyncHandler(async (req: AuthRequest, res: any) => {
   const result = await authService.logout(req.user!.id);
+  
+  // Clear auth cookie on logout (if ENABLE_AUTH_COOKIE=true)
+  clearAuthCookie(res);
+  
   successResponse(res, result, result.message);
 }));
 
