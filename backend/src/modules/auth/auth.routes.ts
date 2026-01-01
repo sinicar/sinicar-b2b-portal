@@ -19,6 +19,7 @@ import {
   updatePassword
 } from './password-reset.service';
 import { issueCsrfCookie } from '../../security/csrf';
+import { issueAuthCookie } from '../../security/authCookie';
 
 const router = Router();
 
@@ -27,6 +28,9 @@ router.post('/login', validate(loginSchema), asyncHandler(async (req: any, res: 
   
   // Issue CSRF cookie on successful login (if enabled)
   issueCsrfCookie(res);
+  
+  // Issue HttpOnly auth cookie on successful login (if ENABLE_AUTH_COOKIE=true)
+  issueAuthCookie(res, result.accessToken);
   
   successResponse(res, result, 'تم تسجيل الدخول بنجاح');
 }));
